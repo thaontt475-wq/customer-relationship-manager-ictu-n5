@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập - CRM System</title>
+  <link rel="stylesheet" href="login.css">
+</head>
+<body>
+  <div class="login-card">
+    <h2>Hệ Thống CRM</h2>
+    <p>Đăng nhập để tiếp tục</p>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" required placeholder="nhanvien@company.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+
+      <div id="errorMessage" class="error-alert" style="display: none;"></div>
+
+      <button type="submit" id="btnLogin">Đăng nhập</button>
+    </form>
+  </div>
+
+  <script src="../shared/js/endpoints.js"></script>
+  <script src="login.js"></script>
+</body>
+</html>
