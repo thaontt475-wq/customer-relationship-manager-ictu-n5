@@ -1,4 +1,3 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -6,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nhật ký hệ thống (Audit Log) - ICTU CRM</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/audit/audit.css">
+    <link rel="stylesheet" href="../../css/audit/audit.css">
 </head>
 <body>
     <div class="app-layout">
@@ -41,7 +40,7 @@
                     <form id="audit-filter-form" class="filter-grid">
                         <div class="form-group">
                             <label for="filter-entity">Bảng / Đối tượng</label>
-                            <select id="filter-entity" name="entity" class="form-control">
+                            <select id="filter-entity" class="form-control">
                                 <option value="">-- Tất cả đối tượng --</option>
                                 <option value="users">Người dùng (users)</option>
                                 <option value="roles">Vai trò (roles)</option>
@@ -52,7 +51,7 @@
 
                         <div class="form-group">
                             <label for="filter-action">Hành động</label>
-                            <select id="filter-action" name="action" class="form-control">
+                            <select id="filter-action" class="form-control">
                                 <option value="">-- Tất cả hành động --</option>
                                 <option value="INSERT">INSERT (Tạo mới)</option>
                                 <option value="UPDATE">UPDATE (Chỉnh sửa)</option>
@@ -62,11 +61,11 @@
 
                         <div class="form-group">
                             <label for="filter-user">Người thực hiện</label>
-                            <input type="text" id="filter-user" name="user" class="form-control" placeholder="Nhập tên hoặc email...">
+                            <input type="text" id="filter-user" class="form-control" placeholder="Nhập tên hoặc email...">
                         </div>
 
                         <div class="form-group">
-                            <button type="submit" class="btn-filter" id="btn-filter">
+                            <button type="submit" class="btn-filter">
                                 <i class="fa-solid fa-filter"></i> Lọc dữ liệu
                             </button>
                         </div>
@@ -132,48 +131,14 @@
         </div>
     </div>
 
-    <!-- SCRIPT GỌI API BACKEND VÀ RENDER DỮ LIỆU -->
+    <!-- SCRIPT XỬ LÝ LỌC TRÊN HTML MOCK -->
     <script>
-        const API_AUDIT_LOGS = "${pageContext.request.contextPath}/api/audit-logs";
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const filterForm = document.getElementById("audit-filter-form");
-            const tbody = document.getElementById("audit-table-body");
-
-            async function fetchAuditLogs(params = {}) {
-                try {
-                    const query = new URLSearchParams(params).toString();
-                    const url = query ? (API_AUDIT_LOGS + "?" + query) : API_AUDIT_LOGS;
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        const logs = await res.json();
-                        renderTable(logs);
-                    }
-                } catch (e) {
-                    // Môi trường dev: giữ nguyên mock data hiển thị
-                }
-            }
-
-            function renderTable(logs) {
-                if (!Array.isArray(logs) || logs.length === 0) return;
-                tbody.innerHTML = logs.map(item => `
-                    <tr>
-                        <td>\${item.createdAt || ''}</td>
-                        <td><strong>\${item.userName || ''}</strong><br><small style="color: #64748b;">\${item.userEmail || ''}</small></td>
-                        <td><span class="badge badge-\${(item.action || '').toLowerCase()}">\${item.action || ''}</span></td>
-                        <td><code>\${item.tableName || ''}</code></td>
-                        <td>#\${item.recordId || ''}</td>
-                        <td><div class="change-diff">\${item.changeDetail || ''}</div></td>
-                    </tr>
-                `).join('');
-            }
-
-            filterForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const formData = new FormData(filterForm);
-                const params = Object.fromEntries(formData.entries());
-                fetchAuditLogs(params);
-            });
+        document.getElementById("audit-filter-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const entity = document.getElementById("filter-entity").value;
+            const action = document.getElementById("filter-action").value;
+            const user = document.getElementById("filter-user").value;
+            console.log("Filter applied:", { entity, action, user });
         });
     </script>
 </body>

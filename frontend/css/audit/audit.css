@@ -1,1 +1,242 @@
-/* Audit */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+    background-color: #f0f3f8;
+    color: #334155;
+    font-size: 13.5px;
+}
+
+.app-layout {
+    display: block;
+    min-height: 100vh;
+}
+
+.main-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.topbar {
+    height: 64px;
+    background: #ffffff;
+    border-radius: 0 0 12px 12px;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.topbar-search {
+    position: relative;
+    width: 320px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.topbar-search input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    background: #f8fafc;
+}
+
+.topbar-search input:focus {
+    border-color: #0284c7;
+    background: #ffffff;
+}
+
+.topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: #1e293b;
+}
+
+.dropdown-arrow {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.page-content {
+    padding: 0 16px 32px 16px;
+}
+
+.page-title-box h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 3px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    background: #ffffff;
+}
+
+.form-control:focus {
+    border-color: #0284c7;
+}
+
+.btn-filter {
+    padding: 8.5px 16px;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.15s;
+    height: 35px;
+}
+
+.btn-filter:hover {
+    background: #0369a1;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.audit-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 12px 14px;
+    border-bottom: 1px solid #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.audit-table td {
+    padding: 13px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.audit-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.badge-insert { background: #dcfce7; color: #15803d; }
+.badge-update { background: #e0f2fe; color: #0369a1; }
+.badge-delete { background: #fee2e2; color: #b91c1c; }
+
+.change-diff {
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.diff-old {
+    color: #dc2626;
+    text-decoration: line-through;
+    margin-right: 6px;
+}
+
+.diff-new {
+    color: #16a34a;
+    font-weight: 600;
+}
