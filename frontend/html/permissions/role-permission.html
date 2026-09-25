@@ -1,4 +1,3 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -6,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Phân quyền & Gán nhóm kinh doanh - ICTU CRM</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/permissions/permissions.css">
+    <link rel="stylesheet" href="../../css/permissions/permissions.css">
 </head>
 <body>
     <div class="app-layout">
@@ -45,7 +44,7 @@
                             <div class="form-group">
                                 <label for="user-select">Chọn nhân viên: <span class="required">*</span></label>
                                 <div class="user-select-wrap">
-                                    <select id="user-select" name="userId" required>
+                                    <select id="user-select" required>
                                         <option value="4" data-avatar="https://ui-avatars.com/api/?name=Nguyen+Viet+Tien&background=1e293b&color=fff" selected>
                                             Nguyễn Việt Tiến (tien.nv@company.com)
                                         </option>
@@ -121,7 +120,7 @@
                             <!-- Ô CHỌN NHÓM PHỤ TRÁCH -->
                             <div class="form-group" id="group-select-container">
                                 <label for="department-select">Gán nhóm kinh doanh phụ trách: <span class="required">*</span></label>
-                                <select id="department-select" name="departmentId">
+                                <select id="department-select">
                                     <option value="">-- Chọn nhóm kinh doanh --</option>
                                     <option value="1" selected>Nhóm Kinh Doanh 1 (Miền Bắc)</option>
                                     <option value="2">Nhóm Kinh Doanh 2 (Miền Nam)</option>
@@ -161,10 +160,8 @@
         </div>
     </div>
 
-    <!-- SCRIPT TÍCH HỢP SERVLET API -->
+    <!-- SCRIPT CHẠY MOCK TRỰC TIẾP CHO BẢN HTML PROTOTYPE -->
     <script>
-        const API_ROLE_ASSIGN = "${pageContext.request.contextPath}/api/roles/assign";
-
         document.addEventListener("DOMContentLoaded", () => {
             const roleTeamLeadToggle = document.getElementById("role-team-lead");
             const groupContainer = document.getElementById("group-select-container");
@@ -173,7 +170,6 @@
             const userSelect = document.getElementById("user-select");
             const selectedUserAvatar = document.getElementById("selected-user-avatar");
             const alertBox = document.getElementById("alert-box");
-            const btnSave = document.getElementById("btn-save");
 
             function showAlert(msg, type) {
                 alertBox.textContent = msg;
@@ -204,7 +200,7 @@
                 }
             });
 
-            form.addEventListener("submit", async (e) => {
+            form.addEventListener("submit", (e) => {
                 e.preventDefault();
                 hideAlert();
 
@@ -222,33 +218,7 @@
                     return;
                 }
 
-                const payload = {
-                    userId: userSelect.value,
-                    roles: selectedRoles,
-                    departmentId: selectedRoles.includes("TEAM_LEAD") ? departmentSelect.value : null
-                };
-
-                btnSave.disabled = true;
-                btnSave.textContent = "Đang lưu...";
-
-                try {
-                    const response = await fetch(API_ROLE_ASSIGN, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (response.ok) {
-                        showAlert("Thành công: Đã cập nhật vai trò và nhóm kinh doanh!", "success");
-                    } else {
-                        showAlert("Thành công: Đã ghi nhận cấu hình phân quyền (Môi trường phát triển)", "success");
-                    }
-                } catch (err) {
-                    showAlert("Thành công: Đã ghi nhận cấu hình phân quyền (Môi trường phát triển)", "success");
-                } finally {
-                    btnSave.disabled = false;
-                    btnSave.textContent = "Lưu phân quyền";
-                }
+                showAlert("Thành công: Đã lưu cấu hình phân quyền cho nhân viên (Bản xem trước HTML)!", "success");
             });
         });
     </script>
