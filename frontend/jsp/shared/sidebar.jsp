@@ -199,21 +199,5 @@
         </div>
     </nav>
 
-    <div class="sidebar__footer">
-        <%
-            String currentUser = null;
-            if (session != null) {
-                Object u = session.getAttribute("username");
-                if (u == null) u = session.getAttribute("userName");
-                if (u == null) u = session.getAttribute("fullName");
-                if (u != null) currentUser = String.valueOf(u);
-            }
-        %>
-        <% if (currentUser != null && !currentUser.trim().isEmpty()) { %>
-            <div class="sidebar__user">
-                <span class="sidebar__user-avatar" aria-hidden="true"><%= escapeHtml(currentUser.substring(0, 1).toUpperCase()) %></span>
-                <span class="sidebar__user-name"><%= escapeHtml(currentUser) %></span>
-            </div>
-        <% } %>
-    </div>
+    <div class="sidebar__footer"></div>
 </aside>
