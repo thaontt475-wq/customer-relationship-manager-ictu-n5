@@ -1,0 +1,1 @@
+<%-- Header dùng chung của hệ thống --%>

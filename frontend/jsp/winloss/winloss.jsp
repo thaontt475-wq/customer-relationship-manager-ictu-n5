@@ -1,0 +1,1 @@
+<%-- Lý do thắng thua và đối thủ --%>
