@@ -1,0 +1,30 @@
+/* Styling Sidebar dùng chung */
+.sidebar {
+    width: 240px;
+    height: 100vh;
+    background-color: #1e293b;
+    color: #ffffff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding: 20px 0;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px 24px;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background-color: #334155;
+    color: #ffffff;
+}
+
+.main-content {
+    margin-left: 240px;
+    padding: 24px;
+}

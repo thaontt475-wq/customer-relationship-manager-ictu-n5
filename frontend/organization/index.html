@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cơ cấu tổ chức kinh doanh - CRM System</title>
+  <link rel="stylesheet" href="../shared/css/sidebar.css">
+  <link rel="stylesheet" href="organization.css">
+</head>
+<body>
+
+  <!-- Khung chứa Sidebar Menu -->
+  <div id="sidebar-container"></div>
+
+  <!-- Nội dung chính -->
+  <div class="main-content">
+    <div class="header">
+      <div>
+        <h1>Cơ Cấu Tổ Chức Kinh Doanh</h1>
+        <p>Quản lý sơ đồ phòng ban, nhóm bán hàng và trưởng nhóm</p>
+      </div>
+      <button class="btn-primary" id="btnOpenAddModal">+ Thêm Đơn Vị Mới</button>
+    </div>
+
+    <!-- Sơ đồ cây / Danh sách phòng ban -->
+    <div class="tree-container" id="orgTree">
+      <!-- JS sẽ render sơ đồ tổ chức vào đây -->
+    </div>
+  </div>
+
+  <!-- Modal Thêm/Sửa Phòng Ban -->
+  <div id="orgModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="btnCloseModal">&times;</span>
+      <h2 id="modalTitle">Thêm Đơn Vị Kinh Doanh</h2>
+      <form id="orgForm">
+        <div class="form-group">
+          <label for="unitName">Tên đơn vị / nhóm (*)</label>
+          <input type="text" id="unitName" required placeholder="VD: Nhóm Sales Miền Bắc">
+        </div>
+
+        <div class="form-group">
+          <label for="parentUnit">Trực thuộc đơn vị</label>
+          <select id="parentUnit">
+            <option value="">-- Là Cấp Cao Nhất (Công ty) --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="leaderName">Trưởng đơn vị / Leader</label>
+          <input type="text" id="leaderName" placeholder="VD: Nguyễn Văn A">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancel">Hủy</button>
+          <button type="submit" class="btn-primary">Lưu Đơn Vị</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../shared/js/endpoints.js"></script>
+  <script src="../shared/js/sidebar.js"></script>
+  <script src="organization.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lý do Thắng/Thua & Đối thủ - CRM System</title>
+  <link rel="stylesheet" href="../shared/css/sidebar.css">
+  <link rel="stylesheet" href="winloss.css">
+</head>
+<body>
+
+  <!-- Khung chứa Sidebar Menu -->
+  <div id="sidebar-container"></div>
+
+  <!-- Nội dung chính -->
+  <div class="main-content">
+    <div class="header">
+      <div>
+        <h1>Cấu Hình Lý Do Thắng/Thua & Đối Thủ</h1>
+        <p>Quản lý danh sách đối thủ cạnh tranh và các nguyên nhân chốt/hỏng deal</p>
+      </div>
+    </div>
+
+    <!-- Thanh chuyển Tab -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('reasons')">📋 Lý Do Thắng/Thua</button>
+      <button class="tab-btn" onclick="switchTab('competitors')">⚔️ Đối Thủ Cạnh Tranh</button>
+    </div>
+
+    <!-- TAB 1: Danh sách Lý do Thắng/Thua -->
+    <div id="tab-reasons" class="tab-content active">
+      <div class="tab-header">
+        <h3>Danh Sách Lý Do</h3>
+        <button class="btn-primary" onclick="openReasonModal()">+ Thêm Lý Do</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Nội dung lý do</th>
+            <th>Loại</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="reasonTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- TAB 2: Danh sách Đối thủ -->
+    <div id="tab-competitors" class="tab-content">
+      <div class="tab-header">
+        <h3>Danh Sách Đối Thủ</h3>
+        <button class="btn-primary" onclick="openCompetitorModal()">+ Thêm Đối Thủ</button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Tên đối thủ</th>
+            <th>Điểm mạnh</th>
+            <th>Điểm yếu</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="competitorTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Thêm Lý Do -->
+  <div id="reasonModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModals()">&times;</span>
+      <h2>Thêm Lý Do Thắng/Thua</h2>
+      <form id="reasonForm">
+        <div class="form-group">
+          <label>Nội dung lý do (*)</label>
+          <input type="text" id="reasonText" required placeholder="VD: Giá quá cao, Tính năng chưa đáp ứng...">
+        </div>
+        <div class="form-group">
+          <label>Phân loại (*)</label>
+          <select id="reasonType">
+            <option value="WIN">Lý do Thắng (Win)</option>
+            <option value="LOSS">Lý do Thua (Loss)</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeModals()">Hủy</button>
+          <button type="submit" class="btn-primary">Lưu Lý Do</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Thêm Đối Thủ -->
+  <div id="competitorModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModals()">&times;</span>
+      <h2>Thêm Đối Thủ Cạnh Tranh</h2>
+      <form id="competitorForm">
+        <div class="form-group">
+          <label>Tên công ty / Đối thủ (*)</label>
+          <input type="text" id="compName" required placeholder="VD: Công ty TNHH Giải pháp B">
+        </div>
+        <div class="form-group">
+          <label>Điểm mạnh</label>
+          <input type="text" id="compStrength" placeholder="VD: Giá rẻ, thương hiệu mạnh">
+        </div>
+        <div class="form-group">
+          <label>Điểm yếu</label>
+          <input type="text" id="compWeakness" placeholder="VD: Hỗ trợ chậm, ít tính năng">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeModals()">Hủy</button>
+          <button type="submit" class="btn-primary">Lưu Đối Thủ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../shared/js/endpoints.js"></script>
+  <script src="../shared/js/sidebar.js"></script>
+  <script src="winloss.js"></script>
+</body>
+</html>
