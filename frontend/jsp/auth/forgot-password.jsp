@@ -1,4 +1,14 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%--
+  View Quên mật khẩu (CRM-23 / S1-03: Quên mật khẩu qua email)
+  BLOCKER / GHI CHÚ TÍCH HỢP BE:
+    1. Endpoint: Chờ BE Thái xác nhận route chính thức cho ForgotPasswordServlet
+       (Hiện tạm để POST ${pageContext.request.contextPath}/forgot-password).
+    2. Request Attributes Contract:
+       - requestScope.error: Thông báo lỗi từ Servlet (nếu có).
+       - requestScope.message: Thông báo kết quả trung lập sau khi gửi yêu cầu.
+       - requestScope.email: Giá trị email để giữ lại trên form khi có lỗi.
+--%>
 <%!
     private String escapeHtml(String input) {
         if (input == null) return "";
@@ -11,20 +21,9 @@
 %>
 <%
     String emailVal = (String) request.getAttribute("email");
-    if (emailVal == null) {
-        emailVal = request.getParameter("email");
-    }
     String safeEmail = escapeHtml(emailVal);
-
     String errorMsg = (String) request.getAttribute("error");
-    if (errorMsg == null) {
-        errorMsg = (String) request.getAttribute("errorMessage");
-    }
-
-    String successMsg = (String) request.getAttribute("message");
-    if (successMsg == null) {
-        successMsg = (String) request.getAttribute("successMessage");
-    }
+    String messageMsg = (String) request.getAttribute("message");
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -71,8 +70,8 @@
 
                 <% if (errorMsg != null && !errorMsg.trim().isEmpty()) { %>
                     <div class="auth-message auth-error" role="alert"><%= escapeHtml(errorMsg) %></div>
-                <% } else if (successMsg != null && !successMsg.trim().isEmpty()) { %>
-                    <div class="auth-message auth-success" role="status"><%= escapeHtml(successMsg) %></div>
+                <% } else if (messageMsg != null && !messageMsg.trim().isEmpty()) { %>
+                    <div class="auth-message auth-success" role="status"><%= escapeHtml(messageMsg) %></div>
                 <% } else { %>
                     <div class="auth-message auth-message--empty"></div>
                 <% } %>
