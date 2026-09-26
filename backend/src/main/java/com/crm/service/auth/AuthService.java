@@ -19,6 +19,25 @@ public class AuthService {
     private final PasswordResetTokenDAO tokenDAO = new PasswordResetTokenDAO();
     private final EmailService emailService = new EmailService();
 
+    /** Authentication result excludes credentials and password hashes. */
+    public record LoginResult(long userId, String displayName, java.util.List<String> roles) {
+        public LoginResult { roles = java.util.List.copyOf(roles); }
+    }
+
+    public LoginResult login(String email, String password) throws SQLException {
+        if (email == null || email.isBlank() || password == null || password.isBlank()) return null;
+        User user = userDAO.findForLogin(email.trim().toLowerCase(java.util.Locale.ROOT));
+        if (user == null || !user.isActive() || !"ACTIVE".equals(user.getStatus())) return null;
+        try {
+            if (!PasswordUtil.verifyPassword(password, user.getPasswordHash())) return null;
+        } catch (IllegalArgumentException e) {
+            LOGGER.warning("Invalid stored BCrypt hash for user id " + user.getId());
+            return null;
+        }
+        return new LoginResult(user.getId(), user.getDisplayName(),
+                user.getRoles().stream().map(com.crm.model.Role::getName).toList());
+    }
+
     /**
      * Request a password reset.
      * Luôn trả void — caller phải luôn hiển thị generic success message
