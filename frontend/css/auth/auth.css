@@ -3,12 +3,17 @@
     --bg-secondary: #eef3ff;
     --card-bg: rgba(255, 255, 255, 0.92);
     --border-color: #dfe7ff;
+
     --text-primary: #1f2937;
     --text-secondary: #5b6475;
+
     --primary-strong: #2f5bff;
     --primary-soft: #e9eeff;
     --primary-dark: #1f3fcf;
+
     --danger: #dc2626;
+    --success: #16a34a;
+
     --shadow: 0 24px 60px rgba(20, 37, 120, 0.14);
 }
 
@@ -16,17 +21,24 @@
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     min-height: 100%;
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+    background: linear-gradient(135deg,
+            var(--bg-secondary) 0%,
+            var(--bg-primary) 100%);
     color: var(--text-primary);
 }
 
 body {
     min-height: 100vh;
 }
+
+/* =========================
+   AUTH PAGE
+   ========================= */
 
 .auth-page {
     min-height: 100vh;
@@ -52,6 +64,10 @@ body {
     backdrop-filter: blur(8px);
 }
 
+/* =========================
+   BRAND
+   ========================= */
+
 .auth-brand {
     display: inline-flex;
     align-items: center;
@@ -62,15 +78,23 @@ body {
 .brand-mark {
     width: 46px;
     height: 46px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 14px;
-    background: linear-gradient(135deg, var(--primary-strong), var(--primary-dark));
-    color: #fff;
+
+    background: linear-gradient(135deg,
+            var(--primary-strong),
+            var(--primary-dark));
+
+    color: #ffffff;
+
     font-size: 0.9rem;
     font-weight: 700;
     letter-spacing: 0.04em;
+
     box-shadow: 0 12px 24px rgba(47, 91, 255, 0.28);
 }
 
@@ -80,12 +104,17 @@ body {
     color: var(--text-primary);
 }
 
+/* =========================
+   HEADER
+   ========================= */
+
 .auth-header {
     margin-bottom: 28px;
 }
 
 .auth-header h1 {
     margin: 0 0 8px;
+
     font-size: clamp(2rem, 3vw, 2.4rem);
     line-height: 1.2;
     letter-spacing: -0.04em;
@@ -93,10 +122,16 @@ body {
 
 .auth-header p {
     margin: 0;
+
     font-size: 0.98rem;
     line-height: 1.6;
+
     color: var(--text-secondary);
 }
+
+/* =========================
+   FORM
+   ========================= */
 
 .auth-form {
     display: flex;
@@ -119,13 +154,20 @@ body {
 .field-group input {
     width: 100%;
     height: 52px;
+
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    background: #fff;
+
+    background: #ffffff;
+
     padding: 0 14px;
+
     font-size: 1rem;
     color: var(--text-primary);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .field-group input::placeholder {
@@ -134,9 +176,16 @@ body {
 
 .field-group input:focus {
     outline: none;
+
     border-color: var(--primary-strong);
-    box-shadow: 0 0 0 4px rgba(47, 91, 255, 0.12);
+
+    box-shadow:
+        0 0 0 4px rgba(47, 91, 255, 0.12);
 }
+
+/* =========================
+   ACTIONS / LINKS
+   ========================= */
 
 .auth-actions {
     display: flex;
@@ -151,14 +200,18 @@ body {
 
 .forgot-link,
 .back-link {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--primary-strong);
-    text-decoration: none;
-    transition: color 0.2s ease;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    color: var(--primary-strong);
+
+    text-decoration: none;
+
+    transition: color 0.2s ease;
 }
 
 .forgot-link:hover,
@@ -169,28 +222,55 @@ body {
     text-decoration: underline;
 }
 
+/* =========================
+   BUTTON
+   ========================= */
+
 .auth-button {
     height: 52px;
+
     border: none;
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary-strong), var(--primary-dark));
-    color: #fff;
+
+    background: linear-gradient(135deg,
+            var(--primary-strong),
+            var(--primary-dark));
+
+    color: #ffffff;
+
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.01em;
+
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 14px 28px rgba(47, 91, 255, 0.24);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+    box-shadow:
+        0 14px 28px rgba(47, 91, 255, 0.24);
 }
 
 .auth-button:hover,
 .auth-button:focus {
     transform: translateY(-1px);
-    box-shadow: 0 18px 30px rgba(47, 91, 255, 0.28);
+
+    box-shadow:
+        0 18px 30px rgba(47, 91, 255, 0.28);
 }
+
+.auth-button:active {
+    transform: translateY(0);
+}
+
+/* =========================
+   MESSAGE
+   ========================= */
 
 .auth-message {
     min-height: 20px;
+
     font-size: 0.9rem;
     line-height: 1.5;
 }
@@ -205,11 +285,19 @@ body {
 }
 
 .auth-success {
-    color: #16a34a;
+    color: var(--success);
     font-weight: 600;
 }
 
+/* =========================
+   RESPONSIVE
+   ========================= */
+
 @media (max-width: 480px) {
+    .auth-page {
+        padding: 20px 14px;
+    }
+
     .auth-card {
         padding: 24px 18px;
         border-radius: 18px;
