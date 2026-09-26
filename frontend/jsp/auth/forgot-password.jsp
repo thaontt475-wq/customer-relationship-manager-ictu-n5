@@ -56,7 +56,7 @@
                             </header>
 
                             <form class="auth-form" method="post"
-                                action="${pageContext.request.contextPath}/api/auth/forgot-password">
+                                action="${pageContext.request.contextPath}/forgot-password">
 
                                 <div class="field-group">
 
