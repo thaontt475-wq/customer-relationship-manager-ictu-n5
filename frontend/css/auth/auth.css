@@ -144,16 +144,27 @@ body {
     margin-top: -4px;
 }
 
-.forgot-link {
+.auth-actions--center {
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.forgot-link,
+.back-link {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--primary-strong);
     text-decoration: none;
     transition: color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .forgot-link:hover,
-.forgot-link:focus {
+.forgot-link:focus,
+.back-link:hover,
+.back-link:focus {
     color: var(--primary-dark);
     text-decoration: underline;
 }
@@ -190,6 +201,11 @@ body {
 
 .auth-error {
     color: var(--danger);
+    font-weight: 600;
+}
+
+.auth-success {
+    color: #16a34a;
     font-weight: 600;
 }
 
