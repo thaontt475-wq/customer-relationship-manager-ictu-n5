@@ -1,5 +1,6 @@
 package com.crm.controller.auth;
 
+import com.crm.util.SessionKey;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,6 +11,8 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.List;
 
 @WebServlet("/api/auth/session")
 public class SessionServlet extends HttpServlet {
@@ -29,37 +32,54 @@ public class SessionServlet extends HttpServlet {
         }
 
         if (session == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            GSON.toJson(new SessionResponse(false, "Chưa đăng nhập", null), response.getWriter());
+            writeUnauthorized(response);
             return;
         }
 
-        /*
-         * TODO / BLOCKER (CRM-21 Integration):
-         * CRM-21 (Login BE) chưa chốt authentication session contract.
-         * Chưa có quy ước thống nhất về session attribute lưu thông tin người dùng
-         * (ví dụ: 'currentUser', 'userId', 'AUTH_USER', hoặc User DTO).
-         *
-         * Nguyên tắc an toàn theo CRM-22:
-         * 1. Tuyệt đối không coi chỉ cần HttpSession tồn tại là người dùng đã đăng nhập.
-         * 2. Không tự ý bịa đặt (invent) session attribute names (user, userId, currentUser, authenticatedUser, roles...).
-         * 3. Không hard-code user hoặc role.
-         *
-         * Khi CRM-21 hoàn tất và thống nhất Session Contract:
-         * - Lấy session attribute hợp lệ theo contract của CRM-21.
-         * - Nếu tồn tại authenticated user hợp lệ:
-         *       response.setStatus(HttpServletResponse.SC_OK);
-         *       GSON.toJson(new SessionResponse(true, "Phiên đăng nhập hợp lệ", userData), response.getWriter());
-         * - Nếu không hợp lệ:
-         *       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-         *       GSON.toJson(new SessionResponse(false, "Chưa đăng nhập", null), response.getWriter());
-         *
-         * Hiện tại: Vì chưa thể xác định authenticated user một cách chính xác, phản hồi SC_UNAUTHORIZED (401)
-         * để không giả vờ biết user đã đăng nhập khi Login contract chưa tồn tại.
-         */
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        GSON.toJson(new SessionResponse(false, "Chưa xác thực: Chờ CRM-21 chốt authentication session contract", null), response.getWriter());
+        Object currentUser = null;
+        Object roles = null;
+        try {
+            currentUser = session.getAttribute(SessionKey.CURRENT_USER);
+            roles = session.getAttribute(SessionKey.ROLES);
+        } catch (IllegalStateException ignored) {
+            writeUnauthorized(response);
+            return;
+        }
+
+        if (currentUser == null) {
+            writeUnauthorized(response);
+            return;
+        }
+
+        Object resolvedRoles = (roles != null) ? roles : List.of();
+        Object expiresAt = resolveExpiresAt(session);
+
+        SessionData data = new SessionData(currentUser, resolvedRoles, expiresAt);
+        response.setStatus(HttpServletResponse.SC_OK);
+        GSON.toJson(new SessionResponse(true, "Lấy thông tin phiên làm việc thành công", data), response.getWriter());
     }
 
-    private record SessionResponse(boolean success, String message, Object data) { }
+    private static void writeUnauthorized(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        GSON.toJson(new SessionResponse(false, "Chưa đăng nhập", null), response.getWriter());
+    }
+
+    private static Object resolveExpiresAt(HttpSession session) {
+        try {
+            Object customExpiresAt = session.getAttribute(SessionKey.EXPIRES_AT);
+            if (customExpiresAt != null) {
+                return customExpiresAt;
+            }
+            int maxInactive = session.getMaxInactiveInterval();
+            if (maxInactive > 0) {
+                return Instant.ofEpochMilli(session.getLastAccessedTime() + ((long) maxInactive * 1000L)).toString();
+            }
+        } catch (IllegalStateException ignored) {
+            // Concurrent invalidation
+        }
+        return null;
+    }
+
+    private record SessionResponse(boolean success, String message, SessionData data) { }
+    private record SessionData(Object currentUser, Object roles, Object expiresAt) { }
 }
