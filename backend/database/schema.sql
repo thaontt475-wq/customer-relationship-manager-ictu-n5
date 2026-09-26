@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_users_email (email),
-    INDEX idx_users_username (username)
+    INDEX idx_users_username (username),
+    INDEX idx_users_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Password reset tokens table
@@ -31,3 +32,31 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
     INDEX idx_password_reset_user_id (user_id),
     INDEX idx_password_reset_expires_at (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Account lock and handover decisions (CRM-30)
+CREATE TABLE IF NOT EXISTS user_lock_handovers (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    target_user_id BIGINT NOT NULL,
+    recipient_user_id BIGINT NOT NULL,
+    locked_by_user_id BIGINT NOT NULL,
+    lock_reason VARCHAR(500) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_handover_target
+        FOREIGN KEY (target_user_id)
+        REFERENCES users(id),
+
+    CONSTRAINT fk_handover_recipient
+        FOREIGN KEY (recipient_user_id)
+        REFERENCES users(id),
+
+    CONSTRAINT fk_handover_locked_by
+        FOREIGN KEY (locked_by_user_id)
+        REFERENCES users(id),
+
+    INDEX idx_handover_target (target_user_id),
+    INDEX idx_handover_recipient (recipient_user_id),
+    INDEX idx_handover_created_at (created_at)
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;
