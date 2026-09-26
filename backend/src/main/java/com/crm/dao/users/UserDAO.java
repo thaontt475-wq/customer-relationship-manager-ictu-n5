@@ -11,6 +11,37 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDAO {
+    public User findForLogin(String email) throws SQLException {
+        String sql = "SELECT u.id, u.email, u.password_hash, "
+                + "COALESCE(u.display_name, u.full_name) AS display_name, u.active, u.status, "
+                + "r.id AS role_id, r.name AS role_name FROM users u "
+                + "LEFT JOIN user_roles ur ON ur.user_id = u.id "
+                + "LEFT JOIN roles r ON r.id = ur.role_id WHERE u.email = ? ORDER BY r.id";
+        try (Connection conn = com.crm.util.DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                User user = null;
+                List<com.crm.model.Role> roles = new ArrayList<>();
+                while (rs.next()) {
+                    if (user == null) {
+                        user = new User();
+                        user.setId(rs.getLong("id"));
+                        user.setEmail(rs.getString("email"));
+                        user.setPasswordHash(rs.getString("password_hash"));
+                        user.setDisplayName(rs.getString("display_name"));
+                        user.setActive(rs.getBoolean("active"));
+                        user.setStatus(rs.getString("status"));
+                    }
+                    long roleId = rs.getLong("role_id");
+                    if (!rs.wasNull()) roles.add(new com.crm.model.Role(roleId, rs.getString("role_name")));
+                }
+                if (user != null) user.setRoles(roles);
+                return user;
+            }
+        }
+    }
+
 
     public User findByEmail(Connection conn, String email) throws SQLException {
         String sql = "SELECT id, username, email, password_hash, full_name, phone, status FROM users WHERE email = ?";
