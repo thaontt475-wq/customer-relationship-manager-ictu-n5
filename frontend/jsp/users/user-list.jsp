@@ -3,9 +3,20 @@
 <%--
   User List View (CRM-30 / S1-10: Khóa tài khoản và bàn giao dữ liệu)
   API Base đã thống nhất: /api/users
-  BLOCKER / GHI CHÚ TÍCH HỢP BE:
-    - Danh sách người dùng được truyền qua request attribute: "users" hoặc "userList".
-    - Trạng thái tài khoản: "status" mang giá trị ACTIVE/1/Hoạt động hoặc LOCKED/0/Đã khóa.
+
+  CONTRACT GIAO DIỆN & BACKEND:
+    - Request attributes:
+        + users (List<?>): Danh sách người dùng
+        + error (String): Thông báo lỗi
+        + message (String): Thông báo thành công
+    - Property names (User Model):
+        + id, fullName, email, role, status
+    - Status values:
+        + ACTIVE: Đang hoạt động
+        + LOCKED: Đã khóa
+
+  BLOCKER:
+    - Chờ Backend hoàn tất UserServlet / UserService / UserDAO trả dữ liệu qua attribute "users".
 --%>
 <%!
     private String escapeHtml(String input) {
@@ -18,7 +29,7 @@
     }
 
     private String getProp(Object obj, String propName) {
-        if (obj == null) return "";
+        if (obj == null || propName == null) return "";
         if (obj instanceof java.util.Map<?, ?> map) {
             Object v = map.get(propName);
             return v != null ? v.toString() : "";
@@ -37,10 +48,8 @@
     String errorMsg = (String) request.getAttribute("error");
     String messageMsg = (String) request.getAttribute("message");
 
+    // Sử dụng duy nhất 1 request attribute "users", không fallback đoán tên khác
     Object rawUsers = request.getAttribute("users");
-    if (rawUsers == null) {
-        rawUsers = request.getAttribute("userList");
-    }
     List<?> users = (rawUsers instanceof List<?>) ? (List<?>) rawUsers : null;
 %>
 <!DOCTYPE html>
@@ -173,16 +182,10 @@
                                         if (item == null) continue;
                                         String uid = getProp(item, "id");
                                         String fullName = getProp(item, "fullName");
-                                        if (fullName.isEmpty()) fullName = getProp(item, "name");
-                                        if (fullName.isEmpty()) fullName = getProp(item, "username");
                                         String email = getProp(item, "email");
                                         String role = getProp(item, "role");
-                                        if (role.isEmpty()) role = getProp(item, "roleName");
                                         String status = getProp(item, "status");
-                                        boolean isLocked = "LOCKED".equalsIgnoreCase(status)
-                                                        || "0".equals(status)
-                                                        || "Đã khóa".equalsIgnoreCase(status)
-                                                        || "DISABLED".equalsIgnoreCase(status);
+                                        boolean isLocked = "LOCKED".equalsIgnoreCase(status);
                                         String avatarLetter = !fullName.isEmpty() ? fullName.substring(0, 1).toUpperCase() : "U";
                                     %>
                                         <tr>
@@ -193,8 +196,8 @@
                                                         <%= escapeHtml(avatarLetter) %>
                                                     </div>
                                                     <div>
-                                                        <div class="user-name-text"><%= escapeHtml(fullName) %></div>
-                                                        <div class="user-email-text"><%= escapeHtml(email) %></div>
+                                                        <div class="user-name-text"><%= escapeHtml(!fullName.isEmpty() ? fullName : "Chưa có tên") %></div>
+                                                        <div class="user-email-text"><%= escapeHtml(!email.isEmpty() ? email : "Chưa có email") %></div>
                                                     </div>
                                                 </div>
                                             </td>

@@ -3,12 +3,22 @@
 <%--
   User Detail & Account Lock / Handover View (CRM-30 / S1-10: Khóa tài khoản và bàn giao dữ liệu)
   API Base đã thống nhất: /api/users
-  BLOCKER: Chờ Backend chốt endpoint khóa tài khoản và bàn giao dữ liệu.
-  Request attributes:
-    - user / targetUser: Thông tin tài khoản đang xem.
-    - availableRecipients / activeUsers / users: Danh sách nhân sự khả dụng để nhận bàn giao.
-    - error: Thông báo lỗi.
-    - message: Thông báo thành công.
+
+  CONTRACT GIAO DIỆN & BACKEND:
+    - Request attributes:
+        + user (Object): Thông tin tài khoản cần xem / khóa
+        + availableRecipients (List<?>): Danh sách nhân sự khả dụng để nhận bàn giao
+        + error (String): Thông báo lỗi
+        + message (String): Thông báo thành công
+    - Property names (User Model):
+        + id, username, fullName, email, phone, role, department, createdAt, lastLogin, status
+    - Status values:
+        + ACTIVE: Đang hoạt động
+        + LOCKED: Đã khóa
+
+  BLOCKER:
+    - Chờ Backend chốt endpoint khóa tài khoản và bàn giao dữ liệu.
+    - Chờ Backend cung cấp danh sách "availableRecipients".
 --%>
 <%!
     private String escapeHtml(String input) {
@@ -21,7 +31,7 @@
     }
 
     private String getProp(Object obj, String propName) {
-        if (obj == null) return "";
+        if (obj == null || propName == null) return "";
         if (obj instanceof java.util.Map<?, ?> map) {
             Object v = map.get(propName);
             return v != null ? v.toString() : "";
@@ -40,50 +50,26 @@
     String errorMsg = (String) request.getAttribute("error");
     String messageMsg = (String) request.getAttribute("message");
 
-    // Lấy thông tin user mục tiêu
+    // Lấy thông tin user mục tiêu từ duy nhất 1 attribute: "user"
     Object targetUser = request.getAttribute("user");
-    if (targetUser == null) {
-        targetUser = request.getAttribute("targetUser");
-    }
 
     String userId = getProp(targetUser, "id");
-    if (userId.isEmpty()) {
-        userId = request.getParameter("id");
-    }
-    if (userId == null) userId = "";
-
     String fullName = getProp(targetUser, "fullName");
-    if (fullName.isEmpty()) fullName = getProp(targetUser, "name");
-    if (fullName.isEmpty()) fullName = getProp(targetUser, "username");
-    if (fullName.isEmpty() && !userId.isEmpty()) fullName = "Người dùng #" + userId;
-    if (fullName.isEmpty()) fullName = "Thông tin tài khoản";
-
     String username = getProp(targetUser, "username");
     String email = getProp(targetUser, "email");
     String phone = getProp(targetUser, "phone");
-    if (phone.isEmpty()) phone = getProp(targetUser, "phoneNumber");
     String role = getProp(targetUser, "role");
-    if (role.isEmpty()) role = getProp(targetUser, "roleName");
     String department = getProp(targetUser, "department");
     String createdAt = getProp(targetUser, "createdAt");
     String lastLogin = getProp(targetUser, "lastLogin");
 
     String status = getProp(targetUser, "status");
-    boolean isLocked = "LOCKED".equalsIgnoreCase(status)
-                    || "0".equals(status)
-                    || "Đã khóa".equalsIgnoreCase(status)
-                    || "DISABLED".equalsIgnoreCase(status);
+    boolean isLocked = "LOCKED".equalsIgnoreCase(status);
 
     String avatarLetter = !fullName.isEmpty() ? fullName.substring(0, 1).toUpperCase() : "U";
 
-    // Danh sách nhân sự có thể nhận bàn giao dữ liệu
+    // Danh sách nhân sự nhận bàn giao từ duy nhất 1 attribute: "availableRecipients"
     Object rawRecipients = request.getAttribute("availableRecipients");
-    if (rawRecipients == null) {
-        rawRecipients = request.getAttribute("activeUsers");
-    }
-    if (rawRecipients == null) {
-        rawRecipients = request.getAttribute("users");
-    }
     List<?> recipients = (rawRecipients instanceof List<?>) ? (List<?>) rawRecipients : null;
 %>
 <!DOCTYPE html>
@@ -180,8 +166,8 @@
                                 <div class="user-avatar-lg<%= isLocked ? " user-avatar-lg--locked" : "" %>" aria-hidden="true">
                                     <%= escapeHtml(avatarLetter) %>
                                 </div>
-                                <h2><%= escapeHtml(fullName) %></h2>
-                                <div class="email"><%= escapeHtml(email.isEmpty() ? "Chưa có email" : email) %></div>
+                                <h2><%= escapeHtml(!fullName.isEmpty() ? fullName : "Chưa có tên") %></h2>
+                                <div class="email"><%= escapeHtml(!email.isEmpty() ? email : "Chưa có email") %></div>
                                 <div>
                                     <% if (isLocked) { %>
                                         <span class="status-badge status-badge--locked">
@@ -208,11 +194,11 @@
                                 </div>
                                 <div class="user-details-item">
                                     <span class="user-details-label">Vai trò</span>
-                                    <span class="user-details-value"><%= escapeHtml(role.isEmpty() ? "Chưa phân vai trò" : role) %></span>
+                                    <span class="user-details-value"><%= escapeHtml(!role.isEmpty() ? role : "Chưa phân vai trò") %></span>
                                 </div>
                                 <div class="user-details-item">
                                     <span class="user-details-label">Phòng ban</span>
-                                    <span class="user-details-value"><%= escapeHtml(department.isEmpty() ? "Kinh doanh / CRM" : department) %></span>
+                                    <span class="user-details-value"><%= escapeHtml(!department.isEmpty() ? department : "Chưa cập nhật") %></span>
                                 </div>
                                 <div class="user-details-item">
                                     <span class="user-details-label">Số điện thoại</span>
@@ -268,8 +254,8 @@
                                     <div class="form-group">
                                         <label class="form-label">Tài khoản bị khóa (Bàn giao dữ liệu):</label>
                                         <div class="user-assignee-display">
-                                            <%= escapeHtml(fullName) %> <%= !email.isEmpty() ? "(" + escapeHtml(email) + ")" : "" %>
-                                            <span class="user-assignee-id">[ID: #<%= escapeHtml(userId) %>]</span>
+                                            <%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "Tài khoản")) %> <%= !email.isEmpty() ? "(" + escapeHtml(email) + ")" : "" %>
+                                            <span class="user-assignee-id">[ID: #<%= escapeHtml(userId.isEmpty() ? "---" : userId) %>]</span>
                                         </div>
                                     </div>
 
@@ -289,14 +275,11 @@
                                                         continue;
                                                     }
                                                     String rName = getProp(rItem, "fullName");
-                                                    if (rName.isEmpty()) rName = getProp(rItem, "name");
-                                                    if (rName.isEmpty()) rName = getProp(rItem, "username");
                                                     String rEmail = getProp(rItem, "email");
                                                     String rRole = getProp(rItem, "role");
-                                                    if (rRole.isEmpty()) rRole = getProp(rItem, "roleName");
                                             %>
                                                 <option value="<%= escapeHtml(rId) %>">
-                                                    <%= escapeHtml(rName) %> <%= !rEmail.isEmpty() ? "(" + escapeHtml(rEmail) + ")" : "" %> <%= !rRole.isEmpty() ? " - " + escapeHtml(rRole) : "" %>
+                                                    <%= escapeHtml(!rName.isEmpty() ? rName : "ID #" + rId) %> <%= !rEmail.isEmpty() ? "(" + escapeHtml(rEmail) + ")" : "" %> <%= !rRole.isEmpty() ? " - " + escapeHtml(rRole) : "" %>
                                                 </option>
                                             <%   }
                                                } else { %>
@@ -326,7 +309,7 @@
                                     <div class="confirmation-box">
                                         <input type="checkbox" id="confirmLockCheckbox" name="confirmLock" required>
                                         <label for="confirmLockCheckbox">
-                                            Tôi xác nhận đã kiểm tra kỹ: Tài khoản <strong><%= escapeHtml(fullName) %></strong> sẽ bị khóa quyền truy cập ngay lập tức, và toàn bộ dữ liệu nghiệp vụ sẽ được chuyển giao sang nhân sự tiếp nhận.
+                                            Tôi xác nhận đã kiểm tra kỹ: Tài khoản <strong><%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "này")) %></strong> sẽ bị khóa quyền truy cập ngay lập tức, và toàn bộ dữ liệu nghiệp vụ sẽ được chuyển giao sang nhân sự tiếp nhận.
                                         </label>
                                     </div>
 
