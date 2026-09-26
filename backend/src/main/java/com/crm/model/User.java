@@ -3,6 +3,17 @@ package com.crm.model;
 import java.time.LocalDateTime;
 
 public class User {
+    private String displayName;
+    private boolean active;
+    private java.util.List<Role> roles = java.util.List.of();
+
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public java.util.List<Role> getRoles() { return roles; }
+    public void setRoles(java.util.List<Role> roles) { this.roles = java.util.List.copyOf(roles); }
+
     private long id;
     private String username;
     private String email;
