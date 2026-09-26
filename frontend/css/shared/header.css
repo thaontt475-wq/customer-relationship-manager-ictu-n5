@@ -1,1 +1,321 @@
-/* Header */
+/* ==========================================================================
+   CRM Shared Header CSS (CRM-22 / S1-02: Session + Logout)
+   Phong cách hiện đại, đồng bộ cùng hệ thống Sidebar và Auth UI
+   ========================================================================== */
+
+:root {
+    --header-bg: #ffffff;
+    --header-border: #e7ebf5;
+    --header-text: #1f2937;
+    --header-muted: #667085;
+    --header-brand: #2f5bff;
+    --header-brand-dark: #1f3fcf;
+    --header-hover: #f3f6ff;
+    --header-avatar-bg: linear-gradient(135deg, #2f5bff 0%, #1f3fcf 100%);
+    --header-badge-bg: #edf3ff;
+    --header-badge-text: #2347d6;
+    --header-danger: #dc2626;
+    --header-danger-bg: #fef2f2;
+    --header-danger-border: #fecaca;
+    --header-danger-hover: #b91c1c;
+    --header-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 4px 12px rgba(15, 23, 42, 0.03);
+    --header-height: 64px;
+}
+
+.crm-header {
+    width: 100%;
+    height: var(--header-height);
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    box-shadow: var(--header-shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+.crm-header__container {
+    width: 100%;
+    height: 100%;
+    padding: 0 24px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    gap: 16px;
+}
+
+/* Brand logo & info */
+.crm-header__brand {
+    display: flex;
+    align-items: center;
+}
+
+.crm-header__brand-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--header-text);
+    transition: opacity 0.2s ease;
+}
+
+.crm-header__brand-link:hover,
+.crm-header__brand-link:focus {
+    opacity: 0.9;
+}
+
+.crm-header__brand-mark {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--header-brand), var(--header-brand-dark));
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    box-shadow: 0 4px 10px rgba(47, 91, 255, 0.25);
+    flex-shrink: 0;
+}
+
+.crm-header__brand-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.crm-header__brand-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--header-text);
+    letter-spacing: -0.01em;
+}
+
+.crm-header__brand-subtitle {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--header-muted);
+    letter-spacing: 0.02em;
+}
+
+/* Actions: User Profile & Logout */
+.crm-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* User profile widget */
+.crm-header__user {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px 6px 8px;
+    border-radius: 9999px;
+    background: #f8fafc;
+    border: 1px solid var(--header-border);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.crm-header__user:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.crm-header__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--header-avatar-bg);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(47, 91, 255, 0.2);
+}
+
+.crm-header__user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.crm-header__user-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--header-text);
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.crm-header__user-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+}
+
+.crm-header__role-badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--header-badge-text);
+    background: var(--header-badge-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.crm-header__user-email {
+    font-size: 0.72rem;
+    color: var(--header-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.crm-header__status-text {
+    font-size: 0.7rem;
+    color: #16a34a;
+    font-weight: 500;
+}
+
+/* Logout Form & Button */
+.crm-header__logout-form {
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+}
+
+.crm-header__logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--header-border);
+    background: #ffffff;
+    color: var(--header-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.crm-header__logout-btn:hover {
+    color: var(--header-danger);
+    background: var(--header-danger-bg);
+    border-color: var(--header-danger-border);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.12);
+}
+
+.crm-header__logout-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(220, 38, 38, 0.08);
+}
+
+.crm-header__logout-btn:focus-visible {
+    outline: none;
+    border-color: var(--header-danger);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+.crm-header__logout-icon {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.crm-header__logout-btn:hover .crm-header__logout-icon {
+    transform: translateX(2px);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .crm-header__container {
+        padding: 0 16px;
+    }
+
+    .crm-header__brand-subtitle {
+        display: none;
+    }
+
+    .crm-header__user-details {
+        display: none;
+    }
+
+    .crm-header__user {
+        padding: 4px;
+        background: transparent;
+        border: none;
+    }
+
+    .crm-header__user:hover {
+        background: transparent;
+    }
+
+    .crm-header__logout-btn {
+        padding: 0 10px;
+    }
+
+    .crm-header__logout-text {
+        font-size: 0.82rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .crm-header {
+        height: 56px;
+    }
+
+    .crm-header__container {
+        padding: 0 12px;
+        gap: 8px;
+    }
+
+    .crm-header__brand-title {
+        font-size: 0.95rem;
+    }
+
+    .crm-header__brand-mark {
+        width: 32px;
+        height: 32px;
+        font-size: 0.72rem;
+    }
+
+    .crm-header__actions {
+        gap: 8px;
+    }
+
+    .crm-header__logout-text {
+        display: none;
+    }
+
+    .crm-header__logout-btn {
+        padding: 0 8px;
+        width: 36px;
+        height: 36px;
+        justify-content: center;
+    }
+}

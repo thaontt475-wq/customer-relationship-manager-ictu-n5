@@ -1,1 +1,18 @@
-/* CSS dùng chung */
+/* ==========================================================================
+   CRM Shared Common CSS
+   Các quy tắc CSS cơ bản, biến màu hệ thống dùng chung
+   ========================================================================== */
+
+:root {
+    --crm-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --crm-primary: #2f5bff;
+    --crm-primary-dark: #1f3fcf;
+    --crm-text: #1f2937;
+    --crm-muted: #667085;
+    --crm-border: #e7ebf5;
+    --crm-bg: #f8fafc;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
