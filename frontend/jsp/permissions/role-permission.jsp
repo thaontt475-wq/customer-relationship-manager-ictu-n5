@@ -1,81 +1,4 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ page import="java.util.List, java.util.Map, java.util.Set, java.util.HashSet" %>
-<%!
-    /**
-     * Phương thức tiện ích lấy giá trị thuộc tính an toàn từ Object (Map, Bean hoặc Record)
-     * Tránh phụ thuộc cứng vào cấu trúc class model backend khi chưa hoàn thiện.
-     */
-    private String getProperty(Object obj, String... propNames) {
-        if (obj == null) return "";
-        if (obj instanceof java.util.Map) {
-            java.util.Map<?, ?> map = (java.util.Map<?, ?>) obj;
-            for (String prop : propNames) {
-                Object val = map.get(prop);
-                if (val != null) return String.valueOf(val);
-            }
-            return "";
-        }
-        Class<?> clazz = obj.getClass();
-        for (String prop : propNames) {
-            String getterName = "get" + Character.toUpperCase(prop.charAt(0)) + prop.substring(1);
-            try {
-                java.lang.reflect.Method method = clazz.getMethod(getterName);
-                Object val = method.invoke(obj);
-                if (val != null) return String.valueOf(val);
-            } catch (Exception ignored) {}
-            try {
-                java.lang.reflect.Field field = clazz.getDeclaredField(prop);
-                field.setAccessible(true);
-                Object val = field.get(obj);
-                if (val != null) return String.valueOf(val);
-            } catch (Exception ignored) {}
-        }
-        return obj.toString();
-    }
-
-    /**
-     * Escape ký tự đặc biệt HTML chống lỗi hiển thị và bảo vệ XSS
-     */
-    private String escapeHtml(String input) {
-        if (input == null) return "";
-        return input.replace("&", "&amp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                    .replace("\"", "&quot;")
-                    .replace("'", "&#39;");
-    }
-%>
-<%
-    // Nhận các attributes từ servlet theo API Contract (PermissionServlet)
-    List<?> users = (List<?>) request.getAttribute("users");
-    List<?> roles = (List<?>) request.getAttribute("roles");
-    List<?> teams = (List<?>) request.getAttribute("teams");
-    Object selectedUser = request.getAttribute("selectedUser");
-    List<?> userRoles = (List<?>) request.getAttribute("userRoles");
-    String currentDataScope = (String) request.getAttribute("dataScope");
-    String error = (String) request.getAttribute("error");
-    String successMessage = (String) request.getAttribute("successMessage");
-
-    String selectedUserId = getProperty(selectedUser, "id", "userId");
-    if (currentDataScope == null || currentDataScope.trim().isEmpty()) {
-        currentDataScope = "SELF";
-    }
-
-    // Tập hợp ID các vai trò đã được gán cho người dùng hiện tại
-    Set<String> assignedRoleIds = new HashSet<String>();
-    if (userRoles != null) {
-        for (Object ur : userRoles) {
-            if (ur instanceof Number || ur instanceof String) {
-                assignedRoleIds.add(String.valueOf(ur));
-            } else {
-                assignedRoleIds.add(getProperty(ur, "id", "roleId", "code"));
-            }
-        }
-    }
-
-    boolean hasRolesFromBackend = (roles != null && !roles.isEmpty());
-%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -92,11 +15,11 @@
 </head>
 <body class="crm-body">
 
-    <!-- Sử dụng layout Header dùng chung theo yêu cầu kiến trúc bắt buộc -->
+    <!-- Sử dụng layout Header dùng chung theo quy chuẩn kiến trúc bắt buộc -->
     <jsp:include page="/jsp/shared/header.jsp" />
 
     <div class="crm-main-layout">
-        <!-- Include Sidebar dùng chung (nếu có) -->
+        <!-- Include Sidebar dùng chung của hệ thống -->
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Khu vực nội dung chính của màn hình Phân quyền & Nhóm kinh doanh -->
@@ -135,40 +58,8 @@
                     </div>
                 </header>
 
-                <!-- Khu vực thông báo (Alerts) -->
+                <!-- Khu vực thông báo động (Alerts) -->
                 <div class="permission-alerts" id="permissionAlertsArea">
-                    <%-- Thông báo lỗi từ Server (nếu có) --%>
-                    <% if (error != null && !error.trim().isEmpty()) { %>
-                        <div class="permission-alert permission-alert-danger" id="serverErrorAlert">
-                            <svg class="permission-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                            <div class="permission-alert-content">
-                                <div class="permission-alert-title">Thông báo lỗi</div>
-                                <div><%= escapeHtml(error) %></div>
-                            </div>
-                            <button type="button" class="permission-alert-close" onclick="this.parentElement.remove();">&times;</button>
-                        </div>
-                    <% } %>
-
-                    <%-- Thông báo thành công từ Server (nếu có) --%>
-                    <% if (successMessage != null && !successMessage.trim().isEmpty()) { %>
-                        <div class="permission-alert permission-alert-success" id="serverSuccessAlert">
-                            <svg class="permission-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            <div class="permission-alert-content">
-                                <div class="permission-alert-title">Thành công</div>
-                                <div><%= escapeHtml(successMessage) %></div>
-                            </div>
-                            <button type="button" class="permission-alert-close" onclick="this.parentElement.remove();">&times;</button>
-                        </div>
-                    <% } %>
-
-                    <!-- Banner thông báo động điều khiển bởi JavaScript -->
                     <div class="permission-alert permission-alert-danger" id="clientErrorAlert" style="display: none;">
                         <svg class="permission-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
@@ -204,7 +95,8 @@
                     <!-- CỘT TRÁI: FORM CẤU HÌNH PHÂN QUYỀN                   -->
                     <!-- =================================================== -->
                     <div class="permission-left-col">
-                        <form id="permissionForm" method="POST" action="${pageContext.request.contextPath}/permissions/assign">
+                        <!-- Endpoint chuẩn REST POST /api/permissions/assign theo đúng quy chuẩn kỹ thuật -->
+                        <form id="permissionForm" method="POST" action="${pageContext.request.contextPath}/api/permissions/assign">
 
                             <!-- BƯỚC 1: Chọn nhân viên -->
                             <section class="permission-card" id="userCardSection">
@@ -223,41 +115,7 @@
                                             <label for="userSelect" class="permission-label">Tài khoản nhân viên <span style="color: var(--perm-danger);">*</span></label>
                                             <div class="permission-select-wrapper">
                                                 <select id="userSelect" name="userId" class="permission-select" required>
-                                                    <option value="">-- Chọn nhân viên cần phân quyền --</option>
-                                                    <% if (users != null && !users.isEmpty()) { %>
-                                                        <% for (Object u : users) {
-                                                            String uId = getProperty(u, "id", "userId");
-                                                            String uName = getProperty(u, "fullName", "name", "username");
-                                                            String uEmail = getProperty(u, "email");
-                                                            String uTeam = getProperty(u, "team", "department");
-                                                            boolean isSelected = (selectedUserId != null && !selectedUserId.isEmpty() && selectedUserId.equals(uId));
-                                                        %>
-                                                            <option value="<%= escapeHtml(uId) %>"
-                                                                    data-name="<%= escapeHtml(uName) %>"
-                                                                    data-email="<%= escapeHtml(uEmail) %>"
-                                                                    data-team="<%= escapeHtml(uTeam) %>"
-                                                                    <%= isSelected ? "selected" : "" %>>
-                                                                <%= escapeHtml(uName) %> <%= (uEmail.isEmpty() ? "" : "(" + escapeHtml(uEmail) + ")") %>
-                                                            </option>
-                                                        <% } %>
-                                                    <% } else { %>
-                                                        <c:choose>
-                                                            <c:when test="${not empty users}">
-                                                                <c:forEach items="${users}" var="u">
-                                                                    <option value="${u.id != null ? u.id : u.userId}"
-                                                                            data-name="${u.fullName != null ? u.fullName : (u.name != null ? u.name : u.username)}"
-                                                                            data-email="${u.email}"
-                                                                            data-team="${u.team != null ? u.team : (u.teamName != null ? u.teamName : '')}"
-                                                                            ${(selectedUser != null && (selectedUser.id == u.id || selectedUser == u.id)) ? 'selected' : ''}>
-                                                                        ${u.fullName != null ? u.fullName : (u.name != null ? u.name : u.username)} (${u.email})
-                                                                    </option>
-                                                                </c:forEach>
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                <option value="" disabled>-- Chưa có danh sách nhân viên từ hệ thống --</option>
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                    <% } %>
+                                                    <option value="">-- Đang nạp danh sách nhân viên từ hệ thống... --</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -346,20 +204,6 @@
                                                 <div class="permission-select-wrapper" style="max-width: 100%;">
                                                     <select id="teamSelect" name="teamId" class="permission-select">
                                                         <option value="">-- Chọn nhóm kinh doanh --</option>
-                                                        <% if (teams != null && !teams.isEmpty()) { %>
-                                                            <% for (Object t : teams) {
-                                                                String tId = getProperty(t, "id", "teamId");
-                                                                String tName = getProperty(t, "name", "teamName", "title");
-                                                            %>
-                                                                <option value="<%= escapeHtml(tId) %>"><%= escapeHtml(tName) %></option>
-                                                            <% } %>
-                                                        <% } else { %>
-                                                            <c:if test="${not empty teams}">
-                                                                <c:forEach items="${teams}" var="t">
-                                                                    <option value="${t.id != null ? t.id : t.teamId}">${t.name != null ? t.name : t.teamName}</option>
-                                                                </c:forEach>
-                                                            </c:if>
-                                                        <% } %>
                                                     </select>
                                                 </div>
                                             </div>
@@ -377,7 +221,7 @@
                                 </div>
                             </section>
 
-                            <!-- BƯỚC 3: Chọn vai trò hệ thống với TOGGLE SWITCH -->
+                            <!-- BƯỚC 3: Chọn vai trò hệ thống với TOGGLE SWITCH (Không hard-code ID) -->
                             <section class="permission-card" id="rolesCardSection">
                                 <div class="permission-card-header">
                                     <div class="permission-card-title-group">
@@ -401,105 +245,25 @@
                                         </div>
                                     </div>
 
-                                    <!-- Danh sách các vai trò với Switch Component -->
+                                    <!-- Danh sách vai trò render hoàn toàn động qua JS từ GET /api/roles (Không hard-code) -->
                                     <div class="permission-role-grid" id="rolesGridContainer">
-                                        <% if (hasRolesFromBackend) { %>
-                                            <% for (Object r : roles) {
-                                                String rId = getProperty(r, "id", "roleId", "code");
-                                                String rName = getProperty(r, "name", "roleName", "title");
-                                                String rCode = getProperty(r, "code", "roleCode");
-                                                String rDesc = getProperty(r, "description", "desc");
-                                                boolean isRoleChecked = assignedRoleIds.contains(rId) || assignedRoleIds.contains(rCode);
-                                            %>
-                                                <div class="permission-role-item <%= isRoleChecked ? "checked" : "" %>" data-role-id="<%= escapeHtml(rId) %>">
-                                                    <div class="permission-role-details">
-                                                        <div class="permission-role-top">
-                                                            <span class="permission-role-title"><%= escapeHtml(rName) %></span>
-                                                            <% if (!rCode.isEmpty()) { %>
-                                                                <span class="permission-role-code"><%= escapeHtml(rCode) %></span>
-                                                            <% } %>
-                                                        </div>
-                                                        <p class="permission-role-desc"><%= escapeHtml(rDesc.isEmpty() ? "Vai trò nghiệp vụ trong hệ thống CRM" : rDesc) %></p>
-                                                    </div>
-                                                    <div class="permission-toggle-wrap">
-                                                        <input type="checkbox"
-                                                               class="permission-role-checkbox"
-                                                               name="roleIds"
-                                                               id="role_<%= escapeHtml(rId) %>"
-                                                               value="<%= escapeHtml(rId) %>"
-                                                               <%= isRoleChecked ? "checked" : "" %>>
-                                                        <label class="permission-switch" for="role_<%= escapeHtml(rId) %>" aria-hidden="true">
-                                                            <span class="permission-switch-slider"></span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                            <% } %>
-                                        <% } else { %>
-                                            <!-- Danh mục vai trò chuẩn CRM định sẵn hệ thống khi danh sách roles chưa nạp từ DB -->
-                                            <div class="permission-role-item" data-role-id="1">
-                                                <div class="permission-role-details">
-                                                    <div class="permission-role-top">
-                                                        <span class="permission-role-title">Quản trị hệ thống (Admin)</span>
-                                                        <span class="permission-role-code">ROLE_ADMIN</span>
-                                                    </div>
-                                                    <p class="permission-role-desc">Toàn quyền cấu hình hệ thống, quản lý tài khoản người dùng, phân quyền và cài đặt quy trình chung.</p>
-                                                </div>
-                                                <div class="permission-toggle-wrap">
-                                                    <input type="checkbox" class="permission-role-checkbox" name="roleIds" id="role_1" value="1">
-                                                    <label class="permission-switch" for="role_1" aria-hidden="true">
-                                                        <span class="permission-switch-slider"></span>
-                                                    </label>
-                                                </div>
+                                        <!-- Khối Empty State ban đầu khi đang chờ tải dữ liệu -->
+                                        <div class="permission-empty-state" id="rolesEmptyState">
+                                            <div class="permission-empty-icon">
+                                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                                </svg>
                                             </div>
-
-                                            <div class="permission-role-item" data-role-id="2">
-                                                <div class="permission-role-details">
-                                                    <div class="permission-role-top">
-                                                        <span class="permission-role-title">Trưởng nhóm kinh doanh (Team Lead)</span>
-                                                        <span class="permission-role-code">ROLE_TEAM_LEAD</span>
-                                                    </div>
-                                                    <p class="permission-role-desc">Quản trị đội ngũ bán hàng, phân bổ khách hàng tiềm năng, theo dõi pipeline cơ hội và duyệt báo giá của nhóm.</p>
-                                                </div>
-                                                <div class="permission-toggle-wrap">
-                                                    <input type="checkbox" class="permission-role-checkbox" name="roleIds" id="role_2" value="2">
-                                                    <label class="permission-switch" for="role_2" aria-hidden="true">
-                                                        <span class="permission-switch-slider"></span>
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <div class="permission-role-item checked" data-role-id="3">
-                                                <div class="permission-role-details">
-                                                    <div class="permission-role-top">
-                                                        <span class="permission-role-title">Nhân viên kinh doanh (Sales Rep)</span>
-                                                        <span class="permission-role-code">ROLE_SALES_REP</span>
-                                                    </div>
-                                                    <p class="permission-role-desc">Trực tiếp tiếp cận khách hàng tiềm năng, tạo lập giao dịch, chăm sóc cơ hội và ghi nhận tương tác bán hàng.</p>
-                                                </div>
-                                                <div class="permission-toggle-wrap">
-                                                    <input type="checkbox" class="permission-role-checkbox" name="roleIds" id="role_3" value="3" checked>
-                                                    <label class="permission-switch" for="role_3" aria-hidden="true">
-                                                        <span class="permission-switch-slider"></span>
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <div class="permission-role-item" data-role-id="4">
-                                                <div class="permission-role-details">
-                                                    <div class="permission-role-top">
-                                                        <span class="permission-role-title">Chăm sóc khách hàng (Customer Support)</span>
-                                                        <span class="permission-role-code">ROLE_SUPPORT</span>
-                                                    </div>
-                                                    <p class="permission-role-desc">Tiếp nhận yêu cầu, giải quyết sự vụ khiếu nại, hỗ trợ kỹ thuật và duy trì quan hệ sau bán hàng.</p>
-                                                </div>
-                                                <div class="permission-toggle-wrap">
-                                                    <input type="checkbox" class="permission-role-checkbox" name="roleIds" id="role_4" value="4">
-                                                    <label class="permission-switch" for="role_4" aria-hidden="true">
-                                                        <span class="permission-switch-slider"></span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        <% } %>
+                                            <div class="permission-empty-title" id="rolesEmptyTitle">Đang nạp danh mục vai trò...</div>
+                                            <div class="permission-empty-desc" id="rolesEmptyDesc">Hệ thống đang kết nối máy chủ để nạp danh sách vai trò chức năng.</div>
+                                            <button type="button" class="permission-empty-btn" id="btnRetryRoles" style="display: none;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                                </svg>
+                                                Tải lại danh sách vai trò
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
@@ -517,9 +281,9 @@
                                 </div>
                                 <div class="permission-card-body">
                                     <div class="permission-scope-grid" id="dataScopeGrid">
-                                        
+
                                         <!-- Cấp độ 1: SELF - Viền xanh lam nhạt, icon người dùng cá nhân -->
-                                        <label class="permission-scope-card scope-self <%= "SELF".equalsIgnoreCase(currentDataScope) ? "selected" : "" %>" for="scope_self">
+                                        <label class="permission-scope-card scope-self selected" for="scope_self">
                                             <div class="permission-scope-icon-wrap">
                                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -539,12 +303,12 @@
                                                        name="dataScope"
                                                        id="scope_self"
                                                        value="SELF"
-                                                       <%= "SELF".equalsIgnoreCase(currentDataScope) ? "checked" : "" %>>
+                                                       checked>
                                             </div>
                                         </label>
 
                                         <!-- Cấp độ 2: TEAM - Viền vàng cam nhạt, icon nhóm -->
-                                        <label class="permission-scope-card scope-team <%= "TEAM".equalsIgnoreCase(currentDataScope) ? "selected" : "" %>" for="scope_team">
+                                        <label class="permission-scope-card scope-team" for="scope_team">
                                             <div class="permission-scope-icon-wrap">
                                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -565,13 +329,12 @@
                                                        class="permission-scope-radio"
                                                        name="dataScope"
                                                        id="scope_team"
-                                                       value="TEAM"
-                                                       <%= "TEAM".equalsIgnoreCase(currentDataScope) ? "checked" : "" %>>
+                                                       value="TEAM">
                                             </div>
                                         </label>
 
                                         <!-- Cấp độ 3: ALL - Viền xanh lá, icon toàn quyền/công ty -->
-                                        <label class="permission-scope-card scope-all <%= "ALL".equalsIgnoreCase(currentDataScope) ? "selected" : "" %>" for="scope_all">
+                                        <label class="permission-scope-card scope-all" for="scope_all">
                                             <div class="permission-scope-icon-wrap">
                                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
@@ -597,8 +360,7 @@
                                                        class="permission-scope-radio"
                                                        name="dataScope"
                                                        id="scope_all"
-                                                       value="ALL"
-                                                       <%= "ALL".equalsIgnoreCase(currentDataScope) ? "checked" : "" %>>
+                                                       value="ALL">
                                             </div>
                                         </label>
 
@@ -652,14 +414,14 @@
                                     <span>3 Cấp độ Data Scope</span>
                                 </div>
                                 <span class="permission-active-scope-indicator" id="activeScopeBadge">
-                                    Đang chọn: <%= escapeHtml(currentDataScope) %>
+                                    Đang chọn: Cá nhân (SELF)
                                 </span>
                             </div>
 
                             <div class="permission-guide-body">
-                                
+
                                 <!-- Thẻ cấp độ SELF: Viền xanh lam nhạt -->
-                                <div class="scope-info-card info-self <%= "SELF".equalsIgnoreCase(currentDataScope) ? "active-scope" : "" %>" id="infoCardSelf">
+                                <div class="scope-info-card info-self active-scope" id="infoCardSelf">
                                     <div class="scope-info-header">
                                         <div class="scope-info-title-group">
                                             <div class="scope-info-icon-badge">
@@ -683,7 +445,7 @@
                                 </div>
 
                                 <!-- Thẻ cấp độ TEAM: Viền vàng cam nhạt -->
-                                <div class="scope-info-card info-team <%= "TEAM".equalsIgnoreCase(currentDataScope) ? "active-scope" : "" %>" id="infoCardTeam">
+                                <div class="scope-info-card info-team" id="infoCardTeam">
                                     <div class="scope-info-header">
                                         <div class="scope-info-title-group">
                                             <div class="scope-info-icon-badge">
@@ -709,7 +471,7 @@
                                 </div>
 
                                 <!-- Thẻ cấp độ ALL: Viền xanh lá -->
-                                <div class="scope-info-card info-all <%= "ALL".equalsIgnoreCase(currentDataScope) ? "active-scope" : "" %>" id="infoCardAll">
+                                <div class="scope-info-card info-all" id="infoCardAll">
                                     <div class="scope-info-header">
                                         <div class="scope-info-title-group">
                                             <div class="scope-info-icon-badge">
@@ -752,7 +514,7 @@
                                 <span class="permission-warning-ac-badge">Security Policy</span>
                             </div>
                             <div class="permission-warning-preview-body">
-                                
+
                                 <!-- Component thông báo trực quan mô phỏng banner AC -->
                                 <div class="permission-mock-banner">
                                     <svg class="permission-mock-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -823,11 +585,12 @@
         </main>
     </div>
 
-    <!-- Include Footer dùng chung (nếu có) -->
+    <!-- Include Footer dùng chung của hệ thống -->
     <jsp:include page="/jsp/shared/footer.jsp" />
 
     <!-- =================================================================== -->
-    <!-- JAVASCRIPT DOM THUẦN TÚY (CHỈ XỬ LÝ UI & TƯƠNG TÁC NGƯỜI DÙNG)      -->
+    <!-- JAVASCRIPT DOM THUẦN TÚY (REST API & UI INTERACTION)               -->
+    <!-- Hoàn toàn không phụ thuộc thẻ scriptlet JSP hay JSTL taglib          -->
     <!-- =================================================================== -->
     <script>
         (function() {
@@ -845,6 +608,10 @@
             const userTeamDisplay = document.getElementById('userTeamDisplay');
             const activeRoleCountDisplay = document.getElementById('activeRoleCountDisplay');
             const rolesGridContainer = document.getElementById('rolesGridContainer');
+            const rolesEmptyState = document.getElementById('rolesEmptyState');
+            const rolesEmptyTitle = document.getElementById('rolesEmptyTitle');
+            const rolesEmptyDesc = document.getElementById('rolesEmptyDesc');
+            const btnRetryRoles = document.getElementById('btnRetryRoles');
             const rolesLoadingOverlay = document.getElementById('rolesLoadingOverlay');
             const btnSelectAllRoles = document.getElementById('btnSelectAllRoles');
             const btnDeselectAllRoles = document.getElementById('btnDeselectAllRoles');
@@ -881,6 +648,18 @@
             // Bộ nhớ đệm lưu trạng thái ban đầu để khôi phục khi nhấn "Đặt lại"
             let initialUserState = null;
             let currentUserTeamName = '';
+            let currentRolesList = [];
+
+            // Tiện ích escape HTML chống XSS trên giao diện
+            function escapeHtml(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
 
             // Xóa thông báo lỗi / thành công trên UI
             function clearAlerts() {
@@ -892,10 +671,6 @@
                     clientSuccessAlert.style.display = 'none';
                     clientSuccessText.textContent = '';
                 }
-                const serverErr = document.getElementById('serverErrorAlert');
-                if (serverErr) serverErr.style.display = 'none';
-                const serverSucc = document.getElementById('serverSuccessAlert');
-                if (serverSucc) serverSucc.style.display = 'none';
             }
 
             // Hiển thị thông báo lỗi
@@ -963,12 +738,160 @@
             }
 
             // =================================================================
-            // 1. XỬ LÝ TƯƠNG TÁC RADIO CARDS DATA SCOPE (CRM-25)
+            // 1. TẢI DANH MỤC VAI TRÒ QUA API GET /api/roles (KHÔNG HARD-CODE)
+            // =================================================================
+            function renderRolesList(roles) {
+                if (!rolesGridContainer) return;
+
+                // Nếu không có dữ liệu trả về từ backend, hiển thị Empty State thân thiện
+                if (!Array.isArray(roles) || roles.length === 0) {
+                    showRolesEmptyState(
+                        'Chưa có dữ liệu vai trò từ hệ thống',
+                        'Máy chủ hiện chưa cung cấp danh mục vai trò nào. Vui lòng kiểm tra lại cấu hình Backend hoặc thử lại sau.'
+                    );
+                    return;
+                }
+
+                currentRolesList = roles;
+                rolesGridContainer.innerHTML = '';
+
+                roles.forEach(function(role) {
+                    const roleId = role.id !== undefined ? role.id : role.roleId;
+                    const roleName = role.name || role.roleName || ('Vai trò #' + roleId);
+                    const roleCode = role.code || role.roleCode || '';
+                    const roleDesc = role.description || role.desc || 'Vai trò chức năng phân quyền trong hệ thống CRM';
+
+                    const item = document.createElement('div');
+                    item.className = 'permission-role-item';
+                    item.setAttribute('data-role-id', String(roleId));
+
+                    let codeBadgeHtml = '';
+                    if (roleCode) {
+                        codeBadgeHtml = '<span class="permission-role-code">' + escapeHtml(roleCode) + '</span>';
+                    }
+
+                    item.innerHTML =
+                        '<div class="permission-role-details">' +
+                            '<div class="permission-role-top">' +
+                                '<span class="permission-role-title">' + escapeHtml(roleName) + '</span>' +
+                                codeBadgeHtml +
+                            '</div>' +
+                            '<p class="permission-role-desc">' + escapeHtml(roleDesc) + '</p>' +
+                        '</div>' +
+                        '<div class="permission-toggle-wrap">' +
+                            '<input type="checkbox"' +
+                                   ' class="permission-role-checkbox"' +
+                                   ' name="roleIds"' +
+                                   ' id="role_' + escapeHtml(String(roleId)) + '"' +
+                                   ' value="' + escapeHtml(String(roleId)) + '">' +
+                            '<label class="permission-switch" for="role_' + escapeHtml(String(roleId)) + '" aria-hidden="true">' +
+                                '<span class="permission-switch-slider"></span>' +
+                            '</label>' +
+                        '</div>';
+
+                    // Gán sự kiện click chuyển đổi Toggle Switch
+                    item.addEventListener('click', function(e) {
+                        if (e.target && e.target.tagName.toLowerCase() === 'input') {
+                            syncRoleItemState(item, e.target.checked);
+                            return;
+                        }
+                        const cb = item.querySelector('input[type="checkbox"]');
+                        if (cb) {
+                            cb.checked = !cb.checked;
+                            syncRoleItemState(item, cb.checked);
+                        }
+                    });
+
+                    rolesGridContainer.appendChild(item);
+                });
+
+                updateRoleCountBadge();
+            }
+
+            function showRolesEmptyState(title, desc) {
+                if (!rolesGridContainer) return;
+                rolesGridContainer.innerHTML =
+                    '<div class="permission-empty-state" id="rolesEmptyState">' +
+                        '<div class="permission-empty-icon">' +
+                            '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                                '<circle cx="12" cy="12" r="10"></circle>' +
+                                '<line x1="12" y1="8" x2="12" y2="12"></line>' +
+                                '<line x1="12" y1="16" x2="12.01" y2="16"></line>' +
+                            '</svg>' +
+                        '</div>' +
+                        '<div class="permission-empty-title">' + escapeHtml(title) + '</div>' +
+                        '<div class="permission-empty-desc">' + escapeHtml(desc) + '</div>' +
+                        '<button type="button" class="permission-empty-btn" id="btnRetryRolesNow">' +
+                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+                                '<polyline points="23 4 23 10 17 10"></polyline>' +
+                                '<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>' +
+                            '</svg>' +
+                            'Thử tải lại vai trò' +
+                        '</button>' +
+                    '</div>';
+
+                const retryBtn = document.getElementById('btnRetryRolesNow');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', function() {
+                        fetchRolesList();
+                    });
+                }
+            }
+
+            function fetchRolesList() {
+                const endpoint = contextPath + '/api/roles';
+                if (rolesLoadingOverlay) rolesLoadingOverlay.classList.add('active');
+
+                fetch(endpoint, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(function(res) {
+                    if (!res.ok) {
+                        // Thử endpoint fallback nếu có
+                        return fetch(contextPath + '/api/permissions/roles', {
+                            method: 'GET',
+                            headers: { 'Accept': 'application/json' }
+                        }).then(function(fbRes) {
+                            if (!fbRes.ok) throw new Error('Endpoint GET /api/roles chưa sẵn sàng (HTTP ' + res.status + ')');
+                            return fbRes.json();
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function(json) {
+                    const rolesData = (json && json.data !== undefined) ? json.data : json;
+                    renderRolesList(rolesData);
+                })
+                .catch(function(err) {
+                    showRolesEmptyState(
+                        'Chưa tải được danh mục vai trò',
+                        'Không thể kết nối đến máy chủ để nạp vai trò. (' + err.message + ')'
+                    );
+                })
+                .finally(function() {
+                    if (rolesLoadingOverlay) rolesLoadingOverlay.classList.remove('active');
+                });
+            }
+
+            function syncRoleItemState(item, isChecked) {
+                if (isChecked) {
+                    item.classList.add('checked');
+                } else {
+                    item.classList.remove('checked');
+                }
+                updateRoleCountBadge();
+                checkTeamLeadValidation();
+                setStatus('Có thay đổi vai trò chưa lưu', false);
+            }
+
+            // =================================================================
+            // 2. XỬ LÝ TƯƠNG TÁC RADIO CARDS DATA SCOPE (CRM-25)
             // =================================================================
             function updateDataScopeUI(selectedScope) {
                 const scope = (selectedScope || 'SELF').toUpperCase();
 
-                // 1. Đổi class active trên các Radio Cards (Cột trái)
+                // Đổi class active trên các Radio Cards (Cột trái)
                 const cards = document.querySelectorAll('.permission-scope-card');
                 cards.forEach(function(card) {
                     card.classList.remove('selected');
@@ -980,7 +903,7 @@
                     if (radio && !radio.checked) radio.checked = true;
                 }
 
-                // 2. Cập nhật Badge hiển thị trên Cột phải
+                // Cập nhật Badge hiển thị trên Cột phải
                 if (activeScopeBadge) {
                     let label = 'Cá nhân (SELF)';
                     if (scope === 'TEAM') label = 'Nhóm kinh doanh (TEAM)';
@@ -988,7 +911,7 @@
                     activeScopeBadge.textContent = 'Đang chọn: ' + label;
                 }
 
-                // 3. Highlight thẻ thông tin chi tiết tương ứng trên Cột phải
+                // Highlight thẻ thông tin chi tiết tương ứng trên Cột phải
                 if (infoCardSelf) infoCardSelf.classList.remove('active-scope');
                 if (infoCardTeam) infoCardTeam.classList.remove('active-scope');
                 if (infoCardAll) infoCardAll.classList.remove('active-scope');
@@ -997,7 +920,7 @@
                 if (scope === 'TEAM' && infoCardTeam) infoCardTeam.classList.add('active-scope');
                 if (scope === 'ALL' && infoCardAll) infoCardAll.classList.add('active-scope');
 
-                // 4. Cập nhật đoạn văn mô phỏng ngữ cảnh cho Warning Banner Preview
+                // Cập nhật đoạn văn mô phỏng ngữ cảnh cho Warning Banner Preview theo AC
                 if (warningScenarioText) {
                     if (scope === 'SELF') {
                         warningScenarioText.innerHTML = '<strong>Ngữ cảnh kích hoạt:</strong> Nhân viên có phạm vi <strong>SELF</strong>. Khi truy cập trực tiếp liên kết khách hàng hoặc cơ hội <code>/pipeline/deals/1092</code> do đồng nghiệp khác phụ trách, bộ lọc bảo mật sẽ chặn và hiển thị: <em>"Bạn không có quyền truy cập dữ liệu ngoài phạm vi được phân công"</em>.';
@@ -1012,10 +935,9 @@
             }
 
             function bindDataScopeRadios() {
-                // Lắng nghe sự kiện click trực tiếp lên toàn bộ diện tích Radio Card
                 const cards = document.querySelectorAll('.permission-scope-card');
                 cards.forEach(function(card) {
-                    card.addEventListener('click', function(e) {
+                    card.addEventListener('click', function() {
                         const radio = card.querySelector('input[type="radio"]');
                         if (radio) {
                             radio.checked = true;
@@ -1024,7 +946,6 @@
                     });
                 });
 
-                // Lắng nghe sự kiện change trên radio
                 const radios = document.querySelectorAll('input[name="dataScope"]');
                 radios.forEach(function(radio) {
                     radio.addEventListener('change', function() {
@@ -1034,41 +955,88 @@
             }
 
             // =================================================================
-            // 2. XỬ LÝ VAI TRÒ HỆ THỐNG VỚI TOGGLE SWITCH (CRM-25)
+            // 3. XỬ LÝ DANH SÁCH NHÂN VIÊN QUA GET /api/users
             // =================================================================
-            function syncRoleItemState(item, isChecked) {
-                if (isChecked) {
-                    item.classList.add('checked');
-                } else {
-                    item.classList.remove('checked');
-                }
-                updateRoleCountBadge();
-                checkTeamLeadValidation();
-                setStatus('Có thay đổi vai trò chưa lưu', false);
-            }
+            function fetchUsersList() {
+                if (!userSelect) return;
+                const endpoint = contextPath + '/api/users';
 
-            function bindRoleCheckboxes() {
-                const roleItems = document.querySelectorAll('.permission-role-item');
-                roleItems.forEach(function(item) {
-                    item.addEventListener('click', function(e) {
-                        // Nếu bấm trực tiếp vào input checkbox thì để trình duyệt đổi tự nhiên
-                        if (e.target && e.target.tagName.toLowerCase() === 'input') {
-                            const cb = e.target;
-                            syncRoleItemState(item, cb.checked);
-                            return;
-                        }
-                        const cb = item.querySelector('input[type="checkbox"]');
-                        if (cb) {
-                            cb.checked = !cb.checked;
-                            syncRoleItemState(item, cb.checked);
-                        }
-                    });
+                fetch(endpoint, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(function(res) {
+                    if (!res.ok) throw new Error('Endpoint GET /api/users trả về mã HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function(json) {
+                    const usersData = (json && json.data !== undefined) ? json.data : json;
+                    if (Array.isArray(usersData) && usersData.length > 0) {
+                        userSelect.innerHTML = '<option value="">-- Chọn nhân viên cần phân quyền --</option>';
+                        usersData.forEach(function(user) {
+                            const opt = document.createElement('option');
+                            const uId = user.id !== undefined ? user.id : user.userId;
+                            const uName = user.fullName || user.name || user.username || ('Nhân viên #' + uId);
+                            const uEmail = user.email || '';
+                            const uTeam = user.team || user.teamName || user.department || '';
+
+                            opt.value = uId;
+                            opt.setAttribute('data-name', uName);
+                            opt.setAttribute('data-email', uEmail);
+                            opt.setAttribute('data-team', uTeam);
+                            opt.textContent = uName + (uEmail ? ' (' + uEmail + ')' : '');
+                            userSelect.appendChild(opt);
+                        });
+                    } else {
+                        userSelect.innerHTML = '<option value="" disabled>-- Chưa có danh sách nhân viên từ hệ thống --</option>';
+                    }
+                })
+                .catch(function(err) {
+                    userSelect.innerHTML = '<option value="">-- Chưa tải được danh sách nhân viên (' + escapeHtml(err.message) + ') --</option>';
                 });
             }
 
             // =================================================================
-            // 3. XỬ LÝ NHÓM KINH DOANH & VALIDATION TEAM LEAD (CRM-29)
+            // 4. XỬ LÝ NHÓM KINH DOANH CRM-29 (GET /api/teams & POST /api/users/{userId}/team)
             // =================================================================
+
+            // Tải danh sách nhóm kinh doanh qua API GET /api/teams theo chuẩn CRM-29
+            function fetchTeamsList() {
+                if (!teamSelect) return;
+                const endpoint = contextPath + '/api/teams';
+
+                fetch(endpoint, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(function(res) {
+                    if (!res.ok) throw new Error('Endpoint GET /api/teams trả về mã HTTP ' + res.status);
+                    return res.json();
+                })
+                .then(function(json) {
+                    const teamsData = (json && json.data !== undefined) ? json.data : json;
+                    if (Array.isArray(teamsData) && teamsData.length > 0) {
+                        const currentVal = teamSelect.value;
+                        teamSelect.innerHTML = '<option value="">-- Chọn nhóm kinh doanh --</option>';
+                        teamsData.forEach(function(item) {
+                            const opt = document.createElement('option');
+                            opt.value = item.id !== undefined ? item.id : item.teamId;
+                            opt.textContent = item.name || item.teamName || item.title || ('Nhóm #' + opt.value);
+                            teamSelect.appendChild(opt);
+                        });
+                        if (currentVal) teamSelect.value = currentVal;
+                    }
+                })
+                .catch(function(err) {
+                    if (teamSelect.options.length <= 1) {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.disabled = true;
+                        opt.textContent = '-- Chưa có danh mục nhóm kinh doanh (GET /api/teams) --';
+                        teamSelect.appendChild(opt);
+                    }
+                });
+            }
 
             // Kiểm tra xem tài khoản đang chọn có được tích vai trò Trưởng nhóm (Team Lead) hay không
             function isCurrentSelectedUserTeamLead() {
@@ -1119,38 +1087,7 @@
                 }
             }
 
-            // Tải danh sách nhóm kinh doanh qua API GET /api/teams nếu select rỗng
-            function fetchTeamsList() {
-                if (!teamSelect || teamSelect.options.length > 1) return;
-                const endpoint = contextPath + '/api/teams';
-                fetch(endpoint, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                })
-                .then(function(res) {
-                    if (!res.ok) throw new Error('Endpoint GET /api/teams trả về mã HTTP ' + res.status);
-                    return res.json();
-                })
-                .then(function(json) {
-                    const teamsData = (json && json.data !== undefined) ? json.data : json;
-                    if (Array.isArray(teamsData) && teamsData.length > 0) {
-                        const currentVal = teamSelect.value;
-                        teamSelect.innerHTML = '<option value="">-- Chọn nhóm kinh doanh --</option>';
-                        teamsData.forEach(function(item) {
-                            const opt = document.createElement('option');
-                            opt.value = item.id !== undefined ? item.id : item.teamId;
-                            opt.textContent = item.name || item.teamName || ('Nhóm #' + opt.value);
-                            teamSelect.appendChild(opt);
-                        });
-                        if (currentVal) teamSelect.value = currentVal;
-                    }
-                })
-                .catch(function(err) {
-                    // Im lặng không gây phiền người dùng nếu chưa có servlet /api/teams
-                });
-            }
-
-            // Gọi API POST /api/users/{userId}/team khi nhấn Gán nhóm (CRM-29)
+            // Gán nhóm kinh doanh chuẩn endpoint POST /api/users/${userId}/team (CRM-29)
             function assignUserTeam() {
                 const userId = userSelect ? userSelect.value : '';
                 if (!userId) {
@@ -1177,6 +1114,7 @@
                 clearAlerts();
                 setStatus('Đang gửi yêu cầu gán nhóm kinh doanh...', false);
 
+                // Endpoint REST chuẩn: POST /api/users/${userId}/team
                 const endpoint = contextPath + '/api/users/' + encodeURIComponent(userId) + '/team';
 
                 fetch(endpoint, {
@@ -1249,14 +1187,13 @@
             }
 
             // =================================================================
-            // 4. TẢI VÀ ĐỒNG BỘ DỮ LIỆU PHÂN QUYỀN (LOAD & SAVE PERMISSIONS)
+            // 5. TẢI VÀ LƯU PHÂN QUYỀN (GET & POST /api/permissions/...)
             // =================================================================
 
             // Áp dụng dữ liệu phân quyền lên Form từ API
             function applyUserPermissionsToForm(data) {
                 if (!data) return;
 
-                // Chuẩn hóa roles từ backend: roles có thể là mảng ID [1, 2] hoặc mảng Object [{id: 1}, ...]
                 const roleList = Array.isArray(data.roles) ? data.roles : [];
                 const roleIdSet = new Set();
                 roleList.forEach(function(item) {
@@ -1380,7 +1317,6 @@
                     setStatus('Đã tải thông tin phân quyền nhân viên', true);
                 })
                 .catch(function(err) {
-                    // Nếu backend chưa sẵn sàng API JSON, hiển thị thông báo thân thiện
                     showError(err.message);
                 })
                 .finally(function() {
@@ -1389,7 +1325,7 @@
                 });
             }
 
-            // Lưu phân quyền gửi tới action="${pageContext.request.contextPath}/permissions/assign"
+            // Lưu phân quyền gửi tới POST /api/permissions/assign theo đúng quy chuẩn REST
             function savePermissions() {
                 const userId = userSelect ? userSelect.value : '';
                 if (!userId) {
@@ -1418,8 +1354,8 @@
                 clearAlerts();
                 setStatus('Đang gửi yêu cầu lưu phân quyền...', false);
 
-                // Gửi dữ liệu theo action chuẩn: ${pageContext.request.contextPath}/permissions/assign
-                const endpoint = contextPath + '/permissions/assign';
+                // Endpoint REST chuẩn: POST /api/permissions/assign (Quy chuẩn kỹ thuật #1)
+                const endpoint = contextPath + '/api/permissions/assign';
                 const requestPayload = {
                     userId: isNaN(userId) ? userId : Number(userId),
                     roleIds: roleIds,
@@ -1441,7 +1377,6 @@
                             return { ok: response.ok, status: response.status, body: json };
                         });
                     } else {
-                        // Hỗ trợ trường hợp Servlet trả về chuyển hướng redirect hoặc HTML form POST chuẩn
                         if (response.ok) {
                             return { ok: true, status: response.status, body: { success: true } };
                         }
@@ -1456,7 +1391,7 @@
                         if (res.body && res.body.message) {
                             errMsg = res.body.message;
                         } else if (res.status === 404) {
-                            errMsg = 'Endpoint POST /permissions/assign chưa sẵn sàng phía Backend (HTTP 404 Not Found).';
+                            errMsg = 'Endpoint POST /api/permissions/assign chưa sẵn sàng phía Backend (HTTP 404 Not Found).';
                         } else if (res.status === 500) {
                             errMsg = 'Máy chủ gặp sự cố nội bộ khi lưu phân quyền (HTTP 500 Internal Server Error).';
                         } else {
@@ -1514,7 +1449,7 @@
                     });
                 }
 
-                // Nút chọn tất cả vai trò
+                // Nút bật tất cả vai trò
                 if (btnSelectAllRoles) {
                     btnSelectAllRoles.addEventListener('click', function() {
                         document.querySelectorAll('.permission-role-item').forEach(function(item) {
@@ -1528,7 +1463,7 @@
                     });
                 }
 
-                // Nút bỏ chọn tất cả vai trò
+                // Nút tắt tất cả vai trò
                 if (btnDeselectAllRoles) {
                     btnDeselectAllRoles.addEventListener('click', function() {
                         document.querySelectorAll('.permission-role-item').forEach(function(item) {
@@ -1539,6 +1474,13 @@
                         updateRoleCountBadge();
                         checkTeamLeadValidation();
                         setStatus('Có thay đổi vai trò chưa lưu', false);
+                    });
+                }
+
+                // Nút thử tải lại vai trò (Empty state)
+                if (btnRetryRoles) {
+                    btnRetryRoles.addEventListener('click', function() {
+                        fetchRolesList();
                     });
                 }
 
@@ -1566,30 +1508,16 @@
                     });
                 }
 
-                // Gán tương tác các Radio Cards & Toggle Switches
-                bindRoleCheckboxes();
+                // Gán tương tác Radio Cards
                 bindDataScopeRadios();
 
-                // Tải danh sách nhóm (CRM-29) nếu cần
+                // Nạp dữ liệu ban đầu qua REST APIs
+                fetchUsersList();
                 fetchTeamsList();
+                fetchRolesList();
 
-                // Khởi tạo trạng thái ban đầu từ Server
-                const initialScope = '<%= escapeHtml(currentDataScope) %>';
-                updateDataScopeUI(initialScope);
-
-                if (userSelect && userSelect.value) {
-                    const opt = userSelect.options[userSelect.selectedIndex];
-                    if (opt) {
-                        currentUserTeamName = opt.getAttribute('data-team') || '';
-                        if (currentTeamDisplay) currentTeamDisplay.textContent = currentUserTeamName || 'Chưa phân nhóm';
-                        updateUserSummary(
-                            opt.getAttribute('data-name'),
-                            opt.getAttribute('data-email'),
-                            currentUserTeamName
-                        );
-                        checkTeamLeadValidation();
-                    }
-                }
+                // Mặc định ban đầu là SELF
+                updateDataScopeUI('SELF');
             }
 
             // Khởi chạy khi DOM sẵn sàng
