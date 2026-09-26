@@ -1,1 +1,45 @@
-/* Layout dùng chung */
+/* ==========================================================================
+   CRM Shared Layout CSS
+   Quản lý bố cục tổng thể: Header + Sidebar + Main Content Layout
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+.crm-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #1f2937;
+}
+
+.crm-main-layout {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 64px);
+    width: 100%;
+}
+
+.crm-main-layout > main,
+.crm-main-layout > .permission-page {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .crm-main-layout {
+        flex-direction: column;
+        min-height: auto;
+    }
+}
