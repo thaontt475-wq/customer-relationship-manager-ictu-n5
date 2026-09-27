@@ -149,8 +149,15 @@ public class PermissionApiServlet extends HttpServlet {
         }
 
         try {
+            Object actorValue = request.getSession(false).getAttribute("userId");
+            if (!(actorValue instanceof Long actorUserId) || actorUserId <= 0) {
+                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false, "Yêu cầu đăng nhập", null);
+                return;
+            }
+
             AssignmentResult result =
                     permissionService.assign(
+                            actorUserId,
                             body.userId(),
                             body.roleIds(),
                             body.dataScope()
@@ -177,6 +184,16 @@ public class PermissionApiServlet extends HttpServlet {
                         false,
                         "Dữ liệu phân quyền không hợp lệ",
                         null
+                );
+
+                case TEAM_REQUIRED -> writeJson(
+                        response, HttpServletResponse.SC_CONFLICT, false,
+                        "Vai trò Team Lead bắt buộc người dùng phải thuộc một nhóm kinh doanh.", null
+                );
+
+                case CANNOT_REVOKE_OWN_ADMIN -> writeJson(
+                        response, HttpServletResponse.SC_CONFLICT, false,
+                        "Không thể tự gỡ vai trò Admin của chính mình.", null
                 );
 
                 case USER_NOT_FOUND -> writeJson(
