@@ -3,6 +3,7 @@ package com.crm.controller.permissions;
 import com.crm.model.User;
 import com.crm.service.permissions.PermissionService;
 import com.crm.service.permissions.PermissionService.AssignmentResult;
+import com.crm.service.teams.TeamService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,7 +19,8 @@ import java.util.logging.Logger;
 
 @WebServlet({
         "/permissions",
-        "/permissions/assign"
+        "/permissions/assign",
+        "/permissions/team"
 })
 public class PermissionServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -26,6 +28,7 @@ public class PermissionServlet extends HttpServlet {
     private static final String PERMISSION_JSP = "/jsp/permissions/role-permission.jsp";
 
     private final PermissionService permissionService = new PermissionService();
+    private final TeamService teamService = new TeamService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -59,6 +62,11 @@ public class PermissionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+
+        if ("/permissions/team".equals(request.getServletPath())) {
+            handleTeamAssignment(request, response);
+            return;
+        }
 
         if (!"/permissions/assign".equals(request.getServletPath())) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -100,12 +108,43 @@ public class PermissionServlet extends HttpServlet {
         }
     }
 
+    private void handleTeamAssignment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        Long userId = parsePositiveLong(request.getParameter("userId"));
+        Long teamId = parsePositiveLong(request.getParameter("teamId"));
+
+        if (userId == null || teamId == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        try {
+            TeamService.AssignmentResult result = teamService.assignUserToTeam(userId, teamId);
+            switch (result) {
+                case SUCCESS -> response.sendRedirect(request.getContextPath()
+                        + "/permissions?viewUserId=" + userId + "&teamSaved=1");
+                case INVALID_USER, INVALID_TEAM -> forwardError(
+                        request, response, userId, HttpServletResponse.SC_BAD_REQUEST,
+                        "Dữ liệu gán nhóm kinh doanh không hợp lệ.");
+                case USER_NOT_FOUND -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                case TEAM_NOT_FOUND -> forwardError(
+                        request, response, userId, HttpServletResponse.SC_NOT_FOUND,
+                        "Không tìm thấy nhóm kinh doanh.");
+                case UPDATE_CONFLICT -> forwardError(
+                        request, response, userId, HttpServletResponse.SC_CONFLICT,
+                        "Không thể cập nhật nhóm kinh doanh do dữ liệu đã thay đổi.");
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Unable to assign sales team", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
     private void loadPage(HttpServletRequest request, HttpServletResponse response,
                           Long selectedUserId, int status, String error)
             throws SQLException, ServletException, IOException {
         request.setAttribute("users", permissionService.findAllUsers());
         request.setAttribute("roles", permissionService.findAllRoles());
-        request.setAttribute("teams", List.of());
+        request.setAttribute("teams", teamService.findAllTeams());
 
         if (selectedUserId != null) {
             User selectedUser = permissionService.findUserById(selectedUserId);

@@ -49,6 +49,7 @@
     // Nhận các attribute từ Controller / Servlet chuyển tiếp tới View
     List<?> users = (List<?>) request.getAttribute("users");
     List<?> roles = (List<?>) request.getAttribute("roles");
+    List<?> teams = (List<?>) request.getAttribute("teams");
     Object selectedUser = request.getAttribute("selectedUser");
     List<?> userRoles = (List<?>) request.getAttribute("userRoles");
     String currentDataScope = (String) request.getAttribute("dataScope");
@@ -56,6 +57,8 @@
     String successMessage = (String) request.getAttribute("message");
 
     String selectedUserId = getProperty(selectedUser, "id", "userId");
+    String selectedTeamId = getProperty(selectedUser, "teamId");
+    String selectedTeamName = getProperty(selectedUser, "teamName", "team");
     if (currentDataScope == null || currentDataScope.trim().isEmpty()) {
         currentDataScope = "SELF";
     }
@@ -233,7 +236,73 @@
                         </div>
                     </section>
 
-                    <!-- BƯỚC 2: Chọn vai trò (Roles) -->
+                    <!-- BƯỚC 2: Gán nhóm kinh doanh (CRM-29) -->
+                    <section class="permission-card" id="teamCardSection">
+                        <div class="permission-card-header">
+                            <div class="permission-card-title-group">
+                                <span class="permission-card-step">4</span>
+                                <div>
+                                    <h2>Nhóm kinh doanh (Sales Team)</h2>
+                                    <div class="permission-card-subtitle">Gán người dùng đang chọn vào nhóm kinh doanh phụ trách</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="permission-card-body">
+                            <% if (selectedUser != null) { %>
+                                <div class="permission-form-group">
+                                    <label class="permission-label">Nhóm hiện tại</label>
+                                    <div class="permission-user-tag">
+                                        <%= escapeHtml(selectedTeamName == null || selectedTeamName.isBlank() ? "Chưa phân nhóm" : selectedTeamName) %>
+                                    </div>
+                                </div>
+
+                                <div class="permission-form-group" style="margin-top: 16px;">
+                                    <label for="teamSelect" class="permission-label">
+                                        Chọn nhóm kinh doanh <span style="color: var(--perm-danger);">*</span>
+                                    </label>
+                                    <div class="permission-select-wrapper">
+                                        <select id="teamSelect" name="teamId" class="permission-select" required>
+                                            <option value="">-- Chọn nhóm kinh doanh --</option>
+                                            <% if (teams != null && !teams.isEmpty()) { %>
+                                                <% for (Object team : teams) {
+                                                    String teamId = getProperty(team, "id", "teamId");
+                                                    String teamName = getProperty(team, "name", "teamName");
+                                                    boolean selectedTeam = selectedTeamId != null
+                                                            && !selectedTeamId.isEmpty()
+                                                            && selectedTeamId.equals(teamId);
+                                                %>
+                                                    <option value="<%= escapeHtml(teamId) %>"
+                                                            <%= selectedTeam ? "selected" : "" %>>
+                                                        <%= escapeHtml(teamName) %>
+                                                    </option>
+                                                <% } %>
+                                            <% } else { %>
+                                                <option value="" disabled>-- Chưa có nhóm kinh doanh trong CSDL --</option>
+                                            <% } %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="permission-buttons" style="margin-top: 16px;">
+                                    <button type="submit"
+                                            formaction="${pageContext.request.contextPath}/permissions/team"
+                                            formmethod="post"
+                                            class="permission-btn permission-btn-primary"
+                                            <%= (teams == null || teams.isEmpty()) ? "disabled" : "" %>>
+                                        Gán nhóm
+                                    </button>
+                                </div>
+                            <% } else { %>
+                                <div class="permission-alert permission-alert-danger">
+                                    <div class="permission-alert-content">
+                                        <div class="permission-alert-title">Chưa chọn người dùng</div>
+                                        <div>Hãy chọn người dùng ở bước 1 và bấm “Tải phân quyền” trước khi gán nhóm.</div>
+                                    </div>
+                                </div>
+                            <% } %>
+                        </div>
+                    </section>
+                    <!-- BƯỚC 3: Chọn vai trò (Roles) -->
                     <section class="permission-card" id="rolesCardSection">
                         <div class="permission-card-header">
                             <div class="permission-card-title-group">
@@ -285,7 +354,7 @@
                         </div>
                     </section>
 
-                    <!-- BƯỚC 3: Phạm vi dữ liệu sở hữu (Data Scope) -->
+                    <!-- BƯỚC 4: Phạm vi dữ liệu sở hữu (Data Scope) -->
                     <section class="permission-card" id="dataScopeCardSection">
                         <div class="permission-card-header">
                             <div class="permission-card-title-group">
