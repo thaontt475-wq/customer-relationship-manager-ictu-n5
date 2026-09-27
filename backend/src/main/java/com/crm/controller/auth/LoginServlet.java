@@ -110,7 +110,13 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
-        createAuthenticatedSession(request, result);
+        HttpSession session = createAuthenticatedSession(request, result);
+        if (session == null) {
+            request.setAttribute("email", email);
+            request.setAttribute("error", "Tài khoản không còn hoạt động");
+            forwardLogin(request, response);
+            return;
+        }
 
         response.sendRedirect(
                 request.getContextPath() + "/html/index.html"
@@ -184,6 +190,11 @@ public class LoginServlet extends HttpServlet {
 
         HttpSession session =
                 createAuthenticatedSession(request, result);
+        if (session == null) {
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
+                    "Tài khoản không còn hoạt động", null);
+            return;
+        }
 
         Map<String, Object> safeUser = createSafeUser(result);
 
@@ -251,10 +262,7 @@ public class LoginServlet extends HttpServlet {
             );
         }
 
-
-        SessionRegistry.register(result.userId(), session);
-
-        return session;
+        return SessionRegistry.register(result.userId(), session) ? session : null;
     }
 
     private Map<String, Object> createSafeUser(
