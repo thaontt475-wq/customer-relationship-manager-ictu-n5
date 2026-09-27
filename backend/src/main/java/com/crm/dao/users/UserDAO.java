@@ -64,6 +64,15 @@ public class UserDAO {
         return null;
     }
 
+    public String findPasswordHashById(Connection conn, long userId) throws SQLException {
+        String sql = "SELECT password_hash FROM users WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getString("password_hash") : null;
+            }
+        }
+    }
     public void updatePasswordHash(Connection conn, long userId, String passwordHash) throws SQLException {
         String sql = "UPDATE users SET password_hash = ? WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
