@@ -2,6 +2,7 @@ package com.crm.controller.auth;
 
 import com.crm.service.auth.AuthService;
 import com.crm.util.SessionKey;
+import com.crm.util.SessionRegistry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
@@ -249,6 +250,9 @@ public class LoginServlet extends HttpServlet {
                     result.displayName()
             );
         }
+
+
+        SessionRegistry.register(result.userId(), session);
 
         return session;
     }
