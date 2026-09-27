@@ -2,8 +2,11 @@ package com.crm.controller.users;
 
 import com.crm.model.User;
 import com.crm.service.users.UserService;
-import com.crm.service.users.UserService.LockHandoverResult;
+import com.crm.service.users.UserService.StatusChangeResult;
+import com.crm.service.users.UserService.TransferValidationResult;
 import com.crm.util.SessionKey;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,7 +15,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,13 +32,14 @@ public class UserServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(UserServlet.class.getName());
     private static final String USER_LIST_JSP = "/jsp/users/user-list.jsp";
     private static final String USER_DETAIL_JSP = "/jsp/users/user-detail.jsp";
+    private static final Gson GSON = new GsonBuilder().serializeNulls().create();
 
     private final UserService userService = new UserService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
         try {
             if ("/users".equals(request.getServletPath())) {
                 request.setAttribute("users", userService.findAll());
@@ -44,7 +50,8 @@ public class UserServlet extends HttpServlet {
                 showDetail(request, response);
                 return;
             }
-            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            writeJson(response, HttpServletResponse.SC_METHOD_NOT_ALLOWED, false,
+                    "Phương thức không được hỗ trợ", null);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Unable to load user data", e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -54,56 +61,127 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
         if (!"/api/users".equals(request.getServletPath())) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Endpoint không tồn tại", null);
             return;
         }
 
-        Long targetUserId = parseLockHandoverPath(request.getPathInfo());
+        String[] pathParts = splitApiPath(request.getPathInfo());
+        if (pathParts == null || !isSupportedAction(pathParts[2])) {
+            writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Endpoint không tồn tại", null);
+            return;
+        }
+
+        Long targetUserId = parsePositiveLong(pathParts[1]);
         if (targetUserId == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "ID người dùng không hợp lệ", null);
             return;
         }
 
         Long actorUserId = extractActorUserId(request);
         if (actorUserId == null) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
+                    "Yêu cầu đăng nhập", null);
             return;
         }
 
-        if (actorUserId.equals(targetUserId)) {
-            forwardPostError(request, response, targetUserId,
-                    HttpServletResponse.SC_BAD_REQUEST,
-                    "Không thể tự khóa tài khoản đang đăng nhập.");
-            return;
-        }
-
-        Long recipientUserId = parsePositiveLong(request.getParameter("recipientId"));
-        if (recipientUserId == null) {
-            forwardPostError(request, response, targetUserId,
-                    HttpServletResponse.SC_BAD_REQUEST,
-                    "Người nhận bàn giao không hợp lệ.");
-            return;
-        }
-
-        String confirmLock = request.getParameter("confirmLock");
-        if (!("on".equalsIgnoreCase(confirmLock) || "true".equalsIgnoreCase(confirmLock))) {
-            forwardPostError(request, response, targetUserId,
-                    HttpServletResponse.SC_BAD_REQUEST,
-                    "Bạn phải xác nhận thao tác khóa tài khoản.");
-            return;
-        }
-
-        String lockReason = request.getParameter("lockReason");
         try {
-            LockHandoverResult result = userService.lockAndHandover(
-                    targetUserId, recipientUserId, actorUserId, lockReason);
-            handleLockResult(request, response, targetUserId, result);
+            switch (pathParts[2]) {
+                case "lock" -> handleLock(request, response, targetUserId, actorUserId);
+                case "unlock" -> handleUnlock(response, targetUserId);
+                case "transfer-data" -> handleTransfer(request, response, targetUserId);
+                default -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                        "Endpoint không tồn tại", null);
+            }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Unable to lock user and record handover", e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            LOGGER.log(Level.SEVERE, "Unable to process CRM-30 user operation", e);
+            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
+                    "Không thể xử lý yêu cầu lúc này", null);
         }
+    }
+
+    private void handleLock(HttpServletRequest request, HttpServletResponse response,
+                            long targetUserId, long actorUserId) throws SQLException, IOException {
+        StatusChangeResult result = userService.lockUser(
+                targetUserId, actorUserId, request.getParameter("reason"));
+        switch (result) {
+            case SUCCESS -> writeJson(response, HttpServletResponse.SC_OK, true,
+                    "Khóa tài khoản thành công", statusData(targetUserId, "LOCKED"));
+            case INVALID_REASON -> writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Lý do khóa là bắt buộc và không được vượt quá 500 ký tự", null);
+            case SELF_LOCK -> writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Không thể tự khóa tài khoản đang đăng nhập", null);
+            case TARGET_NOT_FOUND -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy tài khoản mục tiêu", null);
+            case INVALID_CURRENT_STATUS -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Chỉ tài khoản ACTIVE mới có thể bị khóa", null);
+            case UPDATE_CONFLICT -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Trạng thái tài khoản đã thay đổi, vui lòng thử lại", null);
+        }
+    }
+
+    private void handleUnlock(HttpServletResponse response, long targetUserId)
+            throws SQLException, IOException {
+        StatusChangeResult result = userService.unlockUser(targetUserId);
+        switch (result) {
+            case SUCCESS -> writeJson(response, HttpServletResponse.SC_OK, true,
+                    "Mở khóa tài khoản thành công", statusData(targetUserId, "ACTIVE"));
+            case TARGET_NOT_FOUND -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy tài khoản mục tiêu", null);
+            case INVALID_CURRENT_STATUS -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Chỉ tài khoản LOCKED mới có thể được mở khóa", null);
+            case UPDATE_CONFLICT -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Trạng thái tài khoản đã thay đổi, vui lòng thử lại", null);
+            case INVALID_REASON, SELF_LOCK -> writeJson(
+                    response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
+                    "Không thể xử lý yêu cầu lúc này", null);
+        }
+    }
+
+    private void handleTransfer(HttpServletRequest request, HttpServletResponse response,
+                                long sourceUserId) throws SQLException, IOException {
+        Long recipientUserId = parsePositiveLong(request.getParameter("toUserId"));
+        if (recipientUserId == null) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "toUserId không hợp lệ", null);
+            return;
+        }
+
+        TransferValidationResult result = userService.validateTransfer(sourceUserId, recipientUserId);
+        switch (result) {
+            case SAME_USER -> writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Tài khoản nguồn và tài khoản nhận không được trùng nhau", null);
+            case SOURCE_NOT_FOUND -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy tài khoản nguồn", null);
+            case RECIPIENT_NOT_FOUND -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy tài khoản nhận", null);
+            case RECIPIENT_NOT_ACTIVE -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Tài khoản nhận phải ở trạng thái ACTIVE", null);
+            case NOT_SUPPORTED -> writeJson(response, HttpServletResponse.SC_NOT_IMPLEMENTED, false,
+                    "Chưa thể chuyển dữ liệu vì schema hiện tại chưa có bảng dữ liệu sở hữu nghiệp vụ",
+                    transferUnavailableData(sourceUserId, recipientUserId));
+            case SUCCESS -> writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
+                    "Chưa có dữ liệu chuyển giao được cấu hình", null);
+        }
+    }
+
+    private Map<String, Object> statusData(long userId, String status) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("userId", userId);
+        data.put("status", status);
+        return data;
+    }
+
+    private Map<String, Object> transferUnavailableData(long sourceUserId, long recipientUserId) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("sourceUserId", sourceUserId);
+        data.put("toUserId", recipientUserId);
+        data.put("status", "NOT_SUPPORTED");
+        return data;
     }
 
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
@@ -129,54 +207,6 @@ public class UserServlet extends HttpServlet {
         request.getRequestDispatcher(USER_DETAIL_JSP).forward(request, response);
     }
 
-    private void handleLockResult(HttpServletRequest request, HttpServletResponse response,
-                                  long targetUserId, LockHandoverResult result)
-            throws SQLException, ServletException, IOException {
-        switch (result) {
-            case SUCCESS -> response.sendRedirect(request.getContextPath()
-                    + "/users/detail?id=" + targetUserId + "&locked=1");
-            case TARGET_NOT_FOUND -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            case TARGET_NOT_ACTIVE, UPDATE_CONFLICT -> forwardPostError(
-                    request, response, targetUserId, HttpServletResponse.SC_CONFLICT,
-                    "Tài khoản mục tiêu không còn ở trạng thái ACTIVE.");
-            case RECIPIENT_NOT_FOUND -> forwardPostError(
-                    request, response, targetUserId, HttpServletResponse.SC_BAD_REQUEST,
-                    "Không tìm thấy người nhận bàn giao.");
-            case RECIPIENT_NOT_ACTIVE -> forwardPostError(
-                    request, response, targetUserId, HttpServletResponse.SC_BAD_REQUEST,
-                    "Người nhận bàn giao phải là tài khoản ACTIVE.");
-            case SAME_RECIPIENT -> forwardPostError(
-                    request, response, targetUserId, HttpServletResponse.SC_BAD_REQUEST,
-                    "Không thể chọn chính tài khoản bị khóa làm người nhận bàn giao.");
-            case SELF_LOCK -> forwardPostError(
-                    request, response, targetUserId, HttpServletResponse.SC_BAD_REQUEST,
-                    "Không thể tự khóa tài khoản đang đăng nhập.");
-            case INVALID_REASON -> forwardPostError(
-                    request, response, targetUserId, HttpServletResponse.SC_BAD_REQUEST,
-                    "Lý do khóa là bắt buộc và không được vượt quá 500 ký tự.");
-        }
-    }
-
-    private void forwardPostError(HttpServletRequest request, HttpServletResponse response,
-                                  long targetUserId, int status, String message)
-            throws ServletException, IOException {
-        try {
-            User user = userService.findById(targetUserId);
-            if (user == null) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                return;
-            }
-            request.setAttribute("user", user);
-            request.setAttribute("availableRecipients", userService.findAvailableRecipients(targetUserId));
-            request.setAttribute("error", message);
-            response.setStatus(status);
-            request.getRequestDispatcher(USER_DETAIL_JSP).forward(request, response);
-        } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Unable to reload user detail after validation error", e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-    }
-
     private Long extractActorUserId(HttpServletRequest request) {
         HttpSession session;
         try {
@@ -186,6 +216,18 @@ public class UserServlet extends HttpServlet {
         }
         if (session == null) {
             return null;
+        }
+
+        Object directUserId;
+        try {
+            directUserId = session.getAttribute("userId");
+        } catch (IllegalStateException e) {
+            return null;
+        }
+
+        Long parsedDirectUserId = parseIdValue(directUserId);
+        if (parsedDirectUserId != null) {
+            return parsedDirectUserId;
         }
 
         Object currentUser;
@@ -212,15 +254,17 @@ public class UserServlet extends HttpServlet {
         return value instanceof String text ? parsePositiveLong(text) : null;
     }
 
-    private Long parseLockHandoverPath(String pathInfo) {
-        if (pathInfo == null) {
+    private String[] splitApiPath(String pathInfo) {
+        if (pathInfo == null || pathInfo.isBlank()) {
             return null;
         }
         String[] parts = pathInfo.split("/", -1);
-        if (parts.length != 3 || !"lock-handover".equals(parts[2])) {
-            return null;
-        }
-        return parsePositiveLong(parts[1]);
+        return parts.length == 3 && !parts[1].isBlank() && !parts[2].isBlank()
+                ? parts : null;
+    }
+
+    private boolean isSupportedAction(String action) {
+        return "lock".equals(action) || "unlock".equals(action) || "transfer-data".equals(action);
     }
 
     private Long parsePositiveLong(String value) {
@@ -233,6 +277,17 @@ public class UserServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private void writeJson(HttpServletResponse response, int status, boolean success,
+                           String message, Object data) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        GSON.toJson(new ApiResponse(success, message, data), response.getWriter());
+    }
+
+    private record ApiResponse(boolean success, String message, Object data) {
     }
 
 }
