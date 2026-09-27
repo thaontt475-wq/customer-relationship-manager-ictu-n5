@@ -74,7 +74,7 @@ public class UserDAO {
     }
 
     public List<User> findAll(Connection conn) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id ORDER BY u.full_name, u.email";
         List<User> users = new ArrayList<>();
@@ -88,7 +88,7 @@ public class UserDAO {
     }
 
     public User findById(Connection conn, long id) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -100,7 +100,7 @@ public class UserDAO {
     }
 
     public User findByIdForUpdate(Connection conn, long id) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ? FOR UPDATE";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -112,7 +112,7 @@ public class UserDAO {
     }
 
     public List<User> findActiveRecipientsExcluding(Connection conn, long excludedUserId) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id "
                     + "WHERE u.status = 'ACTIVE' AND u.id <> ? ORDER BY u.full_name, u.email";
@@ -150,6 +150,7 @@ public class UserDAO {
         long teamId = rs.getLong("team_id");
         user.setTeamId(rs.wasNull() ? null : teamId);
         user.setTeamName(rs.getString("team_name"));
+        user.setDataScope(rs.getString("data_scope"));
         user.setCreatedAt(toLocalDateTime(rs.getTimestamp("created_at")));
         user.setUpdatedAt(toLocalDateTime(rs.getTimestamp("updated_at")));
         user.setLastLoginAt(toLocalDateTime(rs.getTimestamp("last_login_at")));
