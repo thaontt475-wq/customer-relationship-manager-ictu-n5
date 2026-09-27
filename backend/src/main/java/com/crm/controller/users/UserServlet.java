@@ -1,12 +1,15 @@
 package com.crm.controller.users;
 
 import com.crm.model.User;
+import com.crm.service.teams.TeamService;
+import com.crm.service.teams.TeamService.AssignmentResult;
 import com.crm.service.users.UserService;
 import com.crm.service.users.UserService.StatusChangeResult;
 import com.crm.service.users.UserService.TransferValidationResult;
 import com.crm.util.SessionKey;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -35,6 +38,7 @@ public class UserServlet extends HttpServlet {
     private static final Gson GSON = new GsonBuilder().serializeNulls().create();
 
     private final UserService userService = new UserService();
+    private final TeamService teamService = new TeamService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -94,6 +98,7 @@ public class UserServlet extends HttpServlet {
                 case "lock" -> handleLock(request, response, targetUserId, actorUserId);
                 case "unlock" -> handleUnlock(response, targetUserId);
                 case "transfer-data" -> handleTransfer(request, response, targetUserId);
+                case "team" -> handleTeamAssignment(request, response, targetUserId);
                 default -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
                         "Endpoint không tồn tại", null);
             }
@@ -104,6 +109,48 @@ public class UserServlet extends HttpServlet {
         }
     }
 
+    private void handleTeamAssignment(HttpServletRequest request, HttpServletResponse response,
+                                      long userId) throws SQLException, IOException {
+        if (!hasPermissionAdminRole(request)) {
+            writeJson(response, HttpServletResponse.SC_FORBIDDEN, false,
+                    "Không có quyền gán nhóm kinh doanh", null);
+            return;
+        }
+
+        TeamAssignmentRequest body;
+        try {
+            body = GSON.fromJson(request.getReader(), TeamAssignmentRequest.class);
+        } catch (JsonSyntaxException e) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "JSON không hợp lệ", null);
+            return;
+        }
+
+        if (body == null || body.teamId == null || body.teamId <= 0) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Team ID không hợp lệ", null);
+            return;
+        }
+
+        AssignmentResult result = teamService.assignUserToTeam(userId, body.teamId);
+        switch (result) {
+            case SUCCESS -> writeJson(response, HttpServletResponse.SC_OK, true,
+                    "Gán nhóm kinh doanh thành công",
+                    new TeamAssignmentData(userId, body.teamId));
+            case INVALID_USER, INVALID_TEAM -> writeJson(
+                    response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Dữ liệu gán nhóm không hợp lệ", null);
+            case USER_NOT_FOUND -> writeJson(
+                    response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy người dùng", null);
+            case TEAM_NOT_FOUND -> writeJson(
+                    response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy nhóm kinh doanh", null);
+            case UPDATE_CONFLICT -> writeJson(
+                    response, HttpServletResponse.SC_CONFLICT, false,
+                    "Không thể cập nhật nhóm kinh doanh", null);
+        }
+    }
     private void handleLock(HttpServletRequest request, HttpServletResponse response,
                             long targetUserId, long actorUserId) throws SQLException, IOException {
         StatusChangeResult result = userService.lockUser(
@@ -263,8 +310,37 @@ public class UserServlet extends HttpServlet {
                 ? parts : null;
     }
 
+    private boolean hasPermissionAdminRole(HttpServletRequest request) {
+        HttpSession session;
+        try {
+            session = request.getSession(false);
+        } catch (IllegalStateException e) {
+            return false;
+        }
+
+        if (session == null) {
+            return false;
+        }
+
+        Object rolesValue;
+        try {
+            rolesValue = session.getAttribute(SessionKey.ROLES);
+        } catch (IllegalStateException e) {
+            return false;
+        }
+
+        if (!(rolesValue instanceof java.util.Collection<?> roles)) {
+            return false;
+        }
+
+        return roles.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .map(role -> role.trim().toLowerCase(java.util.Locale.ROOT))
+                .anyMatch(role -> "admin".equals(role) || "director".equals(role));
+    }
     private boolean isSupportedAction(String action) {
-        return "lock".equals(action) || "unlock".equals(action) || "transfer-data".equals(action);
+        return "lock".equals(action) || "unlock".equals(action) || "transfer-data".equals(action) || "team".equals(action);
     }
 
     private Long parsePositiveLong(String value) {
@@ -287,6 +363,12 @@ public class UserServlet extends HttpServlet {
         GSON.toJson(new ApiResponse(success, message, data), response.getWriter());
     }
 
+    private static final class TeamAssignmentRequest {
+        private Long teamId;
+    }
+
+    private record TeamAssignmentData(long userId, long teamId) {
+    }
     private record ApiResponse(boolean success, String message, Object data) {
     }
 
