@@ -785,6 +785,387 @@
     color: var(--user-text-muted);
 }
 
+/* ==========================================================================
+   CRM-28: User Management UI Components (CRUD, Search, Filter, Pagination, Modals)
+   ========================================================================== */
+
+/* Toolbar tìm kiếm & Bộ lọc */
+.user-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 6px;
+}
+
+.user-toolbar-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 280px;
+}
+
+.user-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+    max-width: 360px;
+}
+
+.user-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.user-search-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px 0 38px;
+    border: 1px solid var(--user-border);
+    border-radius: var(--user-radius-md);
+    background-color: #ffffff;
+    font-size: 0.88rem;
+    color: var(--user-text-main);
+    transition: var(--user-transition);
+}
+
+.user-search-input:focus {
+    outline: none;
+    border-color: var(--user-primary);
+    box-shadow: 0 0 0 3px rgba(47, 91, 255, 0.12);
+}
+
+.user-filter-select {
+    height: 40px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--user-border);
+    border-radius: var(--user-radius-md);
+    background-color: #ffffff;
+    font-size: 0.88rem;
+    color: var(--user-text-main);
+    cursor: pointer;
+    transition: var(--user-transition);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.user-filter-select:focus {
+    outline: none;
+    border-color: var(--user-primary);
+    box-shadow: 0 0 0 3px rgba(47, 91, 255, 0.12);
+}
+
+/* Nút thêm mới nổi bật */
+.btn-create-user {
+    background: linear-gradient(135deg, var(--user-primary), var(--user-primary-hover));
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(47, 91, 255, 0.28);
+    font-weight: 600;
+}
+
+.btn-create-user:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(47, 91, 255, 0.35);
+}
+
+/* Pagination UI */
+.user-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--user-border-subtle);
+    font-size: 0.88rem;
+}
+
+.pagination-info {
+    color: var(--user-text-muted);
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pagination-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--user-border);
+    border-radius: var(--user-radius-sm);
+    background-color: #ffffff;
+    color: var(--user-text-sub);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--user-transition);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--user-text-main);
+}
+
+.pagination-btn.is-active {
+    background-color: var(--user-primary);
+    border-color: var(--user-primary);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Loading Overlay & Skeleton */
+.user-loading-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--user-radius-lg);
+}
+
+.user-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(47, 91, 255, 0.2);
+    border-top-color: var(--user-primary);
+    border-radius: 50%;
+    animation: userSpin 0.75s linear infinite;
+}
+
+@keyframes userSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Modal Dialog System (CRM-28) */
+.user-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s ease;
+}
+
+.user-modal-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.user-modal-card {
+    width: min(100%, 540px);
+    background-color: #ffffff;
+    border-radius: var(--user-radius-lg);
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-modal-overlay.is-open .user-modal-card {
+    transform: scale(1) translateY(0);
+}
+
+.user-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--user-border-subtle);
+    background-color: #fafbfc;
+}
+
+.user-modal-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--user-text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-modal-close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: var(--user-transition);
+}
+
+.user-modal-close-btn:hover {
+    color: var(--user-text-main);
+    background-color: #f1f5f9;
+}
+
+.user-modal-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-height: calc(85vh - 140px);
+    overflow-y: auto;
+}
+
+.user-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--user-border-subtle);
+    background-color: #fafbfc;
+}
+
+/* Modal Form Controls */
+.modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.modal-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--user-text-main);
+}
+
+.modal-required {
+    color: var(--user-danger);
+    margin-left: 2px;
+}
+
+.modal-input,
+.modal-select {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid var(--user-border);
+    border-radius: var(--user-radius-md);
+    background-color: #ffffff;
+    font-size: 0.9rem;
+    color: var(--user-text-main);
+    transition: var(--user-transition);
+}
+
+.modal-input:focus,
+.modal-select:focus {
+    outline: none;
+    border-color: var(--user-primary);
+    box-shadow: 0 0 0 3px rgba(47, 91, 255, 0.12);
+}
+
+.modal-input.is-invalid {
+    border-color: var(--user-danger);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.modal-field-feedback {
+    font-size: 0.8rem;
+    color: var(--user-danger);
+    min-height: 16px;
+}
+
+.modal-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: var(--user-text-sub);
+    cursor: pointer;
+    user-select: none;
+    margin-top: 4px;
+}
+
+.modal-checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--user-primary);
+    cursor: pointer;
+}
+
+/* Confirm Delete Modal Custom Style */
+.confirm-modal-content {
+    text-align: center;
+    padding: 12px 16px;
+}
+
+.confirm-modal-icon-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--user-danger-light);
+    color: var(--user-danger);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.confirm-modal-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--user-text-main);
+    margin: 0 0 8px 0;
+}
+
+.confirm-modal-desc {
+    font-size: 0.9rem;
+    color: var(--user-text-sub);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.confirm-user-highlight {
+    font-weight: 700;
+    color: var(--user-danger);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
     .user-profile-layout {
@@ -794,6 +1175,19 @@
     .user-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .user-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .user-toolbar-left {
+        width: 100%;
+    }
+
+    .user-search-wrap {
+        max-width: 100%;
     }
 }
 
@@ -814,5 +1208,27 @@
 
     .form-actions .btn {
         width: 100%;
+    }
+
+    .user-toolbar-left {
+        flex-direction: column;
+    }
+
+    .user-filter-select {
+        width: 100%;
+    }
+
+    .user-toolbar-right {
+        width: 100%;
+    }
+
+    .user-toolbar-right .btn {
+        width: 100%;
+    }
+
+    .user-pagination {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
     }
 }
