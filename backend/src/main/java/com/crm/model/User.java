@@ -21,6 +21,8 @@ public class User {
     private String fullName;
     private String phone;
     private String status;
+    private Long teamId;
+    private String teamName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
@@ -50,6 +52,10 @@ public class User {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getStatus() { return status; }
+    public Long getTeamId() { return teamId; }
+    public void setTeamId(Long teamId) { this.teamId = teamId; }
+    public String getTeamName() { return teamName; }
+    public void setTeamName(String teamName) { this.teamName = teamName; }
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
@@ -63,6 +69,9 @@ public class User {
 
     /** Compatibility placeholder until the role module provides user-role data. */
     public String getRole() { return null; }
+
+    /** CRM-29 compatibility alias used by JSP views. */
+    public String getTeam() { return teamName; }
 
     /** Compatibility placeholder until the organization module provides department data. */
     public String getDepartment() { return null; }

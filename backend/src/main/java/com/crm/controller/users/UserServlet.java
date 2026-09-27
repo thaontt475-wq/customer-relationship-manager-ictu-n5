@@ -2,6 +2,11 @@ package com.crm.controller.users;
 
 import com.crm.model.User;
 import com.crm.service.users.UserService;
+import com.crm.service.teams.TeamService;
+import com.crm.service.teams.TeamService.AssignmentResult;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.crm.service.users.UserService.LockHandoverResult;
 import com.crm.util.SessionKey;
 import jakarta.servlet.ServletException;
@@ -25,10 +30,12 @@ import java.util.logging.Logger;
 public class UserServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(UserServlet.class.getName());
+    private static final Gson GSON = new GsonBuilder().serializeNulls().create();
     private static final String USER_LIST_JSP = "/jsp/users/user-list.jsp";
     private static final String USER_DETAIL_JSP = "/jsp/users/user-detail.jsp";
 
     private final UserService userService = new UserService();
+    private final TeamService teamService = new TeamService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,6 +67,11 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
+        Long teamTargetUserId = parseTeamAssignmentPath(request.getPathInfo());
+        if (teamTargetUserId != null) {
+            handleTeamAssignment(request, response, teamTargetUserId);
+            return;
+        }
         Long targetUserId = parseLockHandoverPath(request.getPathInfo());
         if (targetUserId == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -106,6 +118,121 @@ public class UserServlet extends HttpServlet {
         }
     }
 
+    private void handleTeamAssignment(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            long userId) throws IOException {
+
+        if (extractActorUserId(request) == null) {
+            writeJson(response,
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    false,
+                    "Yêu cầu đăng nhập",
+                    null);
+            return;
+        }
+
+        if (!hasPermissionAdminRole(request)) {
+            writeJson(response,
+                    HttpServletResponse.SC_FORBIDDEN,
+                    false,
+                    "Không có quyền gán nhóm kinh doanh",
+                    null);
+            return;
+        }
+
+        TeamAssignmentRequest body;
+
+        try {
+            body = GSON.fromJson(
+                    request.getReader(),
+                    TeamAssignmentRequest.class
+            );
+        } catch (JsonSyntaxException e) {
+            writeJson(response,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    false,
+                    "JSON không hợp lệ",
+                    null);
+            return;
+        }
+
+        if (body == null
+                || body.teamId == null
+                || body.teamId <= 0) {
+
+            writeJson(response,
+                    HttpServletResponse.SC_BAD_REQUEST,
+                    false,
+                    "Team ID không hợp lệ",
+                    null);
+            return;
+        }
+
+        try {
+            AssignmentResult result =
+                    teamService.assignUserToTeam(
+                            userId,
+                            body.teamId
+                    );
+
+            switch (result) {
+                case SUCCESS -> writeJson(
+                        response,
+                        HttpServletResponse.SC_OK,
+                        true,
+                        "Gán nhóm kinh doanh thành công",
+                        new TeamAssignmentData(
+                                userId,
+                                body.teamId
+                        )
+                );
+
+                case INVALID_USER,
+                     INVALID_TEAM -> writeJson(
+                        response,
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        false,
+                        "Dữ liệu gán nhóm không hợp lệ",
+                        null
+                );
+
+                case USER_NOT_FOUND -> writeJson(
+                        response,
+                        HttpServletResponse.SC_NOT_FOUND,
+                        false,
+                        "Không tìm thấy người dùng",
+                        null
+                );
+
+                case TEAM_NOT_FOUND -> writeJson(
+                        response,
+                        HttpServletResponse.SC_NOT_FOUND,
+                        false,
+                        "Không tìm thấy nhóm kinh doanh",
+                        null
+                );
+
+                case UPDATE_CONFLICT -> writeJson(
+                        response,
+                        HttpServletResponse.SC_CONFLICT,
+                        false,
+                        "Không thể cập nhật nhóm kinh doanh",
+                        null
+                );
+            }
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE,
+                    "Unable to assign user to team", e);
+
+            writeJson(response,
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    false,
+                    "Lỗi hệ thống khi gán nhóm",
+                    null);
+        }
+    }
     private void showDetail(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         Long userId = parsePositiveLong(request.getParameter("id"));
@@ -212,6 +339,18 @@ public class UserServlet extends HttpServlet {
         return value instanceof String text ? parsePositiveLong(text) : null;
     }
 
+    private Long parseTeamAssignmentPath(String pathInfo) {
+        if (pathInfo == null) {
+            return null;
+        }
+
+        String[] parts = pathInfo.split("/", -1);
+        if (parts.length != 3 || !"team".equals(parts[2])) {
+            return null;
+        }
+
+        return parsePositiveLong(parts[1]);
+    }
     private Long parseLockHandoverPath(String pathInfo) {
         if (pathInfo == null) {
             return null;
@@ -223,6 +362,74 @@ public class UserServlet extends HttpServlet {
         return parsePositiveLong(parts[1]);
     }
 
+    private boolean hasPermissionAdminRole(HttpServletRequest request) {
+        HttpSession session;
+
+        try {
+            session = request.getSession(false);
+        } catch (IllegalStateException e) {
+            return false;
+        }
+
+        if (session == null) {
+            return false;
+        }
+
+        Object rolesValue;
+
+        try {
+            rolesValue = session.getAttribute(SessionKey.ROLES);
+        } catch (IllegalStateException e) {
+            return false;
+        }
+
+        if (!(rolesValue instanceof java.util.Collection<?> roles)) {
+            return false;
+        }
+
+        return roles.stream()
+                .filter(String.class::isInstance)
+                .map(String.class::cast)
+                .map(role -> role.trim().toLowerCase(java.util.Locale.ROOT))
+                .anyMatch(role ->
+                        "admin".equals(role)
+                                || "director".equals(role));
+    }
+    private void writeJson(
+            HttpServletResponse response,
+            int status,
+            boolean success,
+            String message,
+            Object data) throws IOException {
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(status);
+
+        GSON.toJson(
+                new ApiResponse(
+                        success,
+                        message,
+                        data
+                ),
+                response.getWriter()
+        );
+    }
+
+    private static final class TeamAssignmentRequest {
+        private Long teamId;
+    }
+
+    private record TeamAssignmentData(
+            long userId,
+            long teamId) {
+    }
+
+    private record ApiResponse(
+            boolean success,
+            String message,
+            Object data) {
+    }
     private Long parsePositiveLong(String value) {
         if (value == null || value.isBlank()) {
             return null;
