@@ -53,8 +53,9 @@ public class PermissionService {
         }
     }
 
-    public AssignmentResult assign(long userId, List<Long> roleIds, String dataScope) throws SQLException {
-        if (userId <= 0) {
+    public AssignmentResult assign(long actorUserId, long userId, List<Long> roleIds, String dataScope)
+            throws SQLException {
+        if (actorUserId <= 0 || userId <= 0) {
             return AssignmentResult.INVALID_USER;
         }
 
@@ -84,6 +85,26 @@ public class PermissionService {
                     return AssignmentResult.INVALID_ROLE;
                 }
 
+                List<Role> roles = permissionDAO.findAllRoles(conn);
+                Long teamLeadRoleId = findRoleIdByName(roles, "Team Lead");
+                Long adminRoleId = findRoleIdByName(roles, "Admin");
+
+                if (teamLeadRoleId != null
+                        && normalizedRoleIds.contains(teamLeadRoleId)
+                        && target.getTeamId() == null) {
+                    conn.rollback();
+                    return AssignmentResult.TEAM_REQUIRED;
+                }
+
+                if (actorUserId == userId && adminRoleId != null) {
+                    List<Long> currentRoles = permissionDAO.findRoleIdsByUserId(conn, userId);
+                    if (currentRoles.contains(adminRoleId)
+                            && !normalizedRoleIds.contains(adminRoleId)) {
+                        conn.rollback();
+                        return AssignmentResult.CANNOT_REVOKE_OWN_ADMIN;
+                    }
+                }
+
                 permissionDAO.replaceUserRoles(conn, userId, normalizedRoleIds);
                 if (permissionDAO.updateDataScope(conn, userId, normalizedScope) != 1) {
                     conn.rollback();
@@ -93,26 +114,27 @@ public class PermissionService {
                 conn.commit();
                 return AssignmentResult.SUCCESS;
             } catch (SQLException | RuntimeException e) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rollbackException) {
-                    e.addSuppressed(rollbackException);
-                }
+                try { conn.rollback(); } catch (SQLException rollbackException) { e.addSuppressed(rollbackException); }
                 throw e;
             }
         }
     }
 
-    private List<Long> normalizeRoleIds(List<Long> roleIds) {
-        if (roleIds == null || roleIds.isEmpty()) {
-            return List.of();
+    private Long findRoleIdByName(List<Role> roles, String roleName) {
+        for (Role role : roles) {
+            if (role != null && role.getName() != null
+                    && roleName.equalsIgnoreCase(role.getName().trim())) {
+                return role.getId();
+            }
         }
+        return null;
+    }
 
+    private List<Long> normalizeRoleIds(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) return List.of();
         LinkedHashSet<Long> unique = new LinkedHashSet<>();
         for (Long roleId : roleIds) {
-            if (roleId == null || roleId <= 0) {
-                return null;
-            }
+            if (roleId == null || roleId <= 0) return null;
             unique.add(roleId);
         }
         return new ArrayList<>(unique);
@@ -124,6 +146,8 @@ public class PermissionService {
         INVALID_ROLE,
         INVALID_DATA_SCOPE,
         USER_NOT_FOUND,
+        TEAM_REQUIRED,
+        CANNOT_REVOKE_OWN_ADMIN,
         UPDATE_CONFLICT
     }
 }

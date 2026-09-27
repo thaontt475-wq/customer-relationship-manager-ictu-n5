@@ -187,4 +187,70 @@ public class AuthService {
             }
         }
     }
+    public ChangePasswordResult changePassword(long userId, String currentPassword, String newPassword)
+            throws SQLException {
+
+        if (userId <= 0) {
+            return ChangePasswordResult.USER_NOT_FOUND;
+        }
+        if (currentPassword == null || currentPassword.isBlank()) {
+            return ChangePasswordResult.CURRENT_PASSWORD_REQUIRED;
+        }
+        if (!isValidChangePassword(newPassword)) {
+            return ChangePasswordResult.INVALID_NEW_PASSWORD;
+        }
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                String currentHash = userDAO.findPasswordHashById(conn, userId);
+                if (currentHash == null) {
+                    conn.rollback();
+                    return ChangePasswordResult.USER_NOT_FOUND;
+                }
+
+                boolean matches;
+                try {
+                    matches = PasswordUtil.verifyPassword(currentPassword, currentHash);
+                } catch (IllegalArgumentException e) {
+                    conn.rollback();
+                    return ChangePasswordResult.CURRENT_PASSWORD_INCORRECT;
+                }
+
+                if (!matches) {
+                    conn.rollback();
+                    return ChangePasswordResult.CURRENT_PASSWORD_INCORRECT;
+                }
+
+                String newHash = PasswordUtil.hashPassword(newPassword);
+                userDAO.updatePasswordHash(conn, userId, newHash);
+                conn.commit();
+                return ChangePasswordResult.SUCCESS;
+
+            } catch (SQLException | RuntimeException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackException) {
+                    e.addSuppressed(rollbackException);
+                }
+                throw e;
+            }
+        }
+    }
+
+    private boolean isValidChangePassword(String password) {
+        if (password == null || password.length() < 8 || password.length() > 72) {
+            return false;
+        }
+        return password.matches(".*[A-Za-z].*")
+                && password.matches(".*\\d.*");
+    }
+
+    public enum ChangePasswordResult {
+        SUCCESS,
+        CURRENT_PASSWORD_REQUIRED,
+        CURRENT_PASSWORD_INCORRECT,
+        INVALID_NEW_PASSWORD,
+        USER_NOT_FOUND
+    }
 }

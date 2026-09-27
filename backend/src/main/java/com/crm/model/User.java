@@ -21,6 +21,7 @@ public class User {
     private String fullName;
     private String phone;
     private String status;
+    private String role;
     private Long teamId;
     private String teamName;
     private String dataScope = "SELF";
@@ -69,9 +70,8 @@ public class User {
 
     /** Compatibility alias for the current JSP contract. */
     public LocalDateTime getLastLogin() { return lastLoginAt; }
-
-    /** Compatibility placeholder until the role module provides user-role data. */
-    public String getRole() { return null; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
     /** CRM-29 compatibility alias used by JSP views. */
     public String getTeam() { return teamName; }

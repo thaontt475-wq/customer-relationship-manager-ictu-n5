@@ -90,13 +90,25 @@ public class PermissionServlet extends HttpServlet {
         String dataScope = request.getParameter("dataScope");
 
         try {
-            AssignmentResult result = permissionService.assign(userId, roleIds, dataScope);
+            Object actorValue = request.getSession(false).getAttribute("userId");
+            if (!(actorValue instanceof Long actorUserId) || actorUserId <= 0) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            AssignmentResult result = permissionService.assign(actorUserId, userId, roleIds, dataScope);
             switch (result) {
                 case SUCCESS -> response.sendRedirect(request.getContextPath()
                         + "/permissions?viewUserId=" + userId + "&saved=1");
                 case INVALID_USER, INVALID_ROLE, INVALID_DATA_SCOPE -> forwardError(
                         request, response, userId, HttpServletResponse.SC_BAD_REQUEST,
                         "Dữ liệu phân quyền không hợp lệ.");
+                case TEAM_REQUIRED -> forwardError(
+                        request, response, userId, HttpServletResponse.SC_CONFLICT,
+                        "Vai trò Team Lead bắt buộc người dùng phải thuộc một nhóm kinh doanh.");
+                case CANNOT_REVOKE_OWN_ADMIN -> forwardError(
+                        request, response, userId, HttpServletResponse.SC_CONFLICT,
+                        "Không thể tự gỡ vai trò Admin của chính mình.");
                 case USER_NOT_FOUND -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 case UPDATE_CONFLICT -> forwardError(
                         request, response, userId, HttpServletResponse.SC_CONFLICT,
