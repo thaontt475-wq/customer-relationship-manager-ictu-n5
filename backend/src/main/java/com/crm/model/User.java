@@ -23,6 +23,7 @@ public class User {
     private String status;
     private Long teamId;
     private String teamName;
+    private String dataScope = "SELF";
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
@@ -56,6 +57,8 @@ public class User {
     public void setTeamId(Long teamId) { this.teamId = teamId; }
     public String getTeamName() { return teamName; }
     public void setTeamName(String teamName) { this.teamName = teamName; }
+    public String getDataScope() { return dataScope; }
+    public void setDataScope(String dataScope) { this.dataScope = dataScope; }
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
