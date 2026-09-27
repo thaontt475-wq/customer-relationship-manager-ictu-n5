@@ -24,7 +24,7 @@ public class EmailService {
 
     public EmailService() {
         host = System.getenv("CRM_SMTP_HOST");
-        port = Integer.parseInt(System.getenv().getOrDefault("CRM_SMTP_PORT", "25"));
+        port = parsePort(System.getenv("CRM_SMTP_PORT"));
         username = System.getenv("CRM_SMTP_USERNAME");
         password = System.getenv("CRM_SMTP_PASSWORD");
         fromAddress = System.getenv("CRM_SMTP_FROM");
@@ -32,6 +32,11 @@ public class EmailService {
     }
 
     public void sendPasswordResetEmail(String toEmail, String rawToken) {
+        if (!isConfigured()) {
+            LOGGER.warning("Password reset email was not sent because SMTP is not configured");
+            return;
+        }
+
         String resetLink = appBaseUrl + "/reset-password?token=" + rawToken;
         String subject = "CRM - Đặt lại mật khẩu";
         StringBuilder sb = new StringBuilder();
@@ -49,7 +54,7 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(content);
             Transport.send(message);
-        } catch (MessagingException e) {
+        } catch (MessagingException | RuntimeException e) {
             // Log error without exposing credentials or token
             LOGGER.log(Level.SEVERE, "Failed to send password reset email to " + toEmail, e);
         }
@@ -57,10 +62,15 @@ public class EmailService {
 
     private Session createSession() {
         Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
+        boolean usesAuthentication = !isBlank(username) && !isBlank(password);
+        props.put("mail.smtp.auth", String.valueOf(usesAuthentication));
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", host);
         props.put("mail.smtp.port", String.valueOf(port));
+        if (!usesAuthentication) {
+            return Session.getInstance(props);
+        }
+
         Authenticator auth = new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -68,5 +78,24 @@ public class EmailService {
             }
         };
         return Session.getInstance(props, auth);
+    }
+
+    private boolean isConfigured() {
+        return !isBlank(host) && !isBlank(fromAddress) && !isBlank(appBaseUrl);
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private static int parsePort(String configuredPort) {
+        if (isBlank(configuredPort)) {
+            return 25;
+        }
+        try {
+            return Integer.parseInt(configuredPort);
+        } catch (NumberFormatException e) {
+            return 25;
+        }
     }
 }

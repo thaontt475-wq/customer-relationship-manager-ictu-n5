@@ -1,6 +1,19 @@
 package com.crm.model;
 
+import java.time.LocalDateTime;
+
 public class User {
+    private String displayName;
+    private boolean active;
+    private java.util.List<Role> roles = java.util.List.of();
+
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    public java.util.List<Role> getRoles() { return roles; }
+    public void setRoles(java.util.List<Role> roles) { this.roles = java.util.List.copyOf(roles); }
+
     private long id;
     private String username;
     private String email;
@@ -8,6 +21,12 @@ public class User {
     private String fullName;
     private String phone;
     private String status;
+    private Long teamId;
+    private String teamName;
+    private String dataScope = "SELF";
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime lastLoginAt;
 
     public User() {}
 
@@ -34,5 +53,29 @@ public class User {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getStatus() { return status; }
+    public Long getTeamId() { return teamId; }
+    public void setTeamId(Long teamId) { this.teamId = teamId; }
+    public String getTeamName() { return teamName; }
+    public void setTeamName(String teamName) { this.teamName = teamName; }
+    public String getDataScope() { return dataScope; }
+    public void setDataScope(String dataScope) { this.dataScope = dataScope; }
     public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
+    /** Compatibility alias for the current JSP contract. */
+    public LocalDateTime getLastLogin() { return lastLoginAt; }
+
+    /** Compatibility placeholder until the role module provides user-role data. */
+    public String getRole() { return null; }
+
+    /** CRM-29 compatibility alias used by JSP views. */
+    public String getTeam() { return teamName; }
+
+    /** Compatibility placeholder until the organization module provides department data. */
+    public String getDepartment() { return null; }
 }

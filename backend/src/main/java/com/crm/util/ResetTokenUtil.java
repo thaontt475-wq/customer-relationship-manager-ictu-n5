@@ -3,6 +3,7 @@ package com.crm.util;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,7 +29,7 @@ public class ResetTokenUtil {
     public static String hashToken(String rawToken) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashed = digest.digest(rawToken.getBytes());
+            byte[] hashed = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder(2 * hashed.length);
             for (byte b : hashed) {
                 sb.append(String.format("%02x", b));
