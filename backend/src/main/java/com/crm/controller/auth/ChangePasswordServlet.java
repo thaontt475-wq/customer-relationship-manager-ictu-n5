@@ -62,8 +62,35 @@ public class ChangePasswordServlet extends HttpServlet {
             return;
         }
 
-        String currentPassword = request.getParameter("currentPassword");
-        String newPassword = request.getParameter("newPassword");
+        String currentPassword;
+        String newPassword;
+
+        String contentType = request.getContentType();
+        if (contentType != null
+                && contentType.toLowerCase(java.util.Locale.ROOT)
+                        .startsWith("application/json")) {
+            try {
+                ChangePasswordRequest body = GSON.fromJson(
+                        request.getReader(),
+                        ChangePasswordRequest.class
+                );
+                currentPassword = body == null ? null : body.currentPassword;
+                newPassword = body == null ? null : body.newPassword;
+            } catch (com.google.gson.JsonSyntaxException e) {
+                writeResponse(
+                        request,
+                        response,
+                        HttpServletResponse.SC_BAD_REQUEST,
+                        false,
+                        "Dữ liệu yêu cầu không hợp lệ",
+                        null
+                );
+                return;
+            }
+        } else {
+            currentPassword = request.getParameter("currentPassword");
+            newPassword = request.getParameter("newPassword");
+        }
 
         ChangePasswordResult result;
         try {
@@ -202,6 +229,10 @@ public class ChangePasswordServlet extends HttpServlet {
         );
     }
 
+    private static final class ChangePasswordRequest {
+        private String currentPassword;
+        private String newPassword;
+    }
     private record ApiResponse(
             boolean success,
             String message,
