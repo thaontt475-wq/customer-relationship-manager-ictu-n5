@@ -79,7 +79,7 @@ public class EmailService {
                 .append(fullName == null || fullName.isBlank() ? "bạn" : fullName)
                 .append(",\n\n");
         content.append("Tài khoản CRM của bạn đã được tạo.\n\n");
-        content.append("Tên đăng nhập: ").append(username).append("\n");
+        content.append("Email đăng nhập: ").append(toEmail).append("\n");
         content.append("Mật khẩu tạm: ").append(temporaryPassword).append("\n\n");
         content.append("Đăng nhập tại: ").append(loginLink).append("\n\n");
         content.append("Vui lòng đổi mật khẩu sau khi đăng nhập.");

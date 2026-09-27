@@ -57,12 +57,15 @@ public class UserService {
         String normalizedFullName = normalize(fullName);
         String normalizedPhone = normalizeNullable(phone);
 
-        if (normalizedUsername == null || normalizedEmail == null || normalizedFullName == null) {
+        if (normalizedEmail == null || normalizedFullName == null) {
             return new CreateUserResult(CreateUserStatus.INVALID_INPUT, null);
         }
 
         if (!normalizedEmail.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
             return new CreateUserResult(CreateUserStatus.INVALID_EMAIL, null);
+        }
+        if (normalizedUsername == null) {
+            normalizedUsername = generateUsernameFromEmail(normalizedEmail);
         }
 
         if (teamId != null && teamId <= 0) {
@@ -129,7 +132,7 @@ public class UserService {
         String normalizedFullName = normalize(fullName);
         String normalizedPhone = normalizeNullable(phone);
 
-        if (normalizedUsername == null || normalizedEmail == null || normalizedFullName == null) {
+        if (normalizedEmail == null || normalizedFullName == null) {
             return UpdateUserStatus.INVALID_INPUT;
         }
 
@@ -145,9 +148,22 @@ public class UserService {
             conn.setAutoCommit(false);
 
             try {
-                if (userDAO.findById(conn, userId) == null) {
+                User existingUser = userDAO.findById(conn, userId);
+                if (existingUser == null) {
                     conn.rollback();
                     return UpdateUserStatus.NOT_FOUND;
+                }
+
+                if (normalizedUsername == null) {
+                    normalizedUsername = existingUser.getUsername();
+                }
+
+                if (normalizedPhone == null) {
+                    normalizedPhone = existingUser.getPhone();
+                }
+
+                if (teamId == null) {
+                    teamId = existingUser.getTeamId();
                 }
 
                 if (userDAO.emailExistsExcludingUser(conn, normalizedEmail, userId)) {
@@ -221,6 +237,30 @@ public class UserService {
         }
     }
 
+    private String generateUsernameFromEmail(String email) {
+        String normalizedEmail = email.toLowerCase(java.util.Locale.ROOT);
+        int atIndex = normalizedEmail.indexOf('@');
+        String localPart = atIndex > 0
+                ? normalizedEmail.substring(0, atIndex)
+                : normalizedEmail;
+
+        String base = localPart.replaceAll("[^a-z0-9._-]", "");
+        if (base.isBlank()) {
+            base = "user";
+        }
+
+        String suffix = Integer.toUnsignedString(
+                normalizedEmail.hashCode(),
+                36
+        );
+
+        int maxBaseLength = Math.max(1, 100 - suffix.length() - 1);
+        if (base.length() > maxBaseLength) {
+            base = base.substring(0, maxBaseLength);
+        }
+
+        return base + "-" + suffix;
+    }
     private String generateTemporaryPassword() {
         String random = java.util.UUID.randomUUID()
                 .toString()

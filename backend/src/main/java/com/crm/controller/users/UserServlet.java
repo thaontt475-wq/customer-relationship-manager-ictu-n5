@@ -46,6 +46,29 @@ public class UserServlet extends HttpServlet {
 
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
+        boolean apiRequest = "/api/users".equals(request.getServletPath());
+        Long actorUserId = extractActorUserId(request);
+
+        if (actorUserId == null) {
+            if (apiRequest) {
+                writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
+                        "Yêu cầu đăng nhập", null);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/login");
+            }
+            return;
+        }
+
+        if (!hasPermissionAdminRole(request)) {
+            if (apiRequest) {
+                writeJson(response, HttpServletResponse.SC_FORBIDDEN, false,
+                        "Không có quyền quản lý tài khoản người dùng", null);
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            }
+            return;
+        }
+
         try {
             if ("/users".equals(request.getServletPath())) {
                 showList(request, response);
@@ -368,7 +391,7 @@ public class UserServlet extends HttpServlet {
                     "Email không hợp lệ", null);
             case INVALID_INPUT -> writeJson(
                     response, HttpServletResponse.SC_BAD_REQUEST, false,
-                    "Vui lòng nhập đầy đủ tên đăng nhập, email và họ tên", null);
+                    "Vui lòng nhập đầy đủ email và họ tên", null);
         }
     }
 

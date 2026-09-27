@@ -75,7 +75,7 @@ public class UserDAO {
     }
 
     public List<User> findAll(Connection conn) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id ORDER BY u.full_name, u.email";
         List<User> users = new ArrayList<>();
@@ -89,7 +89,7 @@ public class UserDAO {
     }
 
     public User findById(Connection conn, long id) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -101,7 +101,7 @@ public class UserDAO {
     }
 
     public User findByIdForUpdate(Connection conn, long id) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ? FOR UPDATE";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -113,7 +113,7 @@ public class UserDAO {
     }
 
     public List<User> findActiveRecipientsExcluding(Connection conn, long excludedUserId) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, u.team_id, u.data_scope, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id "
                     + "WHERE u.status = 'ACTIVE' AND u.id <> ? ORDER BY u.full_name, u.email";
@@ -269,7 +269,7 @@ public class UserDAO {
 
         SearchClause clause = buildSearchClause(keyword, role, status);
 
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.phone, u.status, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, "
                 + "u.team_id, u.data_scope, t.name AS team_name, "
                 + "u.created_at, u.updated_at, u.last_login_at, "
                 + "(SELECT GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ', ') "
@@ -345,6 +345,8 @@ public class UserDAO {
         user.setUsername(rs.getString("username"));
         user.setEmail(rs.getString("email"));
         user.setFullName(rs.getString("full_name"));
+        user.setDisplayName(rs.getString("display_name"));
+        user.setActive(rs.getBoolean("active"));
         user.setPhone(rs.getString("phone"));
         user.setStatus(rs.getString("status"));
         long teamId = rs.getLong("team_id");
