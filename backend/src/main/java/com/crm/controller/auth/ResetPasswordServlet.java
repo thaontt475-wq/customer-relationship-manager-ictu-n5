@@ -2,17 +2,25 @@ package com.crm.controller.auth;
 
 import com.crm.service.auth.AuthService;
 import com.crm.util.PasswordUtil;
-import jakarta.servlet.RequestDispatcher;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @WebServlet({"/reset-password", "/api/auth/reset-password"})
 public class ResetPasswordServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+    private static final String API_PATH = "/api/auth/reset-password";
+    private static final String INVALID_TOKEN_MESSAGE =
+        "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";
+    private static final String PASSWORD_POLICY_MESSAGE =
+        "Mật khẩu phải dài 8-72 ký tự và có chữ hoa, chữ thường, chữ số, ký tự đặc biệt.";
+    private static final Gson GSON = new GsonBuilder().serializeNulls().create();
     private final AuthService authService = new AuthService();
 
     // ------------------------------------------------------------------ //
@@ -23,21 +31,23 @@ public class ResetPasswordServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        if (isApiRequest(request)) {
+            writeJson(response, HttpServletResponse.SC_METHOD_NOT_ALLOWED, false,
+                "Phương thức không được hỗ trợ");
+            return;
+        }
+
         String token = request.getParameter("token");
 
         if (token != null && !token.isBlank() && authService.validateResetToken(token)) {
-            // Token hợp lệ — hiển thị form đặt lại mật khẩu
             response.setStatus(HttpServletResponse.SC_OK);
             request.setAttribute("token", token);
         } else {
-            // Token không hợp lệ hoặc đã hết hạn
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            request.setAttribute("error",
-                "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+            request.setAttribute("error", INVALID_TOKEN_MESSAGE);
         }
 
-        RequestDispatcher rd = request.getRequestDispatcher("/jsp/auth/reset-password.jsp");
-        rd.forward(request, response);
+        forwardView(request, response);
     }
 
     // ------------------------------------------------------------------ //
@@ -49,58 +59,74 @@ public class ResetPasswordServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
         String token = request.getParameter("token");
         String newPassword = request.getParameter("newPassword");
         String confirmPassword = request.getParameter("confirmPassword");
 
-        // A. token null/blank
         if (token == null || token.isBlank()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            request.setAttribute("error",
-                "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
-            forward(request, response);
+            handleFailure(request, response, INVALID_TOKEN_MESSAGE);
             return;
         }
 
-        // B. Mật khẩu null hoặc không khớp
         if (newPassword == null || confirmPassword == null
                 || !newPassword.equals(confirmPassword)) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            request.setAttribute("token", token);
-            request.setAttribute("error", "Mật khẩu không khớp.");
-            forward(request, response);
+            handleFailure(request, response, "Mật khẩu không khớp.");
             return;
         }
 
-        // C. Không đúng policy mật khẩu
         if (!PasswordUtil.isValidPassword(newPassword)) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            request.setAttribute("token", token);
-            request.setAttribute("error",
-                "Mật khẩu phải dài 8-72 ký tự và có chữ hoa, chữ thường, chữ số, ký tự đặc biệt.");
-            forward(request, response);
+            handleFailure(request, response, PASSWORD_POLICY_MESSAGE);
             return;
         }
 
-        // D. Thực hiện reset
         boolean success = authService.resetPassword(token, newPassword);
 
         if (success) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            request.setAttribute("message",
-                "Đặt lại mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới.");
-        } else {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            request.setAttribute("error",
-                "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+            if (isApiRequest(request)) {
+                writeJson(response, HttpServletResponse.SC_OK, true, "Đặt lại mật khẩu thành công");
+                return;
+            }
+
+            request.setAttribute("message", "Đặt lại mật khẩu thành công");
+            forwardView(request, response);
+            return;
         }
 
-        forward(request, response);
+        handleFailure(request, response, INVALID_TOKEN_MESSAGE);
     }
 
-    private void forward(HttpServletRequest request, HttpServletResponse response)
+    private void handleFailure(HttpServletRequest request, HttpServletResponse response, String message)
             throws ServletException, IOException {
-        RequestDispatcher rd = request.getRequestDispatcher("/jsp/auth/reset-password.jsp");
-        rd.forward(request, response);
+        if (isApiRequest(request)) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false, message);
+            return;
+        }
+
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        request.setAttribute("token", request.getParameter("token"));
+        request.setAttribute("error", message);
+        forwardView(request, response);
+    }
+
+    private boolean isApiRequest(HttpServletRequest request) {
+        return API_PATH.equals(request.getServletPath());
+    }
+
+    private void forwardView(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.getRequestDispatcher("/jsp/auth/reset-password.jsp").forward(request, response);
+    }
+
+    private void writeJson(HttpServletResponse response, int status, boolean success, String message)
+            throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        GSON.toJson(new ApiResponse(success, message, null), response.getWriter());
+    }
+
+    private record ApiResponse(boolean success, String message, Object data) {
     }
 }
