@@ -226,6 +226,11 @@
                 <input type="hidden" id="formUserId" name="id">
 
                 <div class="user-modal-body">
+                    <div class="modal-field">
+                        <div style="padding:12px 14px;border-radius:8px;background:#f8fafc;color:#475569;font-size:0.9rem;">
+                            Khi tạo tài khoản, hệ thống tự sinh mật khẩu tạm và gửi thông tin kích hoạt tới email người dùng.
+                        </div>
+                    </div>
                     <!-- Trường Họ và tên -->
                     <div class="modal-field">
                         <label for="formFullName" class="modal-label">
@@ -460,37 +465,15 @@
                     return;
                 }
 
-                var data = await response.json();
-
-                // Chuẩn hóa cấu trúc dữ liệu linh hoạt (items, users hoặc array)
-                var items = [];
-                var pagination = null;
-
-                if (Array.isArray(data)) {
-                    items = data;
-                } else if (data && Array.isArray(data.items)) {
-                    items = data.items;
-                    pagination = data.pagination;
-                } else if (data && Array.isArray(data.users)) {
-                    items = data.users;
-                    pagination = data.pagination;
-                } else if (data && Array.isArray(data.data)) {
-                    items = data.data;
-                    pagination = data.pagination;
-                }
+                var responseBody = await response.json();
+                var data = responseBody && responseBody.data ? responseBody.data : {};
+                var items = Array.isArray(data.items) ? data.items : [];
 
                 state.items = items;
-
-                if (pagination) {
-                    state.page = Number(pagination.page) || state.page;
-                    state.size = Number(pagination.size) || state.size;
-                    state.totalItems = Number(pagination.totalItems) || items.length;
-                    state.totalPages = Number(pagination.totalPages) || Math.ceil(state.totalItems / state.size) || 1;
-                } else {
-                    state.totalItems = items.length;
-                    state.totalPages = Math.ceil(items.length / state.size) || 1;
-                }
-
+                state.page = Number(data.page) || state.page;
+                state.size = Number(data.size) || state.size;
+                state.totalItems = Number(data.totalItems) || 0;
+                state.totalPages = Number(data.totalPages) || 0;
                 if (items.length === 0) {
                     renderEmpty();
                 } else {
@@ -717,10 +700,10 @@
             formUserId.value = '';
             modalTitleText.textContent = 'Thêm người dùng mới';
             saveUserBtnText.textContent = 'Lưu người dùng';
-            formPasswordGroup.style.display = 'flex';
-            formSendMailGroup.style.display = 'flex';
-            markPasswordRequired.style.display = 'inline';
-            formPassword.required = true;
+            formPasswordGroup.style.display = 'none';
+            formSendMailGroup.style.display = 'none';
+            formStatus.closest('.modal-field').style.display = 'none';
+            formPassword.required = false;
             userFormModal.classList.add('is-open');
             formFullName.focus();
         }
@@ -740,15 +723,12 @@
             if (user) {
                 formFullName.value = user.fullName || user.name || '';
                 formEmail.value = user.email || '';
-                formStatus.value = (user.status || 'ACTIVE').toUpperCase();
             }
 
-            // Khi sửa, mật khẩu là tùy chọn
-            markPasswordRequired.style.display = 'none';
             formPassword.required = false;
-            formPassword.placeholder = 'Để trống nếu không đổi mật khẩu';
-            formPasswordGroup.style.display = 'flex';
+            formPasswordGroup.style.display = 'none';
             formSendMailGroup.style.display = 'none';
+            formStatus.closest('.modal-field').style.display = 'none';
 
             userFormModal.classList.add('is-open');
             formFullName.focus();
@@ -778,8 +758,6 @@
             var isEdit = Boolean(id);
             var fullName = formFullName.value.trim();
             var email = formEmail.value.trim();
-            var password = formPassword.value;
-            var status = formStatus.value;
             var isValid = true;
 
             // Client Validation
@@ -800,35 +778,13 @@
                 isValid = false;
             }
 
-            if (!isEdit) {
-                if (!password) {
-                    formPassword.classList.add('is-invalid');
-                    feedbackPassword.textContent = 'Vui lòng đặt mật khẩu ban đầu.';
-                    isValid = false;
-                } else if (password.length < 8) {
-                    formPassword.classList.add('is-invalid');
-                    feedbackPassword.textContent = 'Mật khẩu phải có tối thiểu 8 ký tự.';
-                    isValid = false;
-                }
-            } else if (password && password.length < 8) {
-                formPassword.classList.add('is-invalid');
-                feedbackPassword.textContent = 'Mật khẩu mới phải có tối thiểu 8 ký tự.';
-                isValid = false;
-            }
-
             if (!isValid) return;
 
             // Chuẩn bị payload gửi lên API Contract CRM-28
             var payload = {
                 fullName: fullName,
-                email: email,
-                status: status
+                email: email
             };
-
-            if (password) {
-                payload.password = password;
-            }
-
             // Trạng thái Loading của nút Save
             btnSaveUser.disabled = true;
             btnCancelModal.disabled = true;
