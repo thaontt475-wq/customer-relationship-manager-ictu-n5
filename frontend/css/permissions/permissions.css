@@ -1,15 +1,23 @@
 /* ==========================================================================
-   PERMISSIONS MODULE CSS (CRM-25 / S1-05: Role + Phân quyền dữ liệu sở hữu)
-   Chỉ chứa CSS riêng cho module phân quyền & phạm vi dữ liệu sở hữu.
-   Không ghi đè hoặc can thiệp layout chung của hệ thống.
+   PERMISSIONS & DATA SCOPE MODULE CSS (CRM-25 / S1-05 & CRM-29)
+   - Story S1-05 / CRM-25: Role + Phân quyền phạm vi dữ liệu sở hữu (Data Scope)
+   - Story CRM-29: Phân bổ và gán nhóm kinh doanh (Sales Team)
+   - Bố cục 2 cột (Responsive Grid):
+     + Cột trái: Form phân quyền (User select, Team CRM-29, Roles switch, Data Scope)
+     + Cột phải: Khối hiển thị thông tin trực quan 3 cấp độ (SELF, TEAM, ALL) & Warning Banner preview
    ========================================================================== */
 
-/* Biến màu sắc và cấu hình riêng cho module permissions */
+/* --------------------------------------------------------------------------
+   1. CẤU HÌNH BIẾN MÀU & THIẾT KẾ (DESIGN TOKENS)
+   -------------------------------------------------------------------------- */
 .permission-page {
+    /* Màu thương hiệu & cơ bản */
     --perm-primary: #4f46e5;
     --perm-primary-hover: #4338ca;
     --perm-primary-light: #eef2ff;
     --perm-primary-border: #c7d2fe;
+
+    /* Màu trạng thái */
     --perm-success: #10b981;
     --perm-success-light: #ecfdf5;
     --perm-success-border: #a7f3d0;
@@ -22,6 +30,33 @@
     --perm-info: #0284c7;
     --perm-info-light: #f0f9ff;
     --perm-info-border: #bae6fd;
+
+    /* Màu riêng biệt cho 3 cấp độ Data Scope theo yêu cầu đề bài */
+    /* Cấp độ 1: SELF - Viền xanh lam nhạt */
+    --scope-self-color: #2563eb;
+    --scope-self-bg: #eff6ff;
+    --scope-self-border: #bfdbfe;
+    --scope-self-border-active: #3b82f6;
+    --scope-self-badge-bg: #dbeafe;
+    --scope-self-badge-text: #1d4ed8;
+
+    /* Cấp độ 2: TEAM - Viền vàng cam nhạt */
+    --scope-team-color: #d97706;
+    --scope-team-bg: #fffbeb;
+    --scope-team-border: #fde68a;
+    --scope-team-border-active: #f59e0b;
+    --scope-team-badge-bg: #fef3c7;
+    --scope-team-badge-text: #b45309;
+
+    /* Cấp độ 3: ALL - Viền xanh lá */
+    --scope-all-color: #059669;
+    --scope-all-bg: #f0fdf4;
+    --scope-all-border: #bbf7d0;
+    --scope-all-border-active: #10b981;
+    --scope-all-badge-bg: #dcfce7;
+    --scope-all-badge-text: #047857;
+
+    /* Màu nền & chữ giao diện */
     --perm-bg-page: #f8fafc;
     --perm-bg-card: #ffffff;
     --perm-text-main: #0f172a;
@@ -29,19 +64,23 @@
     --perm-text-muted: #94a3b8;
     --perm-border: #e2e8f0;
     --perm-border-subtle: #f1f5f9;
+
+    /* Bo góc & Đổ bóng */
     --perm-radius-sm: 6px;
     --perm-radius-md: 10px;
     --perm-radius-lg: 14px;
+    --perm-radius-xl: 18px;
     --perm-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-    --perm-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-    --perm-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
-    --perm-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --perm-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    --perm-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+    --perm-shadow-glow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    --perm-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: var(--perm-text-main);
     background-color: var(--perm-bg-page);
     min-height: 100vh;
-    padding: 24px 28px;
+    padding: 24px 32px 60px 32px;
     box-sizing: border-box;
 }
 
@@ -51,11 +90,13 @@
 
 /* Container chính của module */
 .permission-container {
-    max-width: 1140px;
+    max-width: 1360px;
     margin: 0 auto;
 }
 
-/* Breadcrumb điều hướng */
+/* --------------------------------------------------------------------------
+   2. BREADCRUMB & HEADER TRANG
+   -------------------------------------------------------------------------- */
 .permission-breadcrumb {
     display: flex;
     align-items: center;
@@ -81,10 +122,9 @@
 
 .permission-breadcrumb .active {
     color: var(--perm-primary);
-    font-weight: 500;
+    font-weight: 600;
 }
 
-/* Header tiêu đề của trang */
 .permission-header {
     display: flex;
     justify-content: space-between;
@@ -97,7 +137,7 @@
 }
 
 .permission-header-info h1 {
-    font-size: 24px;
+    font-size: 26px;
     font-weight: 700;
     color: var(--perm-text-main);
     margin: 0 0 6px 0;
@@ -105,22 +145,24 @@
 }
 
 .permission-header-info p {
-    font-size: 14px;
+    font-size: 14.5px;
     color: var(--perm-text-sub);
     margin: 0;
 }
 
 .permission-header-badges {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .permission-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
+    padding: 5px 12px;
+    font-size: 12.5px;
     font-weight: 600;
     border-radius: 9999px;
     background-color: var(--perm-primary-light);
@@ -128,7 +170,15 @@
     border: 1px solid var(--perm-primary-border);
 }
 
-/* Khối thông báo (Alerts) */
+.permission-badge-secondary {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+/* --------------------------------------------------------------------------
+   3. KHỐI THÔNG BÁO HỆ THỐNG (ALERTS)
+   -------------------------------------------------------------------------- */
 .permission-alerts {
     margin-bottom: 20px;
 }
@@ -137,7 +187,7 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 14px 18px;
     border-radius: var(--perm-radius-md);
     font-size: 14px;
     line-height: 1.5;
@@ -149,7 +199,7 @@
     flex-shrink: 0;
     width: 20px;
     height: 20px;
-    margin-top: 1px;
+    margin-top: 2px;
 }
 
 .permission-alert-content {
@@ -180,36 +230,55 @@
 .permission-alert-success {
     background-color: var(--perm-success-light);
     color: #065f46;
-    border: 1px solid var(--perm-success-border);
+    border: 1.5px solid var(--perm-success-border);
 }
 
 .permission-alert-danger {
     background-color: var(--perm-danger-light);
     color: #991b1b;
-    border: 1px solid var(--perm-danger-border);
+    border: 1.5px solid var(--perm-danger-border);
 }
 
 .permission-alert-warning {
     background-color: var(--perm-warning-light);
     color: #92400e;
-    border: 1px solid var(--perm-warning-border);
+    border: 1.5px solid var(--perm-warning-border);
 }
 
-.permission-alert-info {
-    background-color: var(--perm-info-light);
-    color: #075985;
-    border: 1px solid var(--perm-info-border);
+/* --------------------------------------------------------------------------
+   4. BỐ CỤC 2 CỘT (RESPONSIVE 2-COLUMN GRID LAYOUT)
+   - Cột trái: Form cấu hình phân quyền (minmax(0, 1.4fr))
+   - Cột phải: Khối hiển thị thông tin trực quan 3 cấp độ (minmax(0, 1fr))
+   -------------------------------------------------------------------------- */
+.permission-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
 }
 
-/* Card chứa nội dung */
+.permission-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.permission-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: sticky;
+    top: 24px;
+}
+
+/* Thẻ chung (Cards) */
 .permission-card {
     background: var(--perm-bg-card);
     border-radius: var(--perm-radius-lg);
     border: 1px solid var(--perm-border);
     box-shadow: var(--perm-shadow-sm);
-    margin-bottom: 24px;
     overflow: hidden;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .permission-card:hover {
@@ -230,7 +299,7 @@
 .permission-card-title-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .permission-card-step {
@@ -244,6 +313,7 @@
     color: #ffffff;
     font-size: 13px;
     font-weight: 700;
+    flex-shrink: 0;
 }
 
 .permission-card-header h2 {
@@ -260,11 +330,13 @@
 }
 
 .permission-card-body {
-    padding: 24px;
+    padding: 22px 24px;
     position: relative;
 }
 
-/* 1. Phần chọn người dùng */
+/* --------------------------------------------------------------------------
+   5. CỘT TRÁI - BƯỚC 1: CHỌN NHÂN VIÊN & TÓM TẮT THÔNG TIN
+   -------------------------------------------------------------------------- */
 .permission-user-selector {
     display: flex;
     flex-direction: column;
@@ -274,23 +346,23 @@
 .permission-form-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
 
 .permission-label {
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 600;
     color: var(--perm-text-main);
 }
 
 .permission-select-wrapper {
     position: relative;
-    max-width: 480px;
+    width: 100%;
 }
 
 .permission-select {
     width: 100%;
-    padding: 10px 14px;
+    padding: 11px 14px;
     font-size: 14px;
     color: var(--perm-text-main);
     background-color: #ffffff;
@@ -309,7 +381,7 @@
 
 .permission-select:focus {
     border-color: var(--perm-primary);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    box-shadow: var(--perm-shadow-glow);
 }
 
 .permission-select:disabled {
@@ -318,21 +390,22 @@
     opacity: 0.7;
 }
 
-/* Thẻ tóm tắt thông tin người dùng được chọn */
+/* Thẻ tóm tắt thông tin nhân viên được chọn */
 .permission-user-summary {
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 16px 20px;
-    background-color: #f8fafc;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border: 1px solid var(--perm-border);
     border-radius: var(--perm-radius-md);
     flex-wrap: wrap;
+    animation: permFadeIn 0.25s ease-out;
 }
 
 .permission-user-avatar {
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: #ffffff;
@@ -342,6 +415,7 @@
     font-weight: 700;
     font-size: 16px;
     flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
 }
 
 .permission-user-meta {
@@ -353,7 +427,7 @@
 
 .permission-user-name {
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--perm-text-main);
 }
 
@@ -369,15 +443,129 @@
 .permission-user-tag {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
+    gap: 5px;
+    padding: 3px 9px;
     background-color: #ffffff;
     border: 1px solid var(--perm-border);
     border-radius: var(--perm-radius-sm);
     font-size: 12px;
+    font-weight: 500;
+    color: var(--perm-text-sub);
 }
 
-/* 2. Danh sách vai trò (Roles) */
+/* --------------------------------------------------------------------------
+   6. CỘT TRÁI - BƯỚC 2: GÁN NHÓM KINH DOANH (CRM-29)
+   -------------------------------------------------------------------------- */
+.permission-team-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.permission-current-team-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background-color: #f8fafc;
+    border: 1px solid var(--perm-border);
+    border-radius: var(--perm-radius-md);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.permission-current-team-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.permission-current-team-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background-color: var(--perm-primary-light);
+    color: var(--perm-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.permission-current-team-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.permission-current-team-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--perm-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.permission-current-team-name {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--perm-text-main);
+}
+
+.permission-team-assign-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.permission-team-select-group {
+    flex: 1 1 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Cảnh báo riêng cho vai trò Team Lead khi chưa có nhóm */
+.permission-lead-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    background-color: var(--perm-warning-light);
+    color: #92400e;
+    border: 1.5px solid var(--perm-warning-border);
+    border-radius: var(--perm-radius-md);
+    font-size: 13.5px;
+    line-height: 1.5;
+    animation: permFadeIn 0.3s ease-in-out;
+}
+
+.permission-lead-warning-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    color: #d97706;
+}
+
+.permission-lead-warning-content {
+    flex-grow: 1;
+}
+
+.permission-lead-warning-title {
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.permission-select.warning-border {
+    border-color: var(--perm-warning) !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* --------------------------------------------------------------------------
+   7. CỘT TRÁI - BƯỚC 3: CHỌN VAI TRÒ HỆ THỐNG VỚI TOGGLE SWITCH
+   -------------------------------------------------------------------------- */
 .permission-quick-actions {
     display: flex;
     gap: 8px;
@@ -402,17 +590,17 @@
 }
 
 .permission-role-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .permission-role-item {
-    position: relative;
     display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
     border: 1.5px solid var(--perm-border);
     border-radius: var(--perm-radius-md);
     background-color: #ffffff;
@@ -433,15 +621,6 @@
     box-shadow: 0 0 0 1px var(--perm-primary);
 }
 
-.permission-role-checkbox {
-    width: 18px;
-    height: 18px;
-    margin-top: 2px;
-    accent-color: var(--perm-primary);
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
 .permission-role-details {
     flex-grow: 1;
 }
@@ -449,13 +628,13 @@
 .permission-role-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 4px;
+    flex-wrap: wrap;
 }
 
 .permission-role-title {
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 600;
     color: var(--perm-text-main);
 }
@@ -464,73 +643,223 @@
     font-size: 11px;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-weight: 600;
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 4px;
     background-color: #f1f5f9;
     color: #475569;
 }
 
 .permission-role-desc {
-    font-size: 12.5px;
+    font-size: 13px;
     color: var(--perm-text-sub);
     line-height: 1.45;
     margin: 0;
 }
 
-/* 3. Phạm vi dữ liệu sở hữu (Data Scope) */
+/* Component Toggle Switch cho danh sách Roles */
+.permission-toggle-wrap {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.permission-role-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.permission-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
+}
+
+.permission-switch-slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.permission-role-checkbox:checked + .permission-switch,
+.permission-role-item.checked .permission-switch {
+    background-color: var(--perm-primary);
+    box-shadow: 0 0 8px rgba(79, 70, 229, 0.35);
+}
+
+.permission-role-checkbox:checked + .permission-switch .permission-switch-slider,
+.permission-role-item.checked .permission-switch-slider {
+    transform: translateX(20px);
+}
+
+/* --------------------------------------------------------------------------
+   8. CỘT TRÁI - BƯỚC 4: RADIO CARDS CHO 3 CẤP ĐỘ DATA SCOPE
+   - SELF: Viền xanh lam nhạt, icon người dùng cá nhân
+   - TEAM: Viền vàng cam nhạt, icon nhóm
+   - ALL: Viền xanh lá, icon toàn quyền/công ty
+   -------------------------------------------------------------------------- */
 .permission-scope-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 .permission-scope-card {
     position: relative;
     display: flex;
-    flex-direction: column;
-    padding: 20px 18px;
-    border: 2px solid var(--perm-border);
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 20px;
     border-radius: var(--perm-radius-md);
     background-color: #ffffff;
     cursor: pointer;
     transition: var(--perm-transition);
+    user-select: none;
 }
 
 .permission-scope-card:hover {
-    border-color: #94a3b8;
     transform: translateY(-2px);
     box-shadow: var(--perm-shadow-md);
 }
 
-.permission-scope-card.selected {
-    border-color: var(--perm-primary);
-    background-color: #fdf4ff;
-    box-shadow: 0 0 0 1px var(--perm-primary), var(--perm-shadow-sm);
+/* 1. SELF: Viền xanh lam nhạt */
+.permission-scope-card.scope-self {
+    border: 2px solid var(--scope-self-border);
 }
 
-.permission-scope-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
+.permission-scope-card.scope-self:hover {
+    border-color: var(--scope-self-border-active);
+}
+
+.permission-scope-card.scope-self.selected {
+    border-color: var(--scope-self-border-active);
+    background-color: var(--scope-self-bg);
+    box-shadow: 0 0 0 1px var(--scope-self-border-active), 0 4px 12px rgba(59, 130, 246, 0.12);
+}
+
+.permission-scope-card.scope-self .permission-scope-icon-wrap {
+    background-color: var(--scope-self-badge-bg);
+    color: var(--scope-self-color);
+}
+
+.permission-scope-card.scope-self .permission-scope-badge {
+    background-color: var(--scope-self-badge-bg);
+    color: var(--scope-self-badge-text);
+}
+
+/* 2. TEAM: Viền vàng cam nhạt */
+.permission-scope-card.scope-team {
+    border: 2px solid var(--scope-team-border);
+}
+
+.permission-scope-card.scope-team:hover {
+    border-color: var(--scope-team-border-active);
+}
+
+.permission-scope-card.scope-team.selected {
+    border-color: var(--scope-team-border-active);
+    background-color: var(--scope-team-bg);
+    box-shadow: 0 0 0 1px var(--scope-team-border-active), 0 4px 12px rgba(245, 158, 11, 0.12);
+}
+
+.permission-scope-card.scope-team .permission-scope-icon-wrap {
+    background-color: var(--scope-team-badge-bg);
+    color: var(--scope-team-color);
+}
+
+.permission-scope-card.scope-team .permission-scope-badge {
+    background-color: var(--scope-team-badge-bg);
+    color: var(--scope-team-badge-text);
+}
+
+/* 3. ALL: Viền xanh lá */
+.permission-scope-card.scope-all {
+    border: 2px solid var(--scope-all-border);
+}
+
+.permission-scope-card.scope-all:hover {
+    border-color: var(--scope-all-border-active);
+}
+
+.permission-scope-card.scope-all.selected {
+    border-color: var(--scope-all-border-active);
+    background-color: var(--scope-all-bg);
+    box-shadow: 0 0 0 1px var(--scope-all-border-active), 0 4px 12px rgba(16, 185, 129, 0.12);
+}
+
+.permission-scope-card.scope-all .permission-scope-icon-wrap {
+    background-color: var(--scope-all-badge-bg);
+    color: var(--scope-all-color);
+}
+
+.permission-scope-card.scope-all .permission-scope-badge {
+    background-color: var(--scope-all-badge-bg);
+    color: var(--scope-all-badge-text);
 }
 
 .permission-scope-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--perm-radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    background-color: #f1f5f9;
-    color: var(--perm-text-main);
+    font-size: 20px;
+    flex-shrink: 0;
     transition: var(--perm-transition);
 }
 
-.permission-scope-card.selected .permission-scope-icon-wrap {
-    background-color: var(--perm-primary);
-    color: #ffffff;
+.permission-scope-content {
+    flex-grow: 1;
+}
+
+.permission-scope-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.permission-scope-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--perm-text-main);
+    margin: 0;
+}
+
+.permission-scope-desc {
+    font-size: 13px;
+    color: var(--perm-text-sub);
+    line-height: 1.45;
+    margin: 0 0 8px 0;
+}
+
+.permission-scope-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.permission-scope-radio-wrap {
+    flex-shrink: 0;
+    margin-top: 2px;
 }
 
 .permission-scope-radio {
@@ -540,68 +869,385 @@
     cursor: pointer;
 }
 
-.permission-scope-name {
+/* --------------------------------------------------------------------------
+   9. CỘT PHẢI - THÔNG TIN TRỰC QUAN 3 CẤP ĐỘ DATA SCOPE & WARNING BANNER
+   -------------------------------------------------------------------------- */
+.permission-guide-card {
+    background: #ffffff;
+    border: 1px solid var(--perm-border);
+    border-radius: var(--perm-radius-lg);
+    box-shadow: var(--perm-shadow-sm);
+    overflow: hidden;
+}
+
+.permission-guide-header {
+    padding: 18px 22px;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-bottom: 1px solid var(--perm-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.permission-guide-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-size: 15px;
     font-weight: 700;
     color: var(--perm-text-main);
-    margin: 0 0 6px 0;
 }
 
-.permission-scope-desc {
+.permission-active-scope-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: var(--perm-primary-light);
+    color: var(--perm-primary);
+    border: 1px solid var(--perm-primary-border);
+}
+
+.permission-guide-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Khối hiển thị thông tin từng cấp độ trong cột phải */
+.scope-info-card {
+    border-radius: var(--perm-radius-md);
+    padding: 16px 18px;
+    background-color: #ffffff;
+    transition: var(--perm-transition);
+    position: relative;
+}
+
+/* 1. Thông tin trực quan SELF - Xanh lam nhạt */
+.scope-info-card.info-self {
+    border: 1.5px solid var(--scope-self-border);
+    background-color: #fcfdff;
+}
+
+.scope-info-card.info-self.active-scope {
+    border: 2px solid var(--scope-self-border-active);
+    background-color: var(--scope-self-bg);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
+}
+
+.scope-info-card.info-self .scope-info-icon-badge {
+    background-color: var(--scope-self-badge-bg);
+    color: var(--scope-self-color);
+}
+
+/* 2. Thông tin trực quan TEAM - Vàng cam nhạt */
+.scope-info-card.info-team {
+    border: 1.5px solid var(--scope-team-border);
+    background-color: #fffdf9;
+}
+
+.scope-info-card.info-team.active-scope {
+    border: 2px solid var(--scope-team-border-active);
+    background-color: var(--scope-team-bg);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+}
+
+.scope-info-card.info-team .scope-info-icon-badge {
+    background-color: var(--scope-team-badge-bg);
+    color: var(--scope-team-color);
+}
+
+/* 3. Thông tin trực quan ALL - Xanh lá */
+.scope-info-card.info-all {
+    border: 1.5px solid var(--scope-all-border);
+    background-color: #fcfffd;
+}
+
+.scope-info-card.info-all.active-scope {
+    border: 2px solid var(--scope-all-border-active);
+    background-color: var(--scope-all-bg);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12);
+}
+
+.scope-info-card.info-all .scope-info-icon-badge {
+    background-color: var(--scope-all-badge-bg);
+    color: var(--scope-all-color);
+}
+
+.scope-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.scope-info-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scope-info-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.scope-info-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--perm-text-main);
+}
+
+.scope-info-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+.scope-info-card.active-scope .scope-info-tag {
+    background-color: var(--perm-primary);
+    color: #ffffff;
+}
+
+.scope-info-desc {
     font-size: 13px;
     color: var(--perm-text-sub);
     line-height: 1.45;
+    margin: 0 0 10px 0;
+}
+
+.scope-info-list {
     margin: 0;
+    padding-left: 18px;
+    font-size: 12.5px;
+    color: var(--perm-text-sub);
+    line-height: 1.6;
+}
+
+.scope-info-list li {
+    margin-bottom: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   10. COMPONENT THÔNG BÁO TRỰC QUAN (WARNING BANNER PREVIEW - AC)
+   Mô phỏng cảnh báo tiếng Việt khi truy cập ngoài phạm vi dữ liệu theo AC:
+   "Bạn không có quyền truy cập dữ liệu ngoài phạm vi được phân công"
+   -------------------------------------------------------------------------- */
+.permission-warning-preview-card {
+    background: #ffffff;
+    border: 1px solid var(--perm-border);
+    border-radius: var(--perm-radius-lg);
+    box-shadow: var(--perm-shadow-sm);
+    overflow: hidden;
+}
+
+.permission-warning-preview-header {
+    padding: 16px 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--perm-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.permission-warning-preview-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--perm-text-main);
+}
+
+.permission-warning-ac-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    text-transform: uppercase;
+}
+
+.permission-warning-preview-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Khối Banner cảnh báo mô phỏng thực tế */
+.permission-mock-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    background-color: var(--perm-warning-light);
+    border: 1.5px solid var(--perm-warning-border);
+    border-left: 5px solid var(--perm-warning);
+    border-radius: var(--perm-radius-md);
+    box-shadow: 0 2px 5px rgba(245, 158, 11, 0.08);
+}
+
+.permission-mock-banner-icon {
+    width: 24px;
+    height: 24px;
+    color: #d97706;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.permission-mock-banner-content {
     flex-grow: 1;
 }
 
-.permission-scope-badge {
-    margin-top: 14px;
-    align-self: flex-start;
+.permission-mock-banner-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.permission-mock-code-badge {
     font-size: 11px;
-    font-weight: 600;
-    padding: 3px 8px;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    padding: 1px 6px;
     border-radius: 4px;
-    background-color: #f1f5f9;
-    color: #64748b;
+    background-color: #fde68a;
+    color: #92400e;
 }
 
-.permission-scope-card.selected .permission-scope-badge {
-    background-color: var(--perm-primary-light);
-    color: var(--perm-primary);
+.permission-mock-banner-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #92400e;
+    line-height: 1.4;
+    margin-bottom: 4px;
 }
 
-/* Thanh hành động (Action Bar) */
+.permission-mock-banner-desc {
+    font-size: 12.5px;
+    color: #78350f;
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* Khối giả lập ngữ cảnh phát sinh cảnh báo */
+.permission-mock-scenario {
+    background-color: #f8fafc;
+    border: 1px solid var(--perm-border);
+    border-radius: var(--perm-radius-md);
+    padding: 12px 14px;
+    font-size: 12.5px;
+    color: var(--perm-text-sub);
+    line-height: 1.5;
+}
+
+.permission-mock-scenario strong {
+    color: var(--perm-text-main);
+}
+
+/* --------------------------------------------------------------------------
+   11. BẢNG MA TRẬN PHÂN QUYỀN TRỰC QUAN (DATA SCOPE MATRIX)
+   -------------------------------------------------------------------------- */
+.permission-matrix-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--perm-border);
+    border-radius: var(--perm-radius-md);
+}
+
+.permission-matrix-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+}
+
+.permission-matrix-table th {
+    background-color: #f8fafc;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: var(--perm-text-sub);
+    border-bottom: 1px solid var(--perm-border);
+}
+
+.permission-matrix-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--perm-border-subtle);
+    color: var(--perm-text-main);
+}
+
+.permission-matrix-table tr:last-child td {
+    border-bottom: none;
+}
+
+.permission-matrix-check {
+    color: var(--perm-success);
+    font-weight: 700;
+}
+
+.permission-matrix-limit {
+    color: var(--perm-warning);
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   12. THANH HÀNH ĐỘNG CHÂN FORM (ACTION BAR)
+   -------------------------------------------------------------------------- */
 .permission-actions-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 24px;
+    padding: 18px 24px;
     background: #ffffff;
     border-radius: var(--perm-radius-lg);
     border: 1px solid var(--perm-border);
     box-shadow: var(--perm-shadow-sm);
     flex-wrap: wrap;
-    gap: 14px;
+    gap: 16px;
 }
 
 .permission-status-hint {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: 13.5px;
     color: var(--perm-text-muted);
 }
 
 .permission-status-dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background-color: var(--perm-border);
+    transition: background-color 0.2s ease;
 }
 
 .permission-status-dot.active {
     background-color: var(--perm-success);
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
 }
 
 .permission-buttons {
@@ -615,7 +1261,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 20px;
+    padding: 10px 22px;
     font-size: 14px;
     font-weight: 600;
     border-radius: var(--perm-radius-md);
@@ -640,12 +1286,12 @@
 .permission-btn-primary {
     background-color: var(--perm-primary);
     color: #ffffff;
-    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.3);
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.25);
 }
 
 .permission-btn-primary:hover:not(:disabled) {
     background-color: var(--perm-primary-hover);
-    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
     transform: translateY(-1px);
 }
 
@@ -655,7 +1301,9 @@
     transform: none !important;
 }
 
-/* Spinner & Loading */
+/* --------------------------------------------------------------------------
+   13. HIỆU ỨNG SPINNER & LOADING OVERLAY
+   -------------------------------------------------------------------------- */
 .permission-spinner {
     display: inline-block;
     width: 16px;
@@ -688,11 +1336,10 @@
     }
 }
 
-/* Loading Overlay khi gọi API */
 .permission-loading-overlay {
     position: absolute;
     inset: 0;
-    background-color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(2px);
     display: none;
     align-items: center;
@@ -719,28 +1366,23 @@
     color: var(--perm-text-main);
 }
 
-/* Empty state */
-.permission-empty-state {
-    text-align: center;
-    padding: 36px 20px;
-    color: var(--perm-text-muted);
-}
-
-.permission-empty-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-}
-
-/* Responsive styles */
-@media (max-width: 992px) {
-    .permission-scope-grid {
+/* --------------------------------------------------------------------------
+   14. THIẾT KẾ ĐÁP ỨNG (RESPONSIVE MEDIA QUERIES)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1080px) {
+    .permission-layout-grid {
         grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .permission-right-col {
+        position: static;
     }
 }
 
 @media (max-width: 768px) {
     .permission-page {
-        padding: 16px 12px;
+        padding: 16px 14px 40px 14px;
     }
 
     .permission-header {
@@ -748,8 +1390,9 @@
         align-items: flex-start;
     }
 
-    .permission-role-grid {
-        grid-template-columns: 1fr;
+    .permission-team-assign-form {
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .permission-actions-bar {
