@@ -11,8 +11,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
-@WebServlet({"/errors/403", "/errors/404"})
+@WebServlet({"/errors/401", "/errors/403", "/errors/404", "/errors/500"})
 public class ErrorPageServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -20,80 +21,107 @@ public class ErrorPageServlet extends HttpServlet {
             new GsonBuilder().serializeNulls().create();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         int statusCode = resolveStatusCode(request);
         String originalUri = resolveOriginalUri(request);
 
-        if (originalUri != null && originalUri.startsWith(request.getContextPath() + "/api/")) {
+        if (originalUri != null
+                && originalUri.startsWith(request.getContextPath() + "/api/")) {
             writeApiError(response, statusCode);
             return;
         }
 
+        request.setAttribute("statusCode", statusCode);
+        request.setAttribute("requestId", UUID.randomUUID().toString());
+
         switch (statusCode) {
+            case HttpServletResponse.SC_UNAUTHORIZED -> {
+                request.setAttribute("title", "Chưa đăng nhập");
+                request.setAttribute(
+                        "message",
+                        "Phiên đăng nhập không hợp lệ hoặc đã hết hạn."
+                );
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                request.getRequestDispatcher("/jsp/errors/401.jsp")
+                        .forward(request, response);
+            }
+
             case HttpServletResponse.SC_FORBIDDEN -> {
-                request.setAttribute("statusCode", 403);
                 request.setAttribute("title", "Không có quyền truy cập");
                 request.setAttribute(
                         "message",
                         "Bạn không có quyền thực hiện thao tác hoặc truy cập khu vực này."
                 );
-                request.setAttribute("actionLabel", "Quay lại trang trước");
-                request.setAttribute("actionUrl", "javascript:history.back()");
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 request.getRequestDispatcher("/jsp/errors/403.jsp")
                         .forward(request, response);
             }
 
             case HttpServletResponse.SC_NOT_FOUND -> {
-                request.setAttribute("statusCode", 404);
                 request.setAttribute("title", "Không tìm thấy trang");
                 request.setAttribute(
                         "message",
                         "Đường dẫn bạn truy cập không tồn tại hoặc đã được thay đổi."
                 );
-                request.setAttribute("actionLabel", "Về trang chủ");
-                request.setAttribute("actionUrl", request.getContextPath() + "/");
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 request.getRequestDispatcher("/jsp/errors/404.jsp")
                         .forward(request, response);
             }
 
-            default -> response.sendError(statusCode);
+            default -> {
+                request.setAttribute("statusCode", 500);
+                request.setAttribute("title", "Lỗi hệ thống");
+                request.setAttribute(
+                        "message",
+                        "Hệ thống gặp sự cố. Vui lòng thử lại hoặc quay về trang trước."
+                );
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                request.getRequestDispatcher("/jsp/errors/500.jsp")
+                        .forward(request, response);
+            }
         }
     }
 
     private int resolveStatusCode(HttpServletRequest request) {
-        Object status =
-                request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
 
-        if (status instanceof Integer code) {
-            return code;
+        if (status instanceof Number number) {
+            return number.intValue();
         }
 
-        return "/errors/403".equals(request.getServletPath())
-                ? HttpServletResponse.SC_FORBIDDEN
-                : HttpServletResponse.SC_NOT_FOUND;
+        return switch (request.getServletPath()) {
+            case "/errors/401" -> HttpServletResponse.SC_UNAUTHORIZED;
+            case "/errors/403" -> HttpServletResponse.SC_FORBIDDEN;
+            case "/errors/404" -> HttpServletResponse.SC_NOT_FOUND;
+            default -> HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+        };
     }
 
     private String resolveOriginalUri(HttpServletRequest request) {
-        Object uri =
-                request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
-
+        Object uri = request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
         return uri == null ? request.getRequestURI() : String.valueOf(uri);
     }
 
     private void writeApiError(HttpServletResponse response, int status)
             throws IOException {
 
-        response.setStatus(status);
+        int resolvedStatus = switch (status) {
+            case 401, 403, 404, 500 -> status;
+            default -> HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+        };
+
+        String message = switch (resolvedStatus) {
+            case 401 -> "Yêu cầu đăng nhập";
+            case 403 -> "Không có quyền truy cập";
+            case 404 -> "Không tìm thấy tài nguyên";
+            default -> "Lỗi hệ thống";
+        };
+
+        response.setStatus(resolvedStatus);
         response.setContentType("application/json");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-        String message = status == HttpServletResponse.SC_FORBIDDEN
-                ? "Không có quyền truy cập"
-                : "Không tìm thấy tài nguyên";
 
         GSON.toJson(
                 new ApiError(false, message, null),
