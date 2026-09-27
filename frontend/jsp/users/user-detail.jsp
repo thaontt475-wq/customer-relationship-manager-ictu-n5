@@ -16,9 +16,10 @@
         + ACTIVE: Đang hoạt động
         + LOCKED: Đã khóa
 
-  BLOCKER:
-    - Chờ Backend chốt endpoint khóa tài khoản và bàn giao dữ liệu.
-    - Chờ Backend cung cấp danh sách "availableRecipients".
+  TRẠNG THÁI TÍCH HỢP:
+    - Backend đã hỗ trợ API khóa và mở khóa tài khoản.
+    - Transfer dữ liệu nghiệp vụ chưa khả dụng trong schema Sprint 1.
+    - View adapter cho các thao tác này chưa được tích hợp tại màn hình JSP.
 --%>
 <%!
     private String escapeHtml(String input) {
@@ -138,7 +139,6 @@
                             <div class="user-alert-title">Thông báo lỗi</div>
                             <div><%= escapeHtml(errorMsg) %></div>
                         </div>
-                        <button type="button" class="user-alert-close" onclick="this.parentElement.remove();" aria-label="Đóng">&times;</button>
                     </div>
                 <% } %>
 
@@ -152,7 +152,6 @@
                             <div class="user-alert-title">Thành công</div>
                             <div><%= escapeHtml(messageMsg) %></div>
                         </div>
-                        <button type="button" class="user-alert-close" onclick="this.parentElement.remove();" aria-label="Đóng">&times;</button>
                     </div>
                 <% } %>
 
@@ -239,13 +238,13 @@
                                         <h3 id="lock-action-title" class="lock-warning-title">Khóa tài khoản & Bàn giao dữ liệu</h3>
                                         <p class="lock-warning-desc">
                                             Hành động này sẽ <strong>chặn ngay lập tức quyền truy cập</strong> của người dùng vào hệ thống CRM.
-                                            Để bảo toàn tính liên tục trong vận hành, vui lòng chọn nhân sự tiếp nhận toàn bộ dữ liệu phụ trách của tài khoản này.
+                                            Phần bàn giao dữ liệu nghiệp vụ là chức năng dự kiến và hiện chưa khả dụng trong schema Sprint 1.
                                         </p>
                                     </div>
                                 </div>
 
-                                <%-- BLOCKER: Chờ Backend chốt endpoint khóa tài khoản và bàn giao dữ liệu. --%>
-                                <!-- Container UI Khóa & Bàn giao (Trạng thái chờ Backend Integration, không submit form) -->
+                                <%-- Transfer dữ liệu chưa khả dụng; khu vực này không submit form. --%>
+                                <!-- Container UI Khóa & Bàn giao (không submit form) -->
                                 <div class="handover-form">
                                     <!-- ID tài khoản bị khóa -->
                                     <input type="hidden" name="userId" value="<%= escapeHtml(userId) %>">
@@ -286,14 +285,14 @@
                                                 <option value="" disabled>Chưa có danh sách nhân sự khả dụng từ Backend (Cần BE API)</option>
                                             <% } %>
                                         </select>
-                                        <div class="form-hint">Dữ liệu phụ trách sẽ được chuyển giao quyền quản lý (Owner) sang tài khoản này.</div>
+                                        <div class="form-hint">Đây là lựa chọn dự kiến cho chức năng bàn giao; backend hiện chưa chuyển dữ liệu sở hữu thực tế.</div>
                                     </div>
 
                                     <!-- Thông tin phạm vi dữ liệu bàn giao (Không invent request parameters) -->
                                     <div class="form-group">
                                         <label class="form-label">Phạm vi dữ liệu chuyển quyền tiếp quản:</label>
                                         <div class="handover-scope-note">
-                                            Phạm vi bàn giao: Toàn bộ Khách hàng, Cơ hội bán hàng, Báo giá, Hợp đồng và Hoạt động phụ trách sẽ được chuyển giao theo quy định nghiệp vụ do Backend xử lý.
+                                            Phạm vi dự kiến gồm Khách hàng, Cơ hội bán hàng, Báo giá, Hợp đồng và Hoạt động phụ trách. Schema Sprint 1 chưa có các bảng ownership nên backend chưa hỗ trợ chuyển giao thực tế.
                                         </div>
                                     </div>
 
@@ -309,7 +308,7 @@
                                     <div class="confirmation-box">
                                         <input type="checkbox" id="confirmLockCheckbox" name="confirmLock" required>
                                         <label for="confirmLockCheckbox">
-                                            Tôi xác nhận đã kiểm tra kỹ: Tài khoản <strong><%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "này")) %></strong> sẽ bị khóa quyền truy cập ngay lập tức, và toàn bộ dữ liệu nghiệp vụ sẽ được chuyển giao sang nhân sự tiếp nhận.
+                                            Tôi xác nhận đã kiểm tra kỹ tài khoản <strong><%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "này")) %></strong>. Chức năng bàn giao dữ liệu hiện chưa khả dụng và không được thực hiện từ màn hình này.
                                         </label>
                                     </div>
 
@@ -318,12 +317,12 @@
                                         <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary">
                                             Hủy bỏ
                                         </a>
-                                        <button type="button" class="btn btn-danger" disabled title="Chờ Backend API">
+                                        <button type="button" class="btn btn-danger" disabled title="Chức năng bàn giao chưa khả dụng trong Sprint 1">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                             </svg>
-                                            Xác nhận Khóa & Bàn giao dữ liệu
+                                            Bàn giao dữ liệu chưa khả dụng
                                         </button>
                                     </div>
                                 </div>
@@ -342,7 +341,7 @@
                                     <div>
                                         <h3 class="locked-account-title">Tài khoản này hiện đang bị KHÓA</h3>
                                         <p class="lock-warning-desc">
-                                            Tài khoản đã bị ngắt quyền truy cập vào hệ thống CRM. Mọi dữ liệu phụ trách đã được chuyển giao theo quy trình quản trị.
+                                            Tài khoản đã bị khóa. Chức năng bàn giao dữ liệu nghiệp vụ hiện chưa khả dụng trong schema Sprint 1.
                                         </p>
                                     </div>
                                 </div>
