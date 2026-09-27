@@ -60,6 +60,42 @@ public class EmailService {
         }
     }
 
+    public void sendAccountActivationEmail(
+            String toEmail,
+            String fullName,
+            String username,
+            String temporaryPassword) {
+
+        if (!isConfigured()) {
+            LOGGER.warning("Account activation email was not sent because SMTP is not configured");
+            return;
+        }
+
+        String loginLink = appBaseUrl + "/login";
+        String subject = "CRM - Kích hoạt tài khoản";
+
+        StringBuilder content = new StringBuilder();
+        content.append("Xin chào ")
+                .append(fullName == null || fullName.isBlank() ? "bạn" : fullName)
+                .append(",\n\n");
+        content.append("Tài khoản CRM của bạn đã được tạo.\n\n");
+        content.append("Tên đăng nhập: ").append(username).append("\n");
+        content.append("Mật khẩu tạm: ").append(temporaryPassword).append("\n\n");
+        content.append("Đăng nhập tại: ").append(loginLink).append("\n\n");
+        content.append("Vui lòng đổi mật khẩu sau khi đăng nhập.");
+
+        try {
+            Session session = createSession();
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(fromAddress));
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
+            message.setSubject(subject);
+            message.setText(content.toString());
+            Transport.send(message);
+        } catch (MessagingException | RuntimeException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to send account activation email to " + toEmail, ex);
+        }
+    }
     private Session createSession() {
         Properties props = new Properties();
         boolean usesAuthentication = !isBlank(username) && !isBlank(password);

@@ -43,46 +43,63 @@ public class UserServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
         try {
             if ("/users".equals(request.getServletPath())) {
-                request.setAttribute("users", userService.findAll());
-                request.getRequestDispatcher(USER_LIST_JSP).forward(request, response);
+                showList(request, response);
                 return;
             }
+
             if ("/users/detail".equals(request.getServletPath())) {
                 showDetail(request, response);
                 return;
             }
-            writeJson(response, HttpServletResponse.SC_METHOD_NOT_ALLOWED, false,
-                    "Phương thức không được hỗ trợ", null);
+
+            if ("/api/users".equals(request.getServletPath())) {
+                String pathInfo = request.getPathInfo();
+
+                if (pathInfo == null || pathInfo.isBlank() || "/".equals(pathInfo)) {
+                    handleApiList(request, response);
+                    return;
+                }
+
+                Long userId = parseUserIdPath(pathInfo);
+                if (userId != null) {
+                    handleApiDetail(response, userId);
+                    return;
+                }
+            }
+
+            writeJson(
+                    response,
+                    HttpServletResponse.SC_NOT_FOUND,
+                    false,
+                    "Endpoint không tồn tại",
+                    null
+            );
+
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Unable to load user data", e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            LOGGER.log(Level.SEVERE, "Unable to load CRM-28 user data", e);
+            writeJson(
+                    response,
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    false,
+                    "Không thể tải dữ liệu người dùng lúc này",
+                    null
+            );
         }
     }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
         if (!"/api/users".equals(request.getServletPath())) {
             writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
                     "Endpoint không tồn tại", null);
-            return;
-        }
-
-        String[] pathParts = splitApiPath(request.getPathInfo());
-        if (pathParts == null || !isSupportedAction(pathParts[2])) {
-            writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
-                    "Endpoint không tồn tại", null);
-            return;
-        }
-
-        Long targetUserId = parsePositiveLong(pathParts[1]);
-        if (targetUserId == null) {
-            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
-                    "ID người dùng không hợp lệ", null);
             return;
         }
 
@@ -93,7 +110,34 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
+        String pathInfo = request.getPathInfo();
+
         try {
+            if (pathInfo == null || pathInfo.isBlank() || "/".equals(pathInfo)) {
+                handleCreateUser(request, response);
+                return;
+            }
+
+            Long directUserId = parseUserIdPath(pathInfo);
+            if (directUserId != null) {
+                handleUpdateUser(request, response, directUserId);
+                return;
+            }
+
+            String[] pathParts = splitApiPath(pathInfo);
+            if (pathParts == null || !isSupportedAction(pathParts[2])) {
+                writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                        "Endpoint không tồn tại", null);
+                return;
+            }
+
+            Long targetUserId = parsePositiveLong(pathParts[1]);
+            if (targetUserId == null) {
+                writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                        "ID người dùng không hợp lệ", null);
+                return;
+            }
+
             switch (pathParts[2]) {
                 case "lock" -> handleLock(request, response, targetUserId, actorUserId);
                 case "unlock" -> handleUnlock(response, targetUserId);
@@ -102,13 +146,354 @@ public class UserServlet extends HttpServlet {
                 default -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
                         "Endpoint không tồn tại", null);
             }
+
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Unable to process CRM-30 user operation", e);
+            LOGGER.log(Level.SEVERE, "Unable to process CRM-28 user operation", e);
             writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
                     "Không thể xử lý yêu cầu lúc này", null);
         }
     }
 
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        if (!"/api/users".equals(request.getServletPath())) {
+            writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Endpoint không tồn tại", null);
+            return;
+        }
+
+        if (extractActorUserId(request) == null) {
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
+                    "Yêu cầu đăng nhập", null);
+            return;
+        }
+
+        Long userId = parseUserIdPath(request.getPathInfo());
+        if (userId == null) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "ID người dùng không hợp lệ", null);
+            return;
+        }
+
+        try {
+            handleUpdateUser(request, response, userId);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Unable to update CRM-28 user", e);
+            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
+                    "Không thể cập nhật người dùng lúc này", null);
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        if (!"/api/users".equals(request.getServletPath())) {
+            writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Endpoint không tồn tại", null);
+            return;
+        }
+
+        Long actorUserId = extractActorUserId(request);
+        if (actorUserId == null) {
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
+                    "Yêu cầu đăng nhập", null);
+            return;
+        }
+
+        if (!hasPermissionAdminRole(request)) {
+            writeJson(response, HttpServletResponse.SC_FORBIDDEN, false,
+                    "Không có quyền xóa tài khoản người dùng", null);
+            return;
+        }
+
+        Long userId = parseUserIdPath(request.getPathInfo());
+        if (userId == null) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "ID người dùng không hợp lệ", null);
+            return;
+        }
+
+        try {
+            UserService.DeleteUserStatus result =
+                    userService.deleteUser(userId, actorUserId);
+
+            switch (result) {
+                case SUCCESS -> writeJson(
+                        response, HttpServletResponse.SC_OK, true,
+                        "Xóa người dùng thành công",
+                        Map.of("userId", userId));
+                case NOT_FOUND -> writeJson(
+                        response, HttpServletResponse.SC_NOT_FOUND, false,
+                        "Không tìm thấy người dùng", null);
+                case SELF_DELETE -> writeJson(
+                        response, HttpServletResponse.SC_BAD_REQUEST, false,
+                        "Không thể tự xóa tài khoản đang đăng nhập", null);
+                case REFERENCED_DATA -> writeJson(
+                        response, HttpServletResponse.SC_CONFLICT, false,
+                        "Không thể xóa người dùng vì đang có dữ liệu liên quan", null);
+                case DELETE_CONFLICT -> writeJson(
+                        response, HttpServletResponse.SC_CONFLICT, false,
+                        "Không thể xóa người dùng lúc này", null);
+            }
+
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Unable to delete CRM-28 user", e);
+            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
+                    "Không thể xóa người dùng lúc này", null);
+        }
+    }
+    private void showList(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+
+        int page = parsePositiveInt(request.getParameter("page"), 1);
+        int size = parsePositiveInt(request.getParameter("size"), 20);
+
+        String keyword = request.getParameter("q");
+        String role = request.getParameter("role");
+        String status = request.getParameter("status");
+
+        UserService.UserPage result =
+                userService.searchUsers(keyword, role, status, page, size);
+
+        request.setAttribute("users", result.items());
+        request.setAttribute("page", result.page());
+        request.setAttribute("size", result.size());
+        request.setAttribute("totalItems", result.totalItems());
+        request.setAttribute("totalPages", result.totalPages());
+        request.setAttribute("q", keyword);
+        request.setAttribute("role", role);
+        request.setAttribute("status", status);
+
+        request.getRequestDispatcher(USER_LIST_JSP)
+                .forward(request, response);
+    }
+
+    private void handleApiList(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, IOException {
+
+        int page = parsePositiveInt(request.getParameter("page"), 1);
+        int size = parsePositiveInt(request.getParameter("size"), 20);
+
+        UserService.UserPage result = userService.searchUsers(
+                request.getParameter("q"),
+                request.getParameter("role"),
+                request.getParameter("status"),
+                page,
+                size
+        );
+
+        writeJson(
+                response,
+                HttpServletResponse.SC_OK,
+                true,
+                "Lấy danh sách người dùng thành công",
+                result
+        );
+    }
+
+    private void handleApiDetail(HttpServletResponse response, long userId)
+            throws SQLException, IOException {
+
+        User user = userService.findById(userId);
+
+        if (user == null) {
+            writeJson(
+                    response,
+                    HttpServletResponse.SC_NOT_FOUND,
+                    false,
+                    "Không tìm thấy người dùng",
+                    null
+            );
+            return;
+        }
+
+        writeJson(
+                response,
+                HttpServletResponse.SC_OK,
+                true,
+                "Lấy thông tin người dùng thành công",
+                user
+        );
+    }
+
+    private void handleCreateUser(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, IOException {
+
+        if (!hasPermissionAdminRole(request)) {
+            writeJson(response, HttpServletResponse.SC_FORBIDDEN, false,
+                    "Không có quyền tạo tài khoản người dùng", null);
+            return;
+        }
+
+        UserMutationRequest body = readUserMutationRequest(request);
+
+        if (body == null || body.invalidTeamId) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Dữ liệu người dùng không hợp lệ", null);
+            return;
+        }
+
+        UserService.CreateUserResult result = userService.createUser(
+                body.username,
+                body.email,
+                body.fullName,
+                body.phone,
+                body.teamId
+        );
+
+        switch (result.status()) {
+            case SUCCESS -> {
+                Map<String, Object> data = new LinkedHashMap<>();
+                data.put("userId", result.userId());
+                data.put("activationEmailRequested", true);
+
+                writeJson(response, HttpServletResponse.SC_CREATED, true,
+                        "Tạo tài khoản thành công", data);
+            }
+            case DUPLICATE_EMAIL -> writeJson(
+                    response, HttpServletResponse.SC_CONFLICT, false,
+                    "Email đã tồn tại trong hệ thống", null);
+            case DUPLICATE_USERNAME -> writeJson(
+                    response, HttpServletResponse.SC_CONFLICT, false,
+                    "Tên đăng nhập đã tồn tại trong hệ thống", null);
+            case INVALID_EMAIL -> writeJson(
+                    response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Email không hợp lệ", null);
+            case INVALID_INPUT -> writeJson(
+                    response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Vui lòng nhập đầy đủ tên đăng nhập, email và họ tên", null);
+        }
+    }
+
+    private void handleUpdateUser(HttpServletRequest request,
+                                  HttpServletResponse response,
+                                  long userId)
+            throws SQLException, IOException {
+
+        if (!hasPermissionAdminRole(request)) {
+            writeJson(response, HttpServletResponse.SC_FORBIDDEN, false,
+                    "Không có quyền cập nhật tài khoản người dùng", null);
+            return;
+        }
+
+        UserMutationRequest body = readUserMutationRequest(request);
+
+        if (body == null || body.invalidTeamId) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Dữ liệu người dùng không hợp lệ", null);
+            return;
+        }
+
+        UserService.UpdateUserStatus result = userService.updateUser(
+                userId,
+                body.username,
+                body.email,
+                body.fullName,
+                body.phone,
+                body.teamId
+        );
+
+        switch (result) {
+            case SUCCESS -> writeJson(
+                    response, HttpServletResponse.SC_OK, true,
+                    "Cập nhật người dùng thành công",
+                    userService.findById(userId));
+            case DUPLICATE_EMAIL -> writeJson(
+                    response, HttpServletResponse.SC_CONFLICT, false,
+                    "Email đã tồn tại trong hệ thống", null);
+            case DUPLICATE_USERNAME -> writeJson(
+                    response, HttpServletResponse.SC_CONFLICT, false,
+                    "Tên đăng nhập đã tồn tại trong hệ thống", null);
+            case INVALID_EMAIL -> writeJson(
+                    response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Email không hợp lệ", null);
+            case INVALID_INPUT -> writeJson(
+                    response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Dữ liệu người dùng không hợp lệ", null);
+            case NOT_FOUND -> writeJson(
+                    response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy người dùng", null);
+            case UPDATE_CONFLICT -> writeJson(
+                    response, HttpServletResponse.SC_CONFLICT, false,
+                    "Không thể cập nhật người dùng", null);
+        }
+    }
+
+    private UserMutationRequest readUserMutationRequest(HttpServletRequest request)
+            throws IOException {
+
+        String contentType = request.getContentType();
+
+        if (contentType != null
+                && contentType.toLowerCase(java.util.Locale.ROOT)
+                        .startsWith("application/json")) {
+
+            try {
+                return GSON.fromJson(
+                        request.getReader(),
+                        UserMutationRequest.class
+                );
+            } catch (JsonSyntaxException e) {
+                return null;
+            }
+        }
+
+        UserMutationRequest body = new UserMutationRequest();
+        body.username = request.getParameter("username");
+        body.email = request.getParameter("email");
+        body.fullName = request.getParameter("fullName");
+        body.phone = request.getParameter("phone");
+
+        String teamId = request.getParameter("teamId");
+
+        if (teamId != null && !teamId.isBlank()) {
+            Long parsed = parsePositiveLong(teamId);
+
+            if (parsed == null) {
+                body.invalidTeamId = true;
+            } else {
+                body.teamId = parsed;
+            }
+        }
+
+        return body;
+    }
+
+    private Long parseUserIdPath(String pathInfo) {
+        if (pathInfo == null || pathInfo.isBlank()) {
+            return null;
+        }
+
+        String path = pathInfo.startsWith("/")
+                ? pathInfo.substring(1)
+                : pathInfo;
+
+        if (path.isBlank() || path.contains("/")) {
+            return null;
+        }
+
+        return parsePositiveLong(path);
+    }
+
+    private int parsePositiveInt(String value, int defaultValue) {
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+
+        try {
+            int parsed = Integer.parseInt(value);
+            return parsed > 0 ? parsed : defaultValue;
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
     private void handleTeamAssignment(HttpServletRequest request, HttpServletResponse response,
                                       long userId) throws SQLException, IOException {
         if (!hasPermissionAdminRole(request)) {
@@ -363,6 +748,14 @@ public class UserServlet extends HttpServlet {
         GSON.toJson(new ApiResponse(success, message, data), response.getWriter());
     }
 
+    private static final class UserMutationRequest {
+        private String username;
+        private String email;
+        private String fullName;
+        private String phone;
+        private Long teamId;
+        private boolean invalidTeamId;
+    }
     private static final class TeamAssignmentRequest {
         private Long teamId;
     }
