@@ -95,7 +95,9 @@ public class UserServlet extends HttpServlet {
 
         try {
             switch (pathParts[2]) {
-                case "lock" -> handleLock(request, response, targetUserId, actorUserId);
+                case "lock" -> handleLock(request, response, targetUserId, actorUserId, false);
+                case "lock-handover" -> handleLock(
+                        request, response, targetUserId, actorUserId, true);
                 case "unlock" -> handleUnlock(response, targetUserId);
                 case "transfer-data" -> handleTransfer(request, response, targetUserId);
                 case "team" -> handleTeamAssignment(request, response, targetUserId);
@@ -152,9 +154,31 @@ public class UserServlet extends HttpServlet {
         }
     }
     private void handleLock(HttpServletRequest request, HttpServletResponse response,
-                            long targetUserId, long actorUserId) throws SQLException, IOException {
+                            long targetUserId, long actorUserId, boolean requireConfirmation)
+            throws SQLException, IOException {
+        if (requireConfirmation && !isConfirmed(request.getParameter("confirm"))) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Cần xác nhận thao tác khóa và bàn giao", null);
+            return;
+        }
+
+        String recipientValue = request.getParameter("recipientId");
+        Long recipientUserId = null;
+        if (recipientValue != null && !recipientValue.isBlank()) {
+            recipientUserId = parsePositiveLong(recipientValue);
+            if (recipientUserId == null) {
+                writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                        "recipientId không hợp lệ", null);
+                return;
+            }
+        }
+
+        String reason = request.getParameter("reason");
+        if (reason == null) {
+            reason = request.getParameter("lockReason");
+        }
         StatusChangeResult result = userService.lockUser(
-                targetUserId, actorUserId, request.getParameter("reason"));
+                targetUserId, actorUserId, recipientUserId, reason);
         switch (result) {
             case SUCCESS -> writeJson(response, HttpServletResponse.SC_OK, true,
                     "Khóa tài khoản thành công", statusData(targetUserId, "LOCKED"));
@@ -166,8 +190,18 @@ public class UserServlet extends HttpServlet {
                     "Không tìm thấy tài khoản mục tiêu", null);
             case INVALID_CURRENT_STATUS -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
                     "Chỉ tài khoản ACTIVE mới có thể bị khóa", null);
+            case RECIPIENT_REQUIRED -> writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Tài khoản đang sở hữu customer hoặc opportunity; recipientId là bắt buộc", null);
+            case SAME_USER -> writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Tài khoản nhận không được trùng tài khoản bị khóa", null);
+            case RECIPIENT_NOT_FOUND -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
+                    "Không tìm thấy tài khoản nhận", null);
+            case RECIPIENT_NOT_ACTIVE -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Tài khoản nhận phải ở trạng thái ACTIVE", null);
             case UPDATE_CONFLICT -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
                     "Trạng thái tài khoản đã thay đổi, vui lòng thử lại", null);
+            case TRANSFER_INCOMPLETE -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Bàn giao ownership chưa hoàn tất; thao tác khóa đã được rollback", null);
         }
     }
 
@@ -183,7 +217,8 @@ public class UserServlet extends HttpServlet {
                     "Chỉ tài khoản LOCKED mới có thể được mở khóa", null);
             case UPDATE_CONFLICT -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
                     "Trạng thái tài khoản đã thay đổi, vui lòng thử lại", null);
-            case INVALID_REASON, SELF_LOCK -> writeJson(
+            case INVALID_REASON, SELF_LOCK, RECIPIENT_REQUIRED, SAME_USER,
+                 RECIPIENT_NOT_FOUND, RECIPIENT_NOT_ACTIVE, TRANSFER_INCOMPLETE -> writeJson(
                     response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
                     "Không thể xử lý yêu cầu lúc này", null);
         }
@@ -211,8 +246,11 @@ public class UserServlet extends HttpServlet {
             case NOT_SUPPORTED -> writeJson(response, HttpServletResponse.SC_NOT_IMPLEMENTED, false,
                     "Chưa thể chuyển dữ liệu vì schema hiện tại chưa có bảng dữ liệu sở hữu nghiệp vụ",
                     transferUnavailableData(sourceUserId, recipientUserId));
-            case SUCCESS -> writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
-                    "Chưa có dữ liệu chuyển giao được cấu hình", null);
+            case SUCCESS -> writeJson(response, HttpServletResponse.SC_OK, true,
+                    "Bàn giao ownership thành công",
+                    transferResultData(sourceUserId, recipientUserId));
+            case TRANSFER_INCOMPLETE -> writeJson(response, HttpServletResponse.SC_CONFLICT, false,
+                    "Bàn giao ownership chưa hoàn tất; giao dịch đã được rollback", null);
         }
     }
 
@@ -228,6 +266,14 @@ public class UserServlet extends HttpServlet {
         data.put("sourceUserId", sourceUserId);
         data.put("toUserId", recipientUserId);
         data.put("status", "NOT_SUPPORTED");
+        return data;
+    }
+
+    private Map<String, Object> transferResultData(long sourceUserId, long recipientUserId) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("sourceUserId", sourceUserId);
+        data.put("recipientId", recipientUserId);
+        data.put("status", "SUCCESS");
         return data;
     }
 
@@ -340,7 +386,16 @@ public class UserServlet extends HttpServlet {
                 .anyMatch(role -> "admin".equals(role) || "director".equals(role));
     }
     private boolean isSupportedAction(String action) {
-        return "lock".equals(action) || "unlock".equals(action) || "transfer-data".equals(action) || "team".equals(action);
+        return "lock".equals(action) || "lock-handover".equals(action)
+                || "unlock".equals(action) || "transfer-data".equals(action)
+                || "team".equals(action);
+    }
+
+    private boolean isConfirmed(String value) {
+        return value != null && ("true".equalsIgnoreCase(value)
+                || "on".equalsIgnoreCase(value)
+                || "yes".equalsIgnoreCase(value)
+                || "1".equals(value));
     }
 
     private Long parsePositiveLong(String value) {
