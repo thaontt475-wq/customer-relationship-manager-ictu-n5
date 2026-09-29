@@ -63,8 +63,8 @@
                     <form id="auditFilterForm" class="audit-filter-bar" onsubmit="event.preventDefault(); applyFilter();">
                         <!-- 1. Lọc theo người thực hiện -->
                         <div class="audit-filter-item">
-                            <label class="audit-filter-label" for="filterActor">Người thực hiện / Mã bản ghi</label>
-                            <input type="text" id="filterActor" class="audit-input" placeholder="Ví dụ: Admin, NV_A, DH-001...">
+                            <label class="audit-filter-label" for="filterActor">Người thực hiện</label>
+                            <input type="text" id="filterActor" class="audit-input" placeholder="Ví dụ: Admin, Nguyễn Văn A">
                         </div>
 
                         <!-- 2. Lọc theo loại đối tượng nhạy cảm -->
@@ -102,10 +102,18 @@
                         </div>
                     </form>
 
+                    <div id="auditFilterError" class="audit-filter-error" style="display: none;" role="alert"></div>
+
                     <!-- Loading Indicator -->
                     <div id="auditLoading" style="display: none; text-align: center; padding: 24px;">
                         <span class="user-spinner" style="display: inline-block; width: 24px; height: 24px;"></span>
                         <div style="margin-top: 8px; color: #64748b; font-size: 0.88rem;">Đang tải nhật ký...</div>
+                    </div>
+
+                    <!-- BE CONTRACT NEEDED: /api/audit-logs -->
+                    <div id="auditErrorState" class="audit-error-state" style="display: none;" role="alert">
+                        <strong>Không thể tải Audit Log</strong>
+                        <span id="auditErrorMessage"></span>
                     </div>
 
                     <!-- Bảng dữ liệu Audit Logs -->
@@ -116,6 +124,7 @@
                                     <th scope="col" style="width: 150px;">Thời điểm</th>
                                     <th scope="col" style="width: 170px;">Người thực hiện</th>
                                     <th scope="col" style="width: 180px;">Loại đối tượng</th>
+                                    <th scope="col" style="width: 120px;">Mã bản ghi</th>
                                     <th scope="col" style="width: 110px;">Hành động</th>
                                     <th scope="col">Giá trị trước</th>
                                     <th scope="col">Giá trị sau</th>
@@ -165,6 +174,9 @@
         var paginationEl = document.getElementById('auditPagination');
         var paginationInfo = document.getElementById('auditPaginationInfo');
         var paginationControls = document.getElementById('auditPaginationControls');
+        var errorState = document.getElementById('auditErrorState');
+        var errorMessage = document.getElementById('auditErrorMessage');
+        var filterError = document.getElementById('auditFilterError');
 
         var filterActor = document.getElementById('filterActor');
         var filterEntityType = document.getElementById('filterEntityType');
@@ -214,9 +226,30 @@
             return '<span class="audit-action-tag">' + escapeHtml(act) + '</span>';
         }
 
+        function getAuditValue(value, emptyText) {
+            return value === null || value === undefined || value === '' ? emptyText : value;
+        }
+
+        function showLoadError(message) {
+            loading.style.display = 'none';
+            tableBody.innerHTML = '';
+            tableWrap.style.display = 'none';
+            emptyState.style.display = 'none';
+            paginationEl.style.display = 'none';
+            paginationControls.innerHTML = '';
+            state.totalItems = 0;
+            state.totalPages = 1;
+            errorMessage.textContent = message;
+            errorState.style.display = 'flex';
+        }
+
         async function fetchAuditLogs() {
             loading.style.display = 'block';
+            tableBody.innerHTML = '';
+            tableWrap.style.display = 'none';
             emptyState.style.display = 'none';
+            paginationEl.style.display = 'none';
+            errorState.style.display = 'none';
 
             var params = new URLSearchParams({
                 actor: state.actor,
@@ -228,6 +261,7 @@
             });
 
             try {
+                // BE CONTRACT NEEDED: /api/audit-logs.
                 var response = await fetch(contextPath + '/api/audit-logs?' + params.toString(), {
                     headers: { 'Accept': 'application/json' }
                 });
@@ -235,14 +269,23 @@
                 loading.style.display = 'none';
 
                 if (!response.ok) {
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#dc2626; padding:20px;">Lỗi tải dữ liệu kiểm toán (' + response.status + ')</td></tr>';
+                    showLoadError('API trả về lỗi ' + response.status + '. Vui lòng thử lại sau.');
                     return;
                 }
 
                 var resData = await response.json();
+                if (!resData || resData.success === false || !resData.data || !Array.isArray(resData.data.items)) {
+                    showLoadError((resData && resData.message)
+                        ? resData.message
+                        : 'API Audit Log chưa khả dụng hoặc trả về dữ liệu không hợp lệ.');
+                    return;
+                }
+
                 var pageData = resData.data;
 
-                if (!pageData || !pageData.items || pageData.items.length === 0) {
+                if (pageData.items.length === 0) {
+                    state.totalItems = 0;
+                    state.totalPages = 1;
                     tableWrap.style.display = 'none';
                     emptyState.style.display = 'block';
                     paginationEl.style.display = 'none';
@@ -253,16 +296,15 @@
                 emptyState.style.display = 'none';
                 paginationEl.style.display = 'flex';
 
-                state.totalItems = pageData.totalItems;
-                state.totalPages = pageData.totalPages;
+                state.totalItems = Number(pageData.totalItems) || pageData.items.length;
+                state.totalPages = Math.max(1, Number(pageData.totalPages) || 1);
 
                 renderTable(pageData.items);
                 renderPagination();
 
             } catch (err) {
-                loading.style.display = 'none';
                 console.error('Lỗi khi fetch audit logs:', err);
-                tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#dc2626; padding:20px;">Không thể kết nối đến máy chủ.</td></tr>';
+                showLoadError('Không thể kết nối đến máy chủ hoặc dữ liệu trả về không hợp lệ.');
             }
         }
 
@@ -283,17 +325,18 @@
                     }
                 }
 
-                var actorStr = log.actorName || ('User #' + log.actorId);
-                var recordBadge = log.recordId ? '<div style="font-size:0.75rem; color:#64748b; font-family:monospace; margin-top:3px;">[' + escapeHtml(log.recordId) + ']</div>' : '';
+                var actorStr = log.actorName || (log.actorId ? ('User #' + log.actorId) : '-');
+                var recordId = log.recordId !== null && log.recordId !== undefined ? log.recordId : '-';
 
                 var row = document.createElement('tr');
                 row.innerHTML =
                     '<td><span style="font-size: 0.85rem; color: #475569; font-weight: 500;">' + escapeHtml(dateStr) + '</span></td>' +
                     '<td><strong>' + escapeHtml(actorStr) + '</strong></td>' +
-                    '<td>' + getEntityBadge(log.entityType) + recordBadge + '</td>' +
+                    '<td>' + getEntityBadge(log.entityType) + '</td>' +
+                    '<td><span class="audit-record-id">' + escapeHtml(recordId) + '</span></td>' +
                     '<td>' + getActionBadge(log.action) + '</td>' +
-                    '<td><div class="value-box-old">' + escapeHtml(log.oldValue || '(Không có giá trị trước)') + '</div></td>' +
-                    '<td><div class="value-box-new">' + escapeHtml(log.newValue || '(Không có giá trị sau)') + '</div></td>';
+                    '<td><div class="value-box-old">' + escapeHtml(getAuditValue(log.oldValue, '(Không có giá trị trước)')) + '</div></td>' +
+                    '<td><div class="value-box-new">' + escapeHtml(getAuditValue(log.newValue, '(Không có giá trị sau)')) + '</div></td>';
 
                 tableBody.appendChild(row);
             });
@@ -350,19 +393,41 @@
         }
 
         window.applyFilter = function () {
+            state.page = 1;
+            filterError.style.display = 'none';
+
+            if (filterFromDate.value && filterToDate.value && filterFromDate.value > filterToDate.value) {
+                filterError.textContent = 'Từ ngày không được lớn hơn Đến ngày.';
+                filterError.style.display = 'block';
+                return;
+            }
+
             state.actor = filterActor.value.trim();
             state.entityType = filterEntityType.value;
             state.fromDate = filterFromDate.value;
             state.toDate = filterToDate.value;
-            state.page = 1;
             fetchAuditLogs();
         };
+
+        filterActor.addEventListener('input', function () {
+            state.page = 1;
+            filterError.style.display = 'none';
+        });
+
+        [filterEntityType, filterFromDate, filterToDate].forEach(function (filter) {
+            filter.addEventListener('change', function () {
+                state.page = 1;
+                filterError.style.display = 'none';
+            });
+        });
 
         btnReset.addEventListener('click', function () {
             filterActor.value = '';
             filterEntityType.value = 'ALL';
             filterFromDate.value = '';
             filterToDate.value = '';
+            filterError.style.display = 'none';
+            state.page = 1;
             applyFilter();
         });
 
