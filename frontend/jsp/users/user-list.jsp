@@ -1013,6 +1013,7 @@
         var cachedRoles = null;
         var cachedTeams = null;
         var currentPermissionDataScope = null;
+        var currentAssignedTeamId = null;
 
         async function ensureRolesAndTeams() {
             if (!cachedRoles) {
@@ -1078,6 +1079,7 @@
             var user = state.items.find(function (item) {
                 return String(item.id) === String(uid);
             });
+            currentAssignedTeamId = user && user.teamId ? Number(user.teamId) : null;
 
             var fullName = user ? (user.fullName || user.name || 'Người dùng #' + uid) : ('#' + uid);
             var email = user ? (user.email || 'Chưa có email') : '';
@@ -1091,13 +1093,12 @@
 
             // Render Teams dropdown
             modalTeamSelect.innerHTML = '<option value="">-- Chưa gán nhóm kinh doanh --</option>';
-            var currentTeamId = user ? (user.teamId || null) : null;
             if (Array.isArray(cachedTeams)) {
                 cachedTeams.forEach(function (t) {
                     var opt = document.createElement('option');
                     opt.value = t.id;
                     opt.textContent = t.name;
-                    if (currentTeamId && String(t.id) === String(currentTeamId)) {
+                    if (currentAssignedTeamId && String(t.id) === String(currentAssignedTeamId)) {
                         opt.selected = true;
                     }
                     modalTeamSelect.appendChild(opt);
@@ -1118,9 +1119,6 @@
                         }
                         if (typeof pData.data.dataScope === 'string' && pData.data.dataScope.trim()) {
                             currentPermissionDataScope = pData.data.dataScope;
-                        }
-                        if (pData.data.teamId) {
-                            modalTeamSelect.value = String(pData.data.teamId);
                         }
                     }
                 }
@@ -1246,6 +1244,13 @@
                 return;
             }
 
+            if (currentAssignedTeamId !== null && !selectedTeamId) {
+                modalTeamSelect.classList.add('is-invalid');
+                feedbackTeam.textContent = 'API hiện tại chưa hỗ trợ bỏ người dùng khỏi nhóm kinh doanh.';
+                modalTeamSelect.focus();
+                return;
+            }
+
             // AC 2 & AC 6: Role Trưởng nhóm bắt buộc phải có nhóm kinh doanh
             if (hasTeamLead && !selectedTeamId) {
                 modalTeamSelect.classList.add('is-invalid');
@@ -1262,8 +1267,7 @@
             var payload = {
                 userId: Number(uid),
                 roleIds: roleIds,
-                dataScope: currentPermissionDataScope,
-                teamId: selectedTeamId
+                dataScope: currentPermissionDataScope
             };
 
             btnSaveRoleAssignment.disabled = true;
@@ -1271,7 +1275,47 @@
             saveRoleSpinner.style.display = 'inline-block';
             saveRoleBtnText.textContent = 'Đang lưu...';
 
+            var isSavingTeam = selectedTeamId !== null && selectedTeamId !== currentAssignedTeamId;
+
             try {
+                if (isSavingTeam) {
+                    var teamResponse = await fetch(contextPath + '/api/users/' + encodeURIComponent(uid) + '/team', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ teamId: selectedTeamId })
+                    });
+
+                    var teamResult = null;
+                    var teamContentType = teamResponse.headers.get('content-type');
+                    if (teamContentType && teamContentType.includes('application/json')) {
+                        teamResult = await teamResponse.json();
+                    }
+
+                    if (!teamResponse.ok || (teamResult && teamResult.success === false)) {
+                        btnSaveRoleAssignment.disabled = false;
+                        btnCancelRoleModal.disabled = false;
+                        saveRoleSpinner.style.display = 'none';
+                        saveRoleBtnText.textContent = 'Lưu thay đổi';
+                        modalTeamSelect.classList.add('is-invalid');
+                        feedbackTeam.textContent = (teamResult && teamResult.message)
+                            ? teamResult.message
+                            : 'Không thể cập nhật nhóm kinh doanh. Phân quyền chưa được thay đổi.';
+                        return;
+                    }
+
+                    currentAssignedTeamId = selectedTeamId;
+                    var updatedUser = state.items.find(function (item) {
+                        return String(item.id) === String(uid);
+                    });
+                    if (updatedUser) {
+                        updatedUser.teamId = selectedTeamId;
+                    }
+                    isSavingTeam = false;
+                }
+
                 var response = await fetch(contextPath + '/api/permissions/assign', {
                     method: 'POST',
                     headers: {
@@ -1313,7 +1357,12 @@
                 saveRoleSpinner.style.display = 'none';
                 saveRoleBtnText.textContent = 'Lưu thay đổi';
                 console.error('Lỗi khi lưu phân quyền:', err);
-                feedbackRoles.textContent = 'Không thể kết nối đến máy chủ backend để lưu phân quyền.';
+                if (isSavingTeam) {
+                    modalTeamSelect.classList.add('is-invalid');
+                    feedbackTeam.textContent = 'Không thể kết nối đến máy chủ backend để cập nhật nhóm. Phân quyền chưa được thay đổi.';
+                } else {
+                    feedbackRoles.textContent = 'Không thể kết nối đến máy chủ backend để lưu phân quyền.';
+                }
             }
         });
 
