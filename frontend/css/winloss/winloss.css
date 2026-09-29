@@ -1,1 +1,242 @@
-/* Win/Loss */
+/* ==========================================================================
+   WIN/LOSS REASONS & COMPETITORS MODULE CSS (CRM-48 / S2-10)
+   Đồng bộ phong cách hệ thống CRM
+   ========================================================================== */
+
+.winloss-page {
+    --wl-primary: #2563eb;
+    --wl-primary-light: #eff6ff;
+    --wl-primary-border: #bfdbfe;
+
+    --wl-success: #16a34a;
+    --wl-success-light: #f0fdf4;
+    --wl-success-border: #bbf7d0;
+
+    --wl-danger: #dc2626;
+    --wl-danger-light: #fef2f2;
+    --wl-danger-border: #fecaca;
+
+    --wl-text-main: #0f172a;
+    --wl-text-sub: #475569;
+    --wl-text-muted: #64748b;
+    --wl-border: #e2e8f0;
+    --wl-bg-page: #f8fafc;
+    --wl-bg-card: #ffffff;
+
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--wl-text-main);
+    background-color: var(--wl-bg-page);
+    min-height: 100%;
+    padding: 24px 28px;
+    box-sizing: border-box;
+}
+
+.winloss-page * {
+    box-sizing: border-box;
+}
+
+.winloss-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Breadcrumb */
+.winloss-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--wl-text-muted);
+}
+
+.winloss-breadcrumb a {
+    color: var(--wl-text-muted);
+    text-decoration: none;
+}
+
+.winloss-breadcrumb a:hover {
+    color: var(--wl-primary);
+    text-decoration: underline;
+}
+
+.winloss-breadcrumb .separator {
+    color: #cbd5e1;
+}
+
+.winloss-breadcrumb .active {
+    color: var(--wl-text-main);
+    font-weight: 600;
+}
+
+/* Header */
+.winloss-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--wl-border);
+}
+
+.winloss-header-info h1 {
+    margin: 0 0 6px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--wl-text-main);
+}
+
+.winloss-header-info p {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--wl-text-sub);
+    line-height: 1.5;
+}
+
+.winloss-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.winloss-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--wl-primary-light);
+    color: var(--wl-primary);
+    border: 1px solid var(--wl-primary-border);
+}
+
+/* Tab Navigation */
+.winloss-tabs {
+    display: flex;
+    gap: 8px;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 20px;
+}
+
+.winloss-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--wl-text-sub);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.winloss-tab-btn:hover {
+    color: var(--wl-primary);
+}
+
+.winloss-tab-btn.is-active {
+    color: var(--wl-primary);
+    border-bottom-color: var(--wl-primary);
+}
+
+.winloss-tab-badge {
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.winloss-tab-btn.is-active .winloss-tab-badge {
+    background: var(--wl-primary-light);
+    color: var(--wl-primary);
+}
+
+/* Card */
+.winloss-card {
+    background: var(--wl-bg-card);
+    border: 1px solid var(--wl-border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+}
+
+.winloss-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.winloss-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--wl-text-main);
+    margin: 0;
+}
+
+/* Table */
+.winloss-table-responsive {
+    overflow-x: auto;
+}
+
+.winloss-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+}
+
+.winloss-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--wl-border);
+}
+
+.winloss-table td {
+    padding: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+    line-height: 1.45;
+}
+
+.winloss-table tr:hover {
+    background-color: #fbfcfe;
+}
+
+.badge-win {
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: var(--wl-success-light);
+    color: var(--wl-success);
+    border: 1px solid var(--wl-success-border);
+}
+
+.badge-loss {
+    display: inline-flex;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: var(--wl-danger-light);
+    color: var(--wl-danger);
+    border: 1px solid var(--wl-danger-border);
+}
