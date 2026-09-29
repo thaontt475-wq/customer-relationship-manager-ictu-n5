@@ -16,8 +16,8 @@ public class ScopeAccessPolicy {
 
         return switch (scope) {
             case "ALL" -> true;
-            case "TEAM" -> actor.teamId() != null
-                    && Objects.equals(actor.teamId(), record.ownerTeamId());
+            case "TEAM" -> (record.ownerUserId() == actor.userId())
+                    || (actor.teamId() != null && Objects.equals(actor.teamId(), record.ownerTeamId()));
             case "SELF" -> record.ownerUserId() == actor.userId();
             default -> false;
         };

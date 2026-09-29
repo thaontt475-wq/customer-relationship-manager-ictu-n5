@@ -19,7 +19,7 @@ public class DataScopeService {
         this(new ScopedEntityDAO(), new UserDAO(), new ScopeAccessPolicy());
     }
 
-    DataScopeService(
+    public DataScopeService(
             ScopedEntityDAO scopedEntityDAO,
             UserDAO userDAO,
             ScopeAccessPolicy accessPolicy) {
@@ -60,6 +60,27 @@ public class DataScopeService {
         }
     }
 
+    public UserContextData getUserContext(long userId) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            User user = userDAO.findById(conn, userId);
+            if (user == null) {
+                return null;
+            }
+
+            String scope = user.getDataScope() == null || user.getDataScope().isBlank()
+                    ? "SELF"
+                    : user.getDataScope();
+
+            ScopeContext context = new ScopeContext(
+                    user.getId(),
+                    user.getTeamId(),
+                    scope
+            );
+
+            return new UserContextData(user, context);
+        }
+    }
+
     private ScopeContext loadContext(Connection conn, long userId)
             throws SQLException {
 
@@ -90,5 +111,10 @@ public class DataScopeService {
     public record ReadResult(
             ReadStatus status,
             ScopeRecord record) {
+    }
+
+    public record UserContextData(
+            User user,
+            ScopeContext context) {
     }
 }
