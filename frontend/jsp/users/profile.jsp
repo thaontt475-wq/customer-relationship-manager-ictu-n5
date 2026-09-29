@@ -334,8 +334,14 @@
                     var sData = await resp.json();
                     if (sData && sData.data && sData.data.currentUser) {
                         var u = sData.data.currentUser;
-                        if (!inputFullName.value && u.fullName) inputFullName.value = u.fullName;
-                        if (!inputPhone.value && u.phone) inputPhone.value = u.phone;
+                        if (!inputFullName.value && u.fullName) {
+                            inputFullName.value = u.fullName;
+                            inputFullName.defaultValue = u.fullName;
+                        }
+                        if (!inputPhone.value && u.phone) {
+                            inputPhone.value = u.phone;
+                            inputPhone.defaultValue = u.phone;
+                        }
                         var rEmail = document.getElementById('readonlyEmail');
                         if (rEmail && !rEmail.value && u.email) rEmail.value = u.email;
                         var rTeam = document.getElementById('readonlyTeam');
@@ -383,6 +389,14 @@
             successAlert.style.display = 'none';
         }
 
+        profileForm.addEventListener('reset', function () {
+            window.setTimeout(function () {
+                clearErrors();
+                var signature = inputSignature.value.trim();
+                signaturePreview.textContent = signature || '(Chưa thiết lập chữ ký email)';
+            }, 0);
+        });
+
         profileForm.addEventListener('submit', async function (e) {
             e.preventDefault();
             clearErrors();
@@ -422,6 +436,7 @@
             saveBtnText.textContent = 'Đang lưu...';
 
             try {
+                // BE CONTRACT NEEDED: /profile và /api/profile.
                 var response = await fetch(contextPath + '/api/profile', {
                     method: 'POST',
                     headers: {
@@ -441,30 +456,35 @@
                     resData = await response.json();
                 }
 
-                if (response.ok && (!resData || resData.success !== false)) {
+                if (response.ok && resData && resData.success === true) {
                     showAlert(true, (resData && resData.message) ? resData.message : 'Cập nhật hồ sơ cá nhân thành công.');
 
                     // AC 7: Dữ liệu trên giao diện cập nhật theo dữ liệu mới
-                    if (resData && resData.data) {
-                        var d = resData.data;
-                        if (d.fullName) {
-                            sidebarFullName.textContent = d.fullName;
-                            sidebarAvatar.textContent = d.fullName.trim().charAt(0).toUpperCase() || 'U';
-                            // Cập nhật tên trên Header nếu có
-                            var headerNameEl = document.querySelector('.crm-header__user-name');
-                            if (headerNameEl) headerNameEl.textContent = d.fullName;
-                        }
-                        if (d.phone !== undefined) {
-                            sidebarPhone.textContent = d.phone ? d.phone : 'Chưa cập nhật';
-                        }
-                    } else {
-                        sidebarFullName.textContent = fullName;
-                        sidebarAvatar.textContent = fullName.trim().charAt(0).toUpperCase() || 'U';
-                        sidebarPhone.textContent = phone ? phone : 'Chưa cập nhật';
-                    }
+                    var d = resData.data || {};
+                    var savedFullName = typeof d.fullName === 'string' ? d.fullName : fullName;
+                    var savedPhone = typeof d.phone === 'string' ? d.phone : phone;
+                    var savedSignature = typeof d.signature === 'string' ? d.signature : signature;
+
+                    inputFullName.value = savedFullName;
+                    inputPhone.value = savedPhone;
+                    inputSignature.value = savedSignature;
+                    inputFullName.defaultValue = savedFullName;
+                    inputPhone.defaultValue = savedPhone;
+                    inputSignature.defaultValue = savedSignature;
+                    signaturePreview.textContent = savedSignature.trim() || '(Chưa thiết lập chữ ký email)';
+
+                    sidebarFullName.textContent = savedFullName;
+                    sidebarAvatar.textContent = savedFullName.trim().charAt(0).toUpperCase() || 'U';
+                    sidebarPhone.textContent = savedPhone || 'Chưa cập nhật';
+
+                    // Cập nhật tên trên Header nếu có; không thay đổi Email, Team hoặc Role.
+                    var headerNameEl = document.querySelector('.crm-header__user-name');
+                    if (headerNameEl) headerNameEl.textContent = savedFullName;
 
                 } else {
-                    var errorMsg = (resData && resData.message) ? resData.message : 'Không thể lưu hồ sơ cá nhân.';
+                    var errorMsg = (resData && resData.message)
+                        ? resData.message
+                        : 'API cập nhật hồ sơ cá nhân chưa khả dụng. Vui lòng thử lại sau.';
                     if (errorMsg.includes('Số điện thoại')) {
                         inputPhone.classList.add('is-invalid');
                         feedbackPhone.textContent = errorMsg;
@@ -472,7 +492,7 @@
                         inputFullName.classList.add('is-invalid');
                         feedbackName.textContent = errorMsg;
                     } else {
-                        showAlert(false, errorMsg + ' (Mã lỗi: ' + response.status + ')');
+                        showAlert(false, response.ok ? errorMsg : errorMsg + ' (Mã lỗi: ' + response.status + ')');
                     }
                 }
 
