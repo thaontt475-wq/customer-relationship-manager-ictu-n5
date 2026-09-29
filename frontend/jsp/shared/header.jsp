@@ -30,6 +30,8 @@
             <div class="crm-header__user" title="Tài khoản người dùng">
                 <div class="crm-header__avatar" aria-hidden="true">
                     <span>U</span>
+                    <img src="${pageContext.request.contextPath}/profile/avatar/thumbnail" alt="" width="32" height="32"
+                         onload="this.previousElementSibling.hidden=true" onerror="this.hidden=true">
                 </div>
                 <div class="crm-header__user-details">
                     <div class="crm-header__user-name">Tài khoản</div>
@@ -39,6 +41,7 @@
                 </div>
             </div>
 
+            <a href="${pageContext.request.contextPath}/profile/avatar">Đổi ảnh đại diện</a>
             <!-- Form Đăng xuất (Gửi POST tới endpoint chính thức /api/auth/logout) -->
             <form class="crm-header__logout-form" method="post" action="${pageContext.request.contextPath}/api/auth/logout">
                 <button type="submit" class="crm-header__logout-btn" title="Đăng xuất khỏi hệ thống" aria-label="Đăng xuất">

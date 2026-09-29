@@ -1,0 +1,6 @@
+.avatar-page { max-width: 760px; margin: 40px auto; padding: 24px; background: #fff; border-radius: 12px; }
+.avatar-page form { display: grid; gap: 16px; }
+.avatar-page button { padding: 12px 20px; background: #2454d6; color: white; border: 0; border-radius: 6px; cursor: pointer; }
+.avatar-preview { display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+.avatar-preview figure { margin: 12px 0; }
+.avatar-preview img { object-fit: cover; border-radius: 8px; max-width: 100%; }
