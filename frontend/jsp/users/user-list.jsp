@@ -1012,6 +1012,7 @@
 
         var cachedRoles = null;
         var cachedTeams = null;
+        var currentPermissionDataScope = null;
 
         async function ensureRolesAndTeams() {
             if (!cachedRoles) {
@@ -1072,6 +1073,7 @@
             feedbackTeam.textContent = '';
             modalTeamSelect.classList.remove('is-invalid');
             roleModalUserId.value = uid;
+            currentPermissionDataScope = null;
 
             var user = state.items.find(function (item) {
                 return String(item.id) === String(uid);
@@ -1110,8 +1112,13 @@
                 });
                 if (pRes.ok) {
                     var pData = await pRes.json();
-                    if (pData && pData.data && Array.isArray(pData.data.roles)) {
-                        activeRoleIds = pData.data.roles.map(function(rid) { return Number(rid); });
+                    if (pData && pData.data) {
+                        if (Array.isArray(pData.data.roles)) {
+                            activeRoleIds = pData.data.roles.map(function(rid) { return Number(rid); });
+                        }
+                        if (typeof pData.data.dataScope === 'string' && pData.data.dataScope.trim()) {
+                            currentPermissionDataScope = pData.data.dataScope;
+                        }
                         if (pData.data.teamId) {
                             modalTeamSelect.value = String(pData.data.teamId);
                         }
@@ -1247,10 +1254,15 @@
                 return;
             }
 
+            if (!currentPermissionDataScope) {
+                feedbackRoles.textContent = 'Không thể xác định phạm vi dữ liệu hiện tại. Vui lòng đóng và mở lại cửa sổ để thử lại.';
+                return;
+            }
+
             var payload = {
                 userId: Number(uid),
                 roleIds: roleIds,
-                dataScope: 'SELF',
+                dataScope: currentPermissionDataScope,
                 teamId: selectedTeamId
             };
 
