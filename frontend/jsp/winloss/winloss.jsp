@@ -55,6 +55,10 @@
                     </div>
                 </header>
 
+                <p class="winloss-sprint-note">
+                    Những danh mục này sẽ được sử dụng khi đóng Cơ hội ở Sprint 5.
+                </p>
+
                 <!-- Alerts -->
                 <div class="user-alerts" id="wlAlertsArea" aria-live="polite">
                     <div class="user-alert user-alert-danger" id="wlErrorAlert" style="display: none;" role="alert">
@@ -92,9 +96,6 @@
                     </button>
                     <button type="button" class="winloss-tab-btn" id="tabBtnCompetitor" onclick="switchTab('COMPETITOR')">
                         🏢 Đối thủ cạnh tranh <span class="winloss-tab-badge" id="badgeCountComp">0</span>
-                    </button>
-                    <button type="button" class="winloss-tab-btn" id="tabBtnCloseOpportunity" onclick="switchTab('CLOSE_OPP')">
-                        🎯 Đóng Cơ hội (Sprint 5)
                     </button>
                 </div>
 
@@ -162,74 +163,6 @@
                             </tbody>
                         </table>
                     </div>
-                </section>
-
-                <!-- Section 4: Mô phỏng Đóng Cơ hội (AC 6, AC 7, AC 8, AC 9, AC 10) -->
-                <section class="winloss-card" id="paneCloseOpp" style="display: none;">
-                    <div class="winloss-card-header">
-                        <div>
-                            <h2 class="winloss-card-title">Quy trình Đóng Cơ hội (Won / Lost)</h2>
-                            <p style="font-size: 0.88rem; color: #64748b; margin: 4px 0 0 0;">
-                                Kiểm tra ràng buộc nghiệp vụ: Bắt buộc chọn lý do theo trạng thái, chọn đối thủ cạnh tranh khi thua thầu.
-                            </p>
-                        </div>
-                    </div>
-
-                    <form id="closeOppForm" style="max-width: 650px;" novalidate>
-                        <div class="modal-field">
-                            <label class="modal-label" for="oppId">Mã cơ hội kinh doanh (Opportunity ID) <span class="modal-required">*</span></label>
-                            <input type="number" id="oppId" class="modal-input" placeholder="Ví dụ: 101" value="1" required>
-                        </div>
-
-                        <div class="modal-field">
-                            <label class="modal-label">Trạng thái đóng <span class="modal-required">*</span></label>
-                            <div style="display: flex; gap: 24px; margin-top: 6px;">
-                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <input type="radio" name="oppStage" value="WON" checked onchange="onStageChange()">
-                                    <strong style="color: #16a34a;">🏆 THÀNH CÔNG (WON)</strong>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                    <input type="radio" name="oppStage" value="LOST" onchange="onStageChange()">
-                                    <strong style="color: #dc2626;">❌ THẤT BẠI (LOST)</strong>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Dropdown lý do (Bắt buộc theo AC 8) -->
-                        <div class="modal-field">
-                            <label class="modal-label" for="oppReasonSelect">
-                                Lý do đóng cơ hội <span class="modal-required">*</span>
-                                <span style="font-size: 0.8rem; color: #64748b;" id="oppReasonHelpText">(Đang hiển thị danh sách lý do thắng)</span>
-                            </label>
-                            <select id="oppReasonSelect" class="modal-select" required>
-                                <option value="">-- Chọn lý do đóng cơ hội --</option>
-                            </select>
-                            <div class="modal-field-feedback" id="feedbackOppReason" style="display: block; color: #dc2626; font-size: 0.83rem; margin-top: 4px;"></div>
-                        </div>
-
-                        <!-- Dropdown đối thủ cạnh tranh (AC 7) -->
-                        <div class="modal-field" id="oppCompetitorGroup" style="display: none;">
-                            <label class="modal-label" for="oppCompetitorSelect">
-                                Đối thủ cạnh tranh giành được hợp đồng
-                                <span style="font-size: 0.8rem; color: #64748b;">(Tùy chọn)</span>
-                            </label>
-                            <select id="oppCompetitorSelect" class="modal-select">
-                                <option value="">-- Chưa xác định đối thủ --</option>
-                            </select>
-                        </div>
-
-                        <div class="modal-field">
-                            <label class="modal-label" for="oppCloseNote">Ghi chú bổ sung</label>
-                            <textarea id="oppCloseNote" class="modal-input" rows="3" placeholder="Nhập ghi chú chi tiết kết quả thương thảo..."></textarea>
-                        </div>
-
-                        <div style="margin-top: 18px;">
-                            <button type="submit" class="btn btn-primary" id="btnSubmitCloseOpp">
-                                <span id="spinnerCloseOpp" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
-                                <span id="textCloseOpp">Xác nhận đóng cơ hội</span>
-                            </button>
-                        </div>
-                    </form>
                 </section>
 
             </div>
@@ -308,7 +241,7 @@
 
     <script>
     var contextPath = '${pageContext.request.contextPath}';
-    var activeTab = 'WIN'; // 'WIN', 'LOSS', 'COMPETITOR', 'CLOSE_OPP'
+    var activeTab = 'WIN'; // 'WIN', 'LOSS', 'COMPETITOR'
 
     var winReasons = [];
     var lossReasons = [];
@@ -334,35 +267,56 @@
         }
     }
 
-    async function loadData() {
+    async function loadReasons() {
         try {
-            // Load win & loss reasons
+            // BE CONTRACT NEEDED: /api/winloss/reasons.
             var rRes = await fetch(contextPath + '/api/winloss/reasons', { headers: { 'Accept': 'application/json' } });
-            if (rRes.ok) {
-                var rData = await rRes.json();
-                if (rData && rData.data) {
-                    winReasons = rData.data.winReasons || [];
-                    lossReasons = rData.data.lossReasons || [];
-                }
+            var rData = await rRes.json();
+            if (!rRes.ok || !rData || rData.success === false || !rData.data) {
+                throw new Error((rData && rData.message) ? rData.message : 'API Reasons chưa khả dụng.');
             }
 
-            // Load competitors
+            winReasons = Array.isArray(rData.data.winReasons) ? rData.data.winReasons : [];
+            lossReasons = Array.isArray(rData.data.lossReasons) ? rData.data.lossReasons : [];
+            return null;
+        } catch (error) {
+            winReasons = [];
+            lossReasons = [];
+            console.error('Lỗi khi tải Win/Loss Reasons:', error);
+            return 'Không thể tải danh mục lý do thắng/thua.';
+        }
+    }
+
+    async function loadCompetitors() {
+        try {
+            // BE CONTRACT NEEDED: /api/winloss/competitors.
             var cRes = await fetch(contextPath + '/api/winloss/competitors', { headers: { 'Accept': 'application/json' } });
-            if (cRes.ok) {
-                var cData = await cRes.json();
-                if (cData && cData.data) {
-                    competitors = cData.data || [];
-                }
+            var cData = await cRes.json();
+            if (!cRes.ok || !cData || cData.success === false || !Array.isArray(cData.data)) {
+                throw new Error((cData && cData.message) ? cData.message : 'API Competitors chưa khả dụng.');
             }
 
-            // Update badge counts
-            document.getElementById('badgeCountWin').textContent = winReasons.length;
-            document.getElementById('badgeCountLoss').textContent = lossReasons.length;
-            document.getElementById('badgeCountComp').textContent = competitors.length;
+            competitors = cData.data;
+            return null;
+        } catch (error) {
+            competitors = [];
+            console.error('Lỗi khi tải Competitors:', error);
+            return 'Không thể tải danh mục đối thủ cạnh tranh.';
+        }
+    }
 
-            renderActiveTab();
-        } catch (e) {
-            console.error('Lỗi khi tải dữ liệu win/loss:', e);
+    async function loadData() {
+        var errors = await Promise.all([loadReasons(), loadCompetitors()]);
+
+        document.getElementById('badgeCountWin').textContent = winReasons.length;
+        document.getElementById('badgeCountLoss').textContent = lossReasons.length;
+        document.getElementById('badgeCountComp').textContent = competitors.length;
+
+        renderActiveTab();
+
+        var errorMessages = errors.filter(function (message) { return Boolean(message); });
+        if (errorMessages.length > 0) {
+            showAlert(false, errorMessages.join(' '));
         }
     }
 
@@ -371,11 +325,9 @@
         document.getElementById('tabBtnWin').classList.toggle('is-active', tab === 'WIN');
         document.getElementById('tabBtnLoss').classList.toggle('is-active', tab === 'LOSS');
         document.getElementById('tabBtnCompetitor').classList.toggle('is-active', tab === 'COMPETITOR');
-        document.getElementById('tabBtnCloseOpportunity').classList.toggle('is-active', tab === 'CLOSE_OPP');
 
         document.getElementById('paneReasons').style.display = (tab === 'WIN' || tab === 'LOSS') ? 'block' : 'none';
         document.getElementById('paneCompetitors').style.display = (tab === 'COMPETITOR') ? 'block' : 'none';
-        document.getElementById('paneCloseOpp').style.display = (tab === 'CLOSE_OPP') ? 'block' : 'none';
 
         if (tab === 'WIN') {
             document.getElementById('reasonsCardTitle').textContent = 'Danh sách Lý do Thắng (Win Reasons)';
@@ -383,8 +335,6 @@
         } else if (tab === 'LOSS') {
             document.getElementById('reasonsCardTitle').textContent = 'Danh sách Lý do Thua (Loss Reasons)';
             document.getElementById('reasonsCardSubtitle').textContent = 'Danh mục các nguyên nhân mất khách hàng hoặc thua thầu đối thủ.';
-        } else if (tab === 'CLOSE_OPP') {
-            updateCloseOppDropdowns();
         }
 
         renderActiveTab();
@@ -614,115 +564,6 @@
             showAlert(false, 'Lỗi kết nối máy chủ.');
         }
     }
-
-    // Opportunity Close Logic (AC 6, 7, 8, 9, 10)
-    function onStageChange() {
-        updateCloseOppDropdowns();
-    }
-
-    function updateCloseOppDropdowns() {
-        var stageRadio = document.querySelector('input[name="oppStage"]:checked');
-        var stage = stageRadio ? stageRadio.value : 'WON';
-        var reasonSelect = document.getElementById('oppReasonSelect');
-        var reasonHelp = document.getElementById('oppReasonHelpText');
-        var compGroup = document.getElementById('oppCompetitorGroup');
-        var compSelect = document.getElementById('oppCompetitorSelect');
-
-        reasonSelect.innerHTML = '<option value="">-- Chọn lý do đóng cơ hội --</option>';
-
-        // AC 6: Lý do hiển thị tương ứng trạng thái Won/Lost
-        if (stage === 'WON') {
-            reasonHelp.textContent = '(Đang hiển thị danh mục Lý do THẮNG)';
-            compGroup.style.display = 'none';
-            winReasons.forEach(function (r) {
-                var opt = document.createElement('option');
-                opt.value = r.id;
-                opt.textContent = r.reasonText;
-                reasonSelect.appendChild(opt);
-            });
-        } else {
-            reasonHelp.textContent = '(Đang hiển thị danh mục Lý do THUA)';
-            compGroup.style.display = 'block'; // AC 7: Đối thủ chọn khi thua
-            lossReasons.forEach(function (r) {
-                var opt = document.createElement('option');
-                opt.value = r.id;
-                opt.textContent = r.reasonText;
-                reasonSelect.appendChild(opt);
-            });
-
-            // Populate competitors
-            compSelect.innerHTML = '<option value="">-- Chưa xác định đối thủ --</option>';
-            competitors.forEach(function (c) {
-                var opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = c.name;
-                compSelect.appendChild(opt);
-            });
-        }
-    }
-
-    document.getElementById('closeOppForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-        var feedbackReason = document.getElementById('feedbackOppReason');
-        feedbackReason.textContent = '';
-
-        var oppId = Number(document.getElementById('oppId').value);
-        var stageRadio = document.querySelector('input[name="oppStage"]:checked');
-        var stage = stageRadio ? stageRadio.value : 'WON';
-        var reasonId = document.getElementById('oppReasonSelect').value;
-        var competitorId = document.getElementById('oppCompetitorSelect').value;
-        var note = document.getElementById('oppCloseNote').value.trim();
-
-        // AC 8, AC 9: Frontend Validation - Bắt buộc chọn lý do khi đóng cơ hội
-        if (!reasonId) {
-            feedbackReason.textContent = 'Lý do đóng cơ hội là bắt buộc theo yêu cầu Sprint 5.';
-            document.getElementById('oppReasonSelect').focus();
-            return;
-        }
-
-        var payload = {
-            opportunityId: oppId,
-            stage: stage,
-            reasonId: Number(reasonId),
-            competitorId: competitorId ? Number(competitorId) : null,
-            note: note
-        };
-
-        var btn = document.getElementById('btnSubmitCloseOpp');
-        var spinner = document.getElementById('spinnerCloseOpp');
-        var text = document.getElementById('textCloseOpp');
-
-        btn.disabled = true;
-        spinner.style.display = 'inline-block';
-        text.textContent = 'Đang xử lý...';
-
-        try {
-            var res = await fetch(contextPath + '/api/winloss/close-opportunity', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            btn.disabled = false;
-            spinner.style.display = 'none';
-            text.textContent = 'Xác nhận đóng cơ hội';
-
-            var data = await res.json();
-            if (res.ok && data.success) {
-                showAlert(true, data.message || 'Đóng cơ hội thành công.');
-                document.getElementById('oppCloseNote').value = '';
-            } else {
-                var errMsg = (data && data.message) ? data.message : 'Không thể đóng cơ hội.';
-                showAlert(false, errMsg);
-                feedbackReason.textContent = errMsg;
-            }
-        } catch (err) {
-            btn.disabled = false;
-            spinner.style.display = 'none';
-            text.textContent = 'Xác nhận đóng cơ hội';
-            showAlert(false, 'Lỗi kết nối máy chủ.');
-        }
-    });
 
     document.addEventListener('DOMContentLoaded', function () {
         loadData();
