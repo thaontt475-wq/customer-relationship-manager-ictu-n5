@@ -11,23 +11,23 @@ public final class MenuService {
     // F/W/R/W*/R* all grant menu visibility; this does not authorize module actions
     // or enforce SELF/TEAM/ALL data scope. List order is the response order.
     private static final List<MenuRule> MENU_RULES = List.of(
-        rule("SALES_CONFIG", "Danh mục & cấu hình bán hàng",
+        rule("SALES_CONFIG", "Danh mục & cấu hình bán hàng", "/permissions",
             "sales rep", "marketing", "cust. success", "accountant", "team lead", "director", "admin"),
-        rule("CUSTOMERS", "Khách hàng & liên hệ",
+        rule("CUSTOMERS", "Khách hàng & liên hệ", "/customers",
             "sales rep", "marketing", "cust. success", "accountant", "team lead", "director", "admin"),
-        rule("LEADS", "Lead & phân bổ", "sales rep", "marketing", "team lead", "director", "admin"),
-        rule("OPPORTUNITIES", "Cơ hội & pipeline",
+        rule("LEADS", "Lead & phân bổ", null, "sales rep", "marketing", "team lead", "director", "admin"),
+        rule("OPPORTUNITIES", "Cơ hội & pipeline", "/opportunities",
             "sales rep", "marketing", "cust. success", "accountant", "team lead", "director", "admin"),
-        rule("ACTIVITIES", "Hoạt động & lịch làm việc",
+        rule("ACTIVITIES", "Hoạt động & lịch làm việc", "/activities",
             "sales rep", "marketing", "cust. success", "team lead", "director", "admin"),
-        rule("QUOTES_CONTRACTS", "Báo giá & hợp đồng",
+        rule("QUOTES_CONTRACTS", "Báo giá & hợp đồng", "/quotes",
             "sales rep", "cust. success", "accountant", "team lead", "director", "admin"),
-        rule("KPI", "Chỉ tiêu & KPI", "sales rep", "accountant", "team lead", "director", "admin"),
-        rule("REPORTS", "Báo cáo & dashboard",
+        rule("KPI", "Chỉ tiêu & KPI", null, "sales rep", "accountant", "team lead", "director", "admin"),
+        rule("REPORTS", "Báo cáo & dashboard", null,
             "sales rep", "marketing", "cust. success", "accountant", "team lead", "director", "admin"),
-        rule("AUTOMATION", "Tự động hoá & thông báo",
+        rule("AUTOMATION", "Tự động hoá & thông báo", null,
             "sales rep", "marketing", "cust. success", "team lead", "director", "admin"),
-        rule("USERS_AUDIT", "Người dùng & nhật ký", "director", "admin")
+        rule("USERS_AUDIT", "Người dùng & nhật ký", "/users", "director", "admin")
     );
 
     public List<MenuItem> getMenuItems(Collection<String> roles) {
@@ -46,9 +46,8 @@ public final class MenuService {
             .toList();
     }
 
-    private static MenuRule rule(String code, String label, String... roles) {
-        // No official navigation routes or icons have been agreed yet.
-        return new MenuRule(new MenuItem(code, label, null, null, List.of()), Set.of(roles));
+    private static MenuRule rule(String code, String label, String url, String... roles) {
+        return new MenuRule(new MenuItem(code, label, url, null, List.of()), Set.of(roles));
     }
 
     private record MenuRule(MenuItem item, Set<String> roles) { }
