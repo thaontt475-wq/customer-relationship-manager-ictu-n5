@@ -46,10 +46,39 @@
     gap: 16px;
 }
 
+/* Menu Toggle Button for Mobile Drawer */
+.crm-header__menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    margin-right: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--header-border);
+    background: #ffffff;
+    color: var(--header-text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.crm-header__menu-toggle:hover {
+    background: var(--header-hover);
+    color: var(--header-brand);
+}
+
+.crm-header__menu-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(47, 91, 255, 0.2);
+}
+
 /* Brand logo & info */
 .crm-header__brand {
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .crm-header__brand-link {
@@ -184,6 +213,36 @@
     max-width: 140px;
 }
 
+.crm-header__team-name {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #047857;
+    background: #dcfce7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.crm-header__avatar-link {
+    font-size: 0.82rem;
+    color: var(--header-brand);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.crm-header__avatar-link:hover {
+    background: var(--header-hover);
+    text-decoration: none;
+}
+
 .crm-header__user-email {
     font-size: 0.72rem;
     color: var(--header-muted);
@@ -253,6 +312,14 @@
 
 /* Responsive Styles */
 @media (max-width: 768px) {
+    .crm-header__menu-toggle {
+        display: inline-flex;
+    }
+
+    .crm-header__avatar-link {
+        display: none;
+    }
+
     .crm-header__container {
         padding: 0 16px;
     }
