@@ -319,3 +319,6 @@
         justify-content: center;
     }
 }
+
+/* CRM-36: show the current user's persisted thumbnail. */
+.crm-header__avatar img { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; }
