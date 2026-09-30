@@ -39,12 +39,7 @@ public class EmailService {
 
         String resetLink = appBaseUrl + "/reset-password?token=" + rawToken;
         String subject = "CRM - Đặt lại mật khẩu";
-        StringBuilder sb = new StringBuilder();
-        sb.append("Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.\n\n");
-        sb.append("Vui lòng nhấn vào link sau để đặt lại mật khẩu (có hiệu lực trong 15 phút):\n");
-        sb.append(resetLink).append("\n\n");
-        sb.append("Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.");
-        String content = sb.toString();
+        String content = buildPasswordResetEmailContent(resetLink);
 
         try {
             Session session = createSession();
@@ -58,6 +53,16 @@ public class EmailService {
             // Log error without exposing credentials or token
             LOGGER.log(Level.SEVERE, "Failed to send password reset email to " + toEmail, e);
         }
+    }
+
+    static String buildPasswordResetEmailContent(String resetLink) {
+        StringBuilder content = new StringBuilder();
+        content.append("Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.\n\n");
+        content.append("Vui lòng nhấn vào liên kết sau để đặt lại mật khẩu:\n");
+        content.append(resetLink).append("\n\n");
+        content.append("Liên kết có hiệu lực trong 30 phút.\n\n");
+        content.append("Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.");
+        return content.toString();
     }
 
     public void sendAccountActivationEmail(
