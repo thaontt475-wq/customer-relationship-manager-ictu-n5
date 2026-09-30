@@ -5,7 +5,19 @@ USE crm_db;
 -- CRM-29: Sales teams
 CREATE TABLE IF NOT EXISTS teams (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) NOT NULL UNIQUE
+    name VARCHAR(150) NOT NULL UNIQUE,
+    parent_id BIGINT NULL,
+    leader_user_id BIGINT NULL,
+    region VARCHAR(20) NOT NULL DEFAULT 'NATIONAL',
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_teams_parent_id (parent_id),
+    UNIQUE INDEX uq_teams_leader_user_id (leader_user_id),
+    INDEX idx_teams_region (region),
+    INDEX idx_teams_active (active),
+    CONSTRAINT fk_teams_parent FOREIGN KEY (parent_id) REFERENCES teams(id) ON DELETE RESTRICT,
+    CONSTRAINT chk_teams_region CHECK (region IN ('NORTH', 'CENTRAL', 'SOUTH', 'NATIONAL', 'OVERSEAS'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Users table
@@ -31,6 +43,24 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_users_team_id (team_id),
     CONSTRAINT fk_users_team FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Added after users because teams and users reference each other.
+SET @teams_leader_fk_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.TABLE_CONSTRAINTS
+    WHERE CONSTRAINT_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'teams'
+      AND CONSTRAINT_NAME = 'fk_teams_leader'
+      AND CONSTRAINT_TYPE = 'FOREIGN KEY'
+);
+SET @teams_leader_fk_sql = IF(
+    @teams_leader_fk_exists = 0,
+    'ALTER TABLE teams ADD CONSTRAINT fk_teams_leader FOREIGN KEY (leader_user_id) REFERENCES users(id) ON DELETE SET NULL',
+    'SELECT 1'
+);
+PREPARE teams_leader_fk_stmt FROM @teams_leader_fk_sql;
+EXECUTE teams_leader_fk_stmt;
+DEALLOCATE PREPARE teams_leader_fk_stmt;
 
 -- Password reset tokens table
 CREATE TABLE IF NOT EXISTS password_reset_tokens (
