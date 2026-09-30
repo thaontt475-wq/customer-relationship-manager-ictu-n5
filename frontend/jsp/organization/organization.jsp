@@ -1145,6 +1145,8 @@
                 ? (contextPath + '/api/organization/units/' + id)
                 : (contextPath + '/api/organization/units');
             var method = isEdit ? 'PUT' : 'POST';
+            var savedUnit = null;
+            var localDemoOnly = false;
 
             try {
                 var res = await fetch(endpoint, {
@@ -1152,30 +1154,47 @@
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (res.ok) {
-                    showSuccessAlert(isEdit ? 'Cập nhật đơn vị thành công!' : 'Tạo mới đơn vị thành công!');
+
+                if (!res.ok) {
+                    showErrorAlert((isEdit ? 'Không thể cập nhật' : 'Không thể tạo') + ' đơn vị trên máy chủ (Mã lỗi: ' + res.status + '). Cấu trúc cây và dữ liệu local chưa thay đổi.');
+                    return;
                 }
+
+                try {
+                    var responseBody = await res.json();
+                    savedUnit = responseBody && responseBody.data ? responseBody.data : responseBody;
+                    if (savedUnit && savedUnit.item) savedUnit = savedUnit.item;
+                } catch (ignored) {}
             } catch (err) {
-                console.info('Backend chưa sẵn sàng - Cập nhật dữ liệu tại local state:', err);
+                localDemoOnly = true;
+                console.info('Backend chưa sẵn sàng - Chỉ cập nhật dữ liệu demo tại local state:', err);
             }
 
-            // Cập nhật local state
             if (isEdit) {
                 var idx = state.units.findIndex(function (item) { return item.id === Number(id); });
                 if (idx !== -1) {
                     payload.id = Number(id);
                     payload.memberCount = state.units[idx].memberCount;
                     payload.members = state.units[idx].members;
-                    state.units[idx] = Object.assign({}, state.units[idx], payload);
+                    state.units[idx] = Object.assign({}, state.units[idx], payload, savedUnit || {});
                 }
-                showSuccessAlert('Đã cập nhật thông tin đơn vị [' + payload.name + ']!');
             } else {
-                var newId = state.units.length > 0 ? Math.max.apply(null, state.units.map(function(u){ return u.id; })) + 1 : 1;
+                var serverId = savedUnit && savedUnit.id != null ? Number(savedUnit.id) : null;
+                var newId = serverId != null
+                    ? serverId
+                    : (state.units.length > 0 ? Math.max.apply(null, state.units.map(function(u){ return u.id; })) + 1 : 1);
                 payload.id = newId;
                 payload.memberCount = 1;
                 payload.members = [];
-                state.units.push(payload);
-                showSuccessAlert('Đã thêm mới đơn vị [' + payload.name + '] vào cây tổ chức!');
+                state.units.push(Object.assign({}, payload, savedUnit || {}));
+            }
+
+            if (localDemoOnly) {
+                showErrorAlert('DEMO / Local only - chưa lưu server. Thay đổi đơn vị, trưởng nhóm, đơn vị cha và khu vực chỉ tồn tại tạm thời trên trình duyệt.');
+            } else {
+                showSuccessAlert(isEdit
+                    ? 'Đã cập nhật thông tin đơn vị [' + payload.name + ']!'
+                    : 'Đã thêm mới đơn vị [' + payload.name + '] vào cây tổ chức!');
             }
 
             closeUnitModal();
