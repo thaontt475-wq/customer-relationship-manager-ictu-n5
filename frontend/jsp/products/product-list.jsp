@@ -1359,6 +1359,8 @@
 
             var endpoint = isEdit ? (contextPath + '/api/products/' + id) : (contextPath + '/api/products');
             var method = isEdit ? 'PUT' : 'POST';
+            var savedProduct = null;
+            var localDemoOnly = false;
 
             try {
                 var res = await fetch(endpoint, {
@@ -1367,17 +1369,21 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (res.ok) {
-                    showSuccessAlert(isEdit ? 'Cập nhật sản phẩm thành công!' : 'Tạo mới sản phẩm thành công!');
-                } else {
-                    // Fallback cập nhật local
-                    console.info('Backend trả mã ' + res.status + ' - Lưu cập nhật tại local state.');
+                if (!res.ok) {
+                    showErrorAlert((isEdit ? 'Không thể cập nhật' : 'Không thể tạo') + ' sản phẩm trên máy chủ (Mã lỗi: ' + res.status + '). Dữ liệu local chưa thay đổi.');
+                    return;
                 }
+
+                try {
+                    var responseBody = await res.json();
+                    savedProduct = responseBody && responseBody.data ? responseBody.data : responseBody;
+                    if (savedProduct && savedProduct.item) savedProduct = savedProduct.item;
+                } catch (ignored) {}
             } catch (err) {
-                console.info('Fetch lỗi backend - Áp dụng cập nhật tại local state.');
+                localDemoOnly = true;
+                console.info('Fetch lỗi backend - Chỉ áp dụng cập nhật demo tại local state:', err);
             }
 
-            // Luôn cập nhật local state để trải nghiệm mượt mà
             if (isEdit) {
                 var idx = state.products.findIndex(function (item) { return item.id === Number(id); });
                 if (idx !== -1) {
@@ -1386,16 +1392,25 @@
                     if (payload.costPrice === undefined) {
                         payload.costPrice = state.products[idx].costPrice;
                     }
-                    state.products[idx] = Object.assign({}, state.products[idx], payload);
+                    state.products[idx] = Object.assign({}, state.products[idx], payload, savedProduct || {});
                 }
-                showSuccessAlert('Đã cập nhật thông tin sản phẩm [' + payload.code + ']!');
             } else {
-                var newId = state.products.length > 0 ? Math.max.apply(null, state.products.map(function(p){ return p.id; })) + 1 : 1;
+                var serverId = savedProduct && savedProduct.id != null ? Number(savedProduct.id) : null;
+                var newId = serverId != null
+                    ? serverId
+                    : (state.products.length > 0 ? Math.max.apply(null, state.products.map(function(p){ return p.id; })) + 1 : 1);
                 payload.id = newId;
                 payload.quoteCount = 0;
                 if (payload.costPrice === undefined) payload.costPrice = 0;
-                state.products.unshift(payload);
-                showSuccessAlert('Đã thêm sản phẩm [' + payload.code + '] vào danh mục!');
+                state.products.unshift(Object.assign({}, payload, savedProduct || {}));
+            }
+
+            if (localDemoOnly) {
+                showErrorAlert('DEMO / Local only - chưa lưu server. Thay đổi sản phẩm chỉ tồn tại tạm thời trên trình duyệt.');
+            } else {
+                showSuccessAlert(isEdit
+                    ? 'Đã cập nhật thông tin sản phẩm [' + payload.code + ']!'
+                    : 'Đã thêm sản phẩm [' + payload.code + '] vào danh mục!');
             }
 
             closeProductModal();
@@ -1429,13 +1444,20 @@
             var endpoint = contextPath + '/api/products/' + id;
 
             try {
-                await fetch(endpoint, {
+                var response = await fetch(endpoint, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({ active: newStatus })
                 });
+
+                if (!response.ok) {
+                    showErrorAlert('Không thể đổi trạng thái sản phẩm trên máy chủ (Mã lỗi: ' + response.status + '). Trạng thái chưa thay đổi.');
+                    return;
+                }
             } catch (e) {
-                // local update
+                console.error('Lỗi khi đổi trạng thái sản phẩm:', e);
+                showErrorAlert('Không thể kết nối máy chủ để đổi trạng thái sản phẩm. Trạng thái chưa thay đổi.');
+                return;
             }
 
             p.active = newStatus;
@@ -1468,9 +1490,19 @@
         async function deleteProductDirectly(id) {
             var endpoint = contextPath + '/api/products/' + id;
             try {
-                await fetch(endpoint, { method: 'DELETE' });
+                var response = await fetch(endpoint, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    showErrorAlert('Không thể xóa sản phẩm trên máy chủ (Mã lỗi: ' + response.status + '). Dữ liệu vẫn được giữ nguyên.');
+                    return;
+                }
             } catch (e) {
-                // local
+                console.error('Lỗi khi xóa sản phẩm:', e);
+                showErrorAlert('Không thể kết nối máy chủ để xóa sản phẩm. Dữ liệu vẫn được giữ nguyên.');
+                return;
             }
             state.products = state.products.filter(function (p) { return p.id !== id; });
             showSuccessAlert('Đã xóa sản phẩm thành công!');
@@ -1482,17 +1514,26 @@
         btnConfirmDeactivate.addEventListener('click', async function () {
             if (!state.pendingDeactivateProduct) return;
             var p = state.pendingDeactivateProduct;
-            p.active = false;
 
             var endpoint = contextPath + '/api/products/' + p.id;
             try {
-                await fetch(endpoint, {
+                var response = await fetch(endpoint, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({ active: false })
                 });
-            } catch (e) {}
 
+                if (!response.ok) {
+                    showErrorAlert('Không thể ngừng kinh doanh sản phẩm trên máy chủ (Mã lỗi: ' + response.status + '). Trạng thái chưa thay đổi.');
+                    return;
+                }
+            } catch (e) {
+                console.error('Lỗi khi ngừng kinh doanh sản phẩm:', e);
+                showErrorAlert('Không thể kết nối máy chủ để ngừng kinh doanh sản phẩm. Trạng thái chưa thay đổi.');
+                return;
+            }
+
+            p.active = false;
             deactivateConfirmModal.style.display = 'none';
             state.pendingDeactivateProduct = null;
             showSuccessAlert('Đã chuyển sản phẩm [' + p.code + '] sang trạng thái [Ngừng kinh doanh] theo tiêu chuẩn AC 4!');
@@ -1575,23 +1616,44 @@
             };
 
             var endpoint = contextPath + '/api/price-books';
+            var savedPriceBook = null;
+            var localDemoOnly = false;
             try {
-                await fetch(endpoint, {
+                var response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
+                if (!response.ok) {
+                    showErrorAlert('Không thể tạo bảng giá trên máy chủ (Mã lỗi: ' + response.status + '). Dữ liệu local chưa thay đổi.');
+                    return;
+                }
+
+                try {
+                    var responseBody = await response.json();
+                    savedPriceBook = responseBody && responseBody.data ? responseBody.data : responseBody;
+                    if (savedPriceBook && savedPriceBook.item) savedPriceBook = savedPriceBook.item;
+                } catch (ignored) {}
             } catch (err) {
-                console.info('Backend API Bảng giá chưa hoạt động - Lưu local state:', err);
+                localDemoOnly = true;
+                console.info('Backend API Bảng giá chưa hoạt động - Chỉ lưu demo tại local state:', err);
             }
 
-            payload.id = state.priceBooks.length + 1;
+            var serverId = savedPriceBook && savedPriceBook.id != null ? Number(savedPriceBook.id) : null;
+            payload.id = serverId != null
+                ? serverId
+                : (state.priceBooks.length > 0 ? Math.max.apply(null, state.priceBooks.map(function(pb) { return pb.id; })) + 1 : 1);
             payload.active = true;
             payload.itemCount = lines.length;
-            state.priceBooks.unshift(payload);
+            state.priceBooks.unshift(Object.assign({}, payload, savedPriceBook || {}));
 
             closePriceBookModal();
-            showSuccessAlert('Đã tạo mới Bảng giá niêm yết chuẩn [' + name + ']!');
+            if (localDemoOnly) {
+                showErrorAlert('DEMO / Local only - chưa lưu server. Bảng giá chỉ tồn tại tạm thời trên trình duyệt.');
+            } else {
+                showSuccessAlert('Đã tạo mới Bảng giá niêm yết chuẩn [' + name + ']!');
+            }
             updateStats();
             renderPriceBooks();
         });
