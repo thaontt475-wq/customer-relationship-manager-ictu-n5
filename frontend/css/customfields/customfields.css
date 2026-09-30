@@ -1,1 +1,1424 @@
-/* Custom Fields */
+/* ==========================================================================
+   CRM Custom Fields Management CSS (CRM-46 / S2-08)
+   Khai báo trường tuỳ chỉnh cho khách hàng và cơ hội
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Layout & Khung trang
+   -------------------------------------------------------------------------- */
+.cf-page {
+    flex: 1;
+    background-color: #f8fafc;
+    min-height: calc(100vh - 64px);
+    padding: 24px 32px 48px;
+    box-sizing: border-box;
+}
+
+.cf-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   2. Breadcrumb
+   -------------------------------------------------------------------------- */
+.cf-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 16px;
+}
+
+.cf-breadcrumb a {
+    color: #475569;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.cf-breadcrumb a:hover {
+    color: #2563eb;
+}
+
+.cf-breadcrumb .separator {
+    color: #cbd5e1;
+}
+
+.cf-breadcrumb .active {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   3. Header trang & Badges
+   -------------------------------------------------------------------------- */
+.cf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.cf-header-info h1 {
+    margin: 0 0 6px;
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.cf-header-info p {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.cf-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cf-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.cf-badge-excel {
+    background: #ecfdf5;
+    color: #059669;
+    border-color: #a7f3d0;
+}
+
+.cf-badge-scope {
+    background: #fdf4ff;
+    color: #a21caf;
+    border-color: #f5d0fe;
+}
+
+/* --------------------------------------------------------------------------
+   4. Banner Nghiệp vụ Jira Story (CRM-46)
+   -------------------------------------------------------------------------- */
+.cf-scope-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cf-scope-banner-icon {
+    width: 24px;
+    height: 24px;
+    color: #2563eb;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.cf-scope-banner-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.cf-scope-banner-desc {
+    font-size: 0.875rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Thẻ Thống kê nhanh (Metric Stat Cards)
+   -------------------------------------------------------------------------- */
+.cf-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.cf-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: default;
+    transition: all 0.2s ease;
+}
+
+.cf-stat-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.cf-stat-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon-blue {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+.stat-icon-emerald {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.stat-icon-amber {
+    background-color: #fffbeb;
+    color: #d97706;
+}
+
+.stat-icon-indigo {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+.cf-stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.cf-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.cf-stat-label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   6. Thanh Tabs phân loại đối tượng áp dụng (AC 4: CUSTOMER vs OPPORTUNITY)
+   -------------------------------------------------------------------------- */
+.cf-entity-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.cf-entity-tabs-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.cf-entity-tab-btn {
+    padding: 12px 22px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.cf-entity-tab-btn:hover {
+    color: #2563eb;
+}
+
+.cf-entity-tab-btn.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+}
+
+.cf-tab-badge {
+    background: #e2e8f0;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.cf-entity-tab-btn.active .cf-tab-badge {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.cf-view-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.cf-view-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.cf-view-btn:hover {
+    color: #0f172a;
+}
+
+.cf-view-btn.active {
+    background: #ffffff;
+    color: #2563eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   7. Thông báo Alerts
+   -------------------------------------------------------------------------- */
+.cf-alerts {
+    margin-bottom: 20px;
+}
+
+.cf-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    margin-bottom: 12px;
+    animation: fadeInSlide 0.25s ease-out;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.cf-alert-success {
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.cf-alert-danger {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.cf-alert-info {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+}
+
+.cf-alert-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.cf-alert-content {
+    flex: 1;
+}
+
+.cf-alert-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.cf-alert-close {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: currentColor;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 0;
+}
+
+.cf-alert-close:hover {
+    opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   8. Card Nội dung & Toolbar Bộ lọc
+   -------------------------------------------------------------------------- */
+.cf-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.cf-toolbar {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: #ffffff;
+}
+
+.cf-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 280px;
+}
+
+.cf-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cf-search-wrap {
+    position: relative;
+    width: 280px;
+}
+
+.cf-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.cf-search-input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    background-color: #ffffff;
+    color: #0f172a;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.cf-search-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.cf-filter-select {
+    padding: 8px 14px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    background-color: #ffffff;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.cf-filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   9. Buttons Chuẩn CRM
+   -------------------------------------------------------------------------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 18px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    line-height: 1.25;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    border-color: #cbd5e1;
+    color: #334155;
+}
+
+.btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.btn-danger {
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+.btn-outline-danger {
+    background-color: #ffffff;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+.btn-outline-danger:hover {
+    background-color: #fef2f2;
+    border-color: #ef4444;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+}
+
+/* --------------------------------------------------------------------------
+   10. Bảng Danh sách Trường Tuỳ Chỉnh (Table)
+   -------------------------------------------------------------------------- */
+.cf-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.cf-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.875rem;
+}
+
+.cf-table th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.cf-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.cf-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.cf-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.cf-table tr.cf-row-inactive {
+    background-color: #fafaf9;
+    opacity: 0.72;
+}
+
+/* Kiểu dữ liệu Badges (AC 1) */
+.cf-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.type-text {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.type-number {
+    background-color: #ecfeff;
+    color: #0891b2;
+    border: 1px solid #a5f3fc;
+}
+
+.type-date {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.type-dropdown {
+    background-color: #ede9fe;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+}
+
+/* Thuộc tính Bắt buộc Badge (AC 2) */
+.cf-required-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.req-yes {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.req-no {
+    background-color: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+/* Scope Pills (AC 3: Form, Filter, Excel) */
+.cf-scope-pills {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cf-scope-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.71875rem;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.scope-active {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #dbeafe;
+}
+
+/* Options Chips Preview in Table */
+.cf-options-preview {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    max-width: 260px;
+}
+
+.cf-option-chip {
+    display: inline-block;
+    padding: 1px 7px;
+    background: #f5f3ff;
+    color: #6d28d9;
+    border: 1px solid #ede9fe;
+    border-radius: 4px;
+    font-size: 0.71875rem;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cf-option-more {
+    font-size: 0.71875rem;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+/* Status Active / Inactive Badge */
+.cf-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.cf-status-active {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.cf-status-active::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #10b981;
+}
+
+.cf-status-inactive {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+.cf-status-inactive::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #94a3b8;
+}
+
+/* Thao tác bảng (Actions) */
+.cf-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cf-action-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 5px;
+    border-radius: 6px;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cf-action-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.cf-action-btn.btn-edit:hover {
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.cf-action-btn.btn-del:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+/* Thứ tự (Sort Order Buttons) */
+.cf-order-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cf-order-btn {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-radius: 4px;
+    color: #64748b;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.cf-order-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+.cf-order-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* Empty State */
+.cf-empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: #64748b;
+}
+
+.cf-empty-icon {
+    width: 48px;
+    height: 48px;
+    color: #cbd5e1;
+    margin: 0 auto 12px;
+}
+
+.cf-empty-state h3 {
+    margin: 0 0 6px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.cf-empty-state p {
+    margin: 0 0 16px;
+    font-size: 0.875rem;
+}
+
+/* --------------------------------------------------------------------------
+   11. Live Preview Simulator (AC 3: Form, Filter, Excel Preview)
+   -------------------------------------------------------------------------- */
+.cf-preview-wrapper {
+    display: none;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 24px;
+    overflow: hidden;
+    animation: fadeInSlide 0.25s ease-out;
+}
+
+.cf-preview-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.cf-preview-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cf-preview-tabs {
+    display: flex;
+    gap: 6px;
+}
+
+.cf-preview-tab-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    padding: 6px 12px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.cf-preview-tab-btn:hover {
+    color: #2563eb;
+    border-color: #93c5fd;
+}
+
+.cf-preview-tab-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.cf-preview-body {
+    padding: 24px;
+}
+
+/* 11.1 Mẫu Form Simulator */
+.cf-sim-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.cf-sim-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cf-sim-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cf-sim-label .req-star {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.cf-sim-label .custom-tag {
+    font-size: 0.6875rem;
+    padding: 1px 5px;
+    background: #eff6ff;
+    color: #2563eb;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+.cf-sim-input,
+.cf-sim-select {
+    padding: 9px 12px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.cf-sim-input:focus,
+.cf-sim-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.cf-sim-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* 11.2 Bộ lọc Filter Simulator */
+.cf-sim-filter-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 11.3 Excel Simulator */
+.cf-sim-excel-sheet {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.cf-sim-excel-header {
+    background: #107c41;
+    color: #ffffff;
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cf-sim-excel-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.cf-sim-excel-table th {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #334155;
+}
+
+.cf-sim-excel-table th.custom-col {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #86efac;
+}
+
+.cf-sim-excel-table td {
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    color: #475569;
+}
+
+/* --------------------------------------------------------------------------
+   12. Modal Tạo / Sửa Trường Tuỳ Chỉnh
+   -------------------------------------------------------------------------- */
+.cf-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.cf-modal-card {
+    background: #ffffff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+@keyframes modalScaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.cf-modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cf-modal-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.cf-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.cf-modal-close:hover {
+    color: #0f172a;
+    background: #f1f5f9;
+}
+
+.cf-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.cf-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Form Groups trong Modal */
+.cf-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.cf-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.cf-form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cf-form-label .required-indicator {
+    color: #ef4444;
+}
+
+.cf-form-input,
+.cf-form-select {
+    padding: 9px 12px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #0f172a;
+    outline: none;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.cf-form-input:focus,
+.cf-form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.cf-form-input:disabled {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.cf-form-help {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Toggle Switch (AC 2: isRequired & active) */
+.cf-switch-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cf-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background-color: #cbd5e1;
+    border-radius: 24px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.cf-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.cf-switch-input {
+    display: none;
+}
+
+.cf-switch-input:checked + .cf-switch {
+    background-color: #2563eb;
+}
+
+.cf-switch-input:checked + .cf-switch::after {
+    transform: translateX(20px);
+}
+
+.cf-switch-label-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.cf-switch-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.cf-switch-desc {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Checkboxes Scope (AC 3) */
+.cf-checkbox-group {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+
+.cf-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+}
+
+.cf-checkbox-input {
+    width: 16px;
+    height: 16px;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+/* Options Builder cho Dropdown (AC 1) */
+.cf-options-builder {
+    display: none;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 18px;
+}
+
+.cf-options-builder.visible {
+    display: block;
+}
+
+.cf-opt-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.cf-opt-chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px;
+    background: #ffffff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+}
+
+.cf-opt-chip-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.cf-opt-chip-remove {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.cf-opt-chip-remove:hover {
+    color: #ef4444;
+}
+
+/* --------------------------------------------------------------------------
+   13. Modal Cảnh Báo Khi Xóa / Chuyển Inactive (AC)
+   -------------------------------------------------------------------------- */
+.cf-inuse-modal-card {
+    max-width: 520px;
+}
+
+.cf-inuse-icon-wrap {
+    width: 48px;
+    height: 48px;
+    background: #fef2f2;
+    color: #dc2626;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   14. Loading Overlay & Spinner
+   -------------------------------------------------------------------------- */
+.cf-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 12px;
+}
+
+.cf-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: cfSpin 0.75s linear infinite;
+}
+
+@keyframes cfSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   15. Responsive Media Queries
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+    .cf-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .cf-sim-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .cf-page {
+        padding: 16px;
+    }
+
+    .cf-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cf-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cf-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cf-toolbar-left {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .cf-search-wrap {
+        width: 100%;
+    }
+
+    .cf-form-row {
+        grid-template-columns: 1fr;
+    }
+}
