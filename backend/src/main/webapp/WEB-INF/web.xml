@@ -8,6 +8,11 @@
 
     <display-name>CRM</display-name>
 
+    <!-- Standard servlet inactivity timeout is renewed on every active request. -->
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
+
     <error-page>
         <error-code>401</error-code>
         <location>/errors/401</location>

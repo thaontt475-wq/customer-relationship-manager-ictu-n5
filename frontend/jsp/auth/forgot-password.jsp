@@ -70,7 +70,7 @@
                                 </div>
 
                                 <button type="submit" class="auth-button">
-                                    Gửi yêu cầu
+                                    Gửi liên kết đặt lại mật khẩu
                                 </button>
 
                                 <% if (errorMsg !=null && !errorMsg.trim().isEmpty()) { %>
