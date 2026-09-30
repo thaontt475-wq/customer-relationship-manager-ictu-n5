@@ -1436,3 +1436,444 @@
 .role-hint-box strong {
     font-weight: 600;
 }
+
+/* ==========================================================================
+   USER AVATAR UPLOAD & CROP CSS (CRM-36 / S2-03)
+   Tải lên ảnh đại diện, cắt ảnh vuông và đồng bộ Header/Sidebar
+   ========================================================================== */
+
+.user-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto 12px;
+}
+
+.user-avatar-lg {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--user-primary), var(--user-primary-hover));
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(47, 91, 255, 0.25);
+    margin: 0 auto;
+    overflow: hidden;
+    border: 3px solid #ffffff;
+}
+
+.user-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    border-radius: 50%;
+}
+
+.user-avatar-edit-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--user-primary);
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.user-avatar-edit-badge:hover {
+    background-color: var(--user-primary-hover);
+    transform: scale(1.1);
+}
+
+.user-avatar-btn-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 0.8125rem;
+    color: var(--user-primary);
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.user-avatar-btn-trigger:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+
+/* Modal Tải lên & Cắt ảnh đại diện */
+.avatar-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.avatar-modal-card {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 580px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: avatarModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+@keyframes avatarModalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.avatar-modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.avatar-modal-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.avatar-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+}
+
+.avatar-modal-close:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+.avatar-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.avatar-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Dropzone chọn ảnh */
+.avatar-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.avatar-dropzone:hover,
+.avatar-dropzone.dragover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.avatar-dropzone-icon {
+    width: 48px;
+    height: 48px;
+    color: #3b82f6;
+    margin: 0 auto 12px;
+}
+
+.avatar-dropzone-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+
+.avatar-dropzone-hint {
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.avatar-dropzone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: #e2e8f0;
+    color: #334155;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+/* Khu vực Cắt ảnh (Interactive Canvas Cropper - AC 2) */
+.avatar-cropper-wrapper {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.avatar-crop-stage {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    background: #0f172a;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+}
+
+.avatar-crop-stage:active {
+    cursor: grabbing;
+}
+
+.avatar-crop-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    user-select: none;
+}
+
+.avatar-crop-mask {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.65);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.avatar-crop-mask::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 1px dashed rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+}
+
+/* Zoom Slider & Controls */
+.avatar-crop-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px 16px;
+    border-radius: 10px;
+}
+
+.avatar-crop-controls label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.avatar-zoom-slider {
+    flex: 1;
+    accent-color: #2563eb;
+    cursor: pointer;
+}
+
+.avatar-control-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.avatar-control-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+/* Xem trước bản thu nhỏ (Thumbnails Preview - AC 2 & AC 4) */
+.avatar-previews-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 14px 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    gap: 16px;
+}
+
+.avatar-preview-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.avatar-preview-item span {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.avatar-preview-circle-lg {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-preview-circle-md {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-preview-circle-sm {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.avatar-preview-circle-lg canvas,
+.avatar-preview-circle-md canvas,
+.avatar-preview-circle-sm canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Thanh tiến trình tải lên (Progress Bar) */
+.avatar-progress-wrap {
+    display: none;
+    margin-top: 14px;
+}
+
+.avatar-progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.avatar-progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    border-radius: 8px;
+    transition: width 0.2s ease;
+}
+
+.avatar-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+/* Alert phản hồi lỗi Tiếng Việt trong Modal (AC 3) */
+.avatar-modal-alert {
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    margin-bottom: 14px;
+    animation: fadeInAlert 0.2s ease;
+}
+
+@keyframes fadeInAlert {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.avatar-modal-alert-danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.avatar-modal-alert-success {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
