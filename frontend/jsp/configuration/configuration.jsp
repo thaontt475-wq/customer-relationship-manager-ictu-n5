@@ -766,27 +766,37 @@
             var currentItem = fullList[index];
             var swapItem = fullList[targetIndex];
 
-            // Hoán đổi sortOrder
-            var tempOrder = currentItem.sortOrder;
-            currentItem.sortOrder = swapItem.sortOrder;
-            swapItem.sortOrder = tempOrder;
+            var nextCurrentOrder = swapItem.sortOrder;
+            var nextSwapOrder = currentItem.sortOrder;
 
             // Gọi API lưu cập nhật
             var endpointCurrent = contextPath + '/api/configurations/categories/' + currentItem.id;
             var endpointSwap = contextPath + '/api/configurations/categories/' + swapItem.id;
-            try {
+            var results = await Promise.allSettled([
                 fetch(endpointCurrent, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sortOrder: currentItem.sortOrder })
-                });
+                    body: JSON.stringify({ sortOrder: nextCurrentOrder })
+                }),
                 fetch(endpointSwap, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sortOrder: swapItem.sortOrder })
-                });
-            } catch (e) {}
+                    body: JSON.stringify({ sortOrder: nextSwapOrder })
+                })
+            ]);
 
+            var bothUpdated = results.every(function (result) {
+                return result.status === 'fulfilled' && result.value.ok;
+            });
+
+            if (!bothUpdated) {
+                await fetchCategory(state.currentType);
+                showErrorAlert('Không thể cập nhật đầy đủ thứ tự danh mục. Dữ liệu đã được đồng bộ lại từ máy chủ.');
+                return;
+            }
+
+            currentItem.sortOrder = nextCurrentOrder;
+            swapItem.sortOrder = nextSwapOrder;
             showSuccessAlert('Đã cập nhật thứ tự hiển thị của danh mục!');
             renderTable();
         }
@@ -891,6 +901,8 @@
                 ? (contextPath + '/api/configurations/categories/' + id)
                 : (contextPath + '/api/configurations/categories');
             var method = isEdit ? 'PUT' : 'POST';
+            var savedItem = null;
+            var localDemoOnly = false;
 
             try {
                 var res = await fetch(endpoint, {
@@ -898,11 +910,20 @@
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (res.ok) {
-                    showSuccessAlert(isEdit ? 'Cập nhật giá trị thành công!' : 'Tạo mới giá trị thành công!');
+
+                if (!res.ok) {
+                    showErrorAlert((isEdit ? 'Không thể cập nhật' : 'Không thể tạo') + ' giá trị danh mục trên máy chủ (Mã lỗi: ' + res.status + '). Dữ liệu local chưa thay đổi.');
+                    return;
                 }
+
+                try {
+                    var responseBody = await res.json();
+                    savedItem = responseBody && responseBody.data ? responseBody.data : responseBody;
+                    if (savedItem && savedItem.item) savedItem = savedItem.item;
+                } catch (ignored) {}
             } catch (err) {
-                console.info('Backend chưa sẵn sàng - Cập nhật dữ liệu tại local state:', err);
+                localDemoOnly = true;
+                console.info('Backend chưa sẵn sàng - Chỉ cập nhật dữ liệu demo tại local state:', err);
             }
 
             var list = state.data[type];
@@ -911,15 +932,24 @@
                 if (idx !== -1) {
                     payload.id = Number(id);
                     payload.usageCount = list[idx].usageCount;
-                    list[idx] = Object.assign({}, list[idx], payload);
+                    list[idx] = Object.assign({}, list[idx], payload, savedItem || {});
                 }
-                showSuccessAlert('Đã cập nhật giá trị [' + payload.name + '] thành công!');
             } else {
-                var newId = list.length > 0 ? Math.max.apply(null, list.map(function(it){ return it.id; })) + 1 : 1;
+                var serverId = savedItem && savedItem.id != null ? Number(savedItem.id) : null;
+                var newId = serverId != null
+                    ? serverId
+                    : (list.length > 0 ? Math.max.apply(null, list.map(function(it){ return it.id; })) + 1 : 1);
                 payload.id = newId;
                 payload.usageCount = 0;
-                list.push(payload);
-                showSuccessAlert('Đã thêm mới giá trị [' + payload.name + '] vào danh mục!');
+                list.push(Object.assign({}, payload, savedItem || {}));
+            }
+
+            if (localDemoOnly) {
+                showErrorAlert('DEMO / Local only - chưa lưu server. Thay đổi chỉ tồn tại tạm thời trên trình duyệt.');
+            } else {
+                showSuccessAlert(isEdit
+                    ? 'Đã cập nhật giá trị [' + payload.name + '] thành công!'
+                    : 'Đã thêm mới giá trị [' + payload.name + '] vào danh mục!');
             }
 
             closeModal();
@@ -952,8 +982,20 @@
         async function deleteDirectly(id) {
             var endpoint = contextPath + '/api/configurations/categories/' + id;
             try {
-                await fetch(endpoint, { method: 'DELETE' });
-            } catch (e) {}
+                var response = await fetch(endpoint, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    showErrorAlert('Không thể xóa giá trị danh mục trên máy chủ (Mã lỗi: ' + response.status + '). Dữ liệu vẫn được giữ nguyên.');
+                    return;
+                }
+            } catch (e) {
+                console.error('Lỗi khi xóa giá trị danh mục:', e);
+                showErrorAlert('Không thể kết nối máy chủ để xóa giá trị danh mục. Dữ liệu vẫn được giữ nguyên.');
+                return;
+            }
 
             var list = state.data[state.currentType];
             state.data[state.currentType] = list.filter(function (it) { return it.id !== id; });
@@ -966,17 +1008,26 @@
         btnConfirmDeactivate.addEventListener('click', async function () {
             if (!state.pendingDeactivateItem) return;
             var item = state.pendingDeactivateItem;
-            item.active = false;
 
             var endpoint = contextPath + '/api/configurations/categories/' + item.id;
             try {
-                await fetch(endpoint, {
+                var response = await fetch(endpoint, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({ active: false })
                 });
-            } catch (e) {}
 
+                if (!response.ok) {
+                    showErrorAlert('Không thể ngừng sử dụng giá trị danh mục trên máy chủ (Mã lỗi: ' + response.status + '). Trạng thái chưa thay đổi.');
+                    return;
+                }
+            } catch (e) {
+                console.error('Lỗi khi ngừng sử dụng giá trị danh mục:', e);
+                showErrorAlert('Không thể kết nối máy chủ để ngừng sử dụng giá trị danh mục. Trạng thái chưa thay đổi.');
+                return;
+            }
+
+            item.active = false;
             inUseNoticeModal.style.display = 'none';
             state.pendingDeactivateItem = null;
             showSuccessAlert('Đã chuyển giá trị [' + item.name + '] sang trạng thái [Ngừng sử dụng] theo tiêu chuẩn AC 2!');
