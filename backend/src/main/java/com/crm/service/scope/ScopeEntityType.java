@@ -23,12 +23,13 @@ public enum ScopeEntityType {
     }
 
     public static ScopeEntityType fromServletPath(String path) {
-        return switch (path) {
-            case "/api/customers" -> CUSTOMERS;
-            case "/api/opportunities" -> OPPORTUNITIES;
-            case "/api/activities" -> ACTIVITIES;
-            case "/api/quotes" -> QUOTES;
-            default -> null;
-        };
+        if (path == null) {
+            return null;
+        }
+        if (path.startsWith("/api/customers")) return CUSTOMERS;
+        if (path.startsWith("/api/opportunities")) return OPPORTUNITIES;
+        if (path.startsWith("/api/activities")) return ACTIVITIES;
+        if (path.startsWith("/api/quotes")) return QUOTES;
+        return null;
     }
 }

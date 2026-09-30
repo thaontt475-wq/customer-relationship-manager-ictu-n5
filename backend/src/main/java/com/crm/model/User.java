@@ -20,6 +20,7 @@ public class User {
     private String passwordHash;
     private String fullName;
     private String phone;
+    private String signature;
     private String status;
     private String role;
     private Long teamId;
@@ -53,6 +54,8 @@ public class User {
     public void setFullName(String fullName) { this.fullName = fullName; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    public String getSignature() { return signature; }
+    public void setSignature(String signature) { this.signature = signature; }
     public String getStatus() { return status; }
     public Long getTeamId() { return teamId; }
     public void setTeamId(Long teamId) { this.teamId = teamId; }
