@@ -25,26 +25,15 @@
 
         <!-- User Profile & Logout Actions (AC 2) -->
         <div class="crm-header__actions">
-<<<<<<< HEAD
             <!-- User Info Widget hiển thị Tên, Vai trò và Nhóm kinh doanh (AC 2) -->
-            <div class="crm-header__user" title="Tài khoản người dùng" id="crmHeaderUserWidget">
+            <a href="${pageContext.request.contextPath}/profile" class="crm-header__user" title="Hồ sơ cá nhân" id="crmHeaderUserWidget" style="text-decoration: none; color: inherit;">
                 <div class="crm-header__avatar" aria-hidden="true">
-                    <span id="crmHeaderAvatarText">U</span>
-=======
-            <!-- User Info Widget (Hiển thị nhãn generic an toàn, không tự suy đoán session attribute) -->
-            <a href="${pageContext.request.contextPath}/profile" class="crm-header__user" title="Hồ sơ cá nhân" style="text-decoration: none; color: inherit;">
-                <div class="crm-header__avatar" aria-hidden="true">
-                    <span>${sessionScope.displayName != null && !sessionScope.displayName.isEmpty() ? sessionScope.displayName.substring(0, 1).toUpperCase() : "U"}</span>
->>>>>>> origin/develop
+                    <span id="crmHeaderAvatarText">${sessionScope.displayName != null && !sessionScope.displayName.isEmpty() ? sessionScope.displayName.substring(0, 1).toUpperCase() : "U"}</span>
                     <img src="${pageContext.request.contextPath}/profile/avatar/thumbnail" alt="" width="32" height="32"
                          onload="this.previousElementSibling.hidden=true" onerror="this.hidden=true">
                 </div>
                 <div class="crm-header__user-details">
-<<<<<<< HEAD
-                    <div class="crm-header__user-name" id="crmHeaderUserName">Tài khoản</div>
-=======
-                    <div class="crm-header__user-name">${sessionScope.displayName != null ? sessionScope.displayName : "Tài khoản"}</div>
->>>>>>> origin/develop
+                    <div class="crm-header__user-name" id="crmHeaderUserName">${sessionScope.displayName != null ? sessionScope.displayName : "Tài khoản"}</div>
                     <div class="crm-header__user-meta">
                         <span class="crm-header__role-badge" id="crmHeaderUserRole" style="display: none;">Vai trò</span>
                         <span class="crm-header__team-name" id="crmHeaderUserTeam" style="display: none;">Nhóm</span>

@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Filter providing fallback Sprint 1 navigation items for older sprint views.
+ */
 @WebFilter(
         urlPatterns = {
                 "/dashboard", "/users", "/users/*", "/permissions", "/permissions/*",
@@ -41,11 +44,14 @@ public class SprintNavigationFilter implements Filter {
             session = null;
         }
 
-        if (session == null || currentUser == null) {
-            httpRequest.setAttribute("menuItems", List.of());
-        } else {
-            httpRequest.setAttribute("menuItems",
-                    menuService.getSprint1MenuItems(resolveRoles(session)));
+        // Only set fallback if menuItems attribute hasn't been populated by MenuNavigationFilter
+        if (httpRequest.getAttribute("menuItems") == null) {
+            if (session == null || currentUser == null) {
+                httpRequest.setAttribute("menuItems", List.of());
+            } else {
+                httpRequest.setAttribute("menuItems",
+                        menuService.getMenuItems(resolveRoles(session)));
+            }
         }
 
         chain.doFilter(request, response);

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     display_name VARCHAR(255),
     active BOOLEAN NOT NULL DEFAULT TRUE,
     phone VARCHAR(30),
+    signature TEXT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     team_id BIGINT NULL,
     data_scope VARCHAR(10) NOT NULL DEFAULT 'SELF',
@@ -158,5 +159,105 @@ CREATE TABLE IF NOT EXISTS pipeline_stages (
     UNIQUE KEY uk_pipeline_stage_code (pipeline_id, code),
     INDEX idx_pipeline_stage_order (pipeline_id, stage_order ASC),
     INDEX idx_pipeline_stage_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- CRM-44: Master Data Categories (Danh mục dùng chung)
+CREATE TABLE IF NOT EXISTS categories (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(500) NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_category_type_code (type, code),
+    INDEX idx_category_type_order (type, display_order ASC),
+    INDEX idx_category_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- CRM-39: Product and Price Book Management
+CREATE TABLE IF NOT EXISTS products (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NULL,
+    unit VARCHAR(50) NULL,
+    list_price DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    floor_price DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    cost_price DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    description TEXT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_products_code (code),
+    INDEX idx_products_name (name),
+    INDEX idx_products_category (category),
+    INDEX idx_products_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS quote_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quote_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_quote_items_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_quote_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
+    INDEX idx_quote_items_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS opportunity_products (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    price DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_opp_products_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id) ON DELETE CASCADE,
+    CONSTRAINT fk_opp_products_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
+    INDEX idx_opp_products_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contracts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    contract_number VARCHAR(100) NOT NULL UNIQUE,
+    owner_user_id BIGINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_contracts_owner FOREIGN KEY (owner_user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS contract_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    contract_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_contract_items_contract FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_contract_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
+    INDEX idx_contract_items_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS orders (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_number VARCHAR(100) NOT NULL UNIQUE,
+    owner_user_id BIGINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_orders_owner FOREIGN KEY (owner_user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    CONSTRAINT fk_order_items_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
+    INDEX idx_order_items_product (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
