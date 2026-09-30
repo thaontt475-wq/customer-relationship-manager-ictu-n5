@@ -99,7 +99,7 @@ public class UserDAO {
     }
 
     public List<User> findAll(Connection conn) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, u.team_id, u.data_scope, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.signature, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id ORDER BY u.full_name, u.email";
         List<User> users = new ArrayList<>();
@@ -113,7 +113,7 @@ public class UserDAO {
     }
 
     public User findById(Connection conn, long id) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, u.team_id, u.data_scope, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.signature, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -125,7 +125,7 @@ public class UserDAO {
     }
 
     public User findByIdForUpdate(Connection conn, long id) throws SQLException {
-        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, u.team_id, u.data_scope, "
+        String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.signature, u.status, u.team_id, u.data_scope, "
                     + "t.name AS team_name, u.created_at, u.updated_at, u.last_login_at "
                     + "FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ? FOR UPDATE";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -271,6 +271,61 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Update user self profile (CRM-35).
+     * ONLY updates the 3 allowed fields: full_name, phone, signature.
+     * Email, team_id, and roles are NEVER modified.
+     */
+    public int updateUserSelfProfile(Connection conn, long userId, String fullName, String phone, String signature)
+            throws SQLException {
+        String sql = "UPDATE users SET full_name = ?, phone = ?, signature = ? WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, fullName);
+            stmt.setString(2, phone);
+            stmt.setString(3, signature);
+            stmt.setLong(4, userId);
+            return stmt.executeUpdate();
+        }
+    }
+
+    public int updateUserSelfProfile(long userId, String fullName, String phone, String signature) throws SQLException {
+        try (Connection conn = com.crm.util.DBConnection.getConnection()) {
+            return updateUserSelfProfile(conn, userId, fullName, phone, signature);
+        }
+    }
+
+    /**
+     * Retrieve complete user profile including roles list (CRM-35).
+     */
+    public User findUserProfileWithRoles(Connection conn, long userId) throws SQLException {
+        User user = findById(conn, userId);
+        if (user == null) {
+            return null;
+        }
+
+        String sql = "SELECT r.id, r.name FROM user_roles ur "
+                + "JOIN roles r ON r.id = ur.role_id "
+                + "WHERE ur.user_id = ? ORDER BY r.name";
+
+        List<com.crm.model.Role> roles = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    roles.add(new com.crm.model.Role(rs.getLong("id"), rs.getString("name")));
+                }
+            }
+        }
+        user.setRoles(roles);
+        return user;
+    }
+
+    public User findUserProfileWithRoles(long userId) throws SQLException {
+        try (Connection conn = com.crm.util.DBConnection.getConnection()) {
+            return findUserProfileWithRoles(conn, userId);
+        }
+    }
+
     public long countSearch(Connection conn, String keyword, String role, String status)
             throws SQLException {
 
@@ -372,6 +427,10 @@ public class UserDAO {
         user.setDisplayName(rs.getString("display_name"));
         user.setActive(rs.getBoolean("active"));
         user.setPhone(rs.getString("phone"));
+        try {
+            user.setSignature(rs.getString("signature"));
+        } catch (SQLException ignored) {
+        }
         user.setStatus(rs.getString("status"));
         long teamId = rs.getLong("team_id");
         user.setTeamId(rs.wasNull() ? null : teamId);

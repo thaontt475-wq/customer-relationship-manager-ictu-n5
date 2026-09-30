@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     display_name VARCHAR(255),
     active BOOLEAN NOT NULL DEFAULT TRUE,
     phone VARCHAR(30),
+    signature TEXT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     team_id BIGINT NULL,
     data_scope VARCHAR(10) NOT NULL DEFAULT 'SELF',
