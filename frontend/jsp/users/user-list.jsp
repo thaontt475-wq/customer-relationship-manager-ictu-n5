@@ -397,6 +397,7 @@
         'use strict';
 
         var contextPath = '${pageContext.request.contextPath}';
+        var currentAuthenticatedUserId = '${sessionScope.userId != null ? sessionScope.userId : (sessionScope.currentUser != null ? sessionScope.currentUser.id : "")}';
 
         // State quản lý danh sách & phân trang
         var state = {
@@ -569,6 +570,7 @@
                 var isLocked = (status === 'INACTIVE' || status === 'LOCKED');
                 var teamName = user.teamName || user.team || 'Chưa phân nhóm';
                 var createdAt = user.createdAt ? user.createdAt.substring(0, 10) : '-';
+                var isCurrentUser = currentAuthenticatedUserId !== '' && String(uid) === currentAuthenticatedUserId;
 
                 // Xử lý vai trò (roles có thể là mảng hoặc chuỗi)
                 var rolesText = 'Chưa phân vai trò';
@@ -579,6 +581,23 @@
                 }
 
                 var avatarChar = fullName.trim().charAt(0).toUpperCase() || 'U';
+                var deleteAction = isCurrentUser
+                    ? '<span class="self-delete-control" tabindex="0" aria-label="Không thể tự xóa tài khoản đang đăng nhập" data-tooltip="Không thể tự xóa tài khoản đang đăng nhập">' +
+                        '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user--disabled" disabled aria-disabled="true">' +
+                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                                '<polyline points="3 6 5 6 21 6"></polyline>' +
+                                '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
+                            '</svg>' +
+                            'Xóa' +
+                        '</button>' +
+                    '</span>'
+                    : '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user" data-id="' + escapeHtml(uid) + '" data-name="' + escapeHtml(fullName) + '" title="Xóa tài khoản người dùng">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                            '<polyline points="3 6 5 6 21 6"></polyline>' +
+                            '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
+                        '</svg>' +
+                        'Xóa' +
+                    '</button>';
 
                 var row = document.createElement('tr');
                 row.innerHTML =
@@ -604,6 +623,7 @@
                     '</td>' +
                     '<td class="table-col-actions">' +
                         '<div class="user-actions-group">' +
+                            '<a class="btn btn-sm btn-primary" href="' + contextPath + '/users/detail?id=' + encodeURIComponent(uid) + '" title="Xem chi tiết và khóa/bàn giao">Xem</a>' +
                             '<button type="button" class="btn btn-sm btn-outline-primary btn-assign-roles" data-id="' + escapeHtml(uid) + '" title="Phân vai trò &amp; nhóm kinh doanh">' +
                                 '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
                                     '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>' +
@@ -617,13 +637,7 @@
                                 '</svg>' +
                                 'Sửa' +
                             '</button>' +
-                            '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user" data-id="' + escapeHtml(uid) + '" data-name="' + escapeHtml(fullName) + '" title="Xóa tài khoản người dùng">' +
-                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-                                    '<polyline points="3 6 5 6 21 6"></polyline>' +
-                                    '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
-                                '</svg>' +
-                                'Xóa' +
-                            '</button>' +
+                            deleteAction +
                         '</div>' +
                     '</td>';
 
@@ -923,6 +937,10 @@
 
         // 4. Modal Xác nhận Xóa người dùng (DELETE /api/users/{id})
         function openDeleteModal(uid, uname) {
+            if (currentAuthenticatedUserId !== '' && String(uid) === currentAuthenticatedUserId) {
+                showErrorAlert('Không thể tự xóa tài khoản đang đăng nhập');
+                return;
+            }
             userToDeleteId = uid;
             deleteUserTargetName.textContent = uname || ('#' + uid);
             deleteConfirmModal.classList.add('is-open');
@@ -1008,7 +1026,7 @@
         var saveRoleSpinner = document.getElementById('saveRoleSpinner');
         var saveRoleBtnText = document.getElementById('saveRoleBtnText');
 
-        var currentLoggedInUserId = '${sessionScope.userId != null ? sessionScope.userId : (sessionScope.currentUser != null ? sessionScope.currentUser.id : "")}';
+        var currentLoggedInUserId = currentAuthenticatedUserId;
 
         var cachedRoles = null;
         var cachedTeams = null;

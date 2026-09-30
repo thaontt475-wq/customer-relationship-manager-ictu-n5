@@ -33,6 +33,11 @@ public class LogoutServlet extends HttpServlet {
             // Session may have already been invalidated concurrently
         }
 
+        if ("true".equalsIgnoreCase(request.getParameter("redirectToLogin"))) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
         GSON.toJson(new LogoutResponse(true, "Đăng xuất thành công", null), response.getWriter());
     }

@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class ForgotPasswordServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final String API_PATH = "/api/auth/forgot-password";
-    private static final String GENERIC_MESSAGE =
+    static final String GENERIC_MESSAGE =
         "Nếu email tồn tại trong hệ thống, hướng dẫn đặt lại mật khẩu đã được gửi.";
     private static final Pattern EMAIL_PATTERN =
         Pattern.compile("^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$");

@@ -17,9 +17,9 @@ public class ResetPasswordServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final String API_PATH = "/api/auth/reset-password";
     private static final String INVALID_TOKEN_MESSAGE =
-        "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";
+        "Liên kết đặt lại mật khẩu không hợp lệ, đã hết hạn hoặc đã được sử dụng.";
     private static final String PASSWORD_POLICY_MESSAGE =
-        "Mật khẩu phải dài 8-72 ký tự và có chữ hoa, chữ thường, chữ số, ký tự đặc biệt.";
+        "Mật khẩu phải có ít nhất 8 ký tự, gồm ít nhất một chữ và một số.";
     private static final Gson GSON = new GsonBuilder().serializeNulls().create();
     private final AuthService authService = new AuthService();
 

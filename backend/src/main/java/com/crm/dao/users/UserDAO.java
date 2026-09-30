@@ -74,6 +74,21 @@ public class UserDAO {
             }
         }
     }
+
+    public List<String> findRoleNamesByUserId(Connection conn, long userId) throws SQLException {
+        String sql = "SELECT r.name FROM user_roles ur "
+                + "JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = ? ORDER BY r.name";
+        List<String> roles = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    roles.add(rs.getString("name"));
+                }
+            }
+        }
+        return roles;
+    }
     public void updatePasswordHash(Connection conn, long userId, String passwordHash) throws SQLException {
         String sql = "UPDATE users SET password_hash = ? WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {

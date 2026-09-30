@@ -94,6 +94,22 @@
     margin: 0 auto;
 }
 
+/* Giữ thứ tự luồng thao tác ổn định khi form được mở rộng bởi CRM-29. */
+#permissionForm {
+    display: flex;
+    flex-direction: column;
+}
+
+#userCardSection { order: 1; }
+#rolesCardSection { order: 2; }
+#teamCardSection { order: 3; }
+#dataScopeCardSection { order: 4; }
+#permissionForm > .permission-actions-bar { order: 5; }
+
+.permission-role-code {
+    display: none;
+}
+
 /* --------------------------------------------------------------------------
    2. BREADCRUMB & HEADER TRANG
    -------------------------------------------------------------------------- */
