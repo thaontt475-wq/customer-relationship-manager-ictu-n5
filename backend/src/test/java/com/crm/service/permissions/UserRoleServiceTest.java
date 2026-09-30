@@ -6,6 +6,7 @@ import com.crm.dao.teams.UserTeamDAO;
 import com.crm.dao.users.UserDAO;
 import com.crm.model.Role;
 import com.crm.model.User;
+import com.crm.service.audit.AuditLogService;
 import com.crm.service.permissions.UserRoleService.RoleAssignmentResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,9 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,6 +37,7 @@ import static org.mockito.Mockito.*;
  * - Team assignment & guards
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserRoleServiceTest {
 
     private static final long ACTOR_ID = 1L;
@@ -45,6 +50,7 @@ class UserRoleServiceTest {
     @Mock private UserTeamDAO userTeamDAO;
     @Mock private UserDAO userDAO;
     @Mock private PermissionDAO permissionDAO;
+    @Mock private AuditLogService auditLogService;
     @Mock private Connection conn;
 
     private UserRoleService service;
@@ -58,7 +64,8 @@ class UserRoleServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new UserRoleService(userRoleDAO, userTeamDAO, userDAO, permissionDAO);
+        service = new UserRoleService(
+                userRoleDAO, userTeamDAO, userDAO, permissionDAO, auditLogService);
     }
 
     // ===== Invalid input guard tests =====
@@ -80,7 +87,8 @@ class UserRoleServiceTest {
     @Test
     @DisplayName("INVALID_ROLE: null roleId in list returns INVALID_ROLE")
     void nullRoleIdInList_returnsInvalidRole() throws SQLException {
-        RoleAssignmentResult result = service.assignRoles(ACTOR_ID, TARGET_ID, List.of(1L, null, 3L));
+        RoleAssignmentResult result = service.assignRoles(
+                ACTOR_ID, TARGET_ID, Arrays.asList(1L, null, 3L));
         assertEquals(RoleAssignmentResult.INVALID_ROLE, result);
     }
 
@@ -139,6 +147,8 @@ class UserRoleServiceTest {
             when(userDAO.findByIdForUpdate(any(Connection.class), eq(TARGET_ID))).thenReturn(target);
             when(permissionDAO.allRolesExist(any(Connection.class), anyList())).thenReturn(true);
             when(permissionDAO.findAllRoles(any(Connection.class))).thenReturn(ALL_ROLES);
+            when(userRoleDAO.findRoleIdsByUserId(any(Connection.class), eq(TARGET_ID)))
+                    .thenReturn(List.of(ADMIN_ROLE_ID));
             doNothing().when(userRoleDAO).replaceUserRoles(any(Connection.class), eq(TARGET_ID), anyList());
 
             // Sales Rep repeated twice — should deduplicate to 1
@@ -310,7 +320,9 @@ class UserRoleServiceTest {
                     ACTOR_ID, TARGET_ID, List.of(SALES_REP_ROLE_ID));
 
             assertEquals(RoleAssignmentResult.SUCCESS, result);
-            verify(userRoleDAO, never()).findRoleIdsByUserId(any(Connection.class), eq(TARGET_ID));
+            verify(userRoleDAO).findRoleIdsByUserId(any(Connection.class), eq(TARGET_ID));
+            verify(auditLogService).recordRoleChange(
+                    any(Connection.class), eq(ACTOR_ID), eq(TARGET_ID), any(), any());
         }
 
         @Test
