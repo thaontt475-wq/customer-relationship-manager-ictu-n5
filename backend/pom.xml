@@ -81,6 +81,13 @@
             <version>5.11.4</version>
             <scope>test</scope>
         </dependency>
+        <!-- Existing service tests and CRM-48 use the project's Mockito test convention. -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.15.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
