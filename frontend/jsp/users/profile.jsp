@@ -141,8 +141,28 @@
                     <aside class="user-profile-sidebar" aria-label="Tóm tắt tài khoản">
                         <div class="user-card">
                             <div class="user-info-summary">
-                                <div class="user-avatar-lg" id="sidebarAvatar" aria-hidden="true">
-                                    <%= avatarChar %>
+                                <div class="user-avatar-wrapper">
+                                    <div class="user-avatar-lg" id="sidebarAvatar" aria-hidden="true">
+                                        <img id="sidebarAvatarImg" src="${pageContext.request.contextPath}/profile/avatar/image" alt="Avatar" class="user-avatar-img"
+                                             onload="this.style.display='block'; var c=document.getElementById('sidebarAvatarChar'); if(c) c.style.display='none';"
+                                             onerror="this.style.display='none'; var c=document.getElementById('sidebarAvatarChar'); if(c) c.style.display='inline';">
+                                        <span id="sidebarAvatarChar"><%= avatarChar %></span>
+                                    </div>
+                                    <button type="button" class="user-avatar-edit-badge" id="btnOpenAvatarModal" title="Đổi ảnh đại diện" aria-label="Đổi ảnh đại diện">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                            <circle cx="12" cy="13" r="4"></circle>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <button type="button" class="user-avatar-btn-trigger" id="btnTriggerAvatarModal">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                            <circle cx="12" cy="13" r="4"></circle>
+                                        </svg>
+                                        <span>Đổi ảnh đại diện</span>
+                                    </button>
                                 </div>
                                 <h2 id="sidebarFullName"><%= fullName.isEmpty() ? "Chưa có tên" : fullName %></h2>
                                 <div class="email" id="sidebarEmail"><%= email %></div>
@@ -285,6 +305,113 @@
 
             </div>
         </main>
+
+        <!-- Modal Tải lên & Cắt ảnh đại diện người dùng (CRM-36 / S2-03) -->
+        <div class="avatar-modal-backdrop" id="avatarUploadModal" role="dialog" aria-modal="true" aria-labelledby="avatarModalTitle">
+            <div class="avatar-modal-card">
+                <div class="avatar-modal-header">
+                    <h2 class="avatar-modal-title" id="avatarModalTitle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        <span>Cập nhật ảnh đại diện người dùng</span>
+                    </h2>
+                    <button type="button" class="avatar-modal-close" id="btnCloseAvatarModal" aria-label="Đóng">&times;</button>
+                </div>
+
+                <div class="avatar-modal-body">
+                    <!-- Thông báo lỗi validate tiếng Việt trong modal (AC 3) -->
+                    <div class="avatar-modal-alert avatar-modal-alert-danger" id="avatarModalErrorAlert" role="alert" style="display: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex-shrink:0; margin-top:1px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <div id="avatarModalErrorMessage" style="flex:1;"></div>
+                        <button type="button" style="background:none;border:none;cursor:pointer;color:inherit;font-size:1.1rem;line-height:1;padding:0;" onclick="this.parentElement.style.display='none';" aria-label="Đóng">&times;</button>
+                    </div>
+
+                    <!-- 1. Vùng Dropzone chọn ảnh -->
+                    <div class="avatar-dropzone" id="avatarDropzone">
+                        <input type="file" id="avatarFileInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png" style="display: none;">
+                        <svg class="avatar-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <div class="avatar-dropzone-title">Nhấp để chọn ảnh hoặc kéo thả ảnh vào đây</div>
+                        <div class="avatar-dropzone-hint">
+                            Chấp nhận tệp định dạng <strong>JPG, JPEG hoặc PNG</strong>.<br>
+                            Dung lượng tối đa không quá <strong>2MB (2.097.152 byte)</strong>.
+                        </div>
+                        <div class="avatar-dropzone-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Tự động cắt vuông 1:1 chuẩn xác
+                        </div>
+                    </div>
+
+                    <!-- 2. Vùng Cắt ảnh trực quan (Canvas Cropper - AC 2) -->
+                    <div class="avatar-cropper-wrapper" id="avatarCropperWrapper">
+                        <div class="avatar-crop-stage" id="avatarCropStage" title="Kéo chuột để di chuyển vị trí cắt ảnh">
+                            <canvas id="avatarCropCanvas" class="avatar-crop-canvas"></canvas>
+                            <div class="avatar-crop-mask"></div>
+                        </div>
+
+                        <!-- Thanh điều khiển Zoom -->
+                        <div class="avatar-crop-controls">
+                            <button type="button" class="avatar-control-btn" id="btnZoomOut" title="Thu nhỏ">-</button>
+                            <label for="avatarZoomSlider">Thu phóng:</label>
+                            <input type="range" id="avatarZoomSlider" class="avatar-zoom-slider" min="1" max="3" step="0.05" value="1">
+                            <button type="button" class="avatar-control-btn" id="btnZoomIn" title="Phóng to">+</button>
+                            <button type="button" class="avatar-control-btn" id="btnResetCrop" title="Đặt lại vị trí ban đầu">Đặt lại</button>
+                            <button type="button" class="avatar-control-btn" id="btnChangeImage" title="Chọn ảnh khác">Chọn ảnh khác</button>
+                        </div>
+
+                        <!-- Hàng xem trước bản thu nhỏ (AC 2 & AC 4) -->
+                        <div class="avatar-previews-bar">
+                            <div class="avatar-preview-item">
+                                <div class="avatar-preview-circle-lg">
+                                    <canvas id="previewCanvasLg" width="64" height="64"></canvas>
+                                </div>
+                                <span>Hồ sơ (64px)</span>
+                            </div>
+                            <div class="avatar-preview-item">
+                                <div class="avatar-preview-circle-md">
+                                    <canvas id="previewCanvasMd" width="44" height="44"></canvas>
+                                </div>
+                                <span>Sidebar (44px)</span>
+                            </div>
+                            <div class="avatar-preview-item">
+                                <div class="avatar-preview-circle-sm">
+                                    <canvas id="previewCanvasSm" width="32" height="32"></canvas>
+                                </div>
+                                <span>Header (32px)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thanh tiến trình tải lên (Progress Bar) -->
+                    <div class="avatar-progress-wrap" id="avatarProgressWrap">
+                        <div class="avatar-progress-bar-bg">
+                            <div class="avatar-progress-bar-fill" id="avatarProgressBarFill"></div>
+                        </div>
+                        <div class="avatar-progress-meta">
+                            <span id="avatarProgressStatus">Đang xử lý và tải ảnh lên...</span>
+                            <span id="avatarProgressPercent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="avatar-modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnCancelAvatarModal">Hủy bỏ</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveAvatar" disabled>
+                        <span id="avatarSaveSpinner" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
+                        <span id="avatarSaveBtnText">Lưu ảnh đại diện</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Footer dùng chung -->
@@ -504,6 +631,570 @@
                 showAlert(false, 'Không thể kết nối đến máy chủ backend để cập nhật hồ sơ.');
             }
         });
+
+        // ======================================================================
+        // AVATAR MANAGER (CRM-36 / S2-03)
+        // Cắt vuông 1:1, bản thu nhỏ preview, validate 2MB/JPG/PNG, đồng bộ Header & Sidebar
+        // ======================================================================
+        (function initAvatarManager() {
+            var avatarModal = document.getElementById('avatarUploadModal');
+            var btnOpenAvatarModal = document.getElementById('btnOpenAvatarModal');
+            var btnTriggerAvatarModal = document.getElementById('btnTriggerAvatarModal');
+            var btnCloseAvatarModal = document.getElementById('btnCloseAvatarModal');
+            var btnCancelAvatarModal = document.getElementById('btnCancelAvatarModal');
+
+            var avatarDropzone = document.getElementById('avatarDropzone');
+            var avatarFileInput = document.getElementById('avatarFileInput');
+            var avatarCropperWrapper = document.getElementById('avatarCropperWrapper');
+            var avatarCropStage = document.getElementById('avatarCropStage');
+            var avatarCropCanvas = document.getElementById('avatarCropCanvas');
+            var avatarZoomSlider = document.getElementById('avatarZoomSlider');
+            var btnZoomIn = document.getElementById('btnZoomIn');
+            var btnZoomOut = document.getElementById('btnZoomOut');
+            var btnResetCrop = document.getElementById('btnResetCrop');
+            var btnChangeImage = document.getElementById('btnChangeImage');
+
+            var previewCanvasLg = document.getElementById('previewCanvasLg');
+            var previewCanvasMd = document.getElementById('previewCanvasMd');
+            var previewCanvasSm = document.getElementById('previewCanvasSm');
+
+            var avatarProgressWrap = document.getElementById('avatarProgressWrap');
+            var avatarProgressBarFill = document.getElementById('avatarProgressBarFill');
+            var avatarProgressStatus = document.getElementById('avatarProgressStatus');
+            var avatarProgressPercent = document.getElementById('avatarProgressPercent');
+
+            var avatarModalErrorAlert = document.getElementById('avatarModalErrorAlert');
+            var avatarModalErrorMessage = document.getElementById('avatarModalErrorMessage');
+
+            var btnSaveAvatar = document.getElementById('btnSaveAvatar');
+            var avatarSaveSpinner = document.getElementById('avatarSaveSpinner');
+            var avatarSaveBtnText = document.getElementById('avatarSaveBtnText');
+
+            var sidebarAvatarImg = document.getElementById('sidebarAvatarImg');
+            var sidebarAvatarChar = document.getElementById('sidebarAvatarChar');
+
+            // Giới hạn file: tối đa 2MB (2.097.152 byte) theo AC 1 & AC 3
+            var MAX_FILE_SIZE = 2 * 1024 * 1024;
+            var ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png'];
+
+            // State quản lý cropper
+            var loadedImage = null;
+            var rawFile = null;
+            var scale = 1;
+            var minScale = 1;
+            var baseSquareSize = 0;
+            var offsetX = 0;
+            var offsetY = 0;
+            var isDragging = false;
+            var startDragX = 0;
+            var startDragY = 0;
+            var cachedCsrfToken = null;
+
+            function showAvatarError(msg) {
+                avatarModalErrorMessage.textContent = msg;
+                avatarModalErrorAlert.style.display = 'flex';
+            }
+
+            function hideAvatarError() {
+                avatarModalErrorAlert.style.display = 'none';
+                avatarModalErrorMessage.textContent = '';
+            }
+
+            function openModal() {
+                hideAvatarError();
+                resetCropper();
+                avatarModal.style.display = 'flex';
+                fetchCsrfToken();
+            }
+
+            function closeModal() {
+                avatarModal.style.display = 'none';
+                resetCropper();
+            }
+
+            if (btnOpenAvatarModal) btnOpenAvatarModal.addEventListener('click', openModal);
+            if (btnTriggerAvatarModal) btnTriggerAvatarModal.addEventListener('click', openModal);
+            if (btnCloseAvatarModal) btnCloseAvatarModal.addEventListener('click', closeModal);
+            if (btnCancelAvatarModal) btnCancelAvatarModal.addEventListener('click', closeModal);
+
+            avatarModal.addEventListener('click', function (e) {
+                if (e.target === avatarModal) closeModal();
+            });
+
+            // Lấy CSRF token từ endpoint avatar metadata
+            async function fetchCsrfToken() {
+                if (cachedCsrfToken) return cachedCsrfToken;
+                try {
+                    var resp = await fetch(contextPath + '/api/users/me/avatar');
+                    if (resp.ok) {
+                        var resBody = await resp.json();
+                        if (resBody && resBody.data && resBody.data.csrfToken) {
+                            cachedCsrfToken = resBody.data.csrfToken;
+                        }
+                    }
+                } catch (e) {
+                    console.info('Không thể lấy csrfToken trước:', e);
+                }
+                return cachedCsrfToken;
+            }
+
+            // Click vào dropzone để mở file dialog
+            avatarDropzone.addEventListener('click', function () {
+                avatarFileInput.click();
+            });
+
+            // Xử lý kéo thả tệp (Drag and Drop)
+            avatarDropzone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                avatarDropzone.classList.add('dragover');
+            });
+
+            avatarDropzone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                avatarDropzone.classList.remove('dragover');
+            });
+
+            avatarDropzone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                avatarDropzone.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFileSelection(e.dataTransfer.files[0]);
+                }
+            });
+
+            avatarFileInput.addEventListener('change', function () {
+                if (avatarFileInput.files && avatarFileInput.files.length > 0) {
+                    handleFileSelection(avatarFileInput.files[0]);
+                }
+            });
+
+            btnChangeImage.addEventListener('click', function () {
+                resetCropper();
+                avatarFileInput.click();
+            });
+
+            // AC 1 & AC 3: Validate định dạng và dung lượng tối đa 2MB ngay Client với thông báo Tiếng Việt
+            function handleFileSelection(file) {
+                hideAvatarError();
+                if (!file) return;
+
+                // 1. Kiểm tra đuôi file
+                var fileName = file.name || '';
+                var ext = fileName.split('.').pop().toLowerCase();
+                var isValidExt = ALLOWED_EXTENSIONS.indexOf(ext) !== -1;
+                var isValidType = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg';
+
+                if (!isValidExt || (!isValidType && file.type)) {
+                    showAvatarError('Định dạng tệp không hợp lệ. Hệ thống chỉ chấp nhận ảnh định dạng JPG, JPEG hoặc PNG.');
+                    avatarFileInput.value = '';
+                    return;
+                }
+
+                // 2. Kiểm tra dung lượng tối đa 2MB (2.097.152 byte)
+                if (file.size > MAX_FILE_SIZE) {
+                    var sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                    showAvatarError('Dung lượng tệp (' + sizeMB + ' MB) vượt quá giới hạn tối đa 2MB (2.097.152 byte). Vui lòng chọn ảnh nhẹ hơn.');
+                    avatarFileInput.value = '';
+                    return;
+                }
+
+                // 3. Kiểm tra tệp rỗng
+                if (file.size === 0) {
+                    showAvatarError('Tệp ảnh rỗng hoặc không có dữ liệu. Vui lòng chọn tệp hợp lệ.');
+                    avatarFileInput.value = '';
+                    return;
+                }
+
+                rawFile = file;
+
+                // Đọc file thành Image
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    var img = new Image();
+                    img.onload = function () {
+                        // Giới hạn an toàn: không quá 16 triệu pixel (theo quy chuẩn backend)
+                        if (img.width * img.height > 16000000) {
+                            showAvatarError('Kích thước điểm ảnh quá lớn (vượt quá 16 triệu pixel). Vui lòng chọn ảnh nhỏ hơn.');
+                            return;
+                        }
+                        setupCropper(img);
+                    };
+                    img.onerror = function () {
+                        showAvatarError('Không thể đọc dữ liệu ảnh. Vui lòng chọn tệp ảnh khác.');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function () {
+                    showAvatarError('Đã xảy ra lỗi khi đọc tệp từ thiết bị.');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // AC 2: Thiết lập Canvas Cropper cắt vuông 1:1
+            function setupCropper(img) {
+                loadedImage = img;
+                avatarDropzone.style.display = 'none';
+                avatarCropperWrapper.style.display = 'flex';
+                btnSaveAvatar.disabled = false;
+
+                // Chiều dài khung cắt vuông tại giao diện
+                var maskSize = 220;
+                baseSquareSize = Math.min(img.width, img.height);
+                minScale = maskSize / baseSquareSize;
+                scale = minScale;
+
+                avatarZoomSlider.min = minScale;
+                avatarZoomSlider.max = minScale * 3;
+                avatarZoomSlider.step = minScale * 0.05;
+                avatarZoomSlider.value = minScale;
+
+                // Căn giữa ảnh mặc định
+                offsetX = (maskSize - img.width * scale) / 2;
+                offsetY = (maskSize - img.height * scale) / 2;
+
+                avatarCropCanvas.width = maskSize;
+                avatarCropCanvas.height = maskSize;
+
+                renderCropAndPreviews();
+            }
+
+            function resetCropper() {
+                loadedImage = null;
+                rawFile = null;
+                avatarFileInput.value = '';
+                avatarDropzone.style.display = 'block';
+                avatarCropperWrapper.style.display = 'none';
+                avatarProgressWrap.style.display = 'none';
+                btnSaveAvatar.disabled = true;
+                hideAvatarError();
+            }
+
+            // Vẽ Canvas Crop và 3 bản thu nhỏ Previews (AC 2)
+            function renderCropAndPreviews() {
+                if (!loadedImage) return;
+
+                var ctx = avatarCropCanvas.getContext('2d');
+                var w = avatarCropCanvas.width;
+                var h = avatarCropCanvas.height;
+
+                ctx.clearRect(0, 0, w, h);
+                ctx.save();
+                ctx.drawImage(loadedImage, offsetX, offsetY, loadedImage.width * scale, loadedImage.height * scale);
+                ctx.restore();
+
+                // Đồng bộ 3 bản thu nhỏ (AC 2)
+                drawThumbnail(previewCanvasLg, 64);
+                drawThumbnail(previewCanvasMd, 44);
+                drawThumbnail(previewCanvasSm, 32);
+            }
+
+            function drawThumbnail(targetCanvas, size) {
+                var ctx = targetCanvas.getContext('2d');
+                ctx.clearRect(0, 0, size, size);
+                ctx.drawImage(avatarCropCanvas, 0, 0, avatarCropCanvas.width, avatarCropCanvas.height, 0, 0, size, size);
+            }
+
+            // Điều khiển Zoom Slider
+            avatarZoomSlider.addEventListener('input', function () {
+                var newScale = parseFloat(avatarZoomSlider.value);
+                zoomAtCenter(newScale);
+            });
+
+            btnZoomIn.addEventListener('click', function () {
+                var step = minScale * 0.2;
+                var newScale = Math.min(parseFloat(avatarZoomSlider.max), scale + step);
+                avatarZoomSlider.value = newScale;
+                zoomAtCenter(newScale);
+            });
+
+            btnZoomOut.addEventListener('click', function () {
+                var step = minScale * 0.2;
+                var newScale = Math.max(parseFloat(avatarZoomSlider.min), scale - step);
+                avatarZoomSlider.value = newScale;
+                zoomAtCenter(newScale);
+            });
+
+            btnResetCrop.addEventListener('click', function () {
+                if (!loadedImage) return;
+                scale = minScale;
+                avatarZoomSlider.value = minScale;
+                var maskSize = avatarCropCanvas.width;
+                offsetX = (maskSize - loadedImage.width * scale) / 2;
+                offsetY = (maskSize - loadedImage.height * scale) / 2;
+                renderCropAndPreviews();
+            });
+
+            function zoomAtCenter(newScale) {
+                if (!loadedImage) return;
+                var maskSize = avatarCropCanvas.width;
+                var centerX = maskSize / 2;
+                var centerY = maskSize / 2;
+
+                var ratio = newScale / scale;
+                offsetX = centerX - (centerX - offsetX) * ratio;
+                offsetY = centerY - (centerY - offsetY) * ratio;
+                scale = newScale;
+
+                clampOffset();
+                renderCropAndPreviews();
+            }
+
+            function clampOffset() {
+                if (!loadedImage) return;
+                var maskSize = avatarCropCanvas.width;
+                var imgW = loadedImage.width * scale;
+                var imgH = loadedImage.height * scale;
+
+                if (imgW >= maskSize) {
+                    if (offsetX > 0) offsetX = 0;
+                    if (offsetX + imgW < maskSize) offsetX = maskSize - imgW;
+                } else {
+                    offsetX = (maskSize - imgW) / 2;
+                }
+
+                if (imgH >= maskSize) {
+                    if (offsetY > 0) offsetY = 0;
+                    if (offsetY + imgH < maskSize) offsetY = maskSize - imgH;
+                } else {
+                    offsetY = (maskSize - imgH) / 2;
+                }
+            }
+
+            // Xử lý kéo chuột để di chuyển vùng crop (Pan)
+            avatarCropStage.addEventListener('mousedown', function (e) {
+                if (!loadedImage) return;
+                isDragging = true;
+                startDragX = e.clientX - offsetX;
+                startDragY = e.clientY - offsetY;
+            });
+
+            window.addEventListener('mousemove', function (e) {
+                if (!isDragging || !loadedImage) return;
+                offsetX = e.clientX - startDragX;
+                offsetY = e.clientY - startDragY;
+                clampOffset();
+                renderCropAndPreviews();
+            });
+
+            window.addEventListener('mouseup', function () {
+                isDragging = false;
+            });
+
+            // Touch events cho mobile
+            avatarCropStage.addEventListener('touchstart', function (e) {
+                if (!loadedImage || !e.touches[0]) return;
+                isDragging = true;
+                startDragX = e.touches[0].clientX - offsetX;
+                startDragY = e.touches[0].clientY - offsetY;
+            }, { passive: true });
+
+            window.addEventListener('touchmove', function (e) {
+                if (!isDragging || !loadedImage || !e.touches[0]) return;
+                offsetX = e.touches[0].clientX - startDragX;
+                offsetY = e.touches[0].clientY - startDragY;
+                clampOffset();
+                renderCropAndPreviews();
+            }, { passive: true });
+
+            window.addEventListener('touchend', function () {
+                isDragging = false;
+            });
+
+            // Xuất ảnh vuông 512x512 chất lượng cao (AC 2)
+            function generateCroppedBlob() {
+                return new Promise(function (resolve, reject) {
+                    if (!loadedImage) {
+                        reject(new Error('Chưa có ảnh được chọn.'));
+                        return;
+                    }
+
+                    var exportCanvas = document.createElement('canvas');
+                    exportCanvas.width = 512;
+                    exportCanvas.height = 512;
+                    var ctx = exportCanvas.getContext('2d');
+
+                    var maskSize = avatarCropCanvas.width;
+                    var factor = 512 / maskSize;
+
+                    ctx.save();
+                    ctx.drawImage(
+                        loadedImage,
+                        offsetX * factor,
+                        offsetY * factor,
+                        loadedImage.width * scale * factor,
+                        loadedImage.height * scale * factor
+                    );
+                    ctx.restore();
+
+                    exportCanvas.toBlob(function (blob) {
+                        if (blob) resolve(blob);
+                        else reject(new Error('Không thể tạo file ảnh từ canvas.'));
+                    }, 'image/png');
+                });
+            }
+
+            // Gửi upload FormData lên backend với Progress Bar (AC 1, AC 2, AC 4)
+            btnSaveAvatar.addEventListener('click', async function () {
+                if (!loadedImage) return;
+                hideAvatarError();
+
+                btnSaveAvatar.disabled = true;
+                avatarSaveSpinner.style.display = 'inline-block';
+                avatarSaveBtnText.textContent = 'Đang lưu ảnh...';
+
+                avatarProgressWrap.style.display = 'block';
+                avatarProgressBarFill.style.width = '10%';
+                avatarProgressPercent.textContent = '10%';
+                avatarProgressStatus.textContent = 'Đang cắt vuông và chuẩn bị tệp...';
+
+                try {
+                    var croppedBlob = await generateCroppedBlob();
+                    var csrfToken = await fetchCsrfToken();
+
+                    avatarProgressBarFill.style.width = '30%';
+                    avatarProgressPercent.textContent = '30%';
+                    avatarProgressStatus.textContent = 'Đang gửi ảnh lên máy chủ...';
+
+                    var formData = new FormData();
+                    formData.append('avatar', croppedBlob, 'avatar.png');
+                    if (csrfToken) formData.append('csrfToken', csrfToken);
+
+                    // Upload via XMLHttpRequest để bắt sự kiện tiến trình (Progress Bar)
+                    var uploadSuccess = false;
+                    var uploadResult = null;
+
+                    // Thử endpoint chuẩn Jira: /api/users/profile/avatar trước, sau đó fallback /api/users/me/avatar
+                    var primaryEndpoint = contextPath + '/api/users/profile/avatar';
+                    var fallbackEndpoint = contextPath + '/api/users/me/avatar';
+
+                    uploadResult = await doUploadXHR(primaryEndpoint, formData, csrfToken);
+
+                    // Nếu 404 hoặc 405 (do backend đã map /api/users/me/avatar theo CRM-36.md), thử fallback
+                    if (uploadResult.status === 404 || uploadResult.status === 405) {
+                        uploadResult = await doUploadXHR(fallbackEndpoint, formData, csrfToken);
+                    }
+
+                    if (uploadResult.ok) {
+                        uploadSuccess = true;
+                    } else {
+                        // Xử lý lỗi trả về từ máy chủ
+                        var errorMsg = uploadResult.message || 'Không thể lưu ảnh đại diện trên máy chủ.';
+                        showAvatarError(errorMsg);
+                        btnSaveAvatar.disabled = false;
+                        avatarSaveSpinner.style.display = 'none';
+                        avatarSaveBtnText.textContent = 'Lưu ảnh đại diện';
+                        avatarProgressWrap.style.display = 'none';
+                        return;
+                    }
+
+                    // AC 4: CẬP NHẬT ĐỒNG BỘ AVATAR TRÊN HEADER & SIDEBAR MÀ KHÔNG RELOAD TRANG
+                    avatarProgressBarFill.style.width = '100%';
+                    avatarProgressPercent.textContent = '100%';
+                    avatarProgressStatus.textContent = 'Cập nhật thành công!';
+
+                    var timestamp = Date.now();
+                    var newThumbnailUrl = contextPath + '/profile/avatar/thumbnail?t=' + timestamp;
+                    var newImageUrl = contextPath + '/profile/avatar/image?t=' + timestamp;
+
+                    // 1. Cập nhật Avatar trên trang Hồ sơ cá nhân (Profile page)
+                    if (sidebarAvatarImg) {
+                        sidebarAvatarImg.src = newImageUrl;
+                        sidebarAvatarImg.style.display = 'block';
+                    }
+                    if (sidebarAvatarChar) {
+                        sidebarAvatarChar.style.display = 'none';
+                    }
+
+                    // 2. Cập nhật Avatar trên thanh Header
+                    var headerAvatarImgs = document.querySelectorAll('.crm-header__avatar img, #crmHeaderUserWidget img');
+                    headerAvatarImgs.forEach(function (img) {
+                        img.src = newThumbnailUrl;
+                        img.hidden = false;
+                        img.style.display = 'block';
+                        if (img.previousElementSibling) {
+                            img.previousElementSibling.hidden = true;
+                            img.previousElementSibling.style.display = 'none';
+                        }
+                    });
+
+                    // 3. Cập nhật Avatar trên thanh Sidebar
+                    var sidebarAvatarEl = document.getElementById('crmSidebarAvatarText');
+                    if (sidebarAvatarEl) {
+                        sidebarAvatarEl.innerHTML = '<img src="' + newThumbnailUrl + '" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+                    }
+
+                    setTimeout(function () {
+                        closeModal();
+                        showAlert(true, 'Cập nhật ảnh đại diện người dùng thành công!');
+                    }, 400);
+
+                } catch (err) {
+                    console.error('Lỗi khi tải ảnh lên:', err);
+                    showAvatarError('Đã xảy ra lỗi kết nối với máy chủ khi tải ảnh lên.');
+                    btnSaveAvatar.disabled = false;
+                    avatarSaveSpinner.style.display = 'none';
+                    avatarSaveBtnText.textContent = 'Lưu ảnh đại diện';
+                    avatarProgressWrap.style.display = 'none';
+                }
+            });
+
+            function doUploadXHR(url, formData, csrfToken) {
+                return new Promise(function (resolve) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', url, true);
+                    if (csrfToken) {
+                        xhr.setRequestHeader('X-CSRF-Token', csrfToken);
+                    }
+                    xhr.setRequestHeader('Accept', 'application/json');
+
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            var pct = Math.round(30 + (e.loaded / e.total) * 60);
+                            avatarProgressBarFill.style.width = pct + '%';
+                            avatarProgressPercent.textContent = pct + '%';
+                        }
+                    };
+
+                    xhr.onload = function () {
+                        var isOk = xhr.status >= 200 && xhr.status < 300;
+                        var msg = '';
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            msg = data.message || '';
+                        } catch (e) {
+                            msg = xhr.statusText;
+                        }
+                        resolve({ ok: isOk, status: xhr.status, message: msg });
+                    };
+
+                    xhr.onerror = function () {
+                        resolve({ ok: false, status: 0, message: 'Lỗi mạng hoặc không thể kết nối tới server.' });
+                    };
+
+                    xhr.send(formData);
+                });
+            }
+
+            // Tự động kiểm tra trạng thái avatar người dùng khi nạp trang
+            (async function checkExistingAvatar() {
+                try {
+                    var resp = await fetch(contextPath + '/api/users/me/avatar');
+                    if (resp.ok) {
+                        var body = await resp.json();
+                        if (body && body.data && body.data.hasAvatar) {
+                            if (sidebarAvatarImg) {
+                                sidebarAvatarImg.src = contextPath + '/profile/avatar/image?t=' + Date.now();
+                                sidebarAvatarImg.style.display = 'block';
+                            }
+                            if (sidebarAvatarChar) {
+                                sidebarAvatarChar.style.display = 'none';
+                            }
+                        }
+                    }
+                } catch (ignored) {}
+            })();
+
+        })();
     });
     </script>
 </body>
