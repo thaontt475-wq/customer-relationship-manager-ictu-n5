@@ -8,9 +8,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class ScopedEntityDAO {
 
@@ -20,18 +20,7 @@ public class ScopedEntityDAO {
             ScopeContext actor,
             String search) throws SQLException {
 
-        String scope = actor.dataScope() == null
-                ? "SELF"
-                : actor.dataScope().trim().toUpperCase(Locale.ROOT);
-
-        String scopeClause;
-
-        switch (scope) {
-            case "ALL" -> scopeClause = "1=1";
-            case "TEAM" -> scopeClause =
-                    actor.teamId() == null ? "1=0" : "u.team_id = ?";
-            default -> scopeClause = "r.owner_user_id = ?";
-        }
+        String scopeClause = DataScopeHelper.buildScopeClause("r.owner_user_id", "u", actor);
 
         String sql = "SELECT r.id, r." + type.labelColumn()
                 + " AS label, r.owner_user_id, u.team_id AS owner_team_id "
@@ -45,13 +34,7 @@ public class ScopedEntityDAO {
         String normalizedSearch = search == null ? "" : search.trim();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            int index = 1;
-
-            if ("TEAM".equals(scope) && actor.teamId() != null) {
-                stmt.setLong(index++, actor.teamId());
-            } else if (!"ALL".equals(scope) && !"TEAM".equals(scope)) {
-                stmt.setLong(index++, actor.userId());
-            }
+            int index = DataScopeHelper.bindScopeParameters(stmt, 1, actor);
 
             stmt.setString(index++, normalizedSearch);
             stmt.setString(index, normalizedSearch);
@@ -74,6 +57,37 @@ public class ScopedEntityDAO {
 
             return items;
         }
+    }
+
+    public long countVisible(
+            Connection conn,
+            ScopeEntityType type,
+            ScopeContext actor,
+            String search) throws SQLException {
+
+        String scopeClause = DataScopeHelper.buildScopeClause("r.owner_user_id", "u", actor);
+
+        String sql = "SELECT COUNT(*) FROM " + type.tableName() + " r "
+                + "JOIN users u ON u.id = r.owner_user_id "
+                + "WHERE " + scopeClause + " "
+                + "AND (? = '' OR r." + type.labelColumn()
+                + " LIKE CONCAT('%', ?, '%'))";
+
+        String normalizedSearch = search == null ? "" : search.trim();
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            int index = DataScopeHelper.bindScopeParameters(stmt, 1, actor);
+
+            stmt.setString(index++, normalizedSearch);
+            stmt.setString(index, normalizedSearch);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                }
+            }
+        }
+        return 0;
     }
 
     public ScopeRecord findById(
@@ -105,6 +119,55 @@ public class ScopedEntityDAO {
                         ownerTeamId
                 );
             }
+        }
+    }
+
+    public long insert(
+            Connection conn,
+            ScopeEntityType type,
+            String label,
+            long ownerUserId) throws SQLException {
+
+        String sql = "INSERT INTO " + type.tableName() + " (" + type.labelColumn() + ", owner_user_id) VALUES (?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, label != null ? label.trim() : "");
+            stmt.setLong(2, ownerUserId);
+
+            int affected = stmt.executeUpdate();
+            if (affected > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        return rs.getLong(1);
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    public int update(
+            Connection conn,
+            ScopeEntityType type,
+            long id,
+            String label) throws SQLException {
+
+        String sql = "UPDATE " + type.tableName() + " SET " + type.labelColumn() + " = ? WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, label != null ? label.trim() : "");
+            stmt.setLong(2, id);
+            return stmt.executeUpdate();
+        }
+    }
+
+    public int delete(
+            Connection conn,
+            ScopeEntityType type,
+            long id) throws SQLException {
+
+        String sql = "DELETE FROM " + type.tableName() + " WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            return stmt.executeUpdate();
         }
     }
 }
