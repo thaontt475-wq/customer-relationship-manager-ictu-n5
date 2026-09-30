@@ -142,6 +142,25 @@ CREATE TABLE IF NOT EXISTS user_avatars (
     CONSTRAINT fk_user_avatar FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- CRM-47: Pipeline stages table
+CREATE TABLE IF NOT EXISTS pipeline_stages (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    pipeline_id BIGINT NOT NULL DEFAULT 1,
+    code VARCHAR(50) NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    stage_order INT NOT NULL DEFAULT 1,
+    win_probability INT NOT NULL DEFAULT 0,
+    requirements TEXT NULL,
+    is_won BOOLEAN NOT NULL DEFAULT FALSE,
+    is_lost BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_pipeline_stage_code (pipeline_id, code),
+    INDEX idx_pipeline_stage_order (pipeline_id, stage_order ASC),
+    INDEX idx_pipeline_stage_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- CRM-44: Master Data Categories (Danh mục dùng chung)
 CREATE TABLE IF NOT EXISTS categories (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
