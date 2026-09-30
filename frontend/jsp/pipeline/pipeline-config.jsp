@@ -796,26 +796,36 @@
 
             var curStage = sorted[index];
             var swapStage = sorted[targetIndex];
-
-            var tempOrder = curStage.sortOrder;
-            curStage.sortOrder = swapStage.sortOrder;
-            swapStage.sortOrder = tempOrder;
+            var nextCurOrder = swapStage.sortOrder;
+            var nextSwapOrder = curStage.sortOrder;
 
             var endpointCur = contextPath + '/api/pipeline/stages/' + curStage.id;
             var endpointSwap = contextPath + '/api/pipeline/stages/' + swapStage.id;
-            try {
+            var results = await Promise.allSettled([
                 fetch(endpointCur, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sortOrder: curStage.sortOrder })
-                });
+                    body: JSON.stringify({ sortOrder: nextCurOrder })
+                }),
                 fetch(endpointSwap, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sortOrder: swapStage.sortOrder })
-                });
-            } catch (e) {}
+                    body: JSON.stringify({ sortOrder: nextSwapOrder })
+                })
+            ]);
 
+            var bothUpdated = results.every(function (result) {
+                return result.status === 'fulfilled' && result.value.ok;
+            });
+
+            if (!bothUpdated) {
+                await fetchStages();
+                showErrorAlert('Không thể cập nhật đầy đủ thứ tự tiến trình. Dữ liệu đã được đồng bộ lại từ máy chủ.');
+                return;
+            }
+
+            curStage.sortOrder = nextCurOrder;
+            swapStage.sortOrder = nextSwapOrder;
             showSuccessAlert('Đã cập nhật thứ tự tiến trình bán hàng!');
             renderPipelineStepper();
             renderForecastCalculator();
@@ -947,6 +957,8 @@
                 ? (contextPath + '/api/pipeline/stages/' + id)
                 : (contextPath + '/api/pipeline/stages');
             var method = isEdit ? 'PUT' : 'POST';
+            var savedStage = null;
+            var localDemoOnly = false;
 
             try {
                 var res = await fetch(endpoint, {
@@ -954,11 +966,20 @@
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                if (res.ok) {
-                    showSuccessAlert(isEdit ? 'Cập nhật giai đoạn thành công!' : 'Tạo mới giai đoạn thành công!');
+
+                if (!res.ok) {
+                    showErrorAlert((isEdit ? 'Không thể cập nhật' : 'Không thể tạo') + ' giai đoạn trên máy chủ (Mã lỗi: ' + res.status + '). Dữ liệu local chưa thay đổi.');
+                    return;
                 }
+
+                try {
+                    var responseBody = await res.json();
+                    savedStage = responseBody && responseBody.data ? responseBody.data : responseBody;
+                    if (savedStage && savedStage.item) savedStage = savedStage.item;
+                } catch (ignored) {}
             } catch (err) {
-                console.info('Backend chưa sẵn sàng - Cập nhật dữ liệu tại local state:', err);
+                localDemoOnly = true;
+                console.info('Backend chưa sẵn sàng - Chỉ cập nhật dữ liệu demo tại local state:', err);
             }
 
             if (isEdit) {
@@ -966,15 +987,24 @@
                 if (idx !== -1) {
                     payload.id = Number(id);
                     payload.activeOpportunitiesCount = state.stages[idx].activeOpportunitiesCount;
-                    state.stages[idx] = Object.assign({}, state.stages[idx], payload);
+                    state.stages[idx] = Object.assign({}, state.stages[idx], payload, savedStage || {});
                 }
-                showSuccessAlert('Đã cập nhật giai đoạn [' + payload.name + '] thành công!');
             } else {
-                var newId = state.stages.length > 0 ? Math.max.apply(null, state.stages.map(function(s){ return s.id; })) + 1 : 1;
+                var serverId = savedStage && savedStage.id != null ? Number(savedStage.id) : null;
+                var newId = serverId != null
+                    ? serverId
+                    : (state.stages.length > 0 ? Math.max.apply(null, state.stages.map(function(s){ return s.id; })) + 1 : 1);
                 payload.id = newId;
                 payload.activeOpportunitiesCount = 0;
-                state.stages.push(payload);
-                showSuccessAlert('Đã thêm mới giai đoạn [' + payload.name + '] vào pipeline!');
+                state.stages.push(Object.assign({}, payload, savedStage || {}));
+            }
+
+            if (localDemoOnly) {
+                showErrorAlert('DEMO / Local only - chưa lưu server. Thay đổi chỉ tồn tại tạm thời trên trình duyệt.');
+            } else {
+                showSuccessAlert(isEdit
+                    ? 'Đã cập nhật giai đoạn [' + payload.name + '] thành công!'
+                    : 'Đã thêm mới giai đoạn [' + payload.name + '] vào pipeline!');
             }
 
             closeStageModal();
@@ -1008,8 +1038,20 @@
         async function deleteStageDirectly(id) {
             var endpoint = contextPath + '/api/pipeline/stages/' + id;
             try {
-                await fetch(endpoint, { method: 'DELETE' });
-            } catch (e) {}
+                var response = await fetch(endpoint, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (!response.ok) {
+                    showErrorAlert('Không thể xóa giai đoạn trên máy chủ (Mã lỗi: ' + response.status + '). Dữ liệu vẫn được giữ nguyên.');
+                    return;
+                }
+            } catch (e) {
+                console.error('Lỗi khi xóa giai đoạn:', e);
+                showErrorAlert('Không thể kết nối máy chủ để xóa giai đoạn. Dữ liệu vẫn được giữ nguyên.');
+                return;
+            }
 
             state.stages = state.stages.filter(function (s) { return s.id !== id; });
             showSuccessAlert('Đã xóa giai đoạn bán hàng thành công!');
@@ -1023,17 +1065,26 @@
         btnConfirmDeactivateStage.addEventListener('click', async function () {
             if (!state.pendingDeactivateStage) return;
             var s = state.pendingDeactivateStage;
-            s.active = false;
 
             var endpoint = contextPath + '/api/pipeline/stages/' + s.id;
             try {
-                await fetch(endpoint, {
+                var response = await fetch(endpoint, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify({ active: false })
                 });
-            } catch (e) {}
 
+                if (!response.ok) {
+                    showErrorAlert('Không thể ngừng kích hoạt giai đoạn trên máy chủ (Mã lỗi: ' + response.status + '). Trạng thái chưa thay đổi.');
+                    return;
+                }
+            } catch (e) {
+                console.error('Lỗi khi ngừng kích hoạt giai đoạn:', e);
+                showErrorAlert('Không thể kết nối máy chủ để ngừng kích hoạt giai đoạn. Trạng thái chưa thay đổi.');
+                return;
+            }
+
+            s.active = false;
             activeDealsNoticeModal.style.display = 'none';
             state.pendingDeactivateStage = null;
             showSuccessAlert('Đã chuyển giai đoạn [' + s.name + '] sang trạng thái [Ngừng kích hoạt] theo tiêu chuẩn AC 4!');
