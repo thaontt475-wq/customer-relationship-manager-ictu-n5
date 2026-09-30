@@ -303,6 +303,73 @@
         </div>
     </div>
 
+    <!-- Modal Phân vai trò & Nhóm kinh doanh (CRM-29) -->
+    <div class="user-modal-overlay" id="userRoleModal" role="dialog" aria-modal="true" aria-labelledby="roleModalTitle">
+        <div class="user-modal-card" style="max-width: 580px;">
+            <header class="user-modal-header">
+                <h3 class="user-modal-title" id="roleModalTitle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Phân vai trò &amp; Nhóm kinh doanh</span>
+                </h3>
+                <button type="button" class="user-modal-close-btn" id="btnCloseRoleModal" aria-label="Đóng cửa sổ">&times;</button>
+            </header>
+
+            <form id="roleAssignmentForm" novalidate>
+                <input type="hidden" id="roleModalUserId">
+
+                <div class="user-modal-body">
+                    <!-- User Info Banner -->
+                    <div class="role-modal-user-info">
+                        <div class="role-modal-user-avatar" id="roleModalAvatar">U</div>
+                        <div class="role-modal-user-meta">
+                            <span class="role-modal-user-name" id="roleModalTargetName">Tên người dùng</span>
+                            <span class="role-modal-user-email" id="roleModalTargetEmail">email@example.com</span>
+                        </div>
+                    </div>
+
+                    <!-- Role Selection (Multiple Checkboxes) -->
+                    <div class="modal-field">
+                        <label class="modal-label">
+                            Vai trò hệ thống <span class="modal-required">*</span>
+                            <span style="font-weight: normal; font-size: 0.8rem; color: #64748b;">(Có thể gán nhiều vai trò cùng lúc)</span>
+                        </label>
+                        <div class="role-checkboxes-grid" id="roleCheckboxesContainer">
+                            <!-- Rendered dynamically -->
+                        </div>
+                        <div class="modal-field-feedback" id="feedbackRoles" style="display:block; margin-top:6px; color:#dc2626; font-size:0.83rem;"></div>
+                    </div>
+
+                    <!-- Business Group Selection -->
+                    <div class="modal-field">
+                        <label for="modalTeamSelect" class="modal-label">
+                            Nhóm kinh doanh
+                            <span id="markTeamRequired" class="modal-required" style="display: none;">*</span>
+                        </label>
+                        <select id="modalTeamSelect" class="modal-select">
+                            <option value="">-- Chưa gán nhóm kinh doanh --</option>
+                            <!-- Rendered dynamically -->
+                        </select>
+                        <div class="modal-field-feedback" id="feedbackTeam" style="display:block; margin-top:6px; color:#dc2626; font-size:0.83rem;"></div>
+                    </div>
+
+                    <div class="role-hint-box" id="roleHintTeamLead">
+                        <strong>Quy tắc nghiệp vụ:</strong> Người dùng có vai trò <em>Trưởng nhóm</em> bắt buộc phải được gán một nhóm kinh doanh cụ thể. Quản trị viên không thể tự thu hồi vai trò quản trị của chính mình.
+                    </div>
+                </div>
+
+                <footer class="user-modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnCancelRoleModal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveRoleAssignment">
+                        <span id="saveRoleSpinner" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
+                        <span id="saveRoleBtnText">Lưu thay đổi</span>
+                    </button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Xác nhận Xóa Người dùng (Confirm Delete Modal) -->
     <div class="user-modal-overlay" id="deleteConfirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmDeleteTitle">
         <div class="user-modal-card" style="max-width: 440px;">
@@ -340,6 +407,7 @@
         'use strict';
 
         var contextPath = '${pageContext.request.contextPath}';
+        var currentAuthenticatedUserId = '${sessionScope.userId != null ? sessionScope.userId : (sessionScope.currentUser != null ? sessionScope.currentUser.id : "")}';
 
         // State quản lý danh sách & phân trang
         var state = {
@@ -512,6 +580,7 @@
                 var isLocked = (status === 'INACTIVE' || status === 'LOCKED');
                 var teamName = user.teamName || user.team || 'Chưa phân nhóm';
                 var createdAt = user.createdAt ? user.createdAt.substring(0, 10) : '-';
+                var isCurrentUser = currentAuthenticatedUserId !== '' && String(uid) === currentAuthenticatedUserId;
 
                 // Xử lý vai trò (roles có thể là mảng hoặc chuỗi)
                 var rolesText = 'Chưa phân vai trò';
@@ -522,6 +591,23 @@
                 }
 
                 var avatarChar = fullName.trim().charAt(0).toUpperCase() || 'U';
+                var deleteAction = isCurrentUser
+                    ? '<span class="self-delete-control" tabindex="0" aria-label="Không thể tự xóa tài khoản đang đăng nhập" data-tooltip="Không thể tự xóa tài khoản đang đăng nhập">' +
+                        '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user--disabled" disabled aria-disabled="true">' +
+                            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                                '<polyline points="3 6 5 6 21 6"></polyline>' +
+                                '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
+                            '</svg>' +
+                            'Xóa' +
+                        '</button>' +
+                    '</span>'
+                    : '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user" data-id="' + escapeHtml(uid) + '" data-name="' + escapeHtml(fullName) + '" title="Xóa tài khoản người dùng">' +
+                        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                            '<polyline points="3 6 5 6 21 6"></polyline>' +
+                            '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
+                        '</svg>' +
+                        'Xóa' +
+                    '</button>';
 
                 var row = document.createElement('tr');
                 row.innerHTML =
@@ -547,6 +633,13 @@
                     '</td>' +
                     '<td class="table-col-actions">' +
                         '<div class="user-actions-group">' +
+                            '<a class="btn btn-sm btn-primary" href="' + contextPath + '/users/detail?id=' + encodeURIComponent(uid) + '" title="Xem chi tiết và khóa/bàn giao">Xem</a>' +
+                            '<button type="button" class="btn btn-sm btn-outline-primary btn-assign-roles" data-id="' + escapeHtml(uid) + '" title="Phân vai trò &amp; nhóm kinh doanh">' +
+                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                                    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>' +
+                                '</svg>' +
+                                'Vai trò &amp; Nhóm' +
+                            '</button>' +
                             '<button type="button" class="btn btn-sm btn-secondary btn-edit-user" data-id="' + escapeHtml(uid) + '" title="Chỉnh sửa thông tin">' +
                                 '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
                                     '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>' +
@@ -554,20 +647,21 @@
                                 '</svg>' +
                                 'Sửa' +
                             '</button>' +
-                            '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user" data-id="' + escapeHtml(uid) + '" data-name="' + escapeHtml(fullName) + '" title="Xóa tài khoản người dùng">' +
-                                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-                                    '<polyline points="3 6 5 6 21 6"></polyline>' +
-                                    '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
-                                '</svg>' +
-                                'Xóa' +
-                            '</button>' +
+                            deleteAction +
                         '</div>' +
                     '</td>';
 
                 tableBody.appendChild(row);
             });
 
-            // Gán sự kiện cho các nút hành động Sửa & Xóa
+            // Gán sự kiện cho các nút hành động Vai trò & Nhóm, Sửa & Xóa
+            document.querySelectorAll('.btn-assign-roles').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var uid = this.getAttribute('data-id');
+                    openRoleModal(uid);
+                });
+            });
+
             document.querySelectorAll('.btn-edit-user').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     var uid = this.getAttribute('data-id');
@@ -853,6 +947,10 @@
 
         // 4. Modal Xác nhận Xóa người dùng (DELETE /api/users/{id})
         function openDeleteModal(uid, uname) {
+            if (currentAuthenticatedUserId !== '' && String(uid) === currentAuthenticatedUserId) {
+                showErrorAlert('Không thể tự xóa tài khoản đang đăng nhập');
+                return;
+            }
             userToDeleteId = uid;
             deleteUserTargetName.textContent = uname || ('#' + uid);
             deleteConfirmModal.classList.add('is-open');
@@ -917,6 +1015,382 @@
                 closeDeleteModal();
                 console.error('Lỗi khi xóa người dùng:', err);
                 showErrorAlert('Không thể kết nối đến máy chủ backend để xóa người dùng.');
+            }
+        });
+
+        // 5. Quản lý phân vai trò & Nhóm kinh doanh (CRM-29)
+        var userRoleModal = document.getElementById('userRoleModal');
+        var roleAssignmentForm = document.getElementById('roleAssignmentForm');
+        var roleModalUserId = document.getElementById('roleModalUserId');
+        var roleModalAvatar = document.getElementById('roleModalAvatar');
+        var roleModalTargetName = document.getElementById('roleModalTargetName');
+        var roleModalTargetEmail = document.getElementById('roleModalTargetEmail');
+        var roleCheckboxesContainer = document.getElementById('roleCheckboxesContainer');
+        var feedbackRoles = document.getElementById('feedbackRoles');
+        var modalTeamSelect = document.getElementById('modalTeamSelect');
+        var markTeamRequired = document.getElementById('markTeamRequired');
+        var feedbackTeam = document.getElementById('feedbackTeam');
+        var btnCloseRoleModal = document.getElementById('btnCloseRoleModal');
+        var btnCancelRoleModal = document.getElementById('btnCancelRoleModal');
+        var btnSaveRoleAssignment = document.getElementById('btnSaveRoleAssignment');
+        var saveRoleSpinner = document.getElementById('saveRoleSpinner');
+        var saveRoleBtnText = document.getElementById('saveRoleBtnText');
+
+        var currentLoggedInUserId = currentAuthenticatedUserId;
+
+        var cachedRoles = null;
+        var cachedTeams = null;
+        var currentPermissionDataScope = null;
+        var currentAssignedTeamId = null;
+
+        async function ensureRolesAndTeams() {
+            if (!cachedRoles) {
+                try {
+                    var rRes = await fetch(contextPath + '/api/roles', { headers: { 'Accept': 'application/json' } });
+                    if (rRes.ok) {
+                        var rData = await rRes.json();
+                        cachedRoles = rData.data || [];
+                    }
+                } catch (e) {
+                    console.error('Lỗi khi tải danh sách vai trò:', e);
+                }
+            }
+            if (!cachedTeams) {
+                try {
+                    var tRes = await fetch(contextPath + '/api/teams', { headers: { 'Accept': 'application/json' } });
+                    if (tRes.ok) {
+                        var tData = await tRes.json();
+                        cachedTeams = tData.data || [];
+                    }
+                } catch (e) {
+                    console.error('Lỗi khi tải danh sách nhóm:', e);
+                }
+            }
+        }
+
+        function isTeamLeadRole(roleName) {
+            if (!roleName) return false;
+            var r = roleName.toLowerCase();
+            return r.includes('lead') || r.includes('trưởng nhóm') || r.includes('manager');
+        }
+
+        function isAdminRole(roleName) {
+            if (!roleName) return false;
+            var r = roleName.toLowerCase();
+            return r.includes('admin') || r.includes('quản trị');
+        }
+
+        function updateTeamRequirementState() {
+            var anyTeamLeadChecked = false;
+            var checkedBoxes = document.querySelectorAll('input[name="assignedRole"]:checked');
+            checkedBoxes.forEach(function (cb) {
+                var rName = cb.getAttribute('data-role-name') || '';
+                if (isTeamLeadRole(rName)) {
+                    anyTeamLeadChecked = true;
+                }
+            });
+
+            markTeamRequired.style.display = anyTeamLeadChecked ? 'inline' : 'none';
+            if (!anyTeamLeadChecked) {
+                modalTeamSelect.classList.remove('is-invalid');
+                feedbackTeam.textContent = '';
+            }
+        }
+
+        async function openRoleModal(uid) {
+            feedbackRoles.textContent = '';
+            feedbackTeam.textContent = '';
+            modalTeamSelect.classList.remove('is-invalid');
+            roleModalUserId.value = uid;
+            currentPermissionDataScope = null;
+
+            var user = state.items.find(function (item) {
+                return String(item.id) === String(uid);
+            });
+            currentAssignedTeamId = user && user.teamId ? Number(user.teamId) : null;
+
+            var fullName = user ? (user.fullName || user.name || 'Người dùng #' + uid) : ('#' + uid);
+            var email = user ? (user.email || 'Chưa có email') : '';
+            var avatarChar = fullName.trim().charAt(0).toUpperCase() || 'U';
+
+            roleModalTargetName.textContent = fullName;
+            roleModalTargetEmail.textContent = email;
+            roleModalAvatar.textContent = avatarChar;
+
+            await ensureRolesAndTeams();
+
+            // Render Teams dropdown
+            modalTeamSelect.innerHTML = '<option value="">-- Chưa gán nhóm kinh doanh --</option>';
+            if (Array.isArray(cachedTeams)) {
+                cachedTeams.forEach(function (t) {
+                    var opt = document.createElement('option');
+                    opt.value = t.id;
+                    opt.textContent = t.name;
+                    if (currentAssignedTeamId && String(t.id) === String(currentAssignedTeamId)) {
+                        opt.selected = true;
+                    }
+                    modalTeamSelect.appendChild(opt);
+                });
+            }
+
+            // Fetch latest user permissions
+            var activeRoleIds = [];
+            try {
+                var pRes = await fetch(contextPath + '/api/permissions/users/' + encodeURIComponent(uid), {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (pRes.ok) {
+                    var pData = await pRes.json();
+                    if (pData && pData.data) {
+                        if (Array.isArray(pData.data.roles)) {
+                            activeRoleIds = pData.data.roles.map(function(rid) { return Number(rid); });
+                        }
+                        if (typeof pData.data.dataScope === 'string' && pData.data.dataScope.trim()) {
+                            currentPermissionDataScope = pData.data.dataScope;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Không thể tải chi tiết phân quyền người dùng:', e);
+            }
+
+            // Render Role Checkboxes
+            roleCheckboxesContainer.innerHTML = '';
+            var isSelfAdmin = String(currentLoggedInUserId) === String(uid);
+
+            if (Array.isArray(cachedRoles) && cachedRoles.length > 0) {
+                cachedRoles.forEach(function (role) {
+                    var card = document.createElement('label');
+                    card.className = 'role-checkbox-card';
+
+                    var isChecked = activeRoleIds.includes(Number(role.id));
+                    var roleIsAdmin = isAdminRole(role.name);
+
+                    var checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'assignedRole';
+                    checkbox.value = role.id;
+                    checkbox.setAttribute('data-role-name', role.name);
+                    checkbox.checked = isChecked;
+
+                    if (isChecked) {
+                        card.classList.add('is-selected');
+                    }
+
+                    checkbox.addEventListener('change', function () {
+                        // Admin self-protection check
+                        if (isSelfAdmin && roleIsAdmin && !this.checked) {
+                            this.checked = true;
+                            card.classList.add('is-selected');
+                            feedbackRoles.textContent = 'Không thể tự thu hồi vai trò quản trị của chính mình.';
+                            return;
+                        }
+
+                        feedbackRoles.textContent = '';
+                        if (this.checked) {
+                            card.classList.add('is-selected');
+                        } else {
+                            card.classList.remove('is-selected');
+                        }
+                        updateTeamRequirementState();
+                    });
+
+                    var info = document.createElement('div');
+                    info.className = 'role-checkbox-info';
+
+                    var title = document.createElement('span');
+                    title.className = 'role-checkbox-title';
+                    title.textContent = role.name;
+
+                    var desc = document.createElement('span');
+                    desc.className = 'role-checkbox-desc';
+                    if (roleIsAdmin) {
+                        desc.textContent = 'Toàn quyền cấu hình & quản trị hệ thống';
+                    } else if (isTeamLeadRole(role.name)) {
+                        desc.textContent = 'Quản lý nhóm kinh doanh (bắt buộc chọn nhóm)';
+                    } else {
+                        desc.textContent = role.description || 'Thành viên kinh doanh tiêu chuẩn';
+                    }
+
+                    info.appendChild(title);
+                    info.appendChild(desc);
+
+                    card.appendChild(checkbox);
+                    card.appendChild(info);
+                    roleCheckboxesContainer.appendChild(card);
+                });
+            } else {
+                roleCheckboxesContainer.innerHTML = '<div style="color: #64748b; font-size: 0.9rem;">Chưa có dữ liệu vai trò.</div>';
+            }
+
+            updateTeamRequirementState();
+            userRoleModal.classList.add('is-open');
+        }
+
+        function closeRoleModal() {
+            userRoleModal.classList.remove('is-open');
+            feedbackRoles.textContent = '';
+            feedbackTeam.textContent = '';
+            modalTeamSelect.classList.remove('is-invalid');
+        }
+
+        btnCloseRoleModal.addEventListener('click', closeRoleModal);
+        btnCancelRoleModal.addEventListener('click', closeRoleModal);
+        userRoleModal.addEventListener('click', function (e) {
+            if (e.target === userRoleModal) {
+                closeRoleModal();
+            }
+        });
+
+        // Submit form phân vai trò
+        roleAssignmentForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            feedbackRoles.textContent = '';
+            feedbackTeam.textContent = '';
+            modalTeamSelect.classList.remove('is-invalid');
+
+            var uid = roleModalUserId.value;
+            if (!uid) return;
+
+            var checkedBoxes = document.querySelectorAll('input[name="assignedRole"]:checked');
+            var roleIds = [];
+            var hasTeamLead = false;
+            var hasAdmin = false;
+
+            checkedBoxes.forEach(function (cb) {
+                roleIds.push(Number(cb.value));
+                var rName = cb.getAttribute('data-role-name') || '';
+                if (isTeamLeadRole(rName)) hasTeamLead = true;
+                if (isAdminRole(rName)) hasAdmin = true;
+            });
+
+            var selectedTeamId = modalTeamSelect.value ? Number(modalTeamSelect.value) : null;
+
+            // AC 3 & AC 7: Admin không thể tự xóa role admin của chính mình
+            if (String(currentLoggedInUserId) === String(uid) && !hasAdmin) {
+                feedbackRoles.textContent = 'Không thể tự thu hồi vai trò quản trị của chính mình.';
+                return;
+            }
+
+            if (currentAssignedTeamId !== null && !selectedTeamId) {
+                modalTeamSelect.classList.add('is-invalid');
+                feedbackTeam.textContent = 'API hiện tại chưa hỗ trợ bỏ người dùng khỏi nhóm kinh doanh.';
+                modalTeamSelect.focus();
+                return;
+            }
+
+            // AC 2 & AC 6: Role Trưởng nhóm bắt buộc phải có nhóm kinh doanh
+            if (hasTeamLead && !selectedTeamId) {
+                modalTeamSelect.classList.add('is-invalid');
+                feedbackTeam.textContent = 'Người dùng có vai trò Trưởng nhóm bắt buộc phải được gán một nhóm kinh doanh cụ thể.';
+                modalTeamSelect.focus();
+                return;
+            }
+
+            if (!currentPermissionDataScope) {
+                feedbackRoles.textContent = 'Không thể xác định phạm vi dữ liệu hiện tại. Vui lòng đóng và mở lại cửa sổ để thử lại.';
+                return;
+            }
+
+            var payload = {
+                userId: Number(uid),
+                roleIds: roleIds,
+                dataScope: currentPermissionDataScope
+            };
+
+            btnSaveRoleAssignment.disabled = true;
+            btnCancelRoleModal.disabled = true;
+            saveRoleSpinner.style.display = 'inline-block';
+            saveRoleBtnText.textContent = 'Đang lưu...';
+
+            var isSavingTeam = selectedTeamId !== null && selectedTeamId !== currentAssignedTeamId;
+
+            try {
+                if (isSavingTeam) {
+                    var teamResponse = await fetch(contextPath + '/api/users/' + encodeURIComponent(uid) + '/team', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ teamId: selectedTeamId })
+                    });
+
+                    var teamResult = null;
+                    var teamContentType = teamResponse.headers.get('content-type');
+                    if (teamContentType && teamContentType.includes('application/json')) {
+                        teamResult = await teamResponse.json();
+                    }
+
+                    if (!teamResponse.ok || (teamResult && teamResult.success === false)) {
+                        btnSaveRoleAssignment.disabled = false;
+                        btnCancelRoleModal.disabled = false;
+                        saveRoleSpinner.style.display = 'none';
+                        saveRoleBtnText.textContent = 'Lưu thay đổi';
+                        modalTeamSelect.classList.add('is-invalid');
+                        feedbackTeam.textContent = (teamResult && teamResult.message)
+                            ? teamResult.message
+                            : 'Không thể cập nhật nhóm kinh doanh. Phân quyền chưa được thay đổi.';
+                        return;
+                    }
+
+                    currentAssignedTeamId = selectedTeamId;
+                    var updatedUser = state.items.find(function (item) {
+                        return String(item.id) === String(uid);
+                    });
+                    if (updatedUser) {
+                        updatedUser.teamId = selectedTeamId;
+                    }
+                    isSavingTeam = false;
+                }
+
+                var response = await fetch(contextPath + '/api/permissions/assign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                btnSaveRoleAssignment.disabled = false;
+                btnCancelRoleModal.disabled = false;
+                saveRoleSpinner.style.display = 'none';
+                saveRoleBtnText.textContent = 'Lưu thay đổi';
+
+                var resData = null;
+                var contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    resData = await response.json();
+                }
+
+                if (response.ok && (!resData || resData.success !== false)) {
+                    closeRoleModal();
+                    showSuccessAlert('Cập nhật vai trò và nhóm kinh doanh thành công.');
+                    fetchUsers();
+                } else {
+                    var errorMsg = (resData && resData.message) ? resData.message : 'Không thể lưu phân quyền.';
+                    if (response.status === 400 || errorMsg.includes('Trưởng nhóm')) {
+                        modalTeamSelect.classList.add('is-invalid');
+                        feedbackTeam.textContent = errorMsg;
+                    } else if (response.status === 403 || errorMsg.includes('quản trị')) {
+                        feedbackRoles.textContent = errorMsg;
+                    } else {
+                        feedbackRoles.textContent = errorMsg;
+                    }
+                }
+            } catch (err) {
+                btnSaveRoleAssignment.disabled = false;
+                btnCancelRoleModal.disabled = false;
+                saveRoleSpinner.style.display = 'none';
+                saveRoleBtnText.textContent = 'Lưu thay đổi';
+                console.error('Lỗi khi lưu phân quyền:', err);
+                if (isSavingTeam) {
+                    modalTeamSelect.classList.add('is-invalid');
+                    feedbackTeam.textContent = 'Không thể kết nối đến máy chủ backend để cập nhật nhóm. Phân quyền chưa được thay đổi.';
+                } else {
+                    feedbackRoles.textContent = 'Không thể kết nối đến máy chủ backend để lưu phân quyền.';
+                }
             }
         });
 

@@ -17,9 +17,8 @@
         + LOCKED: Đã khóa
 
   TRẠNG THÁI TÍCH HỢP:
-    - Backend đã hỗ trợ API khóa và mở khóa tài khoản.
-    - Transfer dữ liệu nghiệp vụ chưa khả dụng trong schema Sprint 1.
-    - View adapter cho các thao tác này chưa được tích hợp tại màn hình JSP.
+    - Form view gọi cùng UserService lock/handover transaction với API CRM-30.
+    - Customer và Opportunity ownership được bàn giao trước khi khóa commit.
 --%>
 <%!
     private String escapeHtml(String input) {
@@ -33,7 +32,8 @@
 
     private String getProp(Object obj, String propName) {
         if (obj == null || propName == null) return "";
-        if (obj instanceof java.util.Map<?, ?> map) {
+        if (obj instanceof java.util.Map<?, ?>) {
+            java.util.Map<?, ?> map = (java.util.Map<?, ?>) obj;
             Object v = map.get(propName);
             return v != null ? v.toString() : "";
         }
@@ -60,9 +60,10 @@
     String email = getProp(targetUser, "email");
     String phone = getProp(targetUser, "phone");
     String role = getProp(targetUser, "role");
-    String department = getProp(targetUser, "department");
+    String teamName = getProp(targetUser, "teamName");
+    String dataScope = getProp(targetUser, "dataScope");
     String createdAt = getProp(targetUser, "createdAt");
-    String lastLogin = getProp(targetUser, "lastLogin");
+    String lastLogin = getProp(targetUser, "lastLoginAt");
 
     String status = getProp(targetUser, "status");
     boolean isLocked = "LOCKED".equalsIgnoreCase(status);
@@ -104,25 +105,25 @@
 
                 <!-- Breadcrumb -->
                 <nav class="user-breadcrumb" aria-label="Breadcrumb">
-                    <a href="${pageContext.request.contextPath}/">CRM</a>
+                    <a href="${pageContext.request.contextPath}/dashboard">CRM</a>
                     <span class="separator">/</span>
                     <a href="${pageContext.request.contextPath}/users">Quản lý người dùng</a>
                     <span class="separator">/</span>
-                    <span class="active">Chi tiết tài khoản #<%= escapeHtml(userId) %></span>
+                    <span class="active">Chi tiết người dùng</span>
                 </nav>
 
                 <!-- Header màn hình -->
                 <header class="user-header">
                     <div class="user-header-info">
-                        <h1>Chi tiết tài khoản & Quản lý trạng thái</h1>
-                        <p>Xem thông tin định danh, kiểm tra trạng thái hoạt động và thực hiện khóa tài khoản / bàn giao dữ liệu nghiệp vụ.</p>
+                        <h1><%= escapeHtml(!fullName.isEmpty() ? fullName : "Chi tiết người dùng") %></h1>
+                        <p>Thông tin tài khoản, vai trò, nhóm, phạm vi dữ liệu và trạng thái truy cập.</p>
                     </div>
                     <div class="user-header-badges">
                         <span class="user-badge">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                             </svg>
-                            CRM-30 / S1-10
+                            Quản trị tài khoản
                         </span>
                     </div>
                 </header>
@@ -196,8 +197,12 @@
                                     <span class="user-details-value"><%= escapeHtml(!role.isEmpty() ? role : "Chưa phân vai trò") %></span>
                                 </div>
                                 <div class="user-details-item">
-                                    <span class="user-details-label">Phòng ban</span>
-                                    <span class="user-details-value"><%= escapeHtml(!department.isEmpty() ? department : "Chưa cập nhật") %></span>
+                                    <span class="user-details-label">Nhóm kinh doanh</span>
+                                    <span class="user-details-value"><%= escapeHtml(!teamName.isEmpty() ? teamName : "Chưa gán nhóm") %></span>
+                                </div>
+                                <div class="user-details-item">
+                                    <span class="user-details-label">Phạm vi dữ liệu</span>
+                                    <span class="user-details-value scope-badge scope-badge--<%= escapeHtml(dataScope.toLowerCase(java.util.Locale.ROOT)) %>"><%= "ALL".equalsIgnoreCase(dataScope) ? "Tất cả" : ("TEAM".equalsIgnoreCase(dataScope) ? "Nhóm của tôi" : "Của tôi") %></span>
                                 </div>
                                 <div class="user-details-item">
                                     <span class="user-details-label">Số điện thoại</span>
@@ -235,36 +240,32 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 id="lock-action-title" class="lock-warning-title">Khóa tài khoản & Bàn giao dữ liệu</h3>
+                                        <h3 id="lock-action-title" class="lock-warning-title">Khóa tài khoản và bàn giao</h3>
                                         <p class="lock-warning-desc">
-                                            Hành động này sẽ <strong>chặn ngay lập tức quyền truy cập</strong> của người dùng vào hệ thống CRM.
-                                            Phần bàn giao dữ liệu nghiệp vụ là chức năng dự kiến và hiện chưa khả dụng trong schema Sprint 1.
+                                            Phiên đăng nhập hiện tại sẽ bị thu hồi ngay sau khi giao dịch khóa thành công.
                                         </p>
                                     </div>
                                 </div>
 
-                                <%-- Transfer dữ liệu chưa khả dụng; khu vực này không submit form. --%>
-                                <!-- Container UI Khóa & Bàn giao (không submit form) -->
-                                <div class="handover-form">
+                                <form class="handover-form" method="post" action="${pageContext.request.contextPath}/users/lock-handover">
                                     <!-- ID tài khoản bị khóa -->
                                     <input type="hidden" name="userId" value="<%= escapeHtml(userId) %>">
 
                                     <!-- Thông tin người bàn giao -->
                                     <div class="form-group">
-                                        <label class="form-label">Tài khoản bị khóa (Bàn giao dữ liệu):</label>
+                                        <label class="form-label">Tài khoản bị khóa</label>
                                         <div class="user-assignee-display">
                                             <%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "Tài khoản")) %> <%= !email.isEmpty() ? "(" + escapeHtml(email) + ")" : "" %>
-                                            <span class="user-assignee-id">[ID: #<%= escapeHtml(userId.isEmpty() ? "---" : userId) %>]</span>
                                         </div>
                                     </div>
 
                                     <!-- Chọn người tiếp nhận bàn giao -->
                                     <div class="form-group">
                                         <label for="recipientId" class="form-label">
-                                            Người nhận bàn giao dữ liệu <span class="form-label-required">*</span>
+                                            Người tiếp nhận
                                         </label>
                                         <select class="form-select" id="recipientId" name="recipientId" required>
-                                            <option value="">-- Chọn nhân sự tiếp nhận bàn giao dữ liệu --</option>
+                                            <option value="">-- Chọn người tiếp nhận --</option>
                                             <% if (recipients != null && !recipients.isEmpty()) {
                                                 for (Object rItem : recipients) {
                                                     if (rItem == null) continue;
@@ -282,17 +283,17 @@
                                                 </option>
                                             <%   }
                                                } else { %>
-                                                <option value="" disabled>Chưa có danh sách nhân sự khả dụng từ Backend (Cần BE API)</option>
+                                                <option value="" disabled>Không có tài khoản ACTIVE phù hợp</option>
                                             <% } %>
                                         </select>
-                                        <div class="form-hint">Đây là lựa chọn dự kiến cho chức năng bàn giao; backend hiện chưa chuyển dữ liệu sở hữu thực tế.</div>
+                                        <div class="form-hint">Bắt buộc khi người dùng đang phụ trách ít nhất một Khách hàng hoặc Cơ hội.</div>
                                     </div>
 
                                     <!-- Thông tin phạm vi dữ liệu bàn giao (Không invent request parameters) -->
                                     <div class="form-group">
-                                        <label class="form-label">Phạm vi dữ liệu chuyển quyền tiếp quản:</label>
+                                        <label class="form-label">Dữ liệu được bàn giao</label>
                                         <div class="handover-scope-note">
-                                            Phạm vi dự kiến gồm Khách hàng, Cơ hội bán hàng, Báo giá, Hợp đồng và Hoạt động phụ trách. Schema Sprint 1 chưa có các bảng ownership nên backend chưa hỗ trợ chuyển giao thực tế.
+                                            Khách hàng và Cơ hội đang phụ trách sẽ được chuyển cho người tiếp nhận trong cùng giao dịch khóa tài khoản.
                                         </div>
                                     </div>
 
@@ -301,14 +302,14 @@
                                         <label for="lockReason" class="form-label">
                                             Lý do khóa tài khoản <span class="form-label-required">*</span>
                                         </label>
-                                        <textarea class="form-textarea" id="lockReason" name="lockReason" placeholder="Nhập lý do khóa tài khoản (Ví dụ: Nghỉ việc, chuyển công tác, điều chuyển nội bộ...)" required></textarea>
+                                        <textarea class="form-textarea" id="lockReason" name="reason" maxlength="500" placeholder="Ví dụ: Nhân viên nghỉ việc, chuyển công tác..." required></textarea>
                                     </div>
 
                                     <!-- Bước xác nhận an toàn (Confirmation Step) -->
                                     <div class="confirmation-box">
-                                        <input type="checkbox" id="confirmLockCheckbox" name="confirmLock" required>
+                                        <input type="checkbox" id="confirmLockCheckbox" name="confirm" value="true" required>
                                         <label for="confirmLockCheckbox">
-                                            Tôi xác nhận đã kiểm tra kỹ tài khoản <strong><%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "này")) %></strong>. Chức năng bàn giao dữ liệu hiện chưa khả dụng và không được thực hiện từ màn hình này.
+                                            Tôi xác nhận khóa tài khoản <strong><%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "này")) %></strong> và bàn giao toàn bộ ownership liên quan.
                                         </label>
                                     </div>
 
@@ -317,19 +318,19 @@
                                         <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary">
                                             Hủy bỏ
                                         </a>
-                                        <button type="button" class="btn btn-danger" disabled title="Chức năng bàn giao chưa khả dụng trong Sprint 1">
+                                        <button type="submit" class="btn btn-danger">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                             </svg>
-                                            Bàn giao dữ liệu chưa khả dụng
+                                            Khóa và bàn giao
                                         </button>
                                     </div>
-                                </div>
+                                </form>
                             </div>
 
                         <% } else { %>
-                            <!-- TRƯỜNG HỢP 2: Tài khoản ĐÃ BỊ KHÓA (Chỉ hiển thị thông tin trạng thái, không tạo form/nút mở khóa) -->
+                            <!-- Tài khoản đã khóa: cho phép quản trị viên mở lại truy cập. -->
                             <div class="locked-account-card">
                                 <div class="lock-warning-header">
                                     <div class="locked-account-icon" aria-hidden="true">
@@ -339,12 +340,17 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <h3 class="locked-account-title">Tài khoản này hiện đang bị KHÓA</h3>
+                                        <h3 class="locked-account-title">Tài khoản đang bị khóa</h3>
                                         <p class="lock-warning-desc">
-                                            Tài khoản đã bị khóa. Chức năng bàn giao dữ liệu nghiệp vụ hiện chưa khả dụng trong schema Sprint 1.
+                                            Người dùng không thể đăng nhập và các phiên trước đó đã bị thu hồi.
                                         </p>
                                     </div>
                                 </div>
+                                <form method="post" action="${pageContext.request.contextPath}/users/unlock" class="form-actions">
+                                    <input type="hidden" name="userId" value="<%= escapeHtml(userId) %>">
+                                    <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary">Quay lại danh sách</a>
+                                    <button type="submit" class="btn btn-primary">Mở khóa tài khoản</button>
+                                </form>
                             </div>
                         <% } %>
 

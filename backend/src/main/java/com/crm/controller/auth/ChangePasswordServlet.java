@@ -37,7 +37,7 @@ public class ChangePasswordServlet extends HttpServlet {
         }
 
         if (resolveUserId(request) == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(request.getContextPath() + "/login?expired=1");
             return;
         }
 
@@ -57,7 +57,7 @@ public class ChangePasswordServlet extends HttpServlet {
                 writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
                         false, "Yêu cầu đăng nhập", null);
             } else {
-                response.sendRedirect(request.getContextPath() + "/login");
+                response.sendRedirect(request.getContextPath() + "/login?expired=1");
             }
             return;
         }

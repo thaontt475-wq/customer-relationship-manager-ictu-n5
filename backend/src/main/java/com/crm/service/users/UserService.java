@@ -44,7 +44,11 @@ public class UserService {
 
     public User findById(long id) throws SQLException {
         try (Connection conn = DBConnection.getConnection()) {
-            return userDAO.findById(conn, id);
+            User user = userDAO.findById(conn, id);
+            if (user != null) {
+                user.setRole(String.join(", ", userDAO.findRoleNamesByUserId(conn, id)));
+            }
+            return user;
         }
     }
 
