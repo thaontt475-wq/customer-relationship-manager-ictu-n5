@@ -248,6 +248,7 @@
 
 .user-table {
     width: 100%;
+    min-width: 1040px;
     border-collapse: collapse;
     text-align: left;
     font-size: 0.9rem;
@@ -286,7 +287,7 @@
 }
 
 .table-col-actions {
-    width: 200px;
+    width: 300px;
     text-align: right;
 }
 
@@ -324,6 +325,37 @@
 .user-email-text {
     font-size: 0.8rem;
     color: var(--user-text-muted);
+}
+
+.user-email-text--primary {
+    color: var(--user-text-sub);
+    font-size: 0.86rem;
+    white-space: nowrap;
+}
+
+.scope-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid #dbe4ff;
+    background: #f1f5ff;
+    color: #3152c7;
+    font-size: 0.76rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.scope-badge--team {
+    border-color: #fde7b0;
+    background: #fffbeb;
+    color: #9a6700;
+}
+
+.scope-badge--all {
+    border-color: #c7ead8;
+    background: #ecfdf3;
+    color: #087443;
 }
 
 /* Status Badges */
@@ -375,6 +407,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 }
 
 .btn {
@@ -450,11 +483,55 @@
     border-color: var(--user-danger-border);
 }
 
-.btn-outline-danger:hover,
-.btn-outline-danger:focus-visible {
+.btn-outline-danger:hover:not(:disabled),
+.btn-outline-danger:focus-visible:not(:disabled) {
     background-color: var(--user-danger-light);
     color: var(--user-danger-hover);
     border-color: var(--user-danger);
+}
+
+.self-delete-control {
+    position: relative;
+    display: inline-flex;
+    border-radius: var(--user-radius-sm);
+    outline: none;
+}
+
+.btn-delete-user--disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+    filter: grayscale(0.25);
+}
+
+.self-delete-control::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    z-index: 20;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: 240px;
+    padding: 7px 9px;
+    border-radius: 7px;
+    background: #172033;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.35;
+    white-space: normal;
+    box-shadow: 0 8px 20px rgba(23, 32, 51, 0.18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(3px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    pointer-events: none;
+}
+
+.self-delete-control:hover::after,
+.self-delete-control:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 /* User Profile Detail Card */
@@ -1231,4 +1308,131 @@
         align-items: center;
         gap: 10px;
     }
+}
+
+/* ==========================================================================
+   CRM-29: Phân vai trò & Gắn nhóm kinh doanh (Role & Team Assignment)
+   ========================================================================== */
+
+.btn-outline-primary {
+    background-color: transparent;
+    color: var(--user-primary);
+    border: 1px solid var(--user-primary-border);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--user-primary-light);
+    border-color: var(--user-primary);
+    color: var(--user-primary-hover);
+}
+
+.role-modal-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: #f1f5f9;
+    border-radius: var(--user-radius-md);
+    margin-bottom: 18px;
+}
+
+.role-modal-user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--user-primary);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.role-modal-user-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.role-modal-user-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--user-text-main);
+}
+
+.role-modal-user-email {
+    font-size: 0.82rem;
+    color: var(--user-text-muted);
+}
+
+.role-checkboxes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.role-checkbox-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid var(--user-border);
+    border-radius: var(--user-radius-sm);
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: var(--user-transition);
+}
+
+.role-checkbox-card:hover {
+    border-color: var(--user-primary);
+    background-color: var(--user-primary-light);
+}
+
+.role-checkbox-card.is-selected {
+    border-color: var(--user-primary);
+    background-color: var(--user-primary-light);
+}
+
+.role-checkbox-card.is-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #f8fafc;
+}
+
+.role-checkbox-card input[type="checkbox"] {
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+.role-checkbox-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.role-checkbox-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--user-text-main);
+}
+
+.role-checkbox-desc {
+    font-size: 0.78rem;
+    color: var(--user-text-muted);
+}
+
+.role-hint-box {
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: var(--user-radius-sm);
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    font-size: 0.83rem;
+    color: #1e40af;
+    line-height: 1.45;
+}
+
+.role-hint-box strong {
+    font-weight: 600;
 }

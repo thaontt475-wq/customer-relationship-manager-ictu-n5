@@ -202,6 +202,35 @@ body {
     box-shadow: 0 0 0 4px rgba(47, 91, 255, 0.12);
 }
 
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 68px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    min-width: 48px;
+    min-height: 36px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+
+.password-toggle:focus-visible {
+    outline: 3px solid rgba(47, 91, 255, 0.18);
+}
+
 /* =========================
    ACTIONS / LINKS
    ========================= */
@@ -292,6 +321,9 @@ body {
 
 .auth-message {
     min-height: 20px;
+    padding: 11px 13px;
+    border: 1px solid transparent;
+    border-radius: 10px;
 
     font-size: 0.9rem;
     line-height: 1.5;
@@ -301,10 +333,23 @@ body {
 
 .auth-error {
     color: var(--danger);
+    border-color: #fecaca;
+    background: #fff1f2;
 }
 
 .auth-success {
     color: var(--success);
+    border-color: #a7f3d0;
+    background: #ecfdf5;
+}
+
+.auth-button--link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0 20px;
+    text-decoration: none;
 }
 
 /* =========================
@@ -318,6 +363,8 @@ body {
     }
 
     .auth-card {
+        width: 100%;
+        min-width: 0;
         padding: 24px 18px;
 
         border-radius: 18px;

@@ -27,19 +27,19 @@
         <!-- User Profile & Logout Actions -->
         <div class="crm-header__actions">
             <!-- User Info Widget (Hiển thị nhãn generic an toàn, không tự suy đoán session attribute) -->
-            <div class="crm-header__user" title="Tài khoản người dùng">
+            <a href="${pageContext.request.contextPath}/profile" class="crm-header__user" title="Hồ sơ cá nhân" style="text-decoration: none; color: inherit;">
                 <div class="crm-header__avatar" aria-hidden="true">
-                    <span>U</span>
+                    <span>${sessionScope.displayName != null && !sessionScope.displayName.isEmpty() ? sessionScope.displayName.substring(0, 1).toUpperCase() : "U"}</span>
                     <img src="${pageContext.request.contextPath}/profile/avatar/thumbnail" alt="" width="32" height="32"
                          onload="this.previousElementSibling.hidden=true" onerror="this.hidden=true">
                 </div>
                 <div class="crm-header__user-details">
-                    <div class="crm-header__user-name">Tài khoản</div>
+                    <div class="crm-header__user-name">${sessionScope.displayName != null ? sessionScope.displayName : "Tài khoản"}</div>
                     <div class="crm-header__user-meta">
                         <span class="crm-header__status-text">Đang hoạt động</span>
                     </div>
                 </div>
-            </div>
+            </a>
 
             <a href="${pageContext.request.contextPath}/profile/avatar">Đổi ảnh đại diện</a>
             <!-- Form Đăng xuất (Gửi POST tới endpoint chính thức /api/auth/logout) -->

@@ -12,7 +12,7 @@ import java.util.Base64;
 public class ResetTokenUtil {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final int TOKEN_BYTE_LENGTH = 32; // 256 bits
-    private static final long EXPIRY_MINUTES = 15L;
+    static final long EXPIRY_MINUTES = 30L;
 
     /**
      * Generates a raw token string (URL‑safe Base64, no padding).
@@ -42,7 +42,7 @@ public class ResetTokenUtil {
     }
 
     /**
-     * Calculates the expiry time (now + 15 minutes) as a {@link LocalDateTime} in the system default zone.
+     * Calculates the expiry time (now + 30 minutes) as a {@link LocalDateTime} in the system default zone.
      */
     public static LocalDateTime calculateExpiry() {
         Instant now = Instant.now();
