@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List, com.crm.dto.permissions.MenuItem" %>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
 <%!
     private String escapeHtml(String input) {
         if (input == null) return "";
@@ -122,6 +123,7 @@
                     <% for (MenuItem item : menuItems) {
                         if (item == null) continue;
                         String label = item.getLabel();
+                        String code = item.getCode();
                         String url = item.getUrl();
                         String icon = item.getIcon();
                         List<MenuItem> children = item.getChildren();
@@ -131,9 +133,18 @@
                         boolean isParentActive = hasChildren && hasActiveDescendant(item, currentUri, contextPath);
                         boolean isItemActive = isSelfActive || isParentActive;
                         String resolvedUrl = hasUrl ? resolveUrl(url, contextPath) : null;
+                        boolean isLogout = "LOGOUT".equals(code);
                     %>
                         <li class="sidebar__item<%= isItemActive ? " sidebar__item--active" : "" %><%= hasChildren ? " sidebar__item--has-children" : "" %>">
-                            <% if (hasUrl) { %>
+                            <% if (isLogout) { %>
+                                <form class="sidebar__logout-form" method="post" action="<%= escapeHtml(resolvedUrl) %>">
+                                    <input type="hidden" name="redirectToLogin" value="true">
+                                    <button type="submit" class="sidebar__link sidebar__logout-button">
+                                        <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= escapeHtml(icon) %></span>
+                                        <span class="sidebar__text"><%= escapeHtml(label) %></span>
+                                    </button>
+                                </form>
+                            <% } else if (hasUrl) { %>
                                 <a href="<%= escapeHtml(resolvedUrl) %>" class="sidebar__link<%= isSelfActive ? " sidebar__link--active" : "" %>">
                                     <% if (icon != null && !icon.trim().isEmpty()) { %>
                                         <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= escapeHtml(icon.trim()) %></span>

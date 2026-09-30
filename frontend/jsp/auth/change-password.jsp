@@ -28,7 +28,7 @@
 
                 <!-- Breadcrumb điều hướng -->
                 <nav class="cp-breadcrumb" aria-label="Breadcrumb">
-                    <a href="${pageContext.request.contextPath}/">CRM</a>
+                    <a href="${pageContext.request.contextPath}/dashboard">CRM</a>
                     <span class="separator">/</span>
                     <span>Tài khoản</span>
                     <span class="separator">/</span>
