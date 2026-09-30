@@ -62,6 +62,17 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Apache POI for Excel Import/Export (CRM-32) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.3.0</version>
+        </dependency>
 
         <!-- CRM-25 automated scope tests -->
         <dependency>
