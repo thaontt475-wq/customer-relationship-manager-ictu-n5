@@ -17,15 +17,14 @@ public class PasswordUtil {
     /**
      * Validate password policy:
      * - 8 to 72 characters
-     * - at least one lower, one upper, one digit, one special character
+     * - at least one letter
+     * - at least one digit
      */
     public static boolean isValidPassword(String password) {
         if (password == null) return false;
         if (password.length() < 8 || password.length() > 72) return false;
-        boolean hasLower = password.matches(".*[a-z].*");
-        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLetter = password.matches(".*[A-Za-z].*");
         boolean hasDigit = password.matches(".*\\d.*");
-        boolean hasSpecial = password.matches(".*[^a-zA-Z0-9].*");
-        return hasLower && hasUpper && hasDigit && hasSpecial;
+        return hasLetter && hasDigit;
     }
 }

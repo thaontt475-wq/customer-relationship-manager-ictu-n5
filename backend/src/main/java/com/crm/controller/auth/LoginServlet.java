@@ -37,6 +37,13 @@ public class LoginServlet extends HttpServlet {
             return;
         }
 
+        if ("1".equals(request.getParameter("expired"))) {
+            request.setAttribute(
+                    "error",
+                    "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+            );
+        }
+
         request.getRequestDispatcher("/jsp/auth/login.jsp")
                 .forward(request, response);
     }
@@ -119,7 +126,7 @@ public class LoginServlet extends HttpServlet {
         }
 
         response.sendRedirect(
-                request.getContextPath() + "/html/index.html"
+                request.getContextPath() + "/dashboard"
         );
     }
 

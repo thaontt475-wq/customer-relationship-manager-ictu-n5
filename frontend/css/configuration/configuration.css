@@ -1,0 +1,905 @@
+/* ==========================================================================
+   CRM Sales Common Categories CSS (CRM-44 / S2-07)
+   Khai báo danh mục dùng chung của bán hàng
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Layout & Khung trang
+   -------------------------------------------------------------------------- */
+.config-page {
+    flex: 1;
+    background-color: #f8fafc;
+    min-height: calc(100vh - 64px);
+    padding: 24px 32px 48px;
+    box-sizing: border-box;
+}
+
+.config-container {
+    max-width: 1360px;
+    margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   2. Breadcrumb
+   -------------------------------------------------------------------------- */
+.config-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 16px;
+}
+
+.config-breadcrumb a {
+    color: #475569;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.config-breadcrumb a:hover {
+    color: #2563eb;
+}
+
+.config-breadcrumb .separator {
+    color: #cbd5e1;
+}
+
+.config-breadcrumb .active {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   3. Header trang
+   -------------------------------------------------------------------------- */
+.config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.config-header-info h1 {
+    margin: 0 0 6px;
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.config-header-info p {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.config-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.config-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    border-radius: 20px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.config-badge-report {
+    background: #fdf2f8;
+    color: #db2777;
+    border-color: #fbcfe8;
+}
+
+/* --------------------------------------------------------------------------
+   4. Banner Nghiệp vụ Chuẩn hóa Báo cáo Gộp
+   -------------------------------------------------------------------------- */
+.config-scope-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 20px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-left: 4px solid #2563eb;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.config-scope-banner-icon {
+    width: 24px;
+    height: 24px;
+    color: #2563eb;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.config-scope-banner-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.config-scope-banner-desc {
+    font-size: 0.875rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Thống kê nhanh (Metric Stat Cards)
+   -------------------------------------------------------------------------- */
+.config-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.config-stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.config-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: #2563eb;
+}
+
+.config-stat-card.active-card {
+    border-color: #2563eb;
+    background: #f8faff;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.config-stat-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon-blue {
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+.stat-icon-purple {
+    background-color: #f5f3ff;
+    color: #7c3aed;
+}
+
+.stat-icon-amber {
+    background-color: #fffbeb;
+    color: #d97706;
+}
+
+.stat-icon-teal {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.config-stat-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.config-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.config-stat-label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   6. Thanh chuyển Tab Danh mục (AC 1)
+   -------------------------------------------------------------------------- */
+.config-tabs-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 24px;
+    overflow-x: auto;
+}
+
+.config-tab-btn {
+    padding: 12px 20px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.config-tab-btn:hover {
+    color: #2563eb;
+}
+
+.config-tab-btn.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+}
+
+.config-tab-badge {
+    background: #e2e8f0;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.config-tab-btn.active .config-tab-badge {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+/* --------------------------------------------------------------------------
+   7. Thông báo Alerts
+   -------------------------------------------------------------------------- */
+.config-alerts {
+    margin-bottom: 20px;
+}
+
+.config-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    margin-bottom: 12px;
+    animation: fadeInSlide 0.25s ease-out;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.config-alert-success {
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+}
+
+.config-alert-danger {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.config-alert-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.config-alert-content {
+    flex: 1;
+}
+
+.config-alert-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.config-alert-close {
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: currentColor;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 0;
+}
+
+.config-alert-close:hover {
+    opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   8. Card Nội dung & Toolbar Bộ lọc
+   -------------------------------------------------------------------------- */
+.config-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+.config-toolbar {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: #ffffff;
+}
+
+.config-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 280px;
+}
+
+.config-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.config-search-wrap {
+    position: relative;
+    width: 260px;
+}
+
+.config-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.config-search-input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.15s ease;
+    background-color: #ffffff;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+
+.config-search-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.config-filter-select {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #1e293b;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.config-filter-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Nút bấm chung */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    color: #334155;
+    border-color: #cbd5e1;
+}
+
+.btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.btn-danger {
+    background-color: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 0.8125rem;
+    border-radius: 6px;
+    gap: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   9. Bảng Dữ liệu Danh mục (Table & Sorting - AC 3)
+   -------------------------------------------------------------------------- */
+.config-table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.config-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    text-align: left;
+}
+
+.config-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.config-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.config-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.config-table tbody tr.row-inactive {
+    background-color: #fcfcfc;
+    opacity: 0.78;
+}
+
+.col-code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-weight: 700;
+    color: #1e40af;
+    background-color: #eff6ff;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #dbeafe;
+    display: inline-block;
+    font-size: 0.8125rem;
+}
+
+/* Nút sắp xếp thứ tự hiển thị (AC 3) */
+.order-control-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.order-badge {
+    min-width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+}
+
+.order-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.btn-order-arrow {
+    width: 20px;
+    height: 14px;
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.15s ease;
+}
+
+.btn-order-arrow:hover:not(:disabled) {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.btn-order-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Badges Tham chiếu (AC 2: Usage Count) */
+.badge-usage {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.usage-in-use {
+    background-color: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #ffedd5;
+}
+
+.usage-zero {
+    background-color: #f8fafc;
+    color: #94a3b8;
+    border: 1px solid #e2e8f0;
+}
+
+/* Badges trạng thái */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-status-active {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-status-inactive {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+}
+
+/* Thao tác dòng */
+.action-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-icon:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.btn-icon-danger:hover {
+    background-color: #fef2f2;
+    color: #ef4444;
+    border-color: #fca5a5;
+}
+
+/* --------------------------------------------------------------------------
+   10. Modal Chung (Dialogs)
+   -------------------------------------------------------------------------- */
+.crm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 999;
+}
+
+.crm-modal-card {
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 580px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.crm-modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+}
+
+.crm-modal-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.crm-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.crm-modal-close:hover {
+    color: #0f172a;
+    background: #e2e8f0;
+}
+
+.crm-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.crm-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #334155;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.required-mark {
+    color: #ef4444;
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: normal;
+}
+
+.form-control {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 0.875rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+    transition: all 0.15s ease;
+    background: #ffffff;
+    color: #0f172a;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.form-control.is-invalid {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.form-feedback {
+    font-size: 0.75rem;
+    color: #ef4444;
+    min-height: 16px;
+}
+
+/* Loading Overlay */
+.config-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+}
+
+.config-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* --------------------------------------------------------------------------
+   11. Responsive (Mobile / Tablet)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+    .config-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .config-page {
+        padding: 16px;
+    }
+
+    .config-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .config-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .config-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .config-toolbar-left {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .config-search-wrap {
+        width: 100%;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+}

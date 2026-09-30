@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 public class AuthService {
     private static final Logger LOGGER = Logger.getLogger(AuthService.class.getName());
+    private static final LoginAttemptGuard LOGIN_ATTEMPTS = new LoginAttemptGuard();
     private final UserDAO userDAO = new UserDAO();
     private final PasswordResetTokenDAO tokenDAO = new PasswordResetTokenDAO();
     private final EmailService emailService = new EmailService();
@@ -26,14 +27,26 @@ public class AuthService {
 
     public LoginResult login(String email, String password) throws SQLException {
         if (email == null || email.isBlank() || password == null || password.isBlank()) return null;
-        User user = userDAO.findForLogin(email.trim().toLowerCase(java.util.Locale.ROOT));
-        if (user == null || !user.isActive() || !"ACTIVE".equals(user.getStatus())) return null;
-        try {
-            if (!PasswordUtil.verifyPassword(password, user.getPasswordHash())) return null;
-        } catch (IllegalArgumentException e) {
-            LOGGER.warning("Invalid stored BCrypt hash for user id " + user.getId());
+        String normalizedEmail = email.trim().toLowerCase(java.util.Locale.ROOT);
+        if (LOGIN_ATTEMPTS.isBlocked(normalizedEmail)) return null;
+
+        User user = userDAO.findForLogin(normalizedEmail);
+        if (user == null) {
+            LOGIN_ATTEMPTS.recordFailure(normalizedEmail);
             return null;
         }
+        if (!user.isActive() || !"ACTIVE".equals(user.getStatus())) return null;
+        try {
+            if (!PasswordUtil.verifyPassword(password, user.getPasswordHash())) {
+                LOGIN_ATTEMPTS.recordFailure(normalizedEmail);
+                return null;
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.warning("Invalid stored BCrypt hash for user id " + user.getId());
+            LOGIN_ATTEMPTS.recordFailure(normalizedEmail);
+            return null;
+        }
+        LOGIN_ATTEMPTS.recordSuccess(normalizedEmail);
         return new LoginResult(user.getId(), user.getDisplayName(),
                 user.getRoles().stream().map(com.crm.model.Role::getName).toList());
     }
@@ -196,7 +209,7 @@ public class AuthService {
         if (currentPassword == null || currentPassword.isBlank()) {
             return ChangePasswordResult.CURRENT_PASSWORD_REQUIRED;
         }
-        if (!isValidChangePassword(newPassword)) {
+        if (!PasswordUtil.isValidPassword(newPassword)) {
             return ChangePasswordResult.INVALID_NEW_PASSWORD;
         }
 
@@ -236,14 +249,6 @@ public class AuthService {
                 throw e;
             }
         }
-    }
-
-    private boolean isValidChangePassword(String password) {
-        if (password == null || password.length() < 8 || password.length() > 72) {
-            return false;
-        }
-        return password.matches(".*[A-Za-z].*")
-                && password.matches(".*\\d.*");
     }
 
     public enum ChangePasswordResult {

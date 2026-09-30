@@ -28,6 +28,8 @@ import java.util.logging.Logger;
 @WebServlet({
         "/users",
         "/users/detail",
+        "/users/lock-handover",
+        "/users/unlock",
         "/api/users/*"
 })
 public class UserServlet extends HttpServlet {
@@ -54,7 +56,7 @@ public class UserServlet extends HttpServlet {
                 writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
                         "Yêu cầu đăng nhập", null);
             } else {
-                response.sendRedirect(request.getContextPath() + "/login");
+                response.sendRedirect(request.getContextPath() + "/login?expired=1");
             }
             return;
         }
@@ -119,6 +121,13 @@ public class UserServlet extends HttpServlet {
             throws ServletException, IOException {
 
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        String servletPath = request.getServletPath();
+        if ("/users/lock-handover".equals(servletPath)
+                || "/users/unlock".equals(servletPath)) {
+            handleViewStatusChange(request, response, servletPath);
+            return;
+        }
 
         if (!"/api/users".equals(request.getServletPath())) {
             writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
@@ -295,6 +304,7 @@ public class UserServlet extends HttpServlet {
         request.setAttribute("q", keyword);
         request.setAttribute("role", role);
         request.setAttribute("status", status);
+        request.setAttribute("teams", teamService.findAllTeams());
 
         request.getRequestDispatcher(USER_LIST_JSP)
                 .forward(request, response);
@@ -693,6 +703,11 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
+        loadDetail(request, response, userId);
+    }
+
+    private void loadDetail(HttpServletRequest request, HttpServletResponse response, long userId)
+            throws SQLException, ServletException, IOException {
         User user = userService.findById(userId);
         if (user == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -703,9 +718,96 @@ public class UserServlet extends HttpServlet {
         request.setAttribute("availableRecipients", userService.findAvailableRecipients(userId));
         if ("1".equals(request.getParameter("locked"))) {
             request.setAttribute("message",
-                    "Khóa tài khoản thành công. Thông tin người nhận bàn giao đã được ghi nhận.");
+                    "Tài khoản đã được khóa và dữ liệu đã được bàn giao.");
+        } else if ("1".equals(request.getParameter("unlocked"))) {
+            request.setAttribute("message", "Tài khoản đã được mở khóa và có thể đăng nhập lại.");
         }
         request.getRequestDispatcher(USER_DETAIL_JSP).forward(request, response);
+    }
+
+    private void handleViewStatusChange(HttpServletRequest request, HttpServletResponse response,
+                                        String servletPath)
+            throws ServletException, IOException {
+        Long actorUserId = extractActorUserId(request);
+        if (actorUserId == null) {
+            response.sendRedirect(request.getContextPath() + "/login?expired=1");
+            return;
+        }
+        if (!hasPermissionAdminRole(request)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        Long targetUserId = parsePositiveLong(request.getParameter("userId"));
+        if (targetUserId == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        try {
+            StatusChangeResult result;
+            if ("/users/unlock".equals(servletPath)) {
+                result = userService.unlockUser(targetUserId);
+                if (result == StatusChangeResult.SUCCESS) {
+                    response.sendRedirect(request.getContextPath()
+                            + "/users/detail?id=" + targetUserId + "&unlocked=1");
+                    return;
+                }
+            } else {
+                if (!isConfirmed(request.getParameter("confirm"))) {
+                    request.setAttribute("error", "Vui lòng xác nhận thao tác khóa và bàn giao.");
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    loadDetail(request, response, targetUserId);
+                    return;
+                }
+
+                Long recipientUserId = null;
+                String recipientValue = request.getParameter("recipientId");
+                if (recipientValue != null && !recipientValue.isBlank()) {
+                    recipientUserId = parsePositiveLong(recipientValue);
+                    if (recipientUserId == null) {
+                        request.setAttribute("error", "Người tiếp nhận không hợp lệ.");
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        loadDetail(request, response, targetUserId);
+                        return;
+                    }
+                }
+
+                result = userService.lockUser(targetUserId, actorUserId, recipientUserId,
+                        request.getParameter("reason"));
+                if (result == StatusChangeResult.SUCCESS) {
+                    response.sendRedirect(request.getContextPath()
+                            + "/users/detail?id=" + targetUserId + "&locked=1");
+                    return;
+                }
+            }
+
+            request.setAttribute("error", statusChangeMessage(result));
+            response.setStatus(result == StatusChangeResult.TARGET_NOT_FOUND
+                    || result == StatusChangeResult.RECIPIENT_NOT_FOUND
+                    ? HttpServletResponse.SC_NOT_FOUND
+                    : HttpServletResponse.SC_CONFLICT);
+            loadDetail(request, response, targetUserId);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Unable to process user status change view", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String statusChangeMessage(StatusChangeResult result) {
+        return switch (result) {
+            case INVALID_REASON -> "Lý do khóa là bắt buộc và không được vượt quá 500 ký tự.";
+            case SELF_LOCK -> "Bạn không thể tự khóa tài khoản đang đăng nhập.";
+            case TARGET_NOT_FOUND -> "Không tìm thấy tài khoản cần xử lý.";
+            case INVALID_CURRENT_STATUS -> "Trạng thái tài khoản đã thay đổi. Vui lòng tải lại trang.";
+            case RECIPIENT_REQUIRED -> "Tài khoản đang phụ trách khách hàng hoặc cơ hội. Vui lòng chọn người tiếp nhận.";
+            case SAME_USER -> "Người tiếp nhận không được trùng với tài khoản bị khóa.";
+            case RECIPIENT_NOT_FOUND -> "Không tìm thấy người tiếp nhận đã chọn.";
+            case RECIPIENT_NOT_ACTIVE -> "Người tiếp nhận phải là tài khoản đang hoạt động.";
+            case UPDATE_CONFLICT -> "Không thể cập nhật trạng thái tài khoản do có thay đổi đồng thời.";
+            case TRANSFER_INCOMPLETE -> "Bàn giao chưa hoàn tất. Toàn bộ thao tác khóa đã được hoàn tác.";
+            case SUCCESS -> "Thao tác hoàn tất.";
+        };
     }
 
     private Long extractActorUserId(HttpServletRequest request) {

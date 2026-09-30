@@ -1,4 +1,54 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.util.List, com.crm.dto.permissions.MenuItem" %>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
+<%!
+    private String sidebarEscapeHtml(String input) {
+        if (input == null) return "";
+        return input.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    private String sidebarResolveUrl(String url, String contextPath) {
+        if (url == null || url.trim().isEmpty()) return null;
+        String normalized = url.trim();
+        if (normalized.startsWith("http://") || normalized.startsWith("https://")
+                || normalized.startsWith("//") || normalized.startsWith("#")) {
+            return normalized;
+        }
+        if (normalized.startsWith("/") && contextPath != null && !contextPath.isEmpty()
+                && !"/".equals(contextPath) && !normalized.equals(contextPath)
+                && !normalized.startsWith(contextPath + "/")) {
+            return contextPath + normalized;
+        }
+        return normalized;
+    }
+
+    private boolean sidebarUrlActive(String url, String currentUri, String contextPath) {
+        String resolved = sidebarResolveUrl(url, contextPath);
+        if (resolved == null || currentUri == null) return false;
+        String target = resolved.length() > 1 && resolved.endsWith("/")
+                ? resolved.substring(0, resolved.length() - 1) : resolved;
+        String current = currentUri.length() > 1 && currentUri.endsWith("/")
+                ? currentUri.substring(0, currentUri.length() - 1) : currentUri;
+        return current.equals(target) || (!"/".equals(target) && current.startsWith(target + "/"));
+    }
+%>
+<%
+    Object sidebarRawMenuItems = request.getAttribute("menuItems");
+    List<MenuItem> sidebarServerMenuItems = null;
+    if (sidebarRawMenuItems instanceof List<?>) {
+        sidebarServerMenuItems = (List<MenuItem>) sidebarRawMenuItems;
+    }
+    boolean sidebarHasServerMenu = sidebarServerMenuItems != null && !sidebarServerMenuItems.isEmpty();
+    String sidebarCurrentUri = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
+    if (sidebarCurrentUri == null || sidebarCurrentUri.isEmpty()) {
+        sidebarCurrentUri = request.getRequestURI();
+    }
+    String sidebarContextPath = request.getContextPath();
+%>
 <!-- Backdrop overlay khi mở mobile sidebar drawer (AC 3) -->
 <div class="sidebar__backdrop" id="crmSidebarBackdrop" aria-hidden="true"></div>
 
@@ -20,8 +70,8 @@
         <div class="sidebar__section">
             <span class="sidebar__section-label">Menu chức năng</span>
 
-            <!-- Loading Skeleton khi tải menu động từ API -->
-            <div class="sidebar__loading" id="crmSidebarLoading" aria-hidden="true">
+            <!-- Menu server-render từ MenuService là fallback; API CRM-26 sẽ đồng bộ khi khả dụng. -->
+            <div class="sidebar__loading" id="crmSidebarLoading" aria-hidden="true"<%= sidebarHasServerMenu ? " style=\"display: none;\"" : "" %>>
                 <div class="sidebar__skeleton-item"></div>
                 <div class="sidebar__skeleton-item"></div>
                 <div class="sidebar__skeleton-item"></div>
@@ -35,8 +85,76 @@
                 <span class="sidebar__empty-text">Không có menu khả dụng cho tài khoản này</span>
             </div>
 
-            <!-- Danh sách các mục menu động được render bằng JS -->
-            <ul class="sidebar__menu" id="crmSidebarMenuList" style="display: none;"></ul>
+            <!-- Một danh sách duy nhất: render server trước, sau đó API có thể thay nội dung. -->
+            <ul class="sidebar__menu" id="crmSidebarMenuList" style="display: <%= sidebarHasServerMenu ? "flex" : "none" %>;">
+                <% if (sidebarHasServerMenu) {
+                    for (MenuItem item : sidebarServerMenuItems) {
+                        if (item == null) continue;
+                        String itemCode = item.getCode();
+                        String itemUrl = item.getUrl();
+                        String itemResolvedUrl = sidebarResolveUrl(itemUrl, sidebarContextPath);
+                        List<MenuItem> children = item.getChildren();
+                        boolean hasChildren = children != null && !children.isEmpty();
+                        boolean selfActive = sidebarUrlActive(itemUrl, sidebarCurrentUri, sidebarContextPath);
+                        boolean childActive = false;
+                        if (hasChildren) {
+                            for (MenuItem child : children) {
+                                if (child != null && sidebarUrlActive(child.getUrl(), sidebarCurrentUri, sidebarContextPath)) {
+                                    childActive = true;
+                                    break;
+                                }
+                            }
+                        }
+                        boolean logoutItem = "LOGOUT".equals(itemCode);
+                %>
+                    <li class="sidebar__item<%= (selfActive || childActive) ? " sidebar__item--active" : "" %><%= hasChildren ? " sidebar__item--has-children" : "" %>">
+                        <% if (logoutItem) { %>
+                            <form class="sidebar__logout-form" method="post" action="<%= sidebarEscapeHtml(itemResolvedUrl) %>">
+                                <input type="hidden" name="redirectToLogin" value="true">
+                                <button type="submit" class="sidebar__link sidebar__logout-button">
+                                    <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarEscapeHtml(item.getIcon()) %></span>
+                                    <span class="sidebar__text"><%= sidebarEscapeHtml(item.getLabel()) %></span>
+                                </button>
+                            </form>
+                        <% } else if (itemResolvedUrl != null) { %>
+                            <a href="<%= sidebarEscapeHtml(itemResolvedUrl) %>" class="sidebar__link<%= selfActive ? " sidebar__link--active" : "" %>">
+                                <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarEscapeHtml(item.getIcon()) %></span>
+                                <span class="sidebar__text"><%= sidebarEscapeHtml(item.getLabel()) %></span>
+                            </a>
+                        <% } else { %>
+                            <div class="sidebar__link sidebar__link--disabled" aria-disabled="true">
+                                <span class="sidebar__icon" aria-hidden="true">•</span>
+                                <span class="sidebar__text"><%= sidebarEscapeHtml(item.getLabel()) %></span>
+                            </div>
+                        <% } %>
+
+                        <% if (hasChildren) { %>
+                            <ul class="sidebar__submenu">
+                                <% for (MenuItem child : children) {
+                                    if (child == null) continue;
+                                    String childResolvedUrl = sidebarResolveUrl(child.getUrl(), sidebarContextPath);
+                                    boolean childIsActive = sidebarUrlActive(child.getUrl(), sidebarCurrentUri, sidebarContextPath);
+                                %>
+                                    <li class="sidebar__subitem">
+                                        <% if (childResolvedUrl != null) { %>
+                                            <a href="<%= sidebarEscapeHtml(childResolvedUrl) %>" class="sidebar__link<%= childIsActive ? " sidebar__link--active" : "" %>">
+                                                <span class="sidebar__icon" aria-hidden="true">•</span>
+                                                <span class="sidebar__text"><%= sidebarEscapeHtml(child.getLabel()) %></span>
+                                            </a>
+                                        <% } else { %>
+                                            <div class="sidebar__link sidebar__link--disabled" aria-disabled="true">
+                                                <span class="sidebar__icon" aria-hidden="true">•</span>
+                                                <span class="sidebar__text"><%= sidebarEscapeHtml(child.getLabel()) %></span>
+                                            </div>
+                                        <% } %>
+                                    </li>
+                                <% } %>
+                            </ul>
+                        <% } %>
+                    </li>
+                <%  }
+                } %>
+            </ul>
         </div>
     </nav>
 
@@ -124,6 +242,9 @@
     var loadingEl = document.getElementById('crmSidebarLoading');
     var emptyEl = document.getElementById('crmSidebarEmpty');
     var menuListEl = document.getElementById('crmSidebarMenuList');
+    var hasServerRenderedMenu = menuListEl && menuListEl.children.length > 0;
+    var sessionRoles = [];
+    var sessionProfileLoaded = false;
 
     // User Profile Elements - Sidebar & Header (AC 2)
     var sidebarAvatar = document.getElementById('crmSidebarAvatarText');
@@ -144,11 +265,13 @@
             });
 
             if (!response.ok) return;
+            sessionProfileLoaded = true;
 
             var resBody = await response.json();
             var data = resBody && resBody.data ? resBody.data : {};
             var user = data.currentUser || {};
             var roles = Array.isArray(data.roles) ? data.roles : [];
+            sessionRoles = roles.slice();
 
             // Họ tên hiển thị
             var displayName = user.fullName || user.username || 'Tài khoản CRM';
@@ -190,9 +313,9 @@
 
     // 2. Tải cấu trúc Menu theo quyền người dùng từ Menu API (AC 1)
     async function loadNavigationMenu() {
-        loadingEl.style.display = 'flex';
+        loadingEl.style.display = hasServerRenderedMenu ? 'none' : 'flex';
         emptyEl.style.display = 'none';
-        menuListEl.style.display = 'none';
+        menuListEl.style.display = hasServerRenderedMenu ? 'flex' : 'none';
 
         try {
             var response = await fetch(contextPath + '/api/navigation/menu', {
@@ -202,7 +325,7 @@
             loadingEl.style.display = 'none';
 
             if (!response.ok) {
-                emptyEl.style.display = 'flex';
+                if (!hasServerRenderedMenu) emptyEl.style.display = 'flex';
                 return;
             }
 
@@ -210,9 +333,15 @@
             var menuData = resBody && resBody.data ? resBody.data : {};
             var menuItems = Array.isArray(menuData.menuItems) ? menuData.menuItems : [];
 
+            // Không thay menu server đã được permission-filter nếu session API chưa xác nhận role.
+            if (hasServerRenderedMenu && !sessionProfileLoaded) {
+                return;
+            }
+            menuItems = mergeDevelopNavigation(menuItems);
+
             // AC 1: Không có quyền thì không hiển thị
             if (menuItems.length === 0) {
-                emptyEl.style.display = 'flex';
+                if (!hasServerRenderedMenu) emptyEl.style.display = 'flex';
                 return;
             }
 
@@ -222,8 +351,64 @@
         } catch (err) {
             console.error('Không thể nạp menu điều hướng:', err);
             loadingEl.style.display = 'none';
-            emptyEl.style.display = 'flex';
+            if (!hasServerRenderedMenu) emptyEl.style.display = 'flex';
         }
+    }
+
+    function normalizeMenuUrl(url) {
+        if (!url) return '';
+        var normalized = String(url).trim();
+        if (contextPath && normalized.indexOf(contextPath + '/') === 0) {
+            normalized = normalized.substring(contextPath.length);
+        }
+        if (normalized.length > 1 && normalized.endsWith('/')) {
+            normalized = normalized.substring(0, normalized.length - 1);
+        }
+        return normalized;
+    }
+
+    function menuContainsUrl(items, targetUrl) {
+        var target = normalizeMenuUrl(targetUrl);
+        return items.some(function (item) {
+            var config = MODULE_CONFIGS[item.code || ''] || {};
+            var itemUrl = normalizeMenuUrl(item.url || config.defaultUrl);
+            if (itemUrl && itemUrl === target) return true;
+
+            var children = (Array.isArray(item.children) && item.children.length > 0)
+                ? item.children
+                : (config.children || []);
+            return children.some(function (child) {
+                return normalizeMenuUrl(child.url) === target;
+            });
+        });
+    }
+
+    // Bổ sung các route mới từ develop nhưng khử trùng với module/children CRM-26.
+    function mergeDevelopNavigation(apiItems) {
+        var merged = apiItems.slice();
+        var normalizedRoles = sessionRoles.map(function (role) {
+            return String(role || '').trim().toLowerCase();
+        });
+        var canAdministerPermissions = normalizedRoles.includes('admin') || normalizedRoles.includes('director');
+
+        var leadingItems = [
+            { code: 'DASHBOARD', label: 'Tổng quan', url: '/dashboard', icon: '⌂', children: [] }
+        ];
+        var trailingItems = [];
+        if (canAdministerPermissions) {
+            trailingItems.push({ code: 'USERS', label: 'Quản lý người dùng', url: '/users', icon: '👥', children: [] });
+            trailingItems.push({ code: 'PERMISSIONS', label: 'Phân quyền & vai trò', url: '/permissions', icon: '⚿', children: [] });
+        }
+        trailingItems.push({ code: 'CHANGE_PASSWORD', label: 'Đổi mật khẩu', url: '/change-password', icon: '●', children: [] });
+        trailingItems.push({ code: 'LOGOUT', label: 'Đăng xuất', url: '/api/auth/logout', icon: '↪', children: [] });
+
+        leadingItems.reverse().forEach(function (item) {
+            if (!menuContainsUrl(merged, item.url)) merged.unshift(item);
+        });
+        trailingItems.forEach(function (item) {
+            if (!menuContainsUrl(merged, item.url)) merged.push(item);
+        });
+        return merged;
     }
 
     // 3. Render danh sách các mục Menu động vào DOM
@@ -261,7 +446,18 @@
             var li = document.createElement('li');
             li.className = 'sidebar__item' + (isItemActive ? ' sidebar__item--active' : '') + (hasChildren ? ' sidebar__item--has-children' : '');
 
-            if (fullUrl) {
+            if (code === 'LOGOUT' && fullUrl) {
+                var logoutForm = document.createElement('form');
+                logoutForm.className = 'sidebar__logout-form';
+                logoutForm.method = 'post';
+                logoutForm.action = fullUrl;
+                logoutForm.innerHTML = '<input type="hidden" name="redirectToLogin" value="true">' +
+                    '<button type="submit" class="sidebar__link sidebar__logout-button">' +
+                        '<span class="sidebar__icon sidebar__icon--custom" aria-hidden="true">' + iconSvg + '</span>' +
+                        '<span class="sidebar__text">' + escapeHtml(label) + '</span>' +
+                    '</button>';
+                li.appendChild(logoutForm);
+            } else if (fullUrl) {
                 var a = document.createElement('a');
                 a.href = fullUrl;
                 a.className = 'sidebar__link' + (isSelfActive ? ' sidebar__link--active' : '');
@@ -381,8 +577,10 @@
             .replace(/'/g, '&#39;');
     }
 
-    // Khởi chạy
-    loadUserProfile();
-    loadNavigationMenu();
+    // Khởi chạy tuần tự để role từ session được dùng khi ghép menu develop.
+    (async function initializeSidebar() {
+        await loadUserProfile();
+        await loadNavigationMenu();
+    })();
 })();
 </script>

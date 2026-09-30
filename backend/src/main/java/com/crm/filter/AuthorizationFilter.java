@@ -28,12 +28,12 @@ public class AuthorizationFilter implements Filter {
         try {
             session = httpRequest.getSession(false);
         } catch (IllegalStateException e) {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            rejectUnauthenticated(httpRequest, httpResponse);
             return;
         }
 
         if (session == null) {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            rejectUnauthenticated(httpRequest, httpResponse);
             return;
         }
 
@@ -43,12 +43,12 @@ public class AuthorizationFilter implements Filter {
             currentUser = session.getAttribute(SessionKey.CURRENT_USER);
             rolesValue = session.getAttribute(SessionKey.ROLES);
         } catch (IllegalStateException e) {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            rejectUnauthenticated(httpRequest, httpResponse);
             return;
         }
 
         if (currentUser == null) {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            rejectUnauthenticated(httpRequest, httpResponse);
             return;
         }
 
@@ -69,5 +69,14 @@ public class AuthorizationFilter implements Filter {
         }
 
         chain.doFilter(request, response);
+    }
+
+    private void rejectUnauthenticated(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/api/")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/login?expired=1");
+        }
     }
 }
