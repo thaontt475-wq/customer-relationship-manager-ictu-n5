@@ -819,6 +819,8 @@
                     body: JSON.stringify(payload)
                 });
 
+                // Chỉ dùng endpoint cũ để tương thích với backend chưa migrate.
+                // Kết quả fallback vẫn phải là phản hồi thành công thực từ server.
                 if (response.status === 404) {
                     response = await fetch(contextPath + '/users/import/execute', {
                         method: 'POST',
@@ -830,26 +832,33 @@
                     });
                 }
 
+                var resJson = null;
+                try {
+                    resJson = await response.json();
+                } catch (parseError) {
+                    console.error('Phản hồi confirm import không phải JSON hợp lệ:', parseError);
+                }
+
+                var apiReportedFailure = resJson && resJson.success === false;
                 if (response.ok) {
-                    var resJson = await response.json();
-                    handleConfirmSuccess(resJson);
+                    if (apiReportedFailure) {
+                        var rejectedMessage = resJson.message || 'Máy chủ từ chối xác nhận nhập người dùng.';
+                        showError(rejectedMessage + ' Dữ liệu chưa được lưu vào hệ thống.');
+                    } else if (resJson) {
+                        handleConfirmSuccess(resJson);
+                    } else {
+                        showError('Máy chủ không trả về kết quả xác nhận hợp lệ. Dữ liệu chưa được lưu vào hệ thống.');
+                    }
                 } else {
-                    // Fallback mô phỏng hoàn tất nếu backend chưa triển khai endpoint execute
-                    handleConfirmSuccess({
-                        created: state.validRows.length,
-                        skipped: state.errorRows.length,
-                        items: state.validRows
-                    });
+                    var errorMessage = resJson && resJson.message
+                        ? resJson.message
+                        : 'Không thể xác nhận nhập người dùng (Mã lỗi: ' + response.status + ').';
+                    showError(errorMessage + ' Dữ liệu chưa được lưu vào hệ thống.');
                 }
 
             } catch (err) {
                 console.error('Lỗi khi xác nhận import:', err);
-                // Fallback mô phỏng hoàn tất
-                handleConfirmSuccess({
-                    created: state.validRows.length,
-                    skipped: state.errorRows.length,
-                    items: state.validRows
-                });
+                showError('Không thể kết nối tới máy chủ để xác nhận nhập người dùng. Dữ liệu chưa được lưu vào hệ thống.');
             } finally {
                 btnConfirmImport.disabled = false;
                 btnBackToUpload.disabled = false;
