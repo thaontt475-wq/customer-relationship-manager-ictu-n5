@@ -1,41 +1,69 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.util.Collection,java.util.Locale,java.util.Map,com.crm.model.Role,com.crm.model.User,com.crm.util.SessionKey" %>
+<%@ page import="java.util.List,com.crm.model.PipelineStage,com.crm.controller.ServerForms" %>
 <%!
- private boolean isSettingsAdminRole(Object value) {
-   if (value == null) return false;
-   if (value instanceof Collection<?>) { for (Object item : (Collection<?>) value) if (isSettingsAdminRole(item)) return true; return false; }
-   if (value instanceof Role) return isSettingsAdminRole(((Role) value).getName());
-   if (value instanceof Map<?, ?> && ((Map<?, ?>) value).get("name") != null) return isSettingsAdminRole(((Map<?, ?>) value).get("name"));
-   String role = String.valueOf(value).trim().toUpperCase(Locale.ROOT);
-   if (role.startsWith("ROLE_")) role = role.substring(5);
-   return "ADMIN".equals(role) || "ADMINISTRATOR".equals(role) || "SYSTEM_ADMIN".equals(role) || "DIRECTOR".equals(role)
-       || "GIÁM ĐỐC".equals(role) || "GIAM DOC".equals(role) || "QUẢN TRỊ VIÊN".equals(role) || "QUAN TRI VIEN".equals(role);
- }
+private String esc(Object value) {
+    if (value == null) return "";
+    return value.toString().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;").replace("'","&#39;");
+}
 %>
 <%
- boolean settingsCanManage = isSettingsAdminRole(session.getAttribute(SessionKey.ROLES));
- Object settingsCurrentUser = session.getAttribute(SessionKey.CURRENT_USER);
- if (!settingsCanManage && settingsCurrentUser instanceof User) {
-   settingsCanManage = isSettingsAdminRole(((User) settingsCurrentUser).getRoles()) || isSettingsAdminRole(((User) settingsCurrentUser).getRole());
- } else if (!settingsCanManage && settingsCurrentUser instanceof Map<?, ?>) {
-   settingsCanManage = isSettingsAdminRole(((Map<?, ?>) settingsCurrentUser).get("roles")) || isSettingsAdminRole(((Map<?, ?>) settingsCurrentUser).get("role"));
- }
+List<PipelineStage> stages=(List<PipelineStage>)request.getAttribute("stages");
+if(stages==null) stages=java.util.Collections.emptyList();
+PipelineStage edit=(PipelineStage)request.getAttribute("editStage");
+long pipelineId=request.getAttribute("pipelineId") instanceof Number ? ((Number)request.getAttribute("pipelineId")).longValue() : 1L;
+String activeFilter=(String)request.getAttribute("activeFilter");
+if(activeFilter==null)activeFilter="";
+boolean manage=Boolean.TRUE.equals(request.getAttribute("canManage"));
+String prefix=request.getContextPath();
 %>
-<!DOCTYPE html>
-<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Cấu hình quy trình bán hàng - CRM ICTU</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/pipeline/pipeline.css"></head>
-<body class="crm-body"><jsp:include page="/jsp/shared/header.jsp" /><div class="crm-main-layout"><jsp:include page="/jsp/shared/sidebar.jsp" />
-<main class="crm-page crm-settings pipeline-page" id="pipelineApp" data-settings-app data-context-path="${pageContext.request.contextPath}" data-can-manage="<%= settingsCanManage %>"><div class="crm-page-container crm-settings-content pipeline-container">
-<nav class="crm-breadcrumb" aria-label="Đường dẫn"><a href="${pageContext.request.contextPath}/dashboard">Trang chủ</a><span aria-hidden="true">/</span><span aria-current="page">Cấu hình quy trình bán hàng</span></nav>
-<header class="crm-page-header crm-settings-header"><div><h1 class="crm-page-title">Cấu hình quy trình bán hàng</h1><p class="crm-page-description">Quản lý thứ tự giai đoạn, xác suất thắng và điều kiện chuyển bước.</p></div></header>
-<div class="crm-settings-notices" aria-live="polite"><div id="globalErrorAlert" class="crm-alert crm-alert-danger" hidden role="alert"><div id="globalErrorMessage"></div><button type="button" class="crm-settings-icon" data-dismiss="globalErrorAlert" aria-label="Đóng thông báo lỗi">&times;</button></div><div id="globalSuccessAlert" class="crm-alert crm-alert-success" hidden role="status"><div id="globalSuccessMessage"></div><button type="button" class="crm-settings-icon" data-dismiss="globalSuccessAlert" aria-label="Đóng thông báo">&times;</button></div></div>
-<section class="crm-card"><header class="crm-card-header"><div><h2 class="crm-card-title" id="pipelineCardTitle">Giai đoạn bán hàng</h2><p class="crm-settings-summary" id="stageSummary">Đang tải…</p></div><button type="button" class="crm-btn crm-btn-primary" id="btnOpenCreateStageModal" data-create <%= settingsCanManage ? "" : "hidden" %>>Thêm giai đoạn</button></header>
-<div class="crm-card-body"><div class="pipeline-stepper" id="pipelineStepper" aria-label="Thứ tự giai đoạn"></div><div class="crm-toolbar crm-settings-toolbar"><input type="search" class="crm-input" id="stageSearchInput" placeholder="Tìm mã hoặc tên giai đoạn" aria-label="Tìm giai đoạn"><select class="crm-select" id="stageStatusFilter" aria-label="Lọc trạng thái"><option value="">Tất cả trạng thái</option><option value="true">Đang sử dụng</option><option value="false">Ngừng sử dụng</option></select><button type="button" class="crm-btn crm-btn-secondary" id="btnReloadStages">Làm mới</button></div>
-<div class="crm-state crm-state-loading" id="pipelineLoadingOverlay" hidden role="status">Đang tải giai đoạn…</div><div class="crm-table-wrap" tabindex="0" role="region" aria-label="Bảng giai đoạn, cuộn ngang để xem đủ thông tin"><table class="crm-table crm-settings-table" id="stageTable"><thead><tr><th scope="col">Thứ tự</th><th scope="col">Mã</th><th scope="col">Giai đoạn</th><th scope="col">Xác suất thắng</th><th scope="col">Điều kiện chuyển bước</th><th scope="col">Cơ hội</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead><tbody id="stageTableBody"></tbody></table></div></div></section>
-</div><div class="crm-modal-overlay" id="stageModal" hidden role="dialog" aria-modal="true" aria-labelledby="stageModalTitle"><div class="crm-modal-card"><header class="crm-modal-header"><h2 class="crm-modal-title" id="stageModalTitle"><span id="stageModalHeading">Thêm giai đoạn</span></h2><button type="button" class="crm-modal-close" id="btnCloseStageModal" data-modal-close aria-label="Đóng biểu mẫu">&times;</button></header><form id="stageForm" novalidate><div class="crm-modal-body"><div class="crm-alert crm-alert-danger" id="stageFormError" data-form-error hidden role="alert"></div><input type="hidden" id="formStageId" name="id"><div class="crm-alert crm-alert-info" id="noticeActiveDealsAlert" hidden><span id="noticeActiveDealsText"></span></div><div class="crm-form-group"><label class="crm-label" for="formStageCode">Mã giai đoạn <span class="crm-settings-required">*</span></label><input id="formStageCode" name="code" type="text" class="crm-input" required  aria-describedby="feedbackStageCode"><div class="crm-field-error form-feedback" id="feedbackStageCode"></div></div><div class="crm-form-group"><label class="crm-label" for="formStageName">Tên giai đoạn <span class="crm-settings-required">*</span></label><input id="formStageName" name="name" type="text" class="crm-input" required  aria-describedby="feedbackStageName"><div class="crm-field-error form-feedback" id="feedbackStageName"></div></div><div class="crm-form-group"><label class="crm-label" for="formWinProbability">Xác suất thắng (%) <span class="crm-settings-required">*</span></label><div class="pipeline-probability"><input type="range" id="formWinProbSlider" min="0" max="100" step="5" value="50" aria-label="Điều chỉnh xác suất thắng"><input type="number" id="formWinProbability" name="winProbability" class="crm-input" min="0" max="100" step="1" value="50" required aria-describedby="feedbackWinProbability"></div><div class="crm-field-error form-feedback" id="feedbackWinProbability"></div></div><div class="crm-form-group"><label class="crm-label" for="formExitCriteria">Điều kiện chuyển bước <span class="crm-settings-required">*</span></label><textarea id="formExitCriteria" name="exitCriteria" class="crm-textarea" rows="3" required aria-describedby="feedbackExitCriteria"></textarea><div class="crm-field-error form-feedback" id="feedbackExitCriteria"></div></div><div class="crm-settings-grid"><div class="crm-form-group"><label class="crm-label" for="formStageSortOrder">Thứ tự hiển thị <span class="crm-settings-required">*</span></label><input id="formStageSortOrder" name="sortOrder" type="number" class="crm-input" required min="1" step="1" value="1" aria-describedby="feedbackStageSortOrder"><div class="crm-field-error form-feedback" id="feedbackStageSortOrder"></div></div><div class="crm-form-group"><label class="crm-label" for="formStageActive">Trạng thái <span class="crm-settings-required">*</span></label><select id="formStageActive" name="active" class="crm-select" required aria-describedby="feedbackStageActive"><option value="true">Đang sử dụng</option><option value="false">Ngừng sử dụng</option></select><div class="crm-field-error form-feedback" id="feedbackStageActive"></div></div></div></div><footer class="crm-modal-footer"><button type="button" class="crm-btn crm-btn-secondary" id="btnCancelStageModal" data-modal-close>Hủy</button><button type="submit" class="crm-btn crm-btn-primary" id="btnSaveStage">Lưu</button></footer></form></div></div><div class="crm-modal-overlay" id="activeDealsNoticeModal" hidden role="dialog" aria-modal="true" aria-labelledby="activeDealsModalTitle"><div class="crm-modal-card"><header class="crm-modal-header"><h2 class="crm-modal-title" id="activeDealsModalTitle"><span id="dealsModalHeading">Xác nhận thao tác</span></h2><button type="button" class="crm-modal-close" id="btnCloseDealsModal" data-modal-close aria-label="Đóng biểu mẫu">&times;</button></header><form id="stageDeleteForm" novalidate><div class="crm-modal-body"><div class="crm-alert crm-alert-danger" id="stageDeleteFormError" data-form-error hidden role="alert"></div><p id="activeDealsModalContent"></p></div><footer class="crm-modal-footer"><button type="button" class="crm-btn crm-btn-secondary" id="btnCancelDealsModal" data-modal-close>Hủy</button><button type="submit" class="crm-btn crm-btn-primary" id="btnConfirmDeactivateStage">Xác nhận</button></footer></form></div></div></main></div><jsp:include page="/jsp/shared/footer.jsp" />
-<script src="${pageContext.request.contextPath}/js/shared/settings-ui.js" defer></script><script src="${pageContext.request.contextPath}/js/pipeline/pipeline.js" defer></script></body></html>
+<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cấu hình pipeline - CRM</title>
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/common.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/layout.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/header.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/sidebar.css">
+<style>
+.pipeline-page{padding:24px;min-width:0;flex:1}.pipe-box{background:var(--surface,#fff);border:1px solid #ddd;border-radius:10px;padding:20px;margin:14px 0}
+.pipe-form{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.pipe-form label{display:grid;gap:5px}
+.pipe-form input,.pipe-form textarea,.pipe-form select{width:100%;padding:9px;border:1px solid #aaa;border-radius:6px}
+.pipe-scroll{overflow-x:auto}.pipe-scroll table{width:100%;border-collapse:collapse}.pipe-scroll th,.pipe-scroll td{border-bottom:1px solid #ddd;padding:10px;text-align:left}
+.pipe-btn{display:inline-block;padding:9px 13px;border:1px solid #888;border-radius:6px;background:#f7f7f7;color:#222;text-decoration:none;cursor:pointer}
+.pipe-btn.primary{background:#194a83;color:white}.pipe-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.pipe-warning{padding:12px;border:1px solid #a46b22;border-radius:5px}
+@media(max-width:600px){.pipeline-page{padding:10px}.pipe-box{padding:12px}}
+</style></head><body class="crm-body"><jsp:include page="/jsp/shared/header.jsp"/>
+<div class="crm-main-layout"><jsp:include page="/jsp/shared/sidebar.jsp"/>
+<main class="pipeline-page"><h1>Cấu hình giai đoạn bán hàng</h1><p>Quản lý xác suất thắng và điều kiện chuyển bước. Không cần JavaScript.</p>
+<%if(request.getAttribute("notice")!=null){%><p role="status" class="pipe-warning"><%=esc(request.getAttribute("notice"))%></p><%}%>
+<section class="pipe-box"><h2>Danh sách giai đoạn</h2>
+<form method="get" action="<%=esc(prefix)%>/pipeline/page" class="pipe-row">
+<label>ID pipeline <input type="number" min="1" name="pipelineId" value="<%=pipelineId%>" required></label>
+<label>Trạng thái <select name="active"><option value="">Tất cả</option><option value="true" <%= "true".equals(activeFilter)?"selected":"" %>>Đang dùng</option><option value="false" <%= "false".equals(activeFilter)?"selected":"" %>>Ngừng dùng</option></select></label>
+<button type="submit" class="pipe-btn primary">Lọc</button><a class="pipe-btn" href="<%=esc(prefix)%>/pipeline/page">Xóa lọc</a></form>
+<div class="pipe-scroll"><table><thead><tr><th>Thứ tự</th><th>Mã</th><th>Tên</th><th>Tỷ lệ thắng</th><th>Điều kiện chuyển</th><th>Loại</th><th>Trạng thái</th><%if(manage){%><th>Thao tác</th><%}%></tr></thead><tbody>
+<%for(PipelineStage stage:stages){%><tr>
+<td><%=stage.getStageOrder()%></td><td><%=esc(stage.getCode())%></td><td><%=esc(stage.getName())%></td>
+<td><%=stage.getWinProbability()%>%</td><td><%=esc(stage.getRequirements())%></td><td><%=stage.isWon()?"Thắng":stage.isLost()?"Thua":"Thông thường"%></td><td><%=stage.isActive()?"Đang dùng":"Ngừng dùng"%></td>
+<%if(manage){%><td><a href="<%=esc(prefix)%>/pipeline/page?pipelineId=<%=pipelineId%>&edit=<%=stage.getId()%>">Sửa</a>
+<form method="post" action="<%=esc(prefix)%>/pipeline/page">
+<input type="hidden" name="csrfToken" value="<%=esc(ServerForms.csrf(request))%>"><input type="hidden" name="pipelineId" value="<%=pipelineId%>">
+<input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<%=stage.getId()%>">
+<label>Chuyển cơ hội tới: <select name="targetStageId"><option value="">Không chuyển</option>
+<%for(PipelineStage candidate:stages){if(!candidate.getId().equals(stage.getId())){%><option value="<%=candidate.getId()%>"><%=esc(candidate.getName())%></option><%}}%>
+</select></label><label><input type="checkbox" name="confirm" value="yes" required>Xác nhận xóa</label><button type="submit" class="pipe-btn">Xóa</button>
+</form></td><%}%></tr><%}%>
+<%if(stages.isEmpty()){%><tr><td colspan="8">Chưa có giai đoạn phù hợp.</td></tr><%}%>
+</tbody></table></div></section>
+<%if(manage){%><section class="pipe-box"><h2><%=edit==null?"Thêm giai đoạn":"Chỉnh sửa giai đoạn"%></h2>
+<form method="post" action="<%=esc(prefix)%>/pipeline/page" class="pipe-form">
+<input type="hidden" name="csrfToken" value="<%=esc(ServerForms.csrf(request))%>"><input type="hidden" name="pipelineId" value="<%=pipelineId%>">
+<input type="hidden" name="action" value="<%=edit==null?"create":"update"%>"><%if(edit!=null){%><input type="hidden" name="id" value="<%=edit.getId()%>"><%}%>
+<label>Mã giai đoạn<input type="text" name="code" maxlength="50" required value="<%=edit==null?"":esc(edit.getCode())%>"></label>
+<label>Tên giai đoạn<input type="text" name="name" maxlength="150" required value="<%=edit==null?"":esc(edit.getName())%>"></label>
+<label>Thứ tự<input type="number" name="stageOrder" min="1" required value="<%=edit==null?1:edit.getStageOrder()%>"></label>
+<label>Xác suất thắng (%)<input type="number" name="winProbability" min="0" max="100" required value="<%=edit==null?50:edit.getWinProbability()%>"></label>
+<label>Loại<select name="outcome"><option value="normal">Thông thường</option><option value="won" <%=edit!=null&&edit.isWon()?"selected":""%>>Thắng</option><option value="lost" <%=edit!=null&&edit.isLost()?"selected":""%>>Thua</option></select></label>
+<label>Trạng thái<select name="active"><option value="true" <%=edit==null||edit.isActive()?"selected":""%>>Đang dùng</option><option value="false" <%=edit!=null&&!edit.isActive()?"selected":""%>>Ngừng dùng</option></select></label>
+<label style="grid-column:1/-1">Điều kiện rời giai đoạn<textarea rows="3" name="requirements" maxlength="2000"><%=edit==null?"":esc(edit.getRequirements())%></textarea></label>
+<div class="pipe-row"><button type="submit" class="pipe-btn primary"><%=edit==null?"Thêm giai đoạn":"Lưu"%></button><%if(edit!=null){%><a href="<%=esc(prefix)%>/pipeline/page?pipelineId=<%=pipelineId%>">Hủy sửa</a><%}%></div>
+</form></section><%}%>
+</main></div></body></html>

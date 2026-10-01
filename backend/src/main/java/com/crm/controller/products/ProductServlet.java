@@ -61,6 +61,10 @@ public class ProductServlet extends HttpServlet {
 
         Long actorUserId = extractActorUserId(request);
         boolean isApi = isApiRequest(request);
+        if (!isApi && (request.getPathInfo() == null || "/".equals(request.getPathInfo()))) {
+            response.sendRedirect(request.getContextPath() + "/products/page");
+            return;
+        }
 
         if (actorUserId == null) {
             if (isApi) {

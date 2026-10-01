@@ -60,7 +60,7 @@
                             </svg>
                             Thời gian ghi nhận:
                         </span>
-                        <span class="err-diag-value" id="diagTimestamp">Đang cập nhật...</span>
+                        <span class="err-diag-value" id="diagTimestamp"><%= java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) %></span>
                     </div>
                     <div class="err-diag-item">
                         <span class="err-diag-label">
@@ -70,7 +70,7 @@
                             </svg>
                             Mã tra cứu yêu cầu:
                         </span>
-                        <span class="err-diag-value" id="diagRequestId">${not empty requestId ? requestId : 'Chưa có mã tra cứu'}</span>
+                        <span class="err-diag-value" id="diagRequestId"><%= com.crm.util.Html.escape(request.getAttribute("requestId") == null ? "Chưa có mã tra cứu" : request.getAttribute("requestId")) %></span>
                     </div>
                     <div class="err-diag-item">
                         <span class="err-diag-label">
@@ -81,18 +81,18 @@
                             </svg>
                             Đường dẫn yêu cầu:
                         </span>
-                        <span class="err-diag-value" id="diagPath">${pageContext.request.requestURI}</span>
+                        <span class="err-diag-value" id="diagPath"><%= com.crm.util.Html.escape(request.getAttribute(jakarta.servlet.RequestDispatcher.ERROR_REQUEST_URI) != null ? request.getAttribute(jakarta.servlet.RequestDispatcher.ERROR_REQUEST_URI) : request.getRequestURI()) %></span>
                     </div>
                 </div>
 
                 <!-- Các nút hành động hỗ trợ người dùng quay lại luồng làm việc -->
                 <div class="err-actions">
-                    <button type="button" class="err-btn crm-btn err-btn-secondary crm-btn-secondary" onclick="window.history.back()">
+                    <a href="${pageContext.request.contextPath}/dashboard" class="err-btn crm-btn err-btn-secondary crm-btn-secondary">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
-                        <span>Quay lại trang trước</span>
-                    </button>
+                        <span>Về trang tổng quan</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/dashboard" class="err-btn crm-btn err-btn-primary crm-btn-primary">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -112,27 +112,5 @@
 
     <!-- Footer dùng chung của hệ thống -->
     <jsp:include page="/jsp/shared/footer.jsp" />
-
-    <script>
-    (function () {
-        'use strict';
-        var timestampEl = document.getElementById('diagTimestamp');
-        if (timestampEl) {
-            var now = new Date();
-            timestampEl.textContent = now.toLocaleString('vi-VN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-        }
-        var pathEl = document.getElementById('diagPath');
-        if (pathEl && (!pathEl.textContent || pathEl.textContent.trim() === '')) {
-            pathEl.textContent = window.location.pathname;
-        }
-    })();
-    </script>
 </body>
 </html>

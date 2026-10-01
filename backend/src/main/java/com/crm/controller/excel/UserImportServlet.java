@@ -1,6 +1,7 @@
 package com.crm.controller.excel;
 
 import com.crm.dto.excel.ImportReportResult;
+import com.crm.controller.ServerForms;
 import com.crm.model.User;
 import com.crm.service.excel.ExcelService;
 import com.crm.util.SessionKey;
@@ -100,6 +101,7 @@ public class UserImportServlet extends HttpServlet {
 
         // 2. View page: /users/import
         if ("/users/import".equals(servletPath) && (pathInfo == null || "/".equals(pathInfo))) {
+            request.setAttribute("notice", "Chọn tệp Excel để xem trước trước khi nhập.");
             request.getRequestDispatcher(USER_IMPORT_JSP).forward(request, response);
             return;
         }
@@ -132,6 +134,14 @@ public class UserImportServlet extends HttpServlet {
         String pathInfo = request.getPathInfo();
         String servletPath = request.getServletPath();
 
+        // Dedicated HTML flow. JSON API behavior remains unchanged.
+        if ("/users/import".equals(servletPath) &&
+                ("/preview".equals(pathInfo) || "/execute".equals(pathInfo))) {
+            if (!ServerForms.checkCsrf(request, response)) return;
+            handleHtmlImport(request, response, actorUserId, pathInfo);
+            return;
+        }
+
         try {
             // 1. POST /api/users/import/preview or /users/import/preview
             if ("/preview".equals(pathInfo)) {
@@ -162,6 +172,65 @@ public class UserImportServlet extends HttpServlet {
             writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, false,
                     "Lỗi hệ thống khi xử lý tệp Excel: " + e.getMessage(), null);
         }
+    }
+
+
+    /** Native HTML preview/confirm with batch token kept on the server side. */
+    private void handleHtmlImport(HttpServletRequest req, HttpServletResponse res, long actor,
+                                  String path) throws ServletException, IOException {
+        res.setHeader("Cache-Control", "no-store");
+        try {
+            if ("/preview".equals(path)) {
+                req.getSession().removeAttribute("htmlUserImportToken");
+                Part part = getUploadedFilePart(req);
+                if (part == null || part.getSize() == 0) {
+                    showHtmlImport(req, res, null, "Hãy chọn tệp Excel hoặc CSV.", 400);
+                    return;
+                }
+                String name = part.getSubmittedFileName();
+                if (!isSupportedExtension(name)) {
+                    showHtmlImport(req, res, null, "Tệp phải có định dạng .xlsx, .xls hoặc .csv.", 400);
+                    return;
+                }
+                try (InputStream in = part.getInputStream()) {
+                    ImportReportResult result = excelService.parseAndValidate(in, name);
+                    String token = result.getBatchToken();
+                    if (token == null || token.isBlank()) {
+                        showHtmlImport(req, res, result, "Không tạo được mã xem trước. Hãy tải lại tệp.", 400);
+                        return;
+                    }
+                    req.getSession().setAttribute("htmlUserImportToken", token);
+                    showHtmlImport(req, res, result, null, 200);
+                }
+            } else if ("/execute".equals(path)) {
+                Object token = req.getSession().getAttribute("htmlUserImportToken");
+                req.getSession().removeAttribute("htmlUserImportToken");
+                if (!(token instanceof String value) || value.isBlank()) {
+                    showHtmlImport(req, res, null, "Phiên xem trước không còn hiệu lực. Hãy tải lại tệp.", 400);
+                    return;
+                }
+                ImportReportResult report = excelService.confirmImport(value);
+                req.setAttribute("completed", Boolean.TRUE);
+                showHtmlImport(req, res, report, null, 200);
+            }
+        } catch (IllegalStateException ex) {
+            showHtmlImport(req, res, null, "Dữ liệu xem trước đã hết hạn. Hãy tải lại tệp.", 400);
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "HTML Excel import failed", ex);
+            showHtmlImport(req, res, null, "Không thể nhập dữ liệu. Kiểm tra kết nối và nhật ký máy chủ.", 500);
+        } catch (RuntimeException ex) {
+            LOGGER.log(Level.SEVERE, "HTML Excel import failed", ex);
+            showHtmlImport(req, res, null, "Tệp không hợp lệ hoặc không thể xử lý.", 400);
+        }
+    }
+
+    private void showHtmlImport(HttpServletRequest req, HttpServletResponse res,
+                                ImportReportResult report, String error, int status)
+            throws ServletException, IOException {
+        req.setAttribute("report", report);
+        req.setAttribute("error", error);
+        res.setStatus(status);
+        req.getRequestDispatcher(USER_IMPORT_JSP).forward(req, res);
     }
 
     // === Handlers ===
