@@ -1,6 +1,9 @@
 package com.crm.controller.winloss;
 
 import com.crm.model.Competitor;
+import com.crm.model.WinLossReason;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.crm.service.winloss.WinLossService;
 import com.crm.util.SessionKey;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +19,7 @@ import java.io.StringWriter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +50,34 @@ class WinLossServletTest {
 
         verify(response).setStatus(401);
         verifyNoInteractions(service);
+    }
+
+    @Test
+    void getReasonsReturnsSeparateWinAndLossArrays() throws Exception {
+        authenticate("Sales Rep");
+        when(request.getServletPath()).thenReturn("/api/winloss/reasons");
+        WinLossReason win = new WinLossReason();
+        win.setId(11L);
+        win.setType("WIN");
+        WinLossReason loss = new WinLossReason();
+        loss.setId(12L);
+        loss.setType("LOSS");
+        when(service.getReasons(false)).thenReturn(
+                new WinLossService.ReasonsResult(List.of(win), List.of(loss)));
+
+        servlet.doGet(request, response);
+
+        JsonObject envelope = JsonParser.parseString(output.toString()).getAsJsonObject();
+        assertTrue(envelope.get("success").getAsBoolean());
+        JsonObject data = envelope.getAsJsonObject("data");
+        assertEquals(1, data.getAsJsonArray("winReasons").size());
+        assertEquals(1, data.getAsJsonArray("lossReasons").size());
+        assertEquals("WIN", data.getAsJsonArray("winReasons").get(0)
+                .getAsJsonObject().get("type").getAsString());
+        assertEquals("LOSS", data.getAsJsonArray("lossReasons").get(0)
+                .getAsJsonObject().get("type").getAsString());
+        verify(response).setStatus(200);
+        verify(service, never()).getCompetitors(anyBoolean());
     }
 
     @Test
