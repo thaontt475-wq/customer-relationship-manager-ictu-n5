@@ -11,6 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,6 +36,34 @@ class WinLossServiceTest {
     @Test
     void crudLossReason() throws Exception {
         exerciseReasonCrud("LOSS", 12L);
+    }
+
+    @Test
+    void getReasonsKeepsWinAndLossSeparateAndExcludesInactiveByDefault() throws Exception {
+        WinLossReason win = reason("WIN", "Giá cạnh tranh");
+        WinLossReason loss = reason("LOSS", "Giá cạnh tranh");
+        when(dao.findReasons(connection, "WIN", true)).thenReturn(List.of(win));
+        when(dao.findReasons(connection, "LOSS", true)).thenReturn(List.of(loss));
+
+        WinLossService.ReasonsResult result = service.getReasons(false);
+
+        assertEquals(List.of(win), result.winReasons());
+        assertEquals(List.of(loss), result.lossReasons());
+    }
+
+    @Test
+    void updateCannotMoveReasonBetweenWinAndLossGroups() throws Exception {
+        WinLossReason existing = reason("WIN", "Giá cạnh tranh");
+        existing.setId(11L);
+        WinLossReason submitted = reason("LOSS", "Giá cạnh tranh");
+        submitted.setId(11L);
+        when(dao.findReasonById(connection, 11L)).thenReturn(existing);
+
+        assertThrows(IllegalArgumentException.class, () -> service.updateReason(submitted));
+
+        verify(dao, never()).updateReason(any(), any());
+        verify(connection).rollback();
+        verify(connection, never()).commit();
     }
 
     @Test
