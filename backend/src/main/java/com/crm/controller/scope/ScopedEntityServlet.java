@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
@@ -90,10 +91,10 @@ public class ScopedEntityServlet extends HttpServlet {
         boolean isExport = isExportRequest(request, pathInfo);
 
         try {
-            // Case 1: Export request (CSV)
+            // Export uses exactly the same scope and search as the list.
             if (isExport) {
                 List<ScopeRecord> visibleItems = dataScopeService.list(userId, type, searchQuery);
-                exportCsv(response, visibleItems, type);
+                exportExcel(response, visibleItems, type);
                 return;
             }
 
@@ -434,40 +435,34 @@ public class ScopedEntityServlet extends HttpServlet {
         return param;
     }
 
-    private void exportCsv(
+    private void exportExcel(
             HttpServletResponse response,
             List<ScopeRecord> items,
             ScopeEntityType type) throws IOException {
 
         response.setStatus(HttpServletResponse.SC_OK);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.setContentType("text/csv; charset=UTF-8");
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader(
                 "Content-Disposition",
-                "attachment; filename=\"crm-" + type.tableName() + "-export.csv\""
+                "attachment; filename=\"crm-" + type.tableName() + "-export.xlsx\""
         );
 
-        // UTF-8 BOM for Microsoft Excel compatibility
-        response.getOutputStream().write(0xEF);
-        response.getOutputStream().write(0xBB);
-        response.getOutputStream().write(0xBF);
-
-        response.getWriter().println("id,label,ownerUserId,ownerTeamId");
-
-        for (ScopeRecord item : items) {
-            response.getWriter().printf("%d,%s,%d,%s%n",
-                    item.id(),
-                    csv(item.label()),
-                    item.ownerUserId(),
-                    item.ownerTeamId() != null ? item.ownerTeamId().toString() : "");
+        try (var workbook = new XSSFWorkbook()) {
+            var sheet = workbook.createSheet("Dữ liệu");
+            var header = sheet.createRow(0);
+            String[] columns = {"id", "label", "ownerUserId", "ownerTeamId"};
+            for (int i = 0; i < columns.length; i++) header.createCell(i).setCellValue(columns[i]);
+            int index = 1;
+            for (ScopeRecord item : items) {
+                var row = sheet.createRow(index++);
+                // Text preserves BIGINT precision and prevents formula interpretation.
+                row.createCell(0).setCellValue(Long.toString(item.id()));
+                row.createCell(1).setCellValue(item.label() == null ? "" : item.label());
+                row.createCell(2).setCellValue(Long.toString(item.ownerUserId()));
+                row.createCell(3).setCellValue(item.ownerTeamId() == null ? "" : item.ownerTeamId().toString());
+            }
+            workbook.write(response.getOutputStream());
         }
-    }
-
-    private String csv(String value) {
-        if (value == null) {
-            return "\"\"";
-        }
-        return "\"" + value.replace("\"", "\"\"") + "\"";
     }
 
     private void writeJson(
