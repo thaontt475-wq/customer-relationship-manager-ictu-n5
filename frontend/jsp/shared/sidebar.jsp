@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List, com.crm.dto.permissions.MenuItem" %>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
 <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
 <%!
     private String sidebarEscapeHtml(String input) {
@@ -9,6 +10,23 @@
                 .replace(">", "&gt;")
                 .replace("\"", "&quot;")
                 .replace("'", "&#39;");
+    }
+
+    /* Presentation only: the backend still owns menu items and visibility. */
+    private String sidebarIcon(String code) {
+        String paths;
+        switch (code == null ? "" : code) {
+            case "DASHBOARD": paths = "<rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/>"; break;
+            case "USERS": case "CUSTOMERS": paths = "<circle cx='9' cy='8' r='3'/><path d='M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5'/>"; break;
+            case "PERMISSIONS": case "USERS_AUDIT": paths = "<path d='M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7z'/><path d='m8 12 3 3 5-6'/>"; break;
+            case "CHANGE_PASSWORD": paths = "<rect x='5' y='10' width='14' height='11' rx='2'/><path d='M8 10V7a4 4 0 0 1 8 0v3m-4 5v2'/>"; break;
+            case "LOGOUT": paths = "<path d='M9 21H4V3h5m7 4 5 5-5 5M9 12h12'/>"; break;
+            case "SALES_CONFIG": paths = "<path d='m12 3 9 5v8l-9 5-9-5V8zm0 9 9-4m-9 4L3 8m9 4v9'/>"; break;
+            case "OPPORTUNITIES": case "KPI": case "REPORTS": paths = "<path d='M4 20V10m8 10V4m8 16v-7M2 22h20'/>"; break;
+            case "ACTIVITIES": paths = "<rect x='3' y='5' width='18' height='16' rx='2'/><path d='M7 3v4m10-4v4M3 11h18'/>"; break;
+            default: paths = "<rect x='4' y='4' width='16' height='16' rx='3'/><path d='M8 9h8m-8 6h8'/>";
+        }
+        return "<svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'>" + paths + "</svg>";
     }
 
     private String sidebarResolveUrl(String url, String contextPath) {
@@ -61,7 +79,7 @@
         </div>
         <!-- Nút đóng Drawer trên thiết bị di động (AC 3) -->
         <button type="button" class="sidebar__close-btn" id="crmSidebarCloseBtn" aria-label="Đóng menu điều hướng" title="Đóng menu">
-            &times;
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg>
         </button>
     </div>
 
@@ -112,18 +130,18 @@
                             <form class="sidebar__logout-form" method="post" action="<%= sidebarEscapeHtml(itemResolvedUrl) %>">
                                 <input type="hidden" name="redirectToLogin" value="true">
                                 <button type="submit" class="sidebar__link sidebar__logout-button">
-                                    <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarEscapeHtml(item.getIcon()) %></span>
+                                    <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarIcon(itemCode) %></span>
                                     <span class="sidebar__text"><%= sidebarEscapeHtml(item.getLabel()) %></span>
                                 </button>
                             </form>
                         <% } else if (itemResolvedUrl != null) { %>
                             <a href="<%= sidebarEscapeHtml(itemResolvedUrl) %>" class="sidebar__link<%= selfActive ? " sidebar__link--active" : "" %>">
-                                <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarEscapeHtml(item.getIcon()) %></span>
+                                <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarIcon(itemCode) %></span>
                                 <span class="sidebar__text"><%= sidebarEscapeHtml(item.getLabel()) %></span>
                             </a>
                         <% } else { %>
                             <div class="sidebar__link sidebar__link--disabled" aria-disabled="true">
-                                <span class="sidebar__icon" aria-hidden="true">•</span>
+                                <span class="sidebar__icon" aria-hidden="true"><%= sidebarIcon(itemCode) %></span>
                                 <span class="sidebar__text"><%= sidebarEscapeHtml(item.getLabel()) %></span>
                             </div>
                         <% } %>
@@ -138,12 +156,12 @@
                                     <li class="sidebar__subitem">
                                         <% if (childResolvedUrl != null) { %>
                                             <a href="<%= sidebarEscapeHtml(childResolvedUrl) %>" class="sidebar__link<%= childIsActive ? " sidebar__link--active" : "" %>">
-                                                <span class="sidebar__icon" aria-hidden="true">•</span>
+                                                <span class="sidebar__icon" aria-hidden="true"><%= sidebarIcon(child.getCode()) %></span>
                                                 <span class="sidebar__text"><%= sidebarEscapeHtml(child.getLabel()) %></span>
                                             </a>
                                         <% } else { %>
                                             <div class="sidebar__link sidebar__link--disabled" aria-disabled="true">
-                                                <span class="sidebar__icon" aria-hidden="true">•</span>
+                                                <span class="sidebar__icon" aria-hidden="true"><%= sidebarIcon(child.getCode()) %></span>
                                                 <span class="sidebar__text"><%= sidebarEscapeHtml(child.getLabel()) %></span>
                                             </div>
                                         <% } %>
@@ -274,7 +292,7 @@
             sessionRoles = roles.slice();
 
             // Họ tên hiển thị
-            var displayName = user.fullName || user.username || 'Tài khoản CRM';
+            var displayName = user.displayName || user.fullName || user.username || 'Tài khoản CRM';
             var firstChar = displayName.trim().charAt(0).toUpperCase() || 'U';
 
             if (sidebarAvatar) sidebarAvatar.textContent = firstChar;
@@ -392,15 +410,15 @@
         var canAdministerPermissions = normalizedRoles.includes('admin') || normalizedRoles.includes('director');
 
         var leadingItems = [
-            { code: 'DASHBOARD', label: 'Tổng quan', url: '/dashboard', icon: '⌂', children: [] }
+            { code: 'DASHBOARD', label: 'Tổng quan', url: '/dashboard', children: [] }
         ];
         var trailingItems = [];
         if (canAdministerPermissions) {
-            trailingItems.push({ code: 'USERS', label: 'Quản lý người dùng', url: '/users', icon: '👥', children: [] });
-            trailingItems.push({ code: 'PERMISSIONS', label: 'Phân quyền & vai trò', url: '/permissions', icon: '⚿', children: [] });
+            trailingItems.push({ code: 'USERS', label: 'Quản lý người dùng', url: '/users', children: [] });
+            trailingItems.push({ code: 'PERMISSIONS', label: 'Phân quyền & vai trò', url: '/permissions', children: [] });
         }
-        trailingItems.push({ code: 'CHANGE_PASSWORD', label: 'Đổi mật khẩu', url: '/change-password', icon: '●', children: [] });
-        trailingItems.push({ code: 'LOGOUT', label: 'Đăng xuất', url: '/api/auth/logout', icon: '↪', children: [] });
+        trailingItems.push({ code: 'CHANGE_PASSWORD', label: 'Đổi mật khẩu', url: '/change-password', children: [] });
+        trailingItems.push({ code: 'LOGOUT', label: 'Đăng xuất', url: '/api/auth/logout', children: [] });
 
         leadingItems.reverse().forEach(function (item) {
             if (!menuContainsUrl(merged, item.url)) merged.unshift(item);
@@ -412,6 +430,19 @@
     }
 
     // 3. Render danh sách các mục Menu động vào DOM
+    function shellIcon(code) {
+        var paths = {
+            DASHBOARD: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+            USERS: '<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/>',
+            PERMISSIONS: '<path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7z"/><path d="m8 12 3 3 5-6"/>',
+            CHANGE_PASSWORD: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/>',
+            LOGOUT: '<path d="M9 21H4V3h5m7 4 5 5-5 5M9 12h12"/>'
+        };
+        var config = MODULE_CONFIGS[code] || {};
+        return config.iconSvg || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+            (paths[code] || '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8m-8 6h8"/>') + '</svg>';
+    }
+
     function renderMenu(items) {
         menuListEl.innerHTML = '';
         var currentPath = window.location.pathname;
@@ -426,7 +457,7 @@
             var fullUrl = relativeUrl ? (relativeUrl.startsWith('/') ? (contextPath + relativeUrl) : relativeUrl) : null;
 
             // Xác định Icon
-            var iconSvg = item.icon || config.iconSvg || '<span class="sidebar__icon" aria-hidden="true">•</span>';
+            var iconSvg = shellIcon(code);
 
             // Xác định Submenu (nếu có từ backend hoặc config)
             var children = (Array.isArray(item.children) && item.children.length > 0) ? item.children : (config.children || []);
@@ -461,6 +492,7 @@
                 var a = document.createElement('a');
                 a.href = fullUrl;
                 a.className = 'sidebar__link' + (isSelfActive ? ' sidebar__link--active' : '');
+                if (isSelfActive) a.setAttribute('aria-current', 'page');
                 a.innerHTML = '<span class="sidebar__icon sidebar__icon--custom" aria-hidden="true">' + iconSvg + '</span>' +
                               '<span class="sidebar__text">' + escapeHtml(label) + '</span>';
 
@@ -500,7 +532,8 @@
                         var subA = document.createElement('a');
                         subA.href = subFull;
                         subA.className = 'sidebar__link' + (isSubActive ? ' sidebar__link--active' : '');
-                        subA.innerHTML = '<span class="sidebar__icon" aria-hidden="true">•</span>' +
+                        if (isSubActive) subA.setAttribute('aria-current', 'page');
+                        subA.innerHTML = '<span class="sidebar__icon" aria-hidden="true">' + shellIcon(child.code || '') + '</span>' +
                                          '<span class="sidebar__text">' + escapeHtml(subLabel) + '</span>';
 
                         subA.addEventListener('click', function () {
@@ -522,16 +555,35 @@
     }
 
     // 4. Xử lý Drawer Offcanvas cho Mobile / Tablet (AC 3)
+    var drawerPreviousFocus = null;
+    var drawerBackground = [];
+
     function openMobileDrawer() {
+        if (window.innerWidth > 768) return;
+        drawerPreviousFocus = document.activeElement;
         sidebarEl.classList.add('sidebar--open');
         backdropEl.classList.add('is-active');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('crm-shell-drawer-open');
+        sidebarEl.setAttribute('role', 'dialog');
+        sidebarEl.setAttribute('aria-modal', 'true');
+        if (toggleBtnEl) toggleBtnEl.setAttribute('aria-expanded', 'true');
+        drawerBackground = Array.from(document.querySelectorAll('.crm-header, .crm-main-layout > main, .crm-main-layout > .permission-page'))
+            .map(function (element) { return { element: element, wasInert: element.inert }; });
+        drawerBackground.forEach(function (entry) { entry.element.inert = true; });
+        closeBtnEl.focus();
     }
 
     function closeMobileDrawer() {
         sidebarEl.classList.remove('sidebar--open');
         backdropEl.classList.remove('is-active');
-        document.body.style.overflow = '';
+        document.body.classList.remove('crm-shell-drawer-open');
+        sidebarEl.removeAttribute('role');
+        sidebarEl.removeAttribute('aria-modal');
+        if (toggleBtnEl) toggleBtnEl.setAttribute('aria-expanded', 'false');
+        drawerBackground.forEach(function (entry) { entry.element.inert = entry.wasInert; });
+        drawerBackground = [];
+        if (drawerPreviousFocus && window.innerWidth <= 768) drawerPreviousFocus.focus();
+        drawerPreviousFocus = null;
     }
 
     if (toggleBtnEl) {
@@ -558,6 +610,17 @@
         if (e.key === 'Escape' && sidebarEl.classList.contains('sidebar--open')) {
             closeMobileDrawer();
         }
+        if (e.key === 'Tab' && sidebarEl.classList.contains('sidebar--open')) {
+            var focusable = Array.from(sidebarEl.querySelectorAll('a[href], button:not([disabled])'))
+                .filter(function (element) { return element.getClientRects().length > 0; });
+            var first = focusable[0];
+            var last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault(); last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault(); first.focus();
+            }
+        }
     });
 
     // Tự động đóng drawer khi màn hình resize lớn hơn 768px
@@ -578,6 +641,9 @@
     }
 
     // Khởi chạy tuần tự để role từ session được dùng khi ghép menu develop.
+    menuListEl.querySelectorAll('a.sidebar__link--active').forEach(function (link) {
+        link.setAttribute('aria-current', 'page');
+    });
     (async function initializeSidebar() {
         await loadUserProfile();
         await loadNavigationMenu();
