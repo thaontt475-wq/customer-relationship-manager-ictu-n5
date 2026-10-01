@@ -23,6 +23,7 @@
             </header>
 
             <form class="auth-form" method="post" action="${pageContext.request.contextPath}/login">
+<input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
                 <div class="field-group crm-form-group">
                     <label for="email">Email</label>
                     <input class="crm-input"

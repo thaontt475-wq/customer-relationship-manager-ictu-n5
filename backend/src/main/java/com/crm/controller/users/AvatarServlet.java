@@ -18,7 +18,7 @@ import java.util.UUID;
 @WebServlet({"/profile/avatar", "/profile/avatar/image", "/profile/avatar/thumbnail", "/api/users/me/avatar"})
 @MultipartConfig(maxFileSize = 2097152, maxRequestSize = 2162688, fileSizeThreshold = 0)
 public class AvatarServlet extends HttpServlet {
-    private static final String TOKEN = "avatarCsrfToken";
+    private static final String TOKEN = "htmlFormToken";
     private AvatarService service;
 
     @Override public void init() throws ServletException {

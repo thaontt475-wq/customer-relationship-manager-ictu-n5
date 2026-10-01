@@ -8,10 +8,34 @@
 
     <display-name>CRM</display-name>
 
+    <!-- Maven's release setting does not configure Jasper's runtime JSP compiler. -->
+    <servlet>
+        <servlet-name>jsp</servlet-name>
+        <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+        <init-param><param-name>compilerSourceVM</param-name><param-value>21</param-value></init-param>
+        <init-param><param-name>compilerTargetVM</param-name><param-value>21</param-value></init-param>
+        <load-on-startup>3</load-on-startup>
+    </servlet>
+
+    <filter>
+        <filter-name>encoding</filter-name>
+        <filter-class>com.crm.filter.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping><filter-name>encoding</filter-name><url-pattern>/*</url-pattern></filter-mapping>
+    <filter>
+        <filter-name>csrf</filter-name>
+        <filter-class>com.crm.filter.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping><filter-name>csrf</filter-name><url-pattern>/*</url-pattern></filter-mapping>
+
     <!-- Standard servlet inactivity timeout is renewed on every active request. -->
     <session-config>
         <session-timeout>30</session-timeout>
+        <cookie-config><http-only>true</http-only></cookie-config>
+        <tracking-mode>COOKIE</tracking-mode>
     </session-config>
+
+    <welcome-file-list><welcome-file>login</welcome-file></welcome-file-list>
 
     <error-page>
         <error-code>401</error-code>

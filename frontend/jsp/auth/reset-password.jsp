@@ -50,6 +50,7 @@
         <% } else if (token != null && !token.isBlank()) { %>
             <form class="auth-form" method="post"
                   action="${pageContext.request.contextPath}/reset-password">
+<input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
                 <input type="hidden" name="token" value="<%= escapeHtml(token) %>">
 
                 <div class="field-group crm-form-group">
