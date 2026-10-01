@@ -11,6 +11,37 @@
     --crm-muted: #667085;
     --crm-border: #e7ebf5;
     --crm-bg: #f8fafc;
+    --crm-surface: #ffffff;
+    --crm-surface-subtle: #f1f4f8;
+    --crm-primary-hover: var(--crm-primary-dark);
+    --crm-primary-soft: #edf2ff;
+    --crm-text-primary: var(--crm-text);
+    --crm-text-secondary: #58677c;
+    --crm-success: #18794e;
+    --crm-success-soft: #edf8f1;
+    --crm-warning: #946200;
+    --crm-warning-soft: #fff8e6;
+    --crm-danger: #b42318;
+    --crm-danger-soft: #fff1f0;
+    --crm-shadow-sm: 0 1px 3px rgba(20, 32, 54, 0.04);
+    --crm-shadow-md: 0 8px 24px rgba(20, 32, 54, 0.08);
+    --crm-radius-sm: 6px;
+    --crm-radius-md: 10px;
+    --crm-radius-lg: 14px;
+    --crm-space-1: 4px;
+    --crm-space-2: 8px;
+    --crm-space-3: 12px;
+    --crm-space-4: 16px;
+    --crm-space-5: 20px;
+    --crm-space-6: 24px;
+    --crm-space-8: 32px;
+    --crm-space-10: 40px;
+    --crm-space-12: 48px;
+    --crm-content-max: 1200px;
+    --crm-form-max: 880px;
+    --crm-control-height: 40px;
+    --crm-transition: 180ms ease;
+    --crm-focus-ring: 0 0 0 3px rgba(47, 91, 255, 0.18);
 }
 
 *, *::before, *::after {
