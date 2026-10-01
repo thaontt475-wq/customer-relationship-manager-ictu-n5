@@ -81,7 +81,7 @@
             <version>5.11.4</version>
             <scope>test</scope>
         </dependency>
-        <!-- Existing service tests and CRM-48 use the project's Mockito test convention. -->
+        <!-- Required by the existing DAO/service unit-test convention and CRM-46 tests. -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -100,6 +100,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
             </plugin>
 
             <plugin>
