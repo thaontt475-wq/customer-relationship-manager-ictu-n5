@@ -30,6 +30,19 @@
                     .replace("'", "&#39;");
     }
 
+    private String roleLabel(String name) {
+        if (name == null) return "";
+        switch (name) {
+            case "Admin": return "Quản trị viên";
+            case "Director": return "Giám đốc";
+            case "Sales Rep": return "Nhân viên kinh doanh";
+            case "Team Lead": return "Trưởng nhóm";
+            case "Manager": return "Quản lý";
+            case "Accountant": return "Kế toán";
+            default: return name;
+        }
+    }
+
     private String getProp(Object obj, String propName) {
         if (obj == null || propName == null) return "";
         if (obj instanceof java.util.Map<?, ?>) {
@@ -87,10 +100,12 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
 
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <!-- CSS riêng của module Users -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/users.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/users-admin.css">
 </head>
-<body class="crm-body">
+<body class="crm-body users-admin">
 
     <!-- Include Header dùng chung -->
     <jsp:include page="../shared/header.jsp" />
@@ -100,11 +115,11 @@
         <jsp:include page="../shared/sidebar.jsp" />
 
         <!-- Nội dung chính màn hình Chi tiết tài khoản & Khóa bàn giao -->
-        <main class="user-page" id="userDetailApp">
-            <div class="user-container">
+        <main class="user-page crm-page" id="userDetailApp">
+            <div class="user-container crm-page-container">
 
                 <!-- Breadcrumb -->
-                <nav class="user-breadcrumb" aria-label="Breadcrumb">
+                <nav class="user-breadcrumb crm-breadcrumb" aria-label="Đường dẫn trang">
                     <a href="${pageContext.request.contextPath}/dashboard">CRM</a>
                     <span class="separator">/</span>
                     <a href="${pageContext.request.contextPath}/users">Quản lý người dùng</a>
@@ -113,13 +128,13 @@
                 </nav>
 
                 <!-- Header màn hình -->
-                <header class="user-header">
+                <header class="user-header crm-page-header">
                     <div class="user-header-info">
-                        <h1><%= escapeHtml(!fullName.isEmpty() ? fullName : "Chi tiết người dùng") %></h1>
-                        <p>Thông tin tài khoản, vai trò, nhóm, phạm vi dữ liệu và trạng thái truy cập.</p>
+                        <h1 class="crm-page-title"><%= escapeHtml(!fullName.isEmpty() ? fullName : "Chi tiết người dùng") %></h1>
+                        <p class="crm-page-description">Thông tin tài khoản, vai trò, nhóm, phạm vi dữ liệu và trạng thái truy cập.</p>
                     </div>
                     <div class="user-header-badges">
-                        <span class="user-badge">
+                        <span class="user-badge crm-badge">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                             </svg>
@@ -130,7 +145,7 @@
 
                 <!-- Khu vực thông báo (Alerts) -->
                 <% if (errorMsg != null && !errorMsg.trim().isEmpty()) { %>
-                    <div class="user-alert user-alert-danger" role="alert">
+                    <div class="user-alert user-alert-danger crm-alert crm-alert-danger" role="alert">
                         <svg class="user-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -144,7 +159,7 @@
                 <% } %>
 
                 <% if (messageMsg != null && !messageMsg.trim().isEmpty()) { %>
-                    <div class="user-alert user-alert-success" role="status">
+                    <div class="user-alert user-alert-success crm-alert crm-alert-success" role="status">
                         <svg class="user-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -161,7 +176,7 @@
 
                     <!-- Cột trái: Thẻ thông tin cá nhân -->
                     <aside class="user-profile-sidebar" aria-label="Thông tin người dùng">
-                        <div class="user-card">
+                        <div class="user-card crm-card">
                             <div class="user-info-summary">
                                 <div class="user-avatar-lg<%= isLocked ? " user-avatar-lg--locked" : "" %>" aria-hidden="true">
                                     <%= escapeHtml(avatarLetter) %>
@@ -170,12 +185,12 @@
                                 <div class="email"><%= escapeHtml(!email.isEmpty() ? email : "Chưa có email") %></div>
                                 <div>
                                     <% if (isLocked) { %>
-                                        <span class="status-badge status-badge--locked">
+                                        <span class="status-badge status-badge--locked crm-badge">
                                             <span class="status-dot" aria-hidden="true"></span>
                                             Đã khóa tài khoản
                                         </span>
                                     <% } else { %>
-                                        <span class="status-badge status-badge--active">
+                                        <span class="status-badge status-badge--active crm-badge">
                                             <span class="status-dot" aria-hidden="true"></span>
                                             Đang hoạt động
                                         </span>
@@ -194,7 +209,7 @@
                                 </div>
                                 <div class="user-details-item">
                                     <span class="user-details-label">Vai trò</span>
-                                    <span class="user-details-value"><%= escapeHtml(!role.isEmpty() ? role : "Chưa phân vai trò") %></span>
+                                    <span class="user-details-value"><%= escapeHtml(!role.isEmpty() ? roleLabel(role) : "Chưa phân vai trò") %></span>
                                 </div>
                                 <div class="user-details-item">
                                     <span class="user-details-label">Nhóm kinh doanh</span>
@@ -219,7 +234,7 @@
                             </div>
 
                             <div class="user-back-link-wrapper">
-                                <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary btn-block">
+                                <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary btn-block crm-btn crm-btn-secondary">
                                     &larr; Quay lại danh sách
                                 </a>
                             </div>
@@ -252,19 +267,19 @@
                                     <input type="hidden" name="userId" value="<%= escapeHtml(userId) %>">
 
                                     <!-- Thông tin người bàn giao -->
-                                    <div class="form-group">
-                                        <label class="form-label">Tài khoản bị khóa</label>
+                                    <div class="form-group crm-form-group">
+                                        <label class="form-label crm-label">Tài khoản bị khóa</label>
                                         <div class="user-assignee-display">
                                             <%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "Tài khoản")) %> <%= !email.isEmpty() ? "(" + escapeHtml(email) + ")" : "" %>
                                         </div>
                                     </div>
 
                                     <!-- Chọn người tiếp nhận bàn giao -->
-                                    <div class="form-group">
-                                        <label for="recipientId" class="form-label">
+                                    <div class="form-group crm-form-group">
+                                        <label for="recipientId" class="form-label crm-label">
                                             Người tiếp nhận
                                         </label>
-                                        <select class="form-select" id="recipientId" name="recipientId" required>
+                                        <select class="form-select crm-select" id="recipientId" name="recipientId" required>
                                             <option value="">-- Chọn người tiếp nhận --</option>
                                             <% if (recipients != null && !recipients.isEmpty()) {
                                                 for (Object rItem : recipients) {
@@ -279,46 +294,46 @@
                                                     String rRole = getProp(rItem, "role");
                                             %>
                                                 <option value="<%= escapeHtml(rId) %>">
-                                                    <%= escapeHtml(!rName.isEmpty() ? rName : "ID #" + rId) %> <%= !rEmail.isEmpty() ? "(" + escapeHtml(rEmail) + ")" : "" %> <%= !rRole.isEmpty() ? " - " + escapeHtml(rRole) : "" %>
+                                                    <%= escapeHtml(!rName.isEmpty() ? rName : "ID #" + rId) %> <%= !rEmail.isEmpty() ? "(" + escapeHtml(rEmail) + ")" : "" %> <%= !rRole.isEmpty() ? " - " + escapeHtml(roleLabel(rRole)) : "" %>
                                                 </option>
                                             <%   }
                                                } else { %>
-                                                <option value="" disabled>Không có tài khoản ACTIVE phù hợp</option>
+                                                <option value="" disabled>Không có tài khoản đang hoạt động phù hợp</option>
                                             <% } %>
                                         </select>
                                         <div class="form-hint">Bắt buộc khi người dùng đang phụ trách ít nhất một Khách hàng hoặc Cơ hội.</div>
                                     </div>
 
                                     <!-- Thông tin phạm vi dữ liệu bàn giao (Không invent request parameters) -->
-                                    <div class="form-group">
-                                        <label class="form-label">Dữ liệu được bàn giao</label>
+                                    <div class="form-group crm-form-group">
+                                        <label class="form-label crm-label">Dữ liệu được bàn giao</label>
                                         <div class="handover-scope-note">
-                                            Khách hàng và Cơ hội đang phụ trách sẽ được chuyển cho người tiếp nhận trong cùng giao dịch khóa tài khoản.
+                                            Khách hàng và cơ hội đang phụ trách sẽ được chuyển cho người tiếp nhận trong cùng giao dịch khóa tài khoản.
                                         </div>
                                     </div>
 
                                     <!-- Lý do khóa -->
-                                    <div class="form-group">
-                                        <label for="lockReason" class="form-label">
+                                    <div class="form-group crm-form-group">
+                                        <label for="lockReason" class="form-label crm-label">
                                             Lý do khóa tài khoản <span class="form-label-required">*</span>
                                         </label>
-                                        <textarea class="form-textarea" id="lockReason" name="reason" maxlength="500" placeholder="Ví dụ: Nhân viên nghỉ việc, chuyển công tác..." required></textarea>
+                                        <textarea class="form-textarea crm-textarea" id="lockReason" name="reason" maxlength="500" placeholder="Ví dụ: Nhân viên nghỉ việc, chuyển công tác..." required></textarea>
                                     </div>
 
                                     <!-- Bước xác nhận an toàn (Confirmation Step) -->
                                     <div class="confirmation-box">
                                         <input type="checkbox" id="confirmLockCheckbox" name="confirm" value="true" required>
                                         <label for="confirmLockCheckbox">
-                                            Tôi xác nhận khóa tài khoản <strong><%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "này")) %></strong> và bàn giao toàn bộ ownership liên quan.
+                                            Tôi xác nhận khóa tài khoản <strong><%= escapeHtml(!fullName.isEmpty() ? fullName : (!username.isEmpty() ? username : "này")) %></strong> và bàn giao toàn bộ dữ liệu đang phụ trách.
                                         </label>
                                     </div>
 
                                     <!-- Nút hành động (Trạng thái chờ Backend API) -->
                                     <div class="form-actions">
-                                        <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary">
+                                        <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary crm-btn crm-btn-secondary">
                                             Hủy bỏ
                                         </a>
-                                        <button type="submit" class="btn btn-danger">
+                                        <button type="submit" class="btn btn-danger crm-btn crm-btn-danger">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -348,8 +363,8 @@
                                 </div>
                                 <form method="post" action="${pageContext.request.contextPath}/users/unlock" class="form-actions">
                                     <input type="hidden" name="userId" value="<%= escapeHtml(userId) %>">
-                                    <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary">Quay lại danh sách</a>
-                                    <button type="submit" class="btn btn-primary">Mở khóa tài khoản</button>
+                                    <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary crm-btn crm-btn-secondary">Quay lại danh sách</a>
+                                    <button type="submit" class="btn btn-primary crm-btn crm-btn-primary">Mở khóa tài khoản</button>
                                 </form>
                             </div>
                         <% } %>

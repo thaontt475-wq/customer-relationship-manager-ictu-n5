@@ -12,10 +12,12 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
 
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <!-- CSS riêng biệt của module Quản lý người dùng (CRM-28) -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/users.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/users-admin.css">
 </head>
-<body class="crm-body">
+<body class="crm-body users-admin">
 
     <!-- Header dùng chung của hệ thống -->
     <jsp:include page="/jsp/shared/header.jsp" />
@@ -25,11 +27,11 @@
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Khu vực nội dung chính của màn hình Quản trị người dùng -->
-        <main class="user-page" id="userApp" role="main">
-            <div class="user-container">
+        <main class="user-page crm-page" id="userApp" role="main">
+            <div class="user-container crm-page-container">
 
                 <!-- Breadcrumb điều hướng -->
-                <nav class="user-breadcrumb" aria-label="Breadcrumb">
+                <nav class="user-breadcrumb crm-breadcrumb" aria-label="Đường dẫn trang">
                     <a href="${pageContext.request.contextPath}/">CRM</a>
                     <span class="separator">/</span>
                     <span>Hệ thống</span>
@@ -38,27 +40,16 @@
                 </nav>
 
                 <!-- Header màn hình -->
-                <header class="user-header">
+                <header class="user-header crm-page-header">
                     <div class="user-header-info">
-                        <h1>Quản lý người dùng & Tài khoản</h1>
-                        <p>Quản lý danh sách nhân sự, tìm kiếm, phân quyền và trạng thái hoạt động của tài khoản trong hệ thống CRM.</p>
-                    </div>
-                    <div class="user-header-badges">
-                        <span class="user-badge">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                            S1-08 / CRM-28
-                        </span>
+                        <h1 class="crm-page-title">Quản lý người dùng</h1>
+                        <p class="crm-page-description">Quản lý danh sách nhân sự, tìm kiếm, phân quyền và trạng thái hoạt động của tài khoản trong hệ thống CRM.</p>
                     </div>
                 </header>
 
                 <!-- Khu vực hiển thị thông báo phản hồi (Alerts / Banners) -->
                 <div class="user-alerts" id="userAlertsArea" aria-live="polite">
-                    <div class="user-alert user-alert-danger" id="globalErrorAlert" style="display: none;" role="alert">
+                    <div class="user-alert user-alert-danger crm-alert crm-alert-danger" id="globalErrorAlert" style="display: none;" role="alert">
                         <svg class="user-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -71,7 +62,7 @@
                         <button type="button" class="user-alert-close" onclick="this.parentElement.style.display='none';" aria-label="Đóng">&times;</button>
                     </div>
 
-                    <div class="user-alert user-alert-success" id="globalSuccessAlert" style="display: none;" role="status">
+                    <div class="user-alert user-alert-success crm-alert crm-alert-success" id="globalSuccessAlert" style="display: none;" role="status">
                         <svg class="user-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -85,7 +76,7 @@
                 </div>
 
                 <!-- Thẻ Card danh sách người dùng -->
-                <section class="user-card" style="position: relative;" aria-labelledby="userCardTitle">
+                <section class="user-card crm-card" style="position: relative;" aria-labelledby="userCardTitle">
 
                     <!-- Loading Overlay -->
                     <div class="user-loading-overlay" id="userTableLoading" aria-hidden="true">
@@ -95,7 +86,7 @@
                     <!-- Header của Card: Tiêu đề + Thống kê sơ bộ -->
                     <div class="user-card-header">
                         <div>
-                            <h2 id="userCardTitle" class="user-card-title">
+                            <h2 id="userCardTitle" class="user-card-title crm-card-title">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                     <circle cx="9" cy="7" r="4"></circle>
@@ -109,7 +100,7 @@
                     </div>
 
                     <!-- Thanh công cụ tìm kiếm và bộ lọc (Toolbar & Filters) -->
-                    <div class="user-toolbar">
+                    <div class="user-toolbar crm-toolbar">
                         <div class="user-toolbar-left">
                             <!-- Ô tìm kiếm từ khóa -->
                             <div class="user-search-wrap">
@@ -117,29 +108,29 @@
                                     <circle cx="11" cy="11" r="8"></circle>
                                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                                 </svg>
-                                <input type="search" id="userSearchInput" class="user-search-input"
+                                <input type="search" id="userSearchInput" class="user-search-input crm-input"
                                        placeholder="Tìm kiếm theo họ tên, email..."
                                        aria-label="Tìm kiếm người dùng">
                             </div>
 
                             <!-- Bộ lọc trạng thái -->
-                            <select id="userStatusFilter" class="user-filter-select" aria-label="Lọc theo trạng thái">
+                            <select id="userStatusFilter" class="user-filter-select crm-select" aria-label="Lọc theo trạng thái">
                                 <option value="">Tất cả trạng thái</option>
-                                <option value="ACTIVE">Hoạt động (ACTIVE)</option>
-                                <option value="INACTIVE">Đã khóa (INACTIVE)</option>
+                                <option value="ACTIVE">Đang hoạt động</option>
+                                <option value="INACTIVE">Ngừng hoạt động</option>
                             </select>
 
                             <!-- Bộ lọc vai trò -->
-                            <select id="userRoleFilter" class="user-filter-select" aria-label="Lọc theo vai trò">
+                            <select id="userRoleFilter" class="user-filter-select crm-select" aria-label="Lọc theo vai trò">
                                 <option value="">Tất cả vai trò</option>
-                                <option value="Admin">Admin (Quản trị viên)</option>
-                                <option value="Sales Rep">Sales Rep (Kinh doanh)</option>
-                                <option value="Manager">Manager (Trưởng nhóm)</option>
-                                <option value="Accountant">Accountant (Kế toán)</option>
+                                <option value="Admin">Quản trị viên</option>
+                                <option value="Sales Rep">Nhân viên kinh doanh</option>
+                                <option value="Manager">Quản lý</option>
+                                <option value="Accountant">Kế toán</option>
                             </select>
 
                             <!-- Nút đặt lại bộ lọc -->
-                            <button type="button" class="btn btn-secondary" id="btnResetFilter" title="Xóa toàn bộ bộ lọc và từ khóa">
+                            <button type="button" class="btn btn-secondary crm-btn crm-btn-secondary" id="btnResetFilter" title="Xóa toàn bộ bộ lọc và từ khóa">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <polyline points="1 4 1 10 7 10"></polyline>
                                     <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
@@ -150,7 +141,7 @@
 
                         <div class="user-toolbar-right">
                             <!-- Nút Nhập danh sách từ Excel (CRM-32) -->
-                            <a href="${pageContext.request.contextPath}/users/import" class="btn btn-secondary" id="btnGoToImport" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <a href="${pageContext.request.contextPath}/users/import" class="btn btn-secondary crm-btn crm-btn-secondary" id="btnGoToImport" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                     <polyline points="7 10 12 15 17 10"></polyline>
@@ -160,7 +151,7 @@
                             </a>
 
                             <!-- Nút Thêm mới người dùng -->
-                            <button type="button" class="btn btn-create-user" id="btnOpenCreateModal">
+                            <button type="button" class="btn btn-create-user crm-btn crm-btn-primary" id="btnOpenCreateModal">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <line x1="12" y1="5" x2="12" y2="19"></line>
                                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -171,8 +162,8 @@
                     </div>
 
                     <!-- Bảng dữ liệu người dùng (Table Responsive) -->
-                    <div class="user-table-responsive">
-                        <table class="user-table" id="userTable" aria-label="Bảng dữ liệu người dùng">
+                    <div class="user-table-responsive crm-table-wrap" tabindex="0" role="region" aria-label="Danh sách người dùng; có thể cuộn ngang">
+                        <table class="user-table crm-table" id="userTable" aria-label="Bảng dữ liệu người dùng">
                             <thead>
                                 <tr>
                                     <th scope="col" class="table-col-id">ID</th>
@@ -192,10 +183,10 @@
 
                     <!-- Empty State khi không có dữ liệu -->
                     <div class="user-empty-state" id="userEmptyState" style="display: none;">
-                        <div class="user-empty-icon" aria-hidden="true">👥</div>
+                        <div class="user-empty-icon" aria-hidden="true"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2M20 7v6M17 10h6"/></svg></div>
                         <div class="user-empty-text">Không tìm thấy người dùng nào</div>
                         <p class="table-empty-desc">Không có kết quả nào phù hợp với bộ lọc hiện tại. Hãy thử thay đổi từ khóa hoặc đặt lại bộ lọc.</p>
-                        <button type="button" class="btn btn-secondary" style="margin-top: 14px;" onclick="document.getElementById('btnResetFilter').click()">
+                        <button type="button" class="btn btn-secondary crm-btn crm-btn-secondary" style="margin-top: 14px;" onclick="document.getElementById('btnResetFilter').click()">
                             Đặt lại bộ lọc
                         </button>
                     </div>
@@ -220,7 +211,7 @@
     <div class="user-modal-overlay" id="userFormModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="user-modal-card">
             <header class="user-modal-header">
-                <h3 class="user-modal-title" id="modalTitle">
+                <h3 class="user-modal-title crm-modal-title" id="modalTitle">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="8.5" cy="7.5" r="4"></circle>
@@ -236,44 +227,44 @@
                 <input type="hidden" id="formUserId" name="id">
 
                 <div class="user-modal-body">
-                    <div class="modal-field">
+                    <div class="modal-field crm-form-group">
                         <div style="padding:12px 14px;border-radius:8px;background:#f8fafc;color:#475569;font-size:0.9rem;">
                             Khi tạo tài khoản, hệ thống tự sinh mật khẩu tạm và gửi thông tin kích hoạt tới email người dùng.
                         </div>
                     </div>
                     <!-- Trường Họ và tên -->
-                    <div class="modal-field">
-                        <label for="formFullName" class="modal-label">
+                    <div class="modal-field crm-form-group">
+                        <label for="formFullName" class="modal-label crm-label">
                             Họ và tên <span class="modal-required">*</span>
                         </label>
-                        <input type="text" id="formFullName" name="fullName" class="modal-input"
-                               placeholder="Ví dụ: Nguyễn Văn A" required>
+                        <input type="text" id="formFullName" name="fullName" class="modal-input crm-input"
+                               placeholder="Nhập họ và tên" required>
                         <div class="modal-field-feedback" id="feedbackFullName"></div>
                     </div>
 
                     <!-- Trường Email -->
-                    <div class="modal-field">
-                        <label for="formEmail" class="modal-label">
+                    <div class="modal-field crm-form-group">
+                        <label for="formEmail" class="modal-label crm-label">
                             Địa chỉ Email <span class="modal-required">*</span>
                         </label>
-                        <input type="email" id="formEmail" name="email" class="modal-input"
-                               placeholder="Ví dụ: vana@example.com" required>
+                        <input type="email" id="formEmail" name="email" class="modal-input crm-input"
+                               placeholder="Nhập địa chỉ email" required>
                         <div class="modal-field-feedback" id="feedbackEmail"></div>
                     </div>
 
                     <!-- Trường Mật khẩu (khi tạo mới bắt buộc, khi sửa là tùy chọn) -->
-                    <div class="modal-field" id="formPasswordGroup">
-                        <label for="formPassword" class="modal-label">
+                    <div class="modal-field crm-form-group" id="formPasswordGroup">
+                        <label for="formPassword" class="modal-label crm-label">
                             <span id="labelPasswordText">Mật khẩu ban đầu</span>
                             <span class="modal-required" id="markPasswordRequired">*</span>
                         </label>
-                        <input type="password" id="formPassword" name="password" class="modal-input"
+                        <input type="password" id="formPassword" name="password" class="modal-input crm-input"
                                placeholder="Tối thiểu 8 ký tự, gồm cả chữ và số" minlength="8">
                         <div class="modal-field-feedback" id="feedbackPassword"></div>
                     </div>
 
                     <!-- Checkbox gửi email kích hoạt -->
-                    <div class="modal-field" id="formSendMailGroup">
+                    <div class="modal-field crm-form-group" id="formSendMailGroup">
                         <label class="modal-checkbox-label">
                             <input type="checkbox" id="formSendActivation" name="sendActivation" checked>
                             <span>Gửi thông tin tài khoản và liên kết kích hoạt qua email</span>
@@ -281,20 +272,20 @@
                     </div>
 
                     <!-- Trường Trạng thái tài khoản -->
-                    <div class="modal-field">
-                        <label for="formStatus" class="modal-label">
+                    <div class="modal-field crm-form-group">
+                        <label for="formStatus" class="modal-label crm-label">
                             Trạng thái hoạt động <span class="modal-required">*</span>
                         </label>
-                        <select id="formStatus" name="status" class="modal-select">
-                            <option value="ACTIVE">Hoạt động (ACTIVE)</option>
-                            <option value="INACTIVE">Khóa tạm thời (INACTIVE)</option>
+                        <select id="formStatus" name="status" class="modal-select crm-select">
+                            <option value="ACTIVE">Đang hoạt động</option>
+                            <option value="INACTIVE">Ngừng hoạt động</option>
                         </select>
                     </div>
                 </div>
 
                 <footer class="user-modal-footer">
-                    <button type="button" class="btn btn-secondary" id="btnCancelModal">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary" id="btnSaveUser">
+                    <button type="button" class="btn btn-secondary crm-btn crm-btn-secondary" id="btnCancelModal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary crm-btn crm-btn-primary" id="btnSaveUser">
                         <span id="saveUserSpinner" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
                         <span id="saveUserBtnText">Lưu người dùng</span>
                     </button>
@@ -307,7 +298,7 @@
     <div class="user-modal-overlay" id="userRoleModal" role="dialog" aria-modal="true" aria-labelledby="roleModalTitle">
         <div class="user-modal-card" style="max-width: 580px;">
             <header class="user-modal-header">
-                <h3 class="user-modal-title" id="roleModalTitle">
+                <h3 class="user-modal-title crm-modal-title" id="roleModalTitle">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
@@ -324,14 +315,14 @@
                     <div class="role-modal-user-info">
                         <div class="role-modal-user-avatar" id="roleModalAvatar">U</div>
                         <div class="role-modal-user-meta">
-                            <span class="role-modal-user-name" id="roleModalTargetName">Tên người dùng</span>
-                            <span class="role-modal-user-email" id="roleModalTargetEmail">email@example.com</span>
+                            <span class="role-modal-user-name" id="roleModalTargetName"></span>
+                            <span class="role-modal-user-email" id="roleModalTargetEmail"></span>
                         </div>
                     </div>
 
                     <!-- Role Selection (Multiple Checkboxes) -->
-                    <div class="modal-field">
-                        <label class="modal-label">
+                    <div class="modal-field crm-form-group">
+                        <label class="modal-label crm-label">
                             Vai trò hệ thống <span class="modal-required">*</span>
                             <span style="font-weight: normal; font-size: 0.8rem; color: #64748b;">(Có thể gán nhiều vai trò cùng lúc)</span>
                         </label>
@@ -342,12 +333,12 @@
                     </div>
 
                     <!-- Business Group Selection -->
-                    <div class="modal-field">
-                        <label for="modalTeamSelect" class="modal-label">
+                    <div class="modal-field crm-form-group">
+                        <label for="modalTeamSelect" class="modal-label crm-label">
                             Nhóm kinh doanh
                             <span id="markTeamRequired" class="modal-required" style="display: none;">*</span>
                         </label>
-                        <select id="modalTeamSelect" class="modal-select">
+                        <select id="modalTeamSelect" class="modal-select crm-select">
                             <option value="">-- Chưa gán nhóm kinh doanh --</option>
                             <!-- Rendered dynamically -->
                         </select>
@@ -360,8 +351,8 @@
                 </div>
 
                 <footer class="user-modal-footer">
-                    <button type="button" class="btn btn-secondary" id="btnCancelRoleModal">Hủy bỏ</button>
-                    <button type="submit" class="btn btn-primary" id="btnSaveRoleAssignment">
+                    <button type="button" class="btn btn-secondary crm-btn crm-btn-secondary" id="btnCancelRoleModal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary crm-btn crm-btn-primary" id="btnSaveRoleAssignment">
                         <span id="saveRoleSpinner" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
                         <span id="saveRoleBtnText">Lưu thay đổi</span>
                     </button>
@@ -389,8 +380,8 @@
                 </p>
             </div>
             <footer class="user-modal-footer" style="justify-content: center;">
-                <button type="button" class="btn btn-secondary" id="btnCancelDelete">Hủy bỏ</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmDelete">
+                <button type="button" class="btn btn-secondary crm-btn crm-btn-secondary" id="btnCancelDelete">Hủy bỏ</button>
+                <button type="button" class="btn btn-danger crm-btn crm-btn-danger" id="btnConfirmDelete">
                     <span id="deleteUserSpinner" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
                     <span id="deleteUserBtnText">Xác nhận xóa</span>
                 </button>
@@ -483,6 +474,11 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function roleLabel(name) {
+            var labels = { 'Admin': 'Quản trị viên', 'Director': 'Giám đốc', 'Sales Rep': 'Nhân viên kinh doanh', 'Team Lead': 'Trưởng nhóm', 'Manager': 'Quản lý', 'Accountant': 'Kế toán' };
+            return Object.prototype.hasOwnProperty.call(labels, name) ? labels[name] : name;
+        }
+
         // Thông báo
         function showSuccessAlert(msg) {
             globalSuccessMessage.textContent = msg;
@@ -531,7 +527,7 @@
 
                 if (!response.ok) {
                     if (response.status === 404) {
-                        showErrorAlert('Endpoint /api/users chưa sẵn sàng trên máy chủ backend.');
+                        showErrorAlert('Không thể tải danh sách người dùng. Vui lòng thử lại.');
                     } else if (response.status === 401) {
                         showErrorAlert('Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.');
                     } else if (response.status === 403) {
@@ -562,7 +558,7 @@
             } catch (err) {
                 loadingOverlay.style.display = 'none';
                 console.error('Lỗi khi tải danh sách người dùng:', err);
-                showErrorAlert('Không thể kết nối đến máy chủ backend hoặc mạng bị gián đoạn.');
+                showErrorAlert('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
                 renderEmpty();
             }
         }
@@ -585,15 +581,15 @@
                 // Xử lý vai trò (roles có thể là mảng hoặc chuỗi)
                 var rolesText = 'Chưa phân vai trò';
                 if (Array.isArray(user.roles) && user.roles.length > 0) {
-                    rolesText = user.roles.join(', ');
+                    rolesText = user.roles.map(roleLabel).join(', ');
                 } else if (typeof user.role === 'string' && user.role.trim() !== '') {
-                    rolesText = user.role;
+                    rolesText = roleLabel(user.role);
                 }
 
                 var avatarChar = fullName.trim().charAt(0).toUpperCase() || 'U';
                 var deleteAction = isCurrentUser
                     ? '<span class="self-delete-control" tabindex="0" aria-label="Không thể tự xóa tài khoản đang đăng nhập" data-tooltip="Không thể tự xóa tài khoản đang đăng nhập">' +
-                        '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user--disabled" disabled aria-disabled="true">' +
+                        '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user--disabled crm-btn" disabled aria-disabled="true">' +
                             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
                                 '<polyline points="3 6 5 6 21 6"></polyline>' +
                                 '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
@@ -601,7 +597,7 @@
                             'Xóa' +
                         '</button>' +
                     '</span>'
-                    : '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user" data-id="' + escapeHtml(uid) + '" data-name="' + escapeHtml(fullName) + '" title="Xóa tài khoản người dùng">' +
+                    : '<button type="button" class="btn btn-sm btn-outline-danger btn-delete-user crm-btn" data-id="' + escapeHtml(uid) + '" data-name="' + escapeHtml(fullName) + '" title="Xóa tài khoản người dùng">' +
                         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
                             '<polyline points="3 6 5 6 21 6"></polyline>' +
                             '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>' +
@@ -623,24 +619,24 @@
                             '</div>' +
                         '</div>' +
                     '</td>' +
-                    '<td><span class="role-badge">' + escapeHtml(rolesText) + '</span></td>' +
+                    '<td><span class="role-badge crm-badge">' + escapeHtml(rolesText) + '</span></td>' +
                     '<td>' + escapeHtml(teamName) + '</td>' +
                     '<td><span style="font-size: 0.85rem; color: #64748b;">' + escapeHtml(createdAt) + '</span></td>' +
                     '<td>' +
                         (isLocked ?
-                            '<span class="status-badge status-badge--locked"><span class="status-dot"></span>Đã khóa</span>' :
-                            '<span class="status-badge status-badge--active"><span class="status-dot"></span>Hoạt động</span>') +
+                            '<span class="status-badge status-badge--locked crm-badge"><span class="status-dot"></span>Đã khóa</span>' :
+                            '<span class="status-badge status-badge--active crm-badge"><span class="status-dot"></span>Hoạt động</span>') +
                     '</td>' +
                     '<td class="table-col-actions">' +
                         '<div class="user-actions-group">' +
-                            '<a class="btn btn-sm btn-primary" href="' + contextPath + '/users/detail?id=' + encodeURIComponent(uid) + '" title="Xem chi tiết và khóa/bàn giao">Xem</a>' +
-                            '<button type="button" class="btn btn-sm btn-outline-primary btn-assign-roles" data-id="' + escapeHtml(uid) + '" title="Phân vai trò &amp; nhóm kinh doanh">' +
+                            '<a class="btn btn-sm btn-primary crm-btn crm-btn-primary" href="' + contextPath + '/users/detail?id=' + encodeURIComponent(uid) + '" title="Xem chi tiết và khóa/bàn giao">Xem</a>' +
+                            '<button type="button" class="btn btn-sm btn-outline-primary btn-assign-roles crm-btn" data-id="' + escapeHtml(uid) + '" title="Phân vai trò &amp; nhóm kinh doanh">' +
                                 '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
                                     '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>' +
                                 '</svg>' +
                                 'Vai trò &amp; Nhóm' +
                             '</button>' +
-                            '<button type="button" class="btn btn-sm btn-secondary btn-edit-user" data-id="' + escapeHtml(uid) + '" title="Chỉnh sửa thông tin">' +
+                            '<button type="button" class="btn btn-sm btn-secondary btn-edit-user crm-btn crm-btn-secondary" data-id="' + escapeHtml(uid) + '" title="Chỉnh sửa thông tin">' +
                                 '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
                                     '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>' +
                                     '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>' +
@@ -941,7 +937,7 @@
                 saveUserSpinner.style.display = 'none';
                 saveUserBtnText.textContent = isEdit ? 'Cập nhật' : 'Lưu người dùng';
                 console.error('Lỗi khi gửi form người dùng:', err);
-                showErrorAlert('Không thể kết nối đến máy chủ backend để lưu người dùng.');
+                showErrorAlert('Không thể kết nối đến máy chủ để lưu người dùng.');
             }
         });
 
@@ -1014,7 +1010,7 @@
                 deleteUserBtnText.textContent = 'Xác nhận xóa';
                 closeDeleteModal();
                 console.error('Lỗi khi xóa người dùng:', err);
-                showErrorAlert('Không thể kết nối đến máy chủ backend để xóa người dùng.');
+                showErrorAlert('Không thể kết nối đến máy chủ để xóa người dùng.');
             }
         });
 
@@ -1200,7 +1196,7 @@
 
                     var title = document.createElement('span');
                     title.className = 'role-checkbox-title';
-                    title.textContent = role.name;
+                    title.textContent = roleLabel(role.name);
 
                     var desc = document.createElement('span');
                     desc.className = 'role-checkbox-desc';
@@ -1274,7 +1270,7 @@
 
             if (currentAssignedTeamId !== null && !selectedTeamId) {
                 modalTeamSelect.classList.add('is-invalid');
-                feedbackTeam.textContent = 'API hiện tại chưa hỗ trợ bỏ người dùng khỏi nhóm kinh doanh.';
+                feedbackTeam.textContent = 'Không thể bỏ nhóm kinh doanh hiện tại. Vui lòng chọn một nhóm khác.';
                 modalTeamSelect.focus();
                 return;
             }
@@ -1387,9 +1383,9 @@
                 console.error('Lỗi khi lưu phân quyền:', err);
                 if (isSavingTeam) {
                     modalTeamSelect.classList.add('is-invalid');
-                    feedbackTeam.textContent = 'Không thể kết nối đến máy chủ backend để cập nhật nhóm. Phân quyền chưa được thay đổi.';
+                    feedbackTeam.textContent = 'Không thể kết nối đến máy chủ để cập nhật nhóm. Phân quyền chưa được thay đổi.';
                 } else {
-                    feedbackRoles.textContent = 'Không thể kết nối đến máy chủ backend để lưu phân quyền.';
+                    feedbackRoles.textContent = 'Không thể kết nối đến máy chủ để lưu phân quyền.';
                 }
             }
         });
@@ -1399,5 +1395,6 @@
 
     });
     </script>
+    <script src="${pageContext.request.contextPath}/js/users/admin-dialogs.js" defer></script>
 </body>
 </html>

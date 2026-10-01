@@ -1,3 +1,43 @@
+/* Opt-in configuration page patterns; shared tokens remain the single source. */
+.crm-settings [hidden] { display: none !important; }
+.crm-settings-header { align-items: center; }
+.crm-settings-content { min-width: 0; }
+.crm-settings-notices:has(.crm-alert:not([hidden])) { margin-bottom: var(--crm-space-5); }
+.crm-settings-notices .crm-alert { display: flex; justify-content: space-between; gap: var(--crm-space-3); margin-bottom: var(--crm-space-3); }
+.crm-settings-toolbar .crm-input { flex: 1 1 220px; width: auto; }
+.crm-settings-toolbar .crm-select { flex: 0 1 180px; width: auto; }
+.crm-settings-tabs { display: flex; flex-wrap: wrap; gap: var(--crm-space-2); margin-bottom: var(--crm-space-6); }
+.crm-settings-tabs .active { color: var(--crm-primary-hover); background: var(--crm-primary-soft); border-color: var(--crm-primary); }
+.crm-settings-summary { margin: var(--crm-space-1) 0 0; color: var(--crm-text-secondary); font-size: .75rem; overflow-wrap: anywhere; }
+.crm-settings-table { min-width: 860px; }
+.crm-settings-table td { overflow-wrap: anywhere; }
+.crm-settings-table .crm-settings-name { min-width: 200px; max-width: 300px; font-weight: 600; }
+.crm-settings-table .crm-settings-description { max-width: 280px; color: var(--crm-text-secondary); }
+.crm-settings-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--crm-space-1); }
+.crm-settings-icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; padding: 0; border: 1px solid transparent; border-radius: var(--crm-radius-sm); background: transparent; color: var(--crm-text-secondary); cursor: pointer; transition: background-color var(--crm-transition), color var(--crm-transition); }
+.crm-settings-icon svg { width: 18px; height: 18px; }
+.crm-settings-icon:hover { color: var(--crm-primary-hover); background: var(--crm-primary-soft); }
+.crm-settings-icon[data-action="delete"]:hover { color: var(--crm-danger); background: var(--crm-danger-soft); }
+.crm-settings-icon:disabled { opacity: .35; cursor: not-allowed; }
+.crm-settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--crm-space-4); }
+.crm-settings-check { display: flex; align-items: flex-start; gap: var(--crm-space-3); font-size: .8125rem; margin-bottom: var(--crm-space-3); }
+.crm-settings-check input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--crm-primary); }
+.crm-settings-required { color: var(--crm-danger); }
+.crm-settings form { display: flex; flex-direction: column; min-height: 0; }
+.crm-settings [data-form-error] { margin-bottom: var(--crm-space-4); }
+.crm-settings .crm-modal-card { max-width: 620px; }
+.crm-settings .crm-modal-body > p { margin-top: 0; overflow-wrap: anywhere; }
+.crm-settings .crm-modal-title { overflow-wrap: anywhere; }
+.crm-settings .crm-modal-header { flex-wrap: nowrap; align-items: flex-start; }
+.crm-settings .crm-modal-close { flex-shrink: 0; }
+@media (max-width: 768px) {
+    .crm-settings-header { align-items: flex-start; }
+    .crm-settings-toolbar .crm-input, .crm-settings-toolbar .crm-select { flex-basis: 100%; width: 100%; }
+    .crm-settings-grid { grid-template-columns: 1fr; gap: 0; }
+    .crm-settings .crm-modal-footer .crm-btn { flex: 1 1 120px; }
+    .crm-settings-tabs .crm-btn { flex: 1 1 130px; }
+}
+
 /* Opt-in page patterns. Load after common.css when a page adopts the system.
    Modals are scoped to .crm-page to avoid changing legacy module modals.
    Dialog focus, Escape and inert background remain the caller's responsibility. */

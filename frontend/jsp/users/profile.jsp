@@ -27,45 +27,14 @@
 
     <!-- CSS dùng chung -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
 
     <!-- CSS module Users -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/users.css">
-    <style>
-        .profile-readonly-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.75rem;
-            color: #64748b;
-            background: #f1f5f9;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: 6px;
-        }
-        .signature-preview-box {
-            margin-top: 10px;
-            padding: 14px 16px;
-            background-color: #f8fafc;
-            border: 1px dashed #cbd5e1;
-            border-radius: 8px;
-            font-size: 0.88rem;
-            color: #334155;
-            white-space: pre-wrap;
-            min-height: 80px;
-            line-height: 1.5;
-        }
-        .signature-preview-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/profile.css">
 </head>
 <body class="crm-body">
 
@@ -77,11 +46,11 @@
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Nội dung chính -->
-        <main class="user-page" id="profileApp" role="main">
-            <div class="user-container">
+        <main class="user-page crm-page" id="profileApp" role="main">
+            <div class="user-container crm-page-container">
 
                 <!-- Breadcrumb -->
-                <nav class="user-breadcrumb" aria-label="Breadcrumb">
+                <nav class="user-breadcrumb crm-breadcrumb" aria-label="Điều hướng">
                     <a href="${pageContext.request.contextPath}/">CRM</a>
                     <span class="separator">/</span>
                     <span>Tài khoản</span>
@@ -90,20 +59,12 @@
                 </nav>
 
                 <!-- Header -->
-                <header class="user-header">
+                <header class="user-header crm-page-header">
                     <div class="user-header-info">
-                        <h1>Hồ sơ cá nhân &amp; Chữ ký email</h1>
-                        <p>Xem thông tin tài khoản, cập nhật số điện thoại liên hệ và chữ ký số dùng khi gửi báo giá cho khách hàng.</p>
+                        <h1>Hồ sơ cá nhân</h1>
+                        <p>Xem thông tin tài khoản, cập nhật số điện thoại liên hệ và chữ ký email dùng khi gửi báo giá cho khách hàng.</p>
                     </div>
-                    <div class="user-header-badges">
-                        <span class="user-badge">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                            S2-02 / CRM-35
-                        </span>
-                    </div>
+
                 </header>
 
                 <!-- Alerts -->
@@ -139,11 +100,11 @@
 
                     <!-- Cột trái: Thẻ thông tin cá nhân -->
                     <aside class="user-profile-sidebar" aria-label="Tóm tắt tài khoản">
-                        <div class="user-card">
+                        <div class="user-card crm-card">
                             <div class="user-info-summary">
                                 <div class="user-avatar-wrapper">
                                     <div class="user-avatar-lg" id="sidebarAvatar" aria-hidden="true">
-                                        <img id="sidebarAvatarImg" src="${pageContext.request.contextPath}/profile/avatar/image" alt="Avatar" class="user-avatar-img"
+                                        <img id="sidebarAvatarImg" src="${pageContext.request.contextPath}/profile/avatar/image" alt="Ảnh đại diện" class="user-avatar-img"
                                              onload="this.style.display='block'; var c=document.getElementById('sidebarAvatarChar'); if(c) c.style.display='none';"
                                              onerror="this.style.display='none'; var c=document.getElementById('sidebarAvatarChar'); if(c) c.style.display='inline';">
                                         <span id="sidebarAvatarChar"><%= avatarChar %></span>
@@ -201,7 +162,7 @@
 
                     <!-- Cột phải: Form chỉnh sửa hồ sơ -->
                     <section class="user-profile-main" aria-labelledby="profileEditTitle">
-                        <div class="user-card">
+                        <div class="user-card crm-card">
                             <div class="user-card-header" style="margin-bottom: 20px;">
                                 <div>
                                     <h2 id="profileEditTitle" class="user-card-title">
@@ -216,83 +177,83 @@
                             </div>
 
                             <form id="profileForm" novalidate>
-                                <!-- Phần 1: Các trường cố định (Readonly / Disabled) theo AC 3 & AC 4 -->
+
                                 <div style="margin-bottom: 22px; padding: 14px 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
                                     <h3 style="font-size: 0.92rem; font-weight: 700; color: #334155; margin: 0 0 12px 0;">
                                         Thông tin hệ thống do Quản trị viên quản lý (Chỉ đọc)
                                     </h3>
 
-                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
-                                        <div class="modal-field" style="margin: 0;">
-                                            <label class="modal-label" for="readonlyEmail">
+                                    <div class="profile-readonly-fields">
+                                        <div class="modal-field crm-form-group" style="margin: 0;">
+                                            <label class="modal-label crm-label" for="readonlyEmail">
                                                 Địa chỉ Email
                                                 <span class="profile-readonly-badge">
                                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                                     Chỉ đọc
                                                 </span>
                                             </label>
-                                            <input type="email" id="readonlyEmail" class="modal-input" value="<%= email %>" readonly disabled style="background-color: #f1f5f9; cursor: not-allowed; color: #475569;">
+                                            <input type="email" id="readonlyEmail" class="modal-input crm-input" value="<%= email %>" readonly disabled style="background-color: #f1f5f9; cursor: not-allowed; color: #475569;">
                                         </div>
 
-                                        <div class="modal-field" style="margin: 0;">
-                                            <label class="modal-label" for="readonlyRoles">
+                                        <div class="modal-field crm-form-group" style="margin: 0;">
+                                            <label class="modal-label crm-label" for="readonlyRoles">
                                                 Vai trò hệ thống
                                                 <span class="profile-readonly-badge">
                                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                                     Chỉ đọc
                                                 </span>
                                             </label>
-                                            <input type="text" id="readonlyRoles" class="modal-input" value="<%= rolesText %>" readonly disabled style="background-color: #f1f5f9; cursor: not-allowed; color: #475569;">
+                                            <input type="text" id="readonlyRoles" class="modal-input crm-input" value="<%= rolesText %>" readonly disabled style="background-color: #f1f5f9; cursor: not-allowed; color: #475569;">
                                         </div>
 
-                                        <div class="modal-field" style="margin: 0;">
-                                            <label class="modal-label" for="readonlyTeam">
+                                        <div class="modal-field crm-form-group" style="margin: 0;">
+                                            <label class="modal-label crm-label" for="readonlyTeam">
                                                 Nhóm kinh doanh
                                                 <span class="profile-readonly-badge">
                                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                                     Chỉ đọc
                                                 </span>
                                             </label>
-                                            <input type="text" id="readonlyTeam" class="modal-input" value="<%= teamName %>" readonly disabled style="background-color: #f1f5f9; cursor: not-allowed; color: #475569;">
+                                            <input type="text" id="readonlyTeam" class="modal-input crm-input" value="<%= teamName %>" readonly disabled style="background-color: #f1f5f9; cursor: not-allowed; color: #475569;">
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Phần 2: Các trường được phép chỉnh sửa theo AC 2 -->
-                                <div class="modal-field">
-                                    <label for="profileFullName" class="modal-label">
+
+                                <div class="modal-field crm-form-group">
+                                    <label for="profileFullName" class="modal-label crm-label">
                                         Họ và tên <span class="modal-required">*</span>
                                     </label>
-                                    <input type="text" id="profileFullName" name="fullName" class="modal-input"
+                                    <input type="text" id="profileFullName" name="fullName" class="modal-input crm-input"
                                            value="<%= fullName %>" placeholder="Ví dụ: Nguyễn Văn A" required>
                                     <div class="modal-field-feedback" id="feedbackProfileFullName" style="display: block; color: #dc2626; font-size: 0.83rem; margin-top: 4px;"></div>
                                 </div>
 
-                                <div class="modal-field">
-                                    <label for="profilePhone" class="modal-label">
+                                <div class="modal-field crm-form-group">
+                                    <label for="profilePhone" class="modal-label crm-label">
                                         Số điện thoại di động
                                         <span style="font-weight: normal; font-size: 0.82rem; color: #64748b;">(Định dạng Việt Nam, ví dụ: 0912345678 hoặc +84912345678)</span>
                                     </label>
-                                    <input type="tel" id="profilePhone" name="phone" class="modal-input"
+                                    <input type="tel" id="profilePhone" name="phone" class="modal-input crm-input"
                                            value="<%= phone %>" placeholder="Ví dụ: 0912345678">
                                     <div class="modal-field-feedback" id="feedbackProfilePhone" style="display: block; color: #dc2626; font-size: 0.83rem; margin-top: 4px;"></div>
                                 </div>
 
-                                <div class="modal-field">
-                                    <label for="profileSignature" class="modal-label">
+                                <div class="modal-field crm-form-group">
+                                    <label for="profileSignature" class="modal-label crm-label">
                                         Chữ ký Email (Email Signature)
                                         <span style="font-weight: normal; font-size: 0.82rem; color: #64748b;">(Tự động chèn ở cuối báo giá gửi khách)</span>
                                     </label>
-                                    <textarea id="profileSignature" name="signature" class="modal-input" rows="5"
+                                    <textarea id="profileSignature" name="signature" class="modal-input crm-input" rows="5"
                                               placeholder="Ví dụ:&#10;Trân trọng,&#10;<%= !fullName.isEmpty() ? fullName : "Nguyễn Văn A" %> - Bộ phận Kinh doanh&#10;Công ty CRM ICTU&#10;SĐT: <%= !phone.isEmpty() ? phone : "0912345678" %> | Email: <%= !email.isEmpty() ? email : "email@example.com" %>"><%= signature %></textarea>
-                                    
+
                                     <div class="signature-preview-title" style="margin-top: 10px;">Xem trước chữ ký email</div>
                                     <div class="signature-preview-box" id="signaturePreview"><%= signature.isEmpty() ? "(Chưa thiết lập chữ ký email)" : signature %></div>
                                 </div>
 
                                 <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid #e2e8f0;">
-                                    <button type="reset" class="btn btn-secondary" id="btnResetProfile">Đặt lại</button>
-                                    <button type="submit" class="btn btn-primary" id="btnSaveProfile">
+                                    <button type="reset" class="btn crm-btn btn-secondary crm-btn-secondary" id="btnResetProfile">Đặt lại</button>
+                                    <button type="submit" class="btn crm-btn btn-primary crm-btn-primary" id="btnSaveProfile">
                                         <span id="saveProfileSpinner" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
                                         <span id="saveProfileBtnText">Lưu thay đổi</span>
                                     </button>
@@ -306,7 +267,7 @@
             </div>
         </main>
 
-        <!-- Modal Tải lên & Cắt ảnh đại diện người dùng (CRM-36 / S2-03) -->
+
         <div class="avatar-modal-backdrop" id="avatarUploadModal" role="dialog" aria-modal="true" aria-labelledby="avatarModalTitle">
             <div class="avatar-modal-card">
                 <div class="avatar-modal-header">
@@ -321,7 +282,7 @@
                 </div>
 
                 <div class="avatar-modal-body">
-                    <!-- Thông báo lỗi validate tiếng Việt trong modal (AC 3) -->
+
                     <div class="avatar-modal-alert avatar-modal-alert-danger" id="avatarModalErrorAlert" role="alert" style="display: none;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex-shrink:0; margin-top:1px;">
                             <circle cx="12" cy="12" r="10"></circle>
@@ -351,7 +312,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. Vùng Cắt ảnh trực quan (Canvas Cropper - AC 2) -->
+
                     <div class="avatar-cropper-wrapper" id="avatarCropperWrapper">
                         <div class="avatar-crop-stage" id="avatarCropStage" title="Kéo chuột để di chuyển vị trí cắt ảnh">
                             <canvas id="avatarCropCanvas" class="avatar-crop-canvas"></canvas>
@@ -368,7 +329,7 @@
                             <button type="button" class="avatar-control-btn" id="btnChangeImage" title="Chọn ảnh khác">Chọn ảnh khác</button>
                         </div>
 
-                        <!-- Hàng xem trước bản thu nhỏ (AC 2 & AC 4) -->
+
                         <div class="avatar-previews-bar">
                             <div class="avatar-preview-item">
                                 <div class="avatar-preview-circle-lg">
@@ -404,8 +365,8 @@
                 </div>
 
                 <div class="avatar-modal-footer">
-                    <button type="button" class="btn btn-secondary" id="btnCancelAvatarModal">Hủy bỏ</button>
-                    <button type="button" class="btn btn-primary" id="btnSaveAvatar" disabled>
+                    <button type="button" class="btn crm-btn btn-secondary crm-btn-secondary" id="btnCancelAvatarModal">Hủy bỏ</button>
+                    <button type="button" class="btn crm-btn btn-primary crm-btn-primary" id="btnSaveAvatar" disabled>
                         <span id="avatarSaveSpinner" class="user-spinner" style="width: 14px; height: 14px; display: none; margin-right: 4px;" aria-hidden="true"></span>
                         <span id="avatarSaveBtnText">Lưu ảnh đại diện</span>
                     </button>
@@ -1120,7 +1081,7 @@
                     // 3. Cập nhật Avatar trên thanh Sidebar
                     var sidebarAvatarEl = document.getElementById('crmSidebarAvatarText');
                     if (sidebarAvatarEl) {
-                        sidebarAvatarEl.innerHTML = '<img src="' + newThumbnailUrl + '" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+                        sidebarAvatarEl.innerHTML = '<img src="' + newThumbnailUrl + '" alt="Ảnh đại diện" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
                     }
 
                     setTimeout(function () {

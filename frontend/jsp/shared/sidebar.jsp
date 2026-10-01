@@ -84,7 +84,7 @@
     </div>
 
     <!-- Khu vực danh sách điều hướng chức năng -->
-    <nav class="sidebar__nav" aria-label="Primary navigation">
+    <nav class="sidebar__nav" aria-label="Điều hướng chính">
         <div class="sidebar__section">
             <span class="sidebar__section-label">Menu chức năng</span>
 

@@ -1,7 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-    <%-- CRM-23 / S1-03 - Quên mật khẩu qua email API: POST /api/auth/forgot-password Request attributes: - email -
-        error - message --%>
+
 
         <%! private String escapeHtml(String input) { if (input==null) { return "" ; } return input
             .replace("&", "&amp;" ) .replace("<", "&lt;" ) .replace(">", "&gt;")
@@ -23,7 +22,9 @@
 
                     <title>Quên mật khẩu | CRM</title>
 
-                    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/auth/auth.css">
+                    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/auth/auth.css">
                 </head>
 
                 <body class="auth-page">
@@ -58,30 +59,30 @@
                             <form class="auth-form" method="post"
                                 action="${pageContext.request.contextPath}/forgot-password">
 
-                                <div class="field-group">
+                                <div class="field-group crm-form-group">
 
                                     <label for="email">
                                         Email
                                     </label>
 
-                                    <input id="email" type="email" name="email" value="<%= safeEmail %>"
-                                        placeholder="name@company.com" autocomplete="email" required>
+                                    <input class="crm-input" id="email" type="email" name="email" value="<%= safeEmail %>"
+                                        placeholder="Nhập địa chỉ email" autocomplete="email" required>
 
                                 </div>
 
-                                <button type="submit" class="auth-button">
+                                <button type="submit" class="auth-button crm-btn crm-btn-primary">
                                     Gửi liên kết đặt lại mật khẩu
                                 </button>
 
                                 <% if (errorMsg !=null && !errorMsg.trim().isEmpty()) { %>
 
-                                    <div class="auth-message auth-error" role="alert">
+                                    <div class="auth-message auth-error crm-alert crm-alert-danger" role="alert">
                                         <%= escapeHtml(errorMsg) %>
                                     </div>
 
                                     <% } else if (messageMsg !=null && !messageMsg.trim().isEmpty()) { %>
 
-                                        <div class="auth-message auth-success" role="status">
+                                        <div class="auth-message auth-success crm-alert crm-alert-success" role="status">
                                             <%= escapeHtml(messageMsg) %>
                                         </div>
 

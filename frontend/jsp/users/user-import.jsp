@@ -12,10 +12,12 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
 
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <!-- CSS riêng biệt của module Import Excel (CRM-32 / S2-01) -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/user-import.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/users/users-admin.css">
 </head>
-<body class="crm-body">
+<body class="crm-body users-admin">
 
     <!-- Header dùng chung của hệ thống -->
     <jsp:include page="/jsp/shared/header.jsp" />
@@ -25,11 +27,11 @@
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Khu vực nội dung chính của màn hình Nhập người dùng từ Excel -->
-        <main class="import-page" id="importApp" role="main">
-            <div class="import-container">
+        <main class="import-page crm-page" id="importApp" role="main">
+            <div class="import-container crm-page-container">
 
                 <!-- Breadcrumb điều hướng -->
-                <nav class="import-breadcrumb" aria-label="Breadcrumb">
+                <nav class="import-breadcrumb crm-breadcrumb" aria-label="Đường dẫn trang">
                     <a href="${pageContext.request.contextPath}/">CRM</a>
                     <span class="separator">/</span>
                     <a href="${pageContext.request.contextPath}/users">Quản lý người dùng</a>
@@ -38,24 +40,12 @@
                 </nav>
 
                 <!-- Header màn hình -->
-                <header class="import-header">
+                <header class="import-header crm-page-header">
                     <div class="import-header-info">
-                        <h1>Nhập danh sách người dùng từ tệp Excel</h1>
-                        <p>Tạo tài khoản người dùng hàng loạt cho khối kinh doanh từ bảng tính Excel (.xlsx hoặc .csv).</p>
+                        <h1 class="crm-page-title">Nhập danh sách người dùng từ tệp Excel</h1>
+                        <p class="crm-page-description">Tạo tài khoản người dùng hàng loạt cho khối kinh doanh từ bảng tính Excel (.xlsx hoặc .csv).</p>
                     </div>
 
-                    <div class="import-header-badges">
-                        <span class="import-badge-feature" title="User Story CRM-32 / S2-01">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            S2-01 / CRM-32
-                        </span>
-                    </div>
                 </header>
 
                 <!-- Stepper 3 bước trực quan -->
@@ -91,7 +81,7 @@
 
                 <!-- Khu vực hiển thị thông báo phản hồi (Alerts) -->
                 <div id="importAlertArea" aria-live="polite">
-                    <div class="import-alert import-alert-danger" id="globalErrorAlert" style="display: none;" role="alert">
+                    <div class="import-alert import-alert-danger crm-alert crm-alert-danger" id="globalErrorAlert" style="display: none;" role="alert">
                         <svg class="import-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -101,10 +91,10 @@
                             <strong>Thông báo lỗi: </strong>
                             <span id="globalErrorMessage"></span>
                         </div>
-                        <button type="button" class="import-btn-secondary" style="padding: 2px 8px; border: none; background: transparent; cursor: pointer;" onclick="document.getElementById('globalErrorAlert').style.display='none';">&times;</button>
+                        <button type="button" class="import-btn-secondary crm-btn-secondary" aria-label="Đóng thông báo lỗi" style="padding: 2px 8px; border: none; background: transparent; cursor: pointer;" onclick="document.getElementById('globalErrorAlert').style.display='none';">&times;</button>
                     </div>
 
-                    <div class="import-alert import-alert-success" id="globalSuccessAlert" style="display: none;" role="status">
+                    <div class="import-alert import-alert-success crm-alert crm-alert-success" id="globalSuccessAlert" style="display: none;" role="status">
                         <svg class="import-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -113,13 +103,13 @@
                             <strong>Thành công: </strong>
                             <span id="globalSuccessMessage"></span>
                         </div>
-                        <button type="button" class="import-btn-secondary" style="padding: 2px 8px; border: none; background: transparent; cursor: pointer;" onclick="document.getElementById('globalSuccessAlert').style.display='none';">&times;</button>
+                        <button type="button" class="import-btn-secondary crm-btn-secondary" aria-label="Đóng thông báo kết quả" style="padding: 2px 8px; border: none; background: transparent; cursor: pointer;" onclick="document.getElementById('globalSuccessAlert').style.display='none';">&times;</button>
                     </div>
                 </div>
 
                 <!-- BƯỚC 1: TẢI LÊN TỆP EXCEL -->
-                <section class="import-card" id="step1Section">
-                    <h2 class="import-card-title">
+                <section class="import-card crm-card" id="step1Section">
+                    <h2 class="import-card-title crm-card-title">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                             <polyline points="17 8 12 3 7 8"></polyline>
@@ -139,7 +129,7 @@
                         </div>
 
                         <div class="import-template-actions">
-                            <a href="${pageContext.request.contextPath}/api/users/import/template?format=xlsx" class="import-btn import-btn-excel" id="btnDownloadTemplateXlsx" download="mau_nhap_nguoi_dung.xlsx">
+                            <a href="${pageContext.request.contextPath}/api/users/import/template?format=xlsx" class="import-btn import-btn-excel crm-btn" id="btnDownloadTemplateXlsx" download="mau_nhap_nguoi_dung.xlsx">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                     <polyline points="7 10 12 15 17 10"></polyline>
@@ -147,7 +137,7 @@
                                 </svg>
                                 Tải tệp mẫu Excel (.xlsx)
                             </a>
-                            <a href="${pageContext.request.contextPath}/api/users/import/template?format=csv" class="import-btn import-btn-secondary" id="btnDownloadTemplateCsv" download="mau_nhap_nguoi_dung.csv">
+                            <a href="${pageContext.request.contextPath}/api/users/import/template?format=csv" class="import-btn import-btn-secondary crm-btn crm-btn-secondary" id="btnDownloadTemplateCsv" download="mau_nhap_nguoi_dung.csv">
                                 Tải mẫu CSV (.csv)
                             </a>
                         </div>
@@ -171,17 +161,17 @@
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
-                                    <span id="selectedFileName">ten_tep.xlsx</span>
-                                    <span id="selectedFileSize" style="color: var(--import-text-muted); font-size: 12px; margin-left: 4px;">(0 KB)</span>
+                                    <span id="selectedFileName"></span>
+                                    <span id="selectedFileSize" style="color: var(--import-text-muted); font-size: 12px; margin-left: 4px;"></span>
                                 </div>
                             </div>
                         </div>
 
                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
-                            <button type="button" class="import-btn import-btn-secondary" id="btnClearFile" style="display: none;">
+                            <button type="button" class="import-btn import-btn-secondary crm-btn crm-btn-secondary" id="btnClearFile" style="display: none;">
                                 Chọn lại tệp
                             </button>
-                            <button type="button" class="import-btn import-btn-primary" id="btnUploadPreview" disabled>
+                            <button type="button" class="import-btn import-btn-primary crm-btn crm-btn-primary" id="btnUploadPreview" disabled>
                                 <span class="import-spinner" id="previewSpinner" style="display: none;"></span>
                                 <span id="previewBtnText">Kiểm tra & Xem trước</span>
                             </button>
@@ -190,9 +180,9 @@
                 </section>
 
                 <!-- BƯỚC 2: XEM TRƯỚC & KIỂM TRA LỖI (PREVIEW & VALIDATION) -->
-                <section class="import-card" id="step2Section" style="display: none;">
+                <section class="import-card crm-card" id="step2Section" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                        <h2 class="import-card-title">
+                        <h2 class="import-card-title crm-card-title">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                 <circle cx="12" cy="12" r="3"></circle>
@@ -219,7 +209,7 @@
                     </div>
 
                     <!-- Thông báo chỉ dẫn AC 3 -->
-                    <div class="import-alert import-alert-success" style="padding: 12px 16px;">
+                    <div class="import-alert import-alert-success crm-alert crm-alert-success" style="padding: 12px 16px;">
                         <svg class="import-alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -241,8 +231,8 @@
                     </div>
 
                     <!-- Bảng chi tiết từng dòng (AC 2) -->
-                    <div class="import-table-wrap">
-                        <table class="import-table" id="previewTable" aria-label="Bảng xem trước dữ liệu Excel">
+                    <div class="import-table-wrap crm-table-wrap" tabindex="0" role="region" aria-label="Dữ liệu nhập người dùng; có thể cuộn ngang">
+                        <table class="import-table crm-table" id="previewTable" aria-label="Bảng xem trước dữ liệu Excel">
                             <thead>
                                 <tr>
                                     <th scope="col" style="width: 60px;">Dòng</th>
@@ -263,11 +253,11 @@
 
                     <!-- Nút thao tác xác nhận -->
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
-                        <button type="button" class="import-btn import-btn-secondary" id="btnBackToUpload">
+                        <button type="button" class="import-btn import-btn-secondary crm-btn crm-btn-secondary" id="btnBackToUpload">
                             &larr; Chọn tệp khác
                         </button>
 
-                        <button type="button" class="import-btn import-btn-success" id="btnConfirmImport">
+                        <button type="button" class="import-btn import-btn-success crm-btn crm-btn-primary" id="btnConfirmImport">
                             <span class="import-spinner" id="confirmSpinner" style="display: none;"></span>
                             <span id="confirmBtnText">Xác nhận nhập danh sách người dùng</span>
                         </button>
@@ -275,12 +265,12 @@
                 </section>
 
                 <!-- BƯỚC 3: BÁO CÁO KẾT QUẢ IMPORT (AC 3) -->
-                <section class="import-card" id="step3Section" style="display: none;">
+                <section class="import-card crm-card" id="step3Section" style="display: none;">
                     <div class="import-report-box">
                         <div class="import-report-icon" aria-hidden="true">&#10003;</div>
-                        <h2 class="import-report-title">Nhập danh sách người dùng thành công!</h2>
+                        <h2 class="import-report-title">Kết quả nhập danh sách người dùng</h2>
                         <p class="import-report-desc">
-                            Hệ thống đã hoàn tất tạo tài khoản cho các nhân sự hợp lệ. Thông tin đăng nhập ban đầu và liên kết kích hoạt đã được gửi qua email.
+                            Kiểm tra số tài khoản đã tạo và các dòng bị bỏ qua bên dưới.
                         </p>
 
                         <!-- Thống kê kết quả thực tế -->
@@ -298,8 +288,8 @@
                         <!-- Danh sách tài khoản đã tạo -->
                         <div style="width: 100%; text-align: left;" id="reportTableWrap">
                             <h3 style="font-size: 15px; margin-bottom: 8px;">Danh sách tài khoản vừa tạo:</h3>
-                            <div class="import-table-wrap" style="max-height: 260px;">
-                                <table class="import-table" id="reportTable">
+                            <div class="import-table-wrap crm-table-wrap" tabindex="0" role="region" aria-label="Dữ liệu nhập người dùng; có thể cuộn ngang" style="max-height: 260px;">
+                                <table class="import-table crm-table" id="reportTable">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -318,10 +308,10 @@
                         </div>
 
                         <div style="display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap;">
-                            <button type="button" class="import-btn import-btn-secondary" id="btnRestartProcess">
+                            <button type="button" class="import-btn import-btn-secondary crm-btn crm-btn-secondary" id="btnRestartProcess">
                                 Nhập thêm tệp khác
                             </button>
-                            <a href="${pageContext.request.contextPath}/users" class="import-btn import-btn-primary">
+                            <a href="${pageContext.request.contextPath}/users" class="import-btn import-btn-primary crm-btn crm-btn-primary">
                                 Về danh sách người dùng &rarr;
                             </a>
                         </div>
@@ -408,6 +398,11 @@
         var reportTableBody = document.getElementById('reportTableBody');
         var btnRestartProcess = document.getElementById('btnRestartProcess');
 
+        function roleLabel(name) {
+            var labels = { 'Admin': 'Quản trị viên', 'Director': 'Giám đốc', 'Sales Rep': 'Nhân viên kinh doanh', 'Team Lead': 'Trưởng nhóm', 'Manager': 'Quản lý', 'Accountant': 'Kế toán' };
+            return Object.prototype.hasOwnProperty.call(labels, name) ? labels[name] : name;
+        }
+
         // Helper: Hiển thị thông báo
         function showError(msg) {
             globalErrorMessage.textContent = msg;
@@ -458,7 +453,11 @@
             step2Section.style.display = (step === 2) ? 'flex' : 'none';
             step3Section.style.display = (step === 3) ? 'flex' : 'none';
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            [stepIndicator1, stepIndicator2, stepIndicator3].forEach(function (indicator, index) {
+                if (index + 1 === step) indicator.setAttribute('aria-current', 'step');
+                else indicator.removeAttribute('aria-current');
+            });
+            window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         }
 
         // 1. Quản lý việc chọn tệp & Drag/Drop
@@ -489,6 +488,10 @@
 
         function clearSelectedFile() {
             state.file = null;
+            state.batchToken = null;
+            state.validRows = [];
+            state.errorRows = [];
+            state.allRows = [];
             fileInput.value = '';
             fileSelectedDisplay.style.display = 'none';
             btnClearFile.style.display = 'none';
@@ -588,8 +591,7 @@
 
             } catch (err) {
                 console.error('Lỗi khi tải file preview:', err);
-                // Cơ chế tự động fallback thông minh nếu backend chưa merge để hỗ trợ QA test giao diện
-                handleClientSidePreviewFallback(state.file);
+                showError('Không thể kết nối đến máy chủ để kiểm tra tệp. Vui lòng thử lại.');
             } finally {
                 btnUploadPreview.disabled = false;
                 previewSpinner.style.display = 'none';
@@ -600,16 +602,13 @@
         // Xử lý dữ liệu Preview nhận từ Server
         function handlePreviewSuccess(resData) {
             var data = (resData && resData.data) ? resData.data : resData;
-            var validRows = Array.isArray(data.validRows) ? data.validRows : [];
-            var errorRows = Array.isArray(data.errorRows) ? data.errorRows : [];
-
-            // Nếu backend trả theo UserImportResult structure
-            if (data.rows && Array.isArray(data.rows)) {
-                validRows = data.rows.filter(function (r) { return r.valid; });
-                errorRows = data.rows.filter(function (r) { return !r.valid; });
+            if ((resData && resData.success === false) || !data || !Array.isArray(data.validRows) || !Array.isArray(data.errorRows) || typeof data.batchToken !== 'string' || !data.batchToken.trim()) {
+                showError('Máy chủ chưa trả về kết quả kiểm tra hợp lệ. Vui lòng thử lại.');
+                return;
             }
-
-            state.batchToken = data.batchToken || ('token_' + Date.now());
+            var validRows = data.validRows;
+            var errorRows = data.errorRows;
+            state.batchToken = data.batchToken;
             state.validRows = validRows;
             state.errorRows = errorRows;
 
@@ -633,60 +632,6 @@
 
             renderPreviewSection();
             setStepperStep(2);
-        }
-
-        // Fallback đọc thử file CSV / giả lập xem trước khi backend chưa kết nối
-        function handleClientSidePreviewFallback(file) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                var content = e.target.result;
-                var lines = content.split(/\r?\n/).filter(function (l) { return l.trim().length > 0; });
-
-                if (lines.length <= 1) {
-                    showError('Tệp không có dữ liệu để kiểm tra (chỉ có dòng tiêu đề hoặc tệp rỗng).');
-                    return;
-                }
-
-                var valid = [];
-                var errors = [];
-
-                for (var i = 1; i < lines.length; i++) {
-                    var cols = lines[i].split(',').map(function (c) { return c.replace(/^"|"$/g, '').trim(); });
-                    var rowObj = {
-                        rowNum: i + 1,
-                        fullName: cols[0] || '',
-                        email: cols[1] || '',
-                        username: cols[2] || '',
-                        phone: cols[3] || '',
-                        role: cols[4] || 'Sales Rep',
-                        team: cols[5] || 'Nhóm kinh doanh 1',
-                        errors: []
-                    };
-
-                    // Kiểm tra validation
-                    if (!rowObj.fullName) rowObj.errors.push('Thiếu họ và tên');
-                    if (!rowObj.email) {
-                        rowObj.errors.push('Thiếu địa chỉ email');
-                    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rowObj.email)) {
-                        rowObj.errors.push('Email không đúng định dạng');
-                    }
-
-                    if (rowObj.errors.length === 0) {
-                        rowObj.isValid = true;
-                        valid.push(rowObj);
-                    } else {
-                        rowObj.isValid = false;
-                        errors.push(rowObj);
-                    }
-                }
-
-                handlePreviewSuccess({
-                    validRows: valid,
-                    errorRows: errors,
-                    batchToken: 'client_token_' + Date.now()
-                });
-            };
-            reader.readAsText(file);
         }
 
         // 3. Render bảng Preview (Bước 2)
@@ -738,9 +683,9 @@
 
                 var statusHtml = '';
                 if (row.isValid) {
-                    statusHtml = '<span class="import-tag import-tag-success">&#10003; Hợp lệ</span>';
+                    statusHtml = '<span class="import-tag import-tag-success crm-badge">&#10003; Hợp lệ</span>';
                 } else {
-                    statusHtml = '<span class="import-tag import-tag-danger">&#10007; Lỗi</span>';
+                    statusHtml = '<span class="import-tag import-tag-danger crm-badge">&#10007; Lỗi</span>';
                     var errArr = row.errors || row.errorMessages || (row.errorMessage ? [row.errorMessage] : ['Dữ liệu không hợp lệ']);
                     if (Array.isArray(errArr) && errArr.length > 0) {
                         statusHtml += '<ul class="import-error-list">';
@@ -757,7 +702,7 @@
                     '<td><code>' + escapeHtml(row.email || '-') + '</code></td>' +
                     '<td>' + escapeHtml(row.username || '-') + '</td>' +
                     '<td>' + escapeHtml(row.phone || '-') + '</td>' +
-                    '<td>' + escapeHtml(row.role || row.roleName || 'Sales Rep') + '</td>' +
+                    '<td>' + escapeHtml(roleLabel(row.role || row.roleName || 'Chưa phân vai trò')) + '</td>' +
                     '<td>' + escapeHtml(row.team || row.teamName || 'Chưa phân nhóm') + '</td>' +
                     '<td>' + statusHtml + '</td>';
 
@@ -796,7 +741,7 @@
 
         // 4. Xác nhận nhập danh sách người dùng (POST /api/users/import/confirm)
         btnConfirmImport.addEventListener('click', async function () {
-            if (state.validRows.length === 0) {
+            if (!state.batchToken || state.validRows.length === 0) {
                 showError('Không có dòng dữ liệu hợp lệ nào để nhập vào hệ thống.');
                 return;
             }
@@ -869,9 +814,17 @@
         // 5. Xử lý Hoàn tất & Báo cáo kết quả (Bước 3)
         function handleConfirmSuccess(data) {
             var report = (data && data.data) ? data.data : data;
-            var createdCount = report.created != null ? report.created : (report.successCount || state.validRows.length);
-            var skippedCount = report.skipped != null ? report.skipped : (report.errorCount || state.errorRows.length);
-            var createdItems = report.items || state.validRows;
+            if (!report || (data && data.success === false)) {
+                showError('Máy chủ chưa trả về báo cáo nhập hợp lệ. Vui lòng kiểm tra lại danh sách người dùng trước khi thử lại.');
+                return;
+            }
+            var createdCount = report.created != null ? report.created : report.successRows;
+            var skippedCount = report.skipped != null ? report.skipped : report.failedRows;
+            if (!Number.isInteger(createdCount) || !Number.isInteger(skippedCount) || createdCount < 0 || skippedCount < 0 || !Array.isArray(report.items)) {
+                showError('Máy chủ chưa trả về báo cáo nhập hợp lệ. Vui lòng kiểm tra lại danh sách người dùng trước khi thử lại.');
+                return;
+            }
+            var createdItems = report.items;
 
             reportSuccessCount.textContent = createdCount;
             reportSkippedCount.textContent = skippedCount;
@@ -885,14 +838,14 @@
                         '<td><strong>' + escapeHtml(u.fullName || u.name) + '</strong></td>' +
                         '<td><code>' + escapeHtml(u.email) + '</code></td>' +
                         '<td>' + escapeHtml(u.username || '-') + '</td>' +
-                        '<td>' + escapeHtml(u.role || u.roleName || 'Sales Rep') + '</td>' +
-                        '<td><span class="import-tag import-tag-success">&#10003; Đã tạo</span></td>';
+                        '<td>' + escapeHtml(roleLabel(u.role || u.roleName || 'Chưa phân vai trò')) + '</td>' +
+                        '<td><span class="import-tag import-tag-success crm-badge">&#10003; Đã tạo</span></td>';
                     reportTableBody.appendChild(tr);
                 });
             }
 
             setStepperStep(3);
-            showSuccess('Đã nhập thành công ' + createdCount + ' tài khoản người dùng vào hệ thống.');
+            showSuccess('Đã hoàn tất nhập danh sách: ' + createdCount + ' tài khoản được tạo.');
         }
 
         btnRestartProcess.addEventListener('click', function () {

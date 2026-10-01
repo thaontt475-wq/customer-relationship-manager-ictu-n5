@@ -8,9 +8,10 @@
 
     <!-- CSS dùng chung của hệ thống CRM -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
 
-    <!-- CSS riêng biệt của module Error Pages (CRM-27) -->
+
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/errors/errors.css">
 </head>
 <body class="crm-body">
@@ -23,8 +24,8 @@
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Khu vực nội dung chính của trang báo lỗi 403 -->
-        <main class="error-page" id="errorApp" role="main">
-            <section class="err-card err-card--403" aria-labelledby="errTitle">
+        <main class="error-page crm-page" id="errorApp" role="main">
+            <section class="err-card crm-card err-card--403" aria-labelledby="errTitle">
 
                 <!-- Đồ họa Icon minh họa lỗi 403: Không đủ quyền hạn / Truy cập bị chặn -->
                 <div class="err-illustration err-illustration--403" aria-hidden="true">
@@ -44,7 +45,7 @@
                 <h1 class="err-title" id="errTitle">Không có quyền truy cập tài nguyên</h1>
                 <p class="err-description">
                     Tài khoản của bạn hiện tại chưa được cấp quyền hạn để xem hoặc chỉnh sửa dữ liệu tại trang này.
-                    Vui lòng liên hệ với Quản trị viên (Admin) của tổ chức nếu bạn cho rằng đây là một sự nhầm lẫn về phân quyền.
+                    Vui lòng liên hệ với Quản trị viên  của tổ chức nếu bạn cho rằng đây là một sự nhầm lẫn về phân quyền.
                 </p>
 
                 <!-- Hộp thông tin tra cứu kỹ thuật (Diagnostic Box) -->
@@ -67,7 +68,7 @@
                             </svg>
                             Mã tra cứu yêu cầu:
                         </span>
-                        <span class="err-diag-value" id="diagRequestId">${not empty requestId ? requestId : 'CRM-PERM-403'}</span>
+                        <span class="err-diag-value" id="diagRequestId">${not empty requestId ? requestId : 'Chưa có mã tra cứu'}</span>
                     </div>
                     <div class="err-diag-item">
                         <span class="err-diag-label">
@@ -84,20 +85,20 @@
 
                 <!-- Các nút hành động hỗ trợ người dùng quay lại luồng làm việc -->
                 <div class="err-actions">
-                    <button type="button" class="err-btn err-btn-secondary" onclick="window.history.back()">
+                    <button type="button" class="err-btn crm-btn err-btn-secondary crm-btn-secondary" onclick="window.history.back()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
                         <span>Quay lại trang trước</span>
                     </button>
-                    <a href="${pageContext.request.contextPath}/dashboard" class="err-btn err-btn-primary">
+                    <a href="${pageContext.request.contextPath}/dashboard" class="err-btn crm-btn err-btn-primary crm-btn-primary">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                             <polyline points="9 22 9 12 15 12 15 22"></polyline>
                         </svg>
                         <span>Về bảng điều khiển</span>
                     </a>
-                    <a href="${pageContext.request.contextPath}/login" class="err-btn err-btn-secondary" title="Đổi sang tài khoản có quyền truy cập">
+                    <a href="${pageContext.request.contextPath}/login" class="err-btn crm-btn err-btn-secondary crm-btn-secondary" title="Đổi sang tài khoản có quyền truy cập">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
@@ -107,7 +108,7 @@
                 </div>
 
                 <div class="err-footer-help">
-                    Cần quyền truy cập? Liên hệ Quản trị viên hệ thống để kiểm tra vai trò người dùng (Roles & Data Scope).
+                    Cần quyền truy cập? Liên hệ Quản trị viên hệ thống để kiểm tra vai trò người dùng và phạm vi dữ liệu.
                 </div>
 
             </section>
