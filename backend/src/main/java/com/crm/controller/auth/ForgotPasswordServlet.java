@@ -35,6 +35,9 @@ public class ForgotPasswordServlet extends HttpServlet {
                 "Phương thức không được hỗ trợ");
             return;
         }
+        if ("1".equals(request.getParameter("sent"))) {
+            request.setAttribute("message", GENERIC_MESSAGE);
+        }
         forwardView(request, response);
     }
 
@@ -74,9 +77,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        request.setAttribute("email", email);
-        request.setAttribute("message", GENERIC_MESSAGE);
-        forwardView(request, response);
+        response.sendRedirect(request.getContextPath() + "/forgot-password?sent=1");
     }
 
     private boolean isApiRequest(HttpServletRequest request) {

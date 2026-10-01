@@ -37,6 +37,12 @@ public class ResetPasswordServlet extends HttpServlet {
             return;
         }
 
+        if ("1".equals(request.getParameter("saved"))) {
+            request.setAttribute("message", "Đặt lại mật khẩu thành công");
+            forwardView(request, response);
+            return;
+        }
+
         String token = request.getParameter("token");
 
         if (token != null && !token.isBlank() && authService.validateResetToken(token)) {
@@ -89,8 +95,7 @@ public class ResetPasswordServlet extends HttpServlet {
                 return;
             }
 
-            request.setAttribute("message", "Đặt lại mật khẩu thành công");
-            forwardView(request, response);
+            response.sendRedirect(request.getContextPath() + "/reset-password?saved=1");
             return;
         }
 
