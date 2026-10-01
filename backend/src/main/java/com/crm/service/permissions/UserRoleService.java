@@ -6,6 +6,7 @@ import com.crm.dao.teams.UserTeamDAO;
 import com.crm.dao.users.UserDAO;
 import com.crm.model.Role;
 import com.crm.model.User;
+import com.crm.service.audit.AuditLogService;
 import com.crm.util.DBConnection;
 
 import java.sql.Connection;
@@ -15,6 +16,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,19 +39,24 @@ public class UserRoleService {
     private final UserTeamDAO userTeamDAO;
     private final UserDAO userDAO;
     private final PermissionDAO permissionDAO;
+    private final AuditLogService auditLogService;
 
     public UserRoleService() {
-        this.userRoleDAO = new UserRoleDAO();
-        this.userTeamDAO = new UserTeamDAO();
-        this.userDAO = new UserDAO();
-        this.permissionDAO = new PermissionDAO();
+        this(new UserRoleDAO(), new UserTeamDAO(), new UserDAO(), new PermissionDAO(),
+                new AuditLogService());
     }
 
     public UserRoleService(UserRoleDAO userRoleDAO, UserTeamDAO userTeamDAO, UserDAO userDAO, PermissionDAO permissionDAO) {
+        this(userRoleDAO, userTeamDAO, userDAO, permissionDAO, new AuditLogService());
+    }
+
+    public UserRoleService(UserRoleDAO userRoleDAO, UserTeamDAO userTeamDAO, UserDAO userDAO,
+                           PermissionDAO permissionDAO, AuditLogService auditLogService) {
         this.userRoleDAO = userRoleDAO != null ? userRoleDAO : new UserRoleDAO();
         this.userTeamDAO = userTeamDAO != null ? userTeamDAO : new UserTeamDAO();
         this.userDAO = userDAO != null ? userDAO : new UserDAO();
         this.permissionDAO = permissionDAO != null ? permissionDAO : new PermissionDAO();
+        this.auditLogService = auditLogService != null ? auditLogService : new AuditLogService();
     }
 
     /**
@@ -147,6 +154,7 @@ public class UserRoleService {
                     conn.rollback();
                     return RoleAssignmentResult.USER_NOT_FOUND;
                 }
+                List<Long> currentRoleIds = userRoleDAO.findRoleIdsByUserId(conn, targetUserId);
 
                 // Verify all role IDs exist in DB
                 if (!normalizedRoleIds.isEmpty() && !permissionDAO.allRolesExist(conn, normalizedRoleIds)) {
@@ -189,7 +197,6 @@ public class UserRoleService {
 
                 // RULE 3: Self-revoke Admin guard — admin cannot remove own admin role
                 if (actorUserId == targetUserId) {
-                    List<Long> currentRoleIds = userRoleDAO.findRoleIdsByUserId(conn, targetUserId);
                     boolean currentlyAdmin = isAnyRoleMatching(allRoles, currentRoleIds, this::isAdminRoleName);
                     boolean willHaveAdmin = isAnyRoleMatching(allRoles, normalizedRoleIds, this::isAdminRoleName);
 
@@ -201,6 +208,8 @@ public class UserRoleService {
 
                 // RULE 1: Multi-role — replace all roles with normalized list
                 userRoleDAO.replaceUserRoles(conn, targetUserId, normalizedRoleIds);
+                recordRoleChangeIfNeeded(conn, actorUserId, targetUserId,
+                        currentRoleIds, normalizedRoleIds);
 
                 conn.commit();
                 return RoleAssignmentResult.SUCCESS;
@@ -317,10 +326,13 @@ public class UserRoleService {
 
                 // Merge with current roles
                 List<Long> currentRoleIds = new ArrayList<>(userRoleDAO.findRoleIdsByUserId(conn, targetUserId));
+                List<Long> previousRoleIds = new ArrayList<>(currentRoleIds);
                 if (!currentRoleIds.contains(roleId)) {
                     currentRoleIds.add(roleId);
                 }
                 userRoleDAO.replaceUserRoles(conn, targetUserId, currentRoleIds);
+                recordRoleChangeIfNeeded(conn, actorUserId, targetUserId,
+                        previousRoleIds, currentRoleIds);
 
                 conn.commit();
                 return RoleAssignmentResult.SUCCESS;
@@ -367,8 +379,11 @@ public class UserRoleService {
                 }
 
                 List<Long> currentRoleIds = new ArrayList<>(userRoleDAO.findRoleIdsByUserId(conn, targetUserId));
+                List<Long> previousRoleIds = new ArrayList<>(currentRoleIds);
                 currentRoleIds.removeIf(id -> id != null && id == roleId);
                 userRoleDAO.replaceUserRoles(conn, targetUserId, currentRoleIds);
+                recordRoleChangeIfNeeded(conn, actorUserId, targetUserId,
+                        previousRoleIds, currentRoleIds);
 
                 conn.commit();
                 return RoleAssignmentResult.SUCCESS;
@@ -400,6 +415,19 @@ public class UserRoleService {
             unique.add(roleId);
         }
         return new ArrayList<>(unique);
+    }
+
+    private void recordRoleChangeIfNeeded(Connection conn, long actorUserId, long targetUserId,
+                                          Collection<Long> beforeRoleIds,
+                                          Collection<Long> afterRoleIds) throws SQLException {
+        LinkedHashSet<Long> before = new LinkedHashSet<>(beforeRoleIds == null ? List.of() : beforeRoleIds);
+        LinkedHashSet<Long> after = new LinkedHashSet<>(afterRoleIds == null ? List.of() : afterRoleIds);
+        if (before.equals(after)) {
+            return;
+        }
+        auditLogService.recordRoleChange(conn, actorUserId, targetUserId,
+                Map.of("roleIds", new ArrayList<>(before)),
+                Map.of("roleIds", new ArrayList<>(after)));
     }
 
     private Role findRoleById(List<Role> roles, long roleId) {

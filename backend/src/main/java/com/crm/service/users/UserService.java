@@ -3,6 +3,7 @@ package com.crm.service.users;
 import com.crm.dao.users.UserDAO;
 import com.crm.dao.users.UserLockHandoverDAO;
 import com.crm.model.User;
+import com.crm.service.audit.AuditLogService;
 import com.crm.service.email.EmailService;
 import com.crm.util.PasswordUtil;
 import com.crm.util.DBConnection;
@@ -11,6 +12,7 @@ import com.crm.util.SessionRegistry;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class UserService {
     private static final String ACTIVE = "ACTIVE";
@@ -20,20 +22,28 @@ public class UserService {
     private final OwnershipTransferService ownershipTransferService;
     private final EmailService emailService = new EmailService();
     private final UserLockHandoverDAO userLockHandoverDAO;
+    private final AuditLogService auditLogService;
 
     public UserService() {
-        this(new UserDAO(), new OwnershipTransferService(), new UserLockHandoverDAO());
+        this(new UserDAO(), new OwnershipTransferService(), new UserLockHandoverDAO(),
+                new AuditLogService());
     }
 
     UserService(UserDAO userDAO, OwnershipTransferService ownershipTransferService) {
-        this(userDAO, ownershipTransferService, new UserLockHandoverDAO());
+        this(userDAO, ownershipTransferService, new UserLockHandoverDAO(), new AuditLogService());
     }
 
     UserService(UserDAO userDAO, OwnershipTransferService ownershipTransferService,
                 UserLockHandoverDAO userLockHandoverDAO) {
+        this(userDAO, ownershipTransferService, userLockHandoverDAO, new AuditLogService());
+    }
+
+    UserService(UserDAO userDAO, OwnershipTransferService ownershipTransferService,
+                UserLockHandoverDAO userLockHandoverDAO, AuditLogService auditLogService) {
         this.userDAO = userDAO;
         this.ownershipTransferService = ownershipTransferService;
         this.userLockHandoverDAO = userLockHandoverDAO;
+        this.auditLogService = auditLogService;
     }
 
     public List<User> findAll() throws SQLException {
@@ -425,6 +435,9 @@ public class UserService {
 
                 ownershipTransferService.lockOwnershipRows(conn, targetUserId);
                 boolean hasOwnership = ownershipTransferService.hasOwnership(conn, targetUserId);
+                List<OwnershipTransferService.OwnedRecord> ownedRecords = hasOwnership
+                        ? ownershipTransferService.findOwnedRecords(conn, targetUserId)
+                        : List.of();
                 if (hasOwnership && recipientUserId == null) {
                     conn.rollback();
                     return StatusChangeResult.RECIPIENT_REQUIRED;
@@ -436,6 +449,8 @@ public class UserService {
                         conn.rollback();
                         return StatusChangeResult.TRANSFER_INCOMPLETE;
                     }
+                    recordOwnershipChanges(conn, actorUserId, targetUserId,
+                            recipientUserId, ownedRecords);
                 }
 
                 int affectedRows = userDAO.updateStatus(conn, targetUserId, ACTIVE, LOCKED);
@@ -491,6 +506,14 @@ public class UserService {
 
     public TransferValidationResult validateTransfer(long sourceUserId, long recipientUserId)
             throws SQLException {
+        return validateTransfer(sourceUserId, recipientUserId, sourceUserId);
+    }
+
+    public TransferValidationResult validateTransfer(long sourceUserId, long recipientUserId,
+                                                       long actorUserId) throws SQLException {
+        if (actorUserId <= 0) {
+            return TransferValidationResult.SOURCE_NOT_FOUND;
+        }
         if (sourceUserId == recipientUserId) {
             return TransferValidationResult.SAME_USER;
         }
@@ -518,17 +541,37 @@ public class UserService {
                     return TransferValidationResult.RECIPIENT_NOT_ACTIVE;
                 }
                 ownershipTransferService.lockOwnershipRows(conn, sourceUserId);
+                List<OwnershipTransferService.OwnedRecord> ownedRecords =
+                        ownershipTransferService.findOwnedRecords(conn, sourceUserId);
                 ownershipTransferService.transferAll(conn, sourceUserId, recipientUserId);
                 if (!ownershipTransferService.isTransferComplete(conn, sourceUserId)) {
                     conn.rollback();
                     return TransferValidationResult.TRANSFER_INCOMPLETE;
                 }
+                recordOwnershipChanges(conn, actorUserId, sourceUserId,
+                        recipientUserId, ownedRecords);
                 conn.commit();
                 return TransferValidationResult.SUCCESS;
             } catch (SQLException | RuntimeException e) {
                 rollback(conn, e);
                 throw e;
             }
+        }
+    }
+
+    private void recordOwnershipChanges(Connection conn, long actorUserId, long sourceUserId,
+                                        long recipientUserId,
+                                        List<OwnershipTransferService.OwnedRecord> records)
+            throws SQLException {
+        for (OwnershipTransferService.OwnedRecord record : records) {
+            auditLogService.recordOwnershipChange(
+                    conn,
+                    actorUserId,
+                    record.objectType(),
+                    record.objectId(),
+                    Map.of("ownerUserId", sourceUserId),
+                    Map.of("ownerUserId", recipientUserId)
+            );
         }
     }
 
