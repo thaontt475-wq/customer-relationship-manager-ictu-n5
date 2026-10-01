@@ -22,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,6 +65,79 @@ class AuditLogServiceTest {
     }
 
     @Test
+    void recordDiscountChangeUsesCallerTransactionAndKeepsBeforeAfterValues() throws SQLException {
+        when(auditLogDAO.insert(eq(connection), any(AuditLog.class))).thenReturn(92L);
+
+        long id = service.recordDiscountChange(
+                connection,
+                7L,
+                "QUOTE",
+                51L,
+                Map.of("discountPercent", 5, "amount", 950_000),
+                Map.of("discountPercent", 10, "amount", 900_000)
+        );
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogDAO).insert(eq(connection), captor.capture());
+        AuditLog saved = captor.getValue();
+        assertEquals(92L, id);
+        assertEquals(7L, saved.getActorUserId());
+        assertEquals(AuditLogService.ACTION_DISCOUNT_CHANGED, saved.getAction());
+        assertEquals("QUOTE", saved.getObjectType());
+        assertEquals(51L, saved.getObjectId());
+        assertEquals(5, saved.getBeforeValue().getAsJsonObject().get("discountPercent").getAsInt());
+        assertEquals(950_000, saved.getBeforeValue().getAsJsonObject().get("amount").getAsInt());
+        assertEquals(10, saved.getAfterValue().getAsJsonObject().get("discountPercent").getAsInt());
+        assertEquals(900_000, saved.getAfterValue().getAsJsonObject().get("amount").getAsInt());
+        verifyNoInteractions(connectionProvider);
+        verify(connection, never()).commit();
+        verify(connection, never()).rollback();
+    }
+
+    @Test
+    void recordTargetChangeUsesCallerTransactionAndKeepsBeforeAfterValues() throws SQLException {
+        when(auditLogDAO.insert(eq(connection), any(AuditLog.class))).thenReturn(93L);
+
+        long id = service.recordTargetChange(
+                connection,
+                8L,
+                "SALES_TARGET",
+                61L,
+                Map.of("quota", 100_000_000L, "period", "2026-Q3"),
+                Map.of("quota", 120_000_000L, "period", "2026-Q3")
+        );
+
+        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
+        verify(auditLogDAO).insert(eq(connection), captor.capture());
+        AuditLog saved = captor.getValue();
+        assertEquals(93L, id);
+        assertEquals(8L, saved.getActorUserId());
+        assertEquals(AuditLogService.ACTION_TARGET_CHANGED, saved.getAction());
+        assertEquals("SALES_TARGET", saved.getObjectType());
+        assertEquals(61L, saved.getObjectId());
+        assertEquals(100_000_000L, saved.getBeforeValue().getAsJsonObject().get("quota").getAsLong());
+        assertEquals(120_000_000L, saved.getAfterValue().getAsJsonObject().get("quota").getAsLong());
+        assertEquals("2026-Q3", saved.getAfterValue().getAsJsonObject().get("period").getAsString());
+        verifyNoInteractions(connectionProvider);
+        verify(connection, never()).commit();
+        verify(connection, never()).rollback();
+    }
+
+    @Test
+    void auditInsertFailurePropagatesSoOwningBusinessTransactionCanRollback() throws SQLException {
+        SQLException failure = new SQLException("audit insert failed");
+        when(auditLogDAO.insert(eq(connection), any(AuditLog.class))).thenThrow(failure);
+
+        SQLException thrown = assertThrows(SQLException.class, () -> service.recordDiscountChange(
+                connection, 7L, "QUOTE", 51L,
+                Map.of("discountPercent", 5), Map.of("discountPercent", 10)));
+
+        assertEquals(failure, thrown);
+        verifyNoInteractions(connectionProvider);
+        verify(connection, never()).commit();
+    }
+
+    @Test
     void recordChangeRejectsInvalidRequiredFieldsBeforeDaoCall() {
         assertThrows(IllegalArgumentException.class,
                 () -> service.recordChange(connection, 0L, "ROLE_CHANGED", "USER", 1L, null, null));
@@ -81,6 +156,8 @@ class AuditLogServiceTest {
         filter.setUserId(9L);
         filter.setObjectType(" opportunity ");
         filter.setObjectId(17L);
+        filter.setFrom(Timestamp.valueOf(LocalDateTime.of(2026, 10, 1, 0, 0)));
+        filter.setTo(Timestamp.valueOf(LocalDateTime.of(2026, 10, 31, 23, 59)));
         filter.setLimit(5_000);
 
         service.findLogs(filter);
@@ -90,6 +167,8 @@ class AuditLogServiceTest {
         assertEquals(9L, captor.getValue().getUserId());
         assertEquals("OPPORTUNITY", captor.getValue().getObjectType());
         assertEquals(17L, captor.getValue().getObjectId());
+        assertEquals(filter.getFrom(), captor.getValue().getFrom());
+        assertEquals(filter.getTo(), captor.getValue().getTo());
         assertEquals(AuditLogFilter.MAX_LIMIT, captor.getValue().getLimit());
     }
 
