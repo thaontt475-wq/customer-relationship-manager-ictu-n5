@@ -1,43 +1,73 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.util.Collection,java.util.Locale,java.util.Map,com.crm.model.Role,com.crm.model.User,com.crm.util.SessionKey" %>
+<%@ page import="java.util.List,com.crm.model.CustomField,com.crm.controller.ServerForms" %>
 <%!
- private boolean isCustomFieldAdminRole(Object value) {
-   if (value == null) return false;
-   if (value instanceof Collection<?>) { for (Object item : (Collection<?>) value) if (isCustomFieldAdminRole(item)) return true; return false; }
-   if (value instanceof Role) return isCustomFieldAdminRole(((Role) value).getName());
-   if (value instanceof Map<?, ?> && ((Map<?, ?>) value).get("name") != null) return isCustomFieldAdminRole(((Map<?, ?>) value).get("name"));
-   String role = String.valueOf(value).trim().toUpperCase(Locale.ROOT);
-   if (role.startsWith("ROLE_")) role = role.substring(5);
-   return "ADMIN".equals(role) || "ADMINISTRATOR".equals(role) || "SYSTEM_ADMIN".equals(role) || "DIRECTOR".equals(role)
-       || "GIÁM ĐỐC".equals(role) || "GIAM DOC".equals(role) || "QUẢN TRỊ VIÊN".equals(role) || "QUAN TRI VIEN".equals(role);
- }
+private String esc(Object raw) {
+    if (raw == null) return "";
+    return raw.toString().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;").replace("'","&#39;");
+}
+private String options(CustomField f) { return f == null ? "" : String.join("\n", f.getOptions()); }
+private String check(boolean value) { return value ? " checked" : ""; }
 %>
 <%
- boolean settingsCanManage = isCustomFieldAdminRole(session.getAttribute(SessionKey.ROLES));
- Object cfCurrentUser = session.getAttribute(SessionKey.CURRENT_USER);
- if (!settingsCanManage && cfCurrentUser instanceof User) {
-   settingsCanManage = isCustomFieldAdminRole(((User) cfCurrentUser).getRoles()) || isCustomFieldAdminRole(((User) cfCurrentUser).getRole());
- } else if (!settingsCanManage && cfCurrentUser instanceof Map<?, ?>) {
-   settingsCanManage = isCustomFieldAdminRole(((Map<?, ?>) cfCurrentUser).get("roles")) || isCustomFieldAdminRole(((Map<?, ?>) cfCurrentUser).get("role"));
- }
+if (request.getAttribute("fields") == null) { response.sendRedirect(request.getContextPath()+"/customfields/page"); return; }
+List<CustomField> fields = (List<CustomField>)request.getAttribute("fields");
+CustomField edit = (CustomField) request.getAttribute("editField");
+String entity = (String)request.getAttribute("entity");
+String prefix = request.getContextPath();
 %>
-<!DOCTYPE html>
-<html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Trường tùy chỉnh - CRM ICTU</title>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/customfields/customfields.css"></head>
-<body class="crm-body"><jsp:include page="/jsp/shared/header.jsp" /><div class="crm-main-layout"><jsp:include page="/jsp/shared/sidebar.jsp" />
-<main class="crm-page crm-settings customfields-page" id="customFieldsApp" data-settings-app data-context-path="${pageContext.request.contextPath}" data-can-manage="<%= settingsCanManage %>"><div class="crm-page-container crm-settings-content customfields-container">
-<nav class="crm-breadcrumb" aria-label="Đường dẫn"><a href="${pageContext.request.contextPath}/dashboard">Trang chủ</a><span aria-hidden="true">/</span><span aria-current="page">Trường tùy chỉnh</span></nav>
-<header class="crm-page-header crm-settings-header"><div><h1 class="crm-page-title">Trường tùy chỉnh</h1><p class="crm-page-description">Cấu hình định nghĩa trường dữ liệu mở rộng cho Khách hàng và Cơ hội bán hàng.</p></div></header>
-<div class="crm-settings-notices" aria-live="polite"><div id="globalErrorAlert" class="crm-alert crm-alert-danger" hidden role="alert"><div id="globalErrorMessage"></div><button type="button" class="crm-settings-icon" data-dismiss="globalErrorAlert" aria-label="Đóng thông báo lỗi">&times;</button></div><div id="globalSuccessAlert" class="crm-alert crm-alert-success" hidden role="status"><div id="globalSuccessMessage"></div><button type="button" class="crm-settings-icon" data-dismiss="globalSuccessAlert" aria-label="Đóng thông báo">&times;</button></div></div>
-<div class="crm-settings-tabs" role="tablist" aria-label="Đối tượng áp dụng"><button type="button" class="crm-btn crm-btn-secondary active" id="tabBtnCustomer" data-entity="CUSTOMER" role="tab" aria-selected="true">Khách hàng <span class="crm-badge" id="badgeCustomerCount">0</span></button><button type="button" class="crm-btn crm-btn-secondary" id="tabBtnOpportunity" data-entity="OPPORTUNITY" role="tab" aria-selected="false">Cơ hội bán hàng <span class="crm-badge" id="badgeOpportunityCount">0</span></button></div>
-<section class="crm-card" id="cfTableSection" aria-labelledby="cfCardTitle"><header class="crm-card-header"><div><h2 class="crm-card-title" id="cfCardTitle">Trường của Khách hàng</h2><p class="crm-settings-summary" id="fieldSummary">Đang tải…</p></div><button type="button" class="crm-btn crm-btn-primary" id="btnOpenCreateModal" data-create <%= settingsCanManage ? "" : "hidden" %>><span id="btnCreateText">Thêm trường cho Khách hàng</span></button></header>
-<div class="crm-card-body"><div class="crm-toolbar crm-settings-toolbar"><input type="search" id="fieldSearchInput" class="crm-input" placeholder="Tìm mã hoặc nhãn trường" aria-label="Tìm trường tùy chỉnh"><select id="filterFieldType" class="crm-select" aria-label="Lọc kiểu dữ liệu"><option value="">Tất cả kiểu dữ liệu</option><option value="TEXT">Văn bản</option><option value="NUMBER">Số</option><option value="DATE">Ngày</option><option value="DROPDOWN">Danh sách chọn</option></select><select id="filterRequired" class="crm-select" aria-label="Lọc yêu cầu nhập"><option value="">Tất cả</option><option value="true">Bắt buộc</option><option value="false">Không bắt buộc</option></select><select id="filterActiveStatus" class="crm-select" aria-label="Lọc trạng thái"><option value="">Tất cả trạng thái</option><option value="true">Đang sử dụng</option><option value="false">Ngừng sử dụng</option></select><button type="button" class="crm-btn crm-btn-secondary" id="btnResetFilter">Xóa bộ lọc</button><button type="button" class="crm-btn crm-btn-secondary" id="btnReloadFields">Làm mới</button></div>
-<div class="crm-state crm-state-loading" id="cfLoadingOverlay" hidden role="status">Đang tải trường tùy chỉnh…</div><div class="crm-table-wrap" tabindex="0" role="region" aria-label="Bảng trường tùy chỉnh, cuộn ngang để xem đủ thông tin"><table class="crm-table crm-settings-table" id="cfTable"><thead><tr><th scope="col">Thứ tự</th><th scope="col">Mã trường</th><th scope="col">Nhãn hiển thị</th><th scope="col">Kiểu dữ liệu</th><th scope="col">Yêu cầu</th><th scope="col">Phạm vi cấu hình</th><th scope="col">Trạng thái</th><th scope="col">Thao tác</th></tr></thead><tbody id="cfTableBody"></tbody></table></div>
-<div class="crm-state" id="cfEmptyState" hidden><h3 class="crm-state-title">Chưa có trường tùy chỉnh</h3></div><button type="button" id="btnEmptyCreate" hidden></button></div></section>
-</div><div class="crm-modal-overlay" id="cfFormModal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="crm-modal-card"><header class="crm-modal-header"><h2 class="crm-modal-title" id="modalTitle"><span id="modalTitleText">Thêm trường tùy chỉnh</span></h2><button type="button" class="crm-modal-close" id="btnCloseModal" data-modal-close aria-label="Đóng biểu mẫu">&times;</button></header><form id="cfFieldForm" novalidate><div class="crm-modal-body"><div class="crm-alert crm-alert-danger" id="cfFieldFormError" data-form-error hidden role="alert"></div><input type="hidden" id="formFieldId"><div class="crm-form-group"><label class="crm-label" for="formEntityType">Đối tượng áp dụng <span class="crm-settings-required">*</span></label><select id="formEntityType" name="entityType" class="crm-select" required aria-describedby="feedbackEntityType"><option value="CUSTOMER">Khách hàng</option><option value="OPPORTUNITY">Cơ hội bán hàng</option></select><div class="crm-field-error form-feedback" id="feedbackEntityType"></div></div><div class="crm-settings-grid"><div class="crm-form-group"><label class="crm-label" for="formFieldLabel">Nhãn hiển thị <span class="crm-settings-required">*</span></label><input id="formFieldLabel" name="fieldLabel" type="text" class="crm-input" required maxlength="100" aria-describedby="feedbackFieldLabel"><div class="crm-field-error form-feedback" id="feedbackFieldLabel"></div></div><div class="crm-form-group"><label class="crm-label" for="formFieldName">Mã hệ thống <span class="crm-settings-required">*</span></label><input id="formFieldName" name="fieldName" type="text" class="crm-input" required maxlength="50" pattern="^[a-z][a-z0-9_]*$" aria-describedby="feedbackFieldName"><div class="crm-field-error form-feedback" id="feedbackFieldName"></div></div></div><div class="crm-settings-grid"><div class="crm-form-group"><label class="crm-label" for="formFieldType">Kiểu dữ liệu <span class="crm-settings-required">*</span></label><select id="formFieldType" name="fieldType" class="crm-select" required aria-describedby="feedbackFieldType"><option value="TEXT">Văn bản</option><option value="NUMBER">Số</option><option value="DATE">Ngày</option><option value="DROPDOWN">Danh sách chọn</option></select><div class="crm-field-error form-feedback" id="feedbackFieldType"></div></div><div class="crm-form-group"><label class="crm-label" for="formSortOrder">Thứ tự hiển thị <span class="crm-settings-required">*</span></label><input id="formSortOrder" name="sortOrder" type="number" class="crm-input" required min="0" step="1" value="0" aria-describedby="feedbackSortOrder"><div class="crm-field-error form-feedback" id="feedbackSortOrder"></div></div></div><div class="crm-form-group cf-options-builder" id="cfOptionsBuilderArea" hidden><label class="crm-label" for="newOptionInput">Giá trị danh sách chọn <span class="crm-settings-required">*</span></label><div class="cf-option-input"><input type="text" id="newOptionInput" class="crm-input" placeholder="Nhập giá trị lựa chọn"><button type="button" class="crm-btn crm-btn-secondary" id="btnAddOption">Thêm</button></div><div class="cf-option-list" id="optChipsContainer"></div><div class="crm-field-error form-feedback" id="feedbackOptions"></div><p class="crm-field-help">Cần ít nhất một giá trị; không chấp nhận giá trị trống hoặc trùng.</p></div><div class="crm-form-group"><label class="crm-label">Thuộc tính trường</label><label class="crm-settings-check"><input type="checkbox" id="formIsRequired"><span><strong>Bắt buộc nhập</strong><span class="crm-settings-summary">Không cho lưu bản ghi khi trường bị bỏ trống.</span></span></label><label class="crm-settings-check"><input type="checkbox" id="formIsActive" checked><span><strong>Đang sử dụng</strong><span class="crm-settings-summary">Có thể ngừng sử dụng mà không xóa dữ liệu đã lưu.</span></span></label></div><div class="crm-form-group"><label class="crm-label">Phạm vi cấu hình</label><label class="crm-settings-check"><input type="checkbox" id="formInForm" checked><span>Hiển thị trên biểu mẫu</span></label><label class="crm-settings-check"><input type="checkbox" id="formInFilter" checked><span>Có thể dùng trong bộ lọc</span></label><label class="crm-settings-check"><input type="checkbox" id="formInExport" checked><span>Có thể đưa vào bản xuất Excel</span></label></div></div><footer class="crm-modal-footer"><button type="button" class="crm-btn crm-btn-secondary" id="btnCancelModal" data-modal-close>Hủy</button><button type="submit" class="crm-btn crm-btn-primary" id="btnSubmitForm">Lưu</button></footer></form></div></div><div class="crm-modal-overlay" id="cfInUseNoticeModal" hidden role="dialog" aria-modal="true" aria-labelledby="inUseModalTitle"><div class="crm-modal-card"><header class="crm-modal-header"><h2 class="crm-modal-title" id="inUseModalTitle"><span id="inUseModalTitleText">Xác nhận xóa trường</span></h2><button type="button" class="crm-modal-close" id="btnCloseInUse" data-modal-close aria-label="Đóng biểu mẫu">&times;</button></header><form id="cfDeleteForm" novalidate><div class="crm-modal-body"><div class="crm-alert crm-alert-danger" id="cfDeleteFormError" data-form-error hidden role="alert"></div><p id="inUseModalContent"></p></div><footer class="crm-modal-footer"><button type="button" class="crm-btn crm-btn-secondary" id="btnCancelInUse" data-modal-close>Hủy</button><button type="submit" class="crm-btn crm-btn-primary" id="btnConfirmDeactivate">Xác nhận</button></footer></form></div></div></main></div><jsp:include page="/jsp/shared/footer.jsp" />
-<script src="${pageContext.request.contextPath}/js/shared/settings-ui.js" defer></script><script src="${pageContext.request.contextPath}/js/customfields/customfields.js" defer></script></body></html>
+<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trường tùy chỉnh - CRM</title>
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/common.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/layout.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/header.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/sidebar.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/components.css">
+<style>
+.cf-main{max-width:1150px;width:100%;padding:20px;margin:0 auto}.cf-card{border:1px solid #aaa;border-radius:7px;margin:16px 0;padding:18px}.cf-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.cf-fields label{display:flex;flex-direction:column;gap:6px}.cf-fields input,.cf-fields textarea,.cf-fields select{padding:8px;border:1px solid #999;border-radius:5px;background:inherit;color:inherit}.cf-table-wrap{overflow-x:auto}.cf-table{border-collapse:collapse;width:100%}.cf-table th,.cf-table td{border-bottom:1px solid #bbb;text-align:left;padding:8px}.cf-btn{display:inline-block;border:1px solid #999;padding:7px 12px;border-radius:5px;background:inherit;color:inherit;text-decoration:none;cursor:pointer}.cf-primary{background:#174f7a;color:white}.cf-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.cf-checks{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}.cf-notice{padding:12px;border:1px solid #397d43}.cf-muted{opacity:.8}
+</style></head>
+<body class="crm-body"><jsp:include page="/jsp/shared/header.jsp"/><div class="crm-main-layout"><jsp:include page="/jsp/shared/sidebar.jsp"/>
+<main class="crm-page cf-main">
+<a href="<%=esc(prefix)%>/dashboard">Trang chủ</a> / Trường tùy chỉnh
+<h1>Trường tùy chỉnh</h1>
+<p>Quản lý trường của Khách hàng và Cơ hội bán hàng bằng biểu mẫu HTML, không dùng JavaScript.</p>
+<% if (request.getAttribute("notice") != null) { %><p class="cf-notice" role="status"><%=esc(request.getAttribute("notice"))%></p><% } %>
+<nav class="cf-actions" aria-label="Đối tượng áp dụng">
+<a class="cf-btn <%= "CUSTOMER".equals(entity)?"cf-primary":"" %>" href="<%=esc(prefix)%>/customfields/page?entity=CUSTOMER">Khách hàng</a>
+<a class="cf-btn <%= "OPPORTUNITY".equals(entity)?"cf-primary":"" %>" href="<%=esc(prefix)%>/customfields/page?entity=OPPORTUNITY">Cơ hội bán hàng</a>
+</nav>
+<section class="cf-card"><h2>Danh sách trường</h2><div class="cf-table-wrap"><table class="cf-table"><thead><tr><th>Thứ tự</th><th>Mã</th><th>Nhãn</th><th>Kiểu</th><th>Bắt buộc</th><th>Trạng thái</th><th>Có dữ liệu</th><th>Thao tác</th></tr></thead><tbody>
+<% for (CustomField row:fields) { %>
+<tr><td><%=row.getSortOrder()%></td><td><%=esc(row.getFieldName())%></td><td><%=esc(row.getFieldLabel())%></td><td><%=esc(row.getFieldType())%></td><td><%=row.isRequired()?"Có":"Không"%></td><td><%=row.isActive()?"Hoạt động":"Ngừng"%></td><td><%=row.getUsageCount()%></td><td>
+<a href="<%=esc(prefix)%>/customfields/page?entity=<%=esc(entity)%>&amp;edit=<%=row.getId()%>">Sửa</a>
+<form action="<%=esc(prefix)%>/customfields/page" method="post" class="cf-actions">
+<input type="hidden" name="csrfToken" value="<%=esc(ServerForms.csrf(request))%>">
+<input type="hidden" name="action" value="delete"><input type="hidden" name="entity" value="<%=esc(entity)%>"><input type="hidden" name="id" value="<%=row.getId()%>">
+<label><input type="checkbox" name="confirm" value="yes" required> Xác nhận <%=row.getUsageCount()>0?"ngừng kích hoạt":"xóa"%></label><button type="submit" class="cf-btn">Thực hiện</button>
+</form></td></tr><% } %>
+<% if (fields.isEmpty()) { %><tr><td colspan="8">Chưa có trường tùy chỉnh.</td></tr><% } %>
+</tbody></table></div></section>
+<section class="cf-card"><h2><%=edit==null?"Thêm trường mới":"Sửa trường"%></h2>
+<%if(edit!=null){%><p class="cf-muted">Mã hệ thống và đối tượng áp dụng không được sửa sau khi tạo. Nếu trường đã có dữ liệu, không thể đổi kiểu hay các tùy chọn.</p><%}%>
+<form method="post" action="<%=esc(prefix)%>/customfields/page">
+<input type="hidden" name="csrfToken" value="<%=esc(ServerForms.csrf(request))%>">
+<input type="hidden" name="action" value="<%=edit==null?"create":"update"%>">
+<input type="hidden" name="entity" value="<%=esc(entity)%>">
+<%if(edit!=null){%><input type="hidden" name="id" value="<%=edit.getId()%>"><%}%>
+<div class="cf-fields">
+<label>Mã hệ thống<input name="fieldName" pattern="[a-z][a-z0-9_]*" maxlength="100" required value="<%=esc(edit==null?"":edit.getFieldName())%>" <%=edit==null?"":"readonly"%>></label>
+<label>Nhãn hiển thị<input name="fieldLabel" maxlength="255" required value="<%=esc(edit==null?"":edit.getFieldLabel())%>"></label>
+<label>Kiểu trường<select name="fieldType">
+<%for(String t:new String[]{"TEXT","NUMBER","DATE","DROPDOWN"}){%><option value="<%=t%>" <%=edit!=null&&t.equals(edit.getFieldType())?"selected":""%>><%=esc(t)%></option><%}%>
+</select></label>
+<label>Thứ tự hiển thị<input name="sortOrder" type="number" min="0" max="100000" required value="<%=edit==null?"0":edit.getSortOrder()%>"></label>
+<label style="grid-column:1/-1">Tùy chọn danh sách (mỗi dòng một giá trị, cần ít nhất hai cho kiểu DROPDOWN)
+<textarea name="options" rows="4"><%=esc(options(edit))%></textarea></label>
+</div><div class="cf-checks">
+<label><input type="checkbox" name="required" <%=check(edit!=null&&edit.isRequired())%>> Bắt buộc</label>
+<label><input type="checkbox" name="active" <%=check(edit==null||edit.isActive())%>> Hoạt động</label>
+<label><input type="checkbox" name="inForm" <%=check(edit==null||edit.isInForm())%>> Trên biểu mẫu</label>
+<label><input type="checkbox" name="inFilter" <%=check(edit==null||edit.isInFilter())%>> Trong bộ lọc</label>
+<label><input type="checkbox" name="inExport" <%=check(edit==null||edit.isInExport())%>> Trong Excel</label>
+</div><div class="cf-actions"><button class="cf-btn cf-primary" type="submit">Lưu</button><a class="cf-btn" href="<%=esc(prefix)%>/customfields/page?entity=<%=esc(entity)%>">Làm mới / Hủy sửa</a></div>
+</form></section>
+</main></div></body></html>

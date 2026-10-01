@@ -58,8 +58,6 @@
                         <input class="crm-input" id="newPassword" type="password" name="newPassword"
                                autocomplete="new-password" minlength="8" maxlength="72"
                                pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,72}" required>
-                        <button type="button" class="password-toggle" data-password-toggle="newPassword"
-                                aria-label="Hiện mật khẩu mới">Hiện</button>
                     </div>
                 </div>
 
@@ -68,8 +66,6 @@
                     <div class="password-field">
                         <input class="crm-input" id="confirmPassword" type="password" name="confirmPassword"
                                autocomplete="new-password" minlength="8" maxlength="72" required>
-                        <button type="button" class="password-toggle" data-password-toggle="confirmPassword"
-                                aria-label="Hiện xác nhận mật khẩu">Hiện</button>
                     </div>
                 </div>
 
@@ -89,33 +85,5 @@
         <% } %>
     </section>
 </main>
-<script>
-    document.querySelectorAll('[data-password-toggle]').forEach(function (button) {
-        button.addEventListener('click', function () {
-            var input = document.getElementById(button.getAttribute('data-password-toggle'));
-            var showing = input.type === 'text';
-            input.type = showing ? 'password' : 'text';
-            button.textContent = showing ? 'Hiện' : 'Ẩn';
-            button.setAttribute('aria-label', showing ? 'Hiện mật khẩu' : 'Ẩn mật khẩu');
-        });
-    });
-
-    var resetForm = document.querySelector('.auth-form');
-    if (resetForm) {
-        resetForm.addEventListener('submit', function (event) {
-            var password = document.getElementById('newPassword');
-            var confirmation = document.getElementById('confirmPassword');
-            if (password.value !== confirmation.value) {
-                event.preventDefault();
-                confirmation.setCustomValidity('Mật khẩu xác nhận không khớp.');
-                confirmation.reportValidity();
-            }
-        });
-
-        document.getElementById('confirmPassword').addEventListener('input', function () {
-            this.setCustomValidity('');
-        });
-    }
-</script>
 </body>
 </html>

@@ -46,7 +46,6 @@
                             required
                             autocomplete="current-password"
                         />
-                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Hiện mật khẩu">Hiện</button>
                     </div>
                 </div>
 
@@ -56,21 +55,9 @@
 
                 <button type="submit" class="auth-button crm-btn crm-btn-primary">Đăng nhập</button>
 
-                <div role="alert" class="auth-message ${empty requestScope.error ? 'auth-message--empty' : 'auth-error'}">${requestScope.error}</div>
+                <div role="alert" class="auth-message ${empty requestScope.error ? 'auth-message--empty' : 'auth-error'}"><%= com.crm.util.Html.escape(request.getAttribute("error")) %></div>
             </form>
         </section>
     </main>
-    <script>
-        (function () {
-            var input = document.getElementById('password');
-            var toggle = document.getElementById('passwordToggle');
-            toggle.addEventListener('click', function () {
-                var showing = input.type === 'text';
-                input.type = showing ? 'password' : 'text';
-                toggle.textContent = showing ? 'Hiện' : 'Ẩn';
-                toggle.setAttribute('aria-label', showing ? 'Hiện mật khẩu' : 'Ẩn mật khẩu');
-            });
-        }());
-    </script>
 </body>
 </html>

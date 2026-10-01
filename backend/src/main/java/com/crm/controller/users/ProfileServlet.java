@@ -1,6 +1,7 @@
 package com.crm.controller.users;
 
 import com.crm.model.User;
+import com.crm.controller.ServerForms;
 import com.crm.service.users.ProfileService;
 import com.crm.util.SessionKey;
 import com.google.gson.Gson;
@@ -129,6 +130,11 @@ public class ProfileServlet extends HttpServlet {
             } else {
                 response.sendRedirect(request.getContextPath() + "/login?expired=1");
             }
+            return;
+        }
+
+        // Browser HTML form: CSRF validation. Preserve the existing JSON API contract.
+        if (!isApi && !ServerForms.checkCsrf(request, response)) {
             return;
         }
 

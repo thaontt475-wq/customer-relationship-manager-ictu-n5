@@ -263,6 +263,7 @@
                                 </div>
 
                                 <form class="handover-form" method="post" action="${pageContext.request.contextPath}/users/lock-handover">
+                                    <input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
                                     <!-- ID tài khoản bị khóa -->
                                     <input type="hidden" name="userId" value="<%= escapeHtml(userId) %>">
 
@@ -362,6 +363,7 @@
                                     </div>
                                 </div>
                                 <form method="post" action="${pageContext.request.contextPath}/users/unlock" class="form-actions">
+                                    <input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
                                     <input type="hidden" name="userId" value="<%= escapeHtml(userId) %>">
                                     <a href="${pageContext.request.contextPath}/users" class="btn btn-secondary crm-btn crm-btn-secondary">Quay lại danh sách</a>
                                     <button type="submit" class="btn btn-primary crm-btn crm-btn-primary">Mở khóa tài khoản</button>

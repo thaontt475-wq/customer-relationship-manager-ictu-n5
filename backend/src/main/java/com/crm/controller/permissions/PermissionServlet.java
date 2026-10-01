@@ -1,6 +1,7 @@
 package com.crm.controller.permissions;
 
 import com.crm.model.User;
+import com.crm.controller.ServerForms;
 import com.crm.service.permissions.PermissionService;
 import com.crm.service.permissions.PermissionService.AssignmentResult;
 import com.crm.service.teams.TeamService;
@@ -34,6 +35,7 @@ public class PermissionServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        if (!ServerForms.authorize(request, response, true)) return;
 
         if (!"/permissions".equals(request.getServletPath())) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -62,6 +64,8 @@ public class PermissionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+        if (!ServerForms.authorize(request, response, true)) return;
+        if (!ServerForms.checkCsrf(request, response)) return;
 
         if ("/permissions/team".equals(request.getServletPath())) {
             handleTeamAssignment(request, response);

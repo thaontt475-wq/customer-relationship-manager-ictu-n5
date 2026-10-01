@@ -51,3 +51,25 @@
     .sidebar__header { display: flex; flex: none; }
     .sidebar__link { min-height: 44px; }
 }
+
+/* CRM Mobile Sidebar - No JavaScript */
+@media (max-width: 768px) {
+    .sidebar:target {
+        visibility: visible;
+        transform: translateX(0);
+        box-shadow: var(--crm-shadow-md);
+    }
+
+    body:has(.sidebar:target) .sidebar__backdrop {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: none;
+    }
+
+    .sidebar__close-btn {
+        text-decoration: none;
+    }
+}
+
+/* Desktop: opening the URL fragment does not change the sticky sidebar. */
+@media (min-width: 769px) { .sidebar__close-btn { display:none; } }

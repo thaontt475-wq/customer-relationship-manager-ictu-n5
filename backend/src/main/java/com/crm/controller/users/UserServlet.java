@@ -1,5 +1,6 @@
 package com.crm.controller.users;
 
+import com.crm.controller.ServerForms;
 import com.crm.model.User;
 import com.crm.service.teams.TeamService;
 import com.crm.service.teams.TeamService.AssignmentResult;
@@ -739,6 +740,8 @@ public class UserServlet extends HttpServlet {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+
+        if (!ServerForms.checkCsrf(request, response)) return;
 
         Long targetUserId = parsePositiveLong(request.getParameter("userId"));
         if (targetUserId == null) {
