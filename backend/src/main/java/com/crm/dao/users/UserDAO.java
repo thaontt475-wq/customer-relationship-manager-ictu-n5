@@ -250,8 +250,11 @@ public class UserDAO {
     }
 
     public int updateProfile(Connection conn, User user) throws SQLException {
-        String sql = "UPDATE users SET username = ?, email = ?, full_name = ?, "
-                + "display_name = ?, phone = ?, team_id = ? WHERE id = ?";
+        String sql = "UPDATE users u "
+                + "LEFT JOIN teams managed ON managed.leader_user_id = u.id "
+                + "SET u.username = ?, u.email = ?, u.full_name = ?, "
+                + "u.display_name = ?, u.phone = ?, u.team_id = ? "
+                + "WHERE u.id = ? AND (managed.id IS NULL OR managed.id = ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
@@ -267,6 +270,11 @@ public class UserDAO {
             }
 
             stmt.setLong(7, user.getId());
+            if (user.getTeamId() == null) {
+                stmt.setNull(8, java.sql.Types.BIGINT);
+            } else {
+                stmt.setLong(8, user.getTeamId());
+            }
             return stmt.executeUpdate();
         }
     }

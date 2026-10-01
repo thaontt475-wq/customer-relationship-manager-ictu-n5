@@ -164,6 +164,13 @@ public class UserRoleService {
 
                 // If newTeamId is specified (> 0), verify and update user's team
                 if (newTeamId != null) {
+                    Long ledTeamId = userTeamDAO.findLedTeamIdByUserId(conn, targetUserId);
+                    Long targetTeamId = newTeamId > 0 ? newTeamId : null;
+                    if (ledTeamId != null && !ledTeamId.equals(targetTeamId)) {
+                        conn.rollback();
+                        return RoleAssignmentResult.LEADER_TEAM_CONFLICT;
+                    }
+
                     if (newTeamId > 0) {
                         if (!userTeamDAO.teamExists(conn, newTeamId)) {
                             conn.rollback();
@@ -237,6 +244,13 @@ public class UserRoleService {
                 if (target == null) {
                     conn.rollback();
                     return RoleAssignmentResult.USER_NOT_FOUND;
+                }
+
+                Long ledTeamId = userTeamDAO.findLedTeamIdByUserId(conn, targetUserId);
+                Long targetTeamId = teamId != null && teamId > 0 ? teamId : null;
+                if (ledTeamId != null && !ledTeamId.equals(targetTeamId)) {
+                    conn.rollback();
+                    return RoleAssignmentResult.LEADER_TEAM_CONFLICT;
                 }
 
                 // If removing team (teamId is null or <= 0)
@@ -479,6 +493,10 @@ public class UserRoleService {
          * (RULE 3 violation)
          */
         CANNOT_REVOKE_OWN_ADMIN,
+        /**
+         * A unit leader cannot be moved away from or removed from the team they lead.
+         */
+        LEADER_TEAM_CONFLICT,
         /**
          * Specified team ID does not exist in the database.
          */

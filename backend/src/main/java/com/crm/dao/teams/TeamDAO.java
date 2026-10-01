@@ -53,11 +53,15 @@ public class TeamDAO {
             long userId,
             long teamId) throws SQLException {
 
-        String sql = "UPDATE users SET team_id = ? WHERE id = ?";
+        String sql = "UPDATE users u "
+                + "LEFT JOIN teams managed ON managed.leader_user_id = u.id "
+                + "SET u.team_id = ? "
+                + "WHERE u.id = ? AND (managed.id IS NULL OR managed.id = ?)";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, teamId);
             stmt.setLong(2, userId);
+            stmt.setLong(3, teamId);
             return stmt.executeUpdate();
         }
     }

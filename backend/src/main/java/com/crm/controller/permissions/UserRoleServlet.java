@@ -334,6 +334,11 @@ public class UserRoleServlet extends HttpServlet {
                         "Không thể tự gỡ bỏ vai trò 'Admin' của chính mình. Yêu cầu Admin khác thực hiện thao tác này.",
                         null);
 
+                case LEADER_TEAM_CONFLICT -> writeJson(response,
+                        HttpServletResponse.SC_CONFLICT, false,
+                        "Trưởng đơn vị không thể được chuyển sang nhóm khác hoặc bị gỡ khỏi đơn vị đang quản lý.",
+                        null);
+
                 case TEAM_NOT_FOUND -> writeJson(response,
                         HttpServletResponse.SC_BAD_REQUEST, false,
                         "Nhóm kinh doanh không tồn tại trong hệ thống", null);
@@ -382,6 +387,11 @@ public class UserRoleServlet extends HttpServlet {
                         "Người dùng đang giữ vai trò 'Team Lead' (Trưởng nhóm) bắt buộc phải thuộc về ít nhất một nhóm kinh doanh.",
                         null);
 
+                case LEADER_TEAM_CONFLICT -> writeJson(response,
+                        HttpServletResponse.SC_CONFLICT, false,
+                        "Trưởng đơn vị không thể được chuyển sang nhóm khác hoặc bị gỡ khỏi đơn vị đang quản lý.",
+                        null);
+
                 case TEAM_NOT_FOUND -> writeJson(response,
                         HttpServletResponse.SC_BAD_REQUEST, false,
                         "Nhóm kinh doanh không tồn tại trong hệ thống", null);
@@ -420,6 +430,11 @@ public class UserRoleServlet extends HttpServlet {
             case CANNOT_REVOKE_OWN_ADMIN -> writeJson(response,
                     HttpServletResponse.SC_BAD_REQUEST, false,
                     "Không thể tự gỡ bỏ vai trò 'Admin' của chính mình. Yêu cầu Admin khác thực hiện thao tác này.",
+                    null);
+
+            case LEADER_TEAM_CONFLICT -> writeJson(response,
+                    HttpServletResponse.SC_CONFLICT, false,
+                    "Trưởng đơn vị không thể được chuyển sang nhóm khác hoặc bị gỡ khỏi đơn vị đang quản lý.",
                     null);
 
             case TEAM_NOT_FOUND -> writeJson(response,

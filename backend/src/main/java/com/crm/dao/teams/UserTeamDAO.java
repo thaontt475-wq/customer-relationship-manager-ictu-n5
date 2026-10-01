@@ -57,6 +57,27 @@ public class UserTeamDAO {
     }
 
     /**
+     * Find and lock the team led by a user.
+     *
+     * @param conn   active JDBC connection
+     * @param userId target user ID
+     * @return led team ID or null if the user is not a team leader
+     */
+    public Long findLedTeamIdByUserId(Connection conn, long userId) throws SQLException {
+        if (conn == null || userId <= 0) {
+            return null;
+        }
+
+        String sql = "SELECT id FROM teams WHERE leader_user_id = ? FOR UPDATE";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getLong("id") : null;
+            }
+        }
+    }
+
+    /**
      * Assign (or reassign) a user to a team by updating the team_id field on the users table.
      *
      * @param conn   active JDBC connection
@@ -69,10 +90,14 @@ public class UserTeamDAO {
             return 0;
         }
 
-        String sql = "UPDATE users SET team_id = ? WHERE id = ?";
+        String sql = "UPDATE users u "
+                + "LEFT JOIN teams managed ON managed.leader_user_id = u.id "
+                + "SET u.team_id = ? "
+                + "WHERE u.id = ? AND (managed.id IS NULL OR managed.id = ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, teamId);
             stmt.setLong(2, userId);
+            stmt.setLong(3, teamId);
             return stmt.executeUpdate();
         }
     }
@@ -98,7 +123,10 @@ public class UserTeamDAO {
             return 0;
         }
 
-        String sql = "UPDATE users SET team_id = NULL WHERE id = ?";
+        String sql = "UPDATE users u "
+                + "LEFT JOIN teams managed ON managed.leader_user_id = u.id "
+                + "SET u.team_id = NULL "
+                + "WHERE u.id = ? AND managed.id IS NULL";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, userId);
             return stmt.executeUpdate();

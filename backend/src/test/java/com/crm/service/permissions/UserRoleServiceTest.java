@@ -63,9 +63,10 @@ class UserRoleServiceTest {
     );
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws SQLException {
         service = new UserRoleService(
                 userRoleDAO, userTeamDAO, userDAO, permissionDAO, auditLogService);
+        lenient().when(userTeamDAO.findLedTeamIdByUserId(any(Connection.class), anyLong())).thenReturn(null);
     }
 
     // ===== Invalid input guard tests =====
@@ -179,6 +180,49 @@ class UserRoleServiceTest {
     @Nested
     @DisplayName("RULE 2: Team Lead requires team membership")
     class TeamLeadValidationTests {
+
+        @Test
+        @DisplayName("assignRoles: Moving a CRM-42 unit leader to another team is rejected")
+        void assignRoles_moveUnitLeader_returnsLeaderTeamConflict() throws SQLException {
+            User target = mockUser(TARGET_ID, 5L);
+            when(userDAO.findByIdForUpdate(any(Connection.class), eq(TARGET_ID))).thenReturn(target);
+            when(permissionDAO.allRolesExist(any(Connection.class), anyList())).thenReturn(true);
+            when(userTeamDAO.findLedTeamIdByUserId(any(Connection.class), eq(TARGET_ID))).thenReturn(5L);
+
+            RoleAssignmentResult result = service.assignRoles(
+                    ACTOR_ID, TARGET_ID, List.of(SALES_REP_ROLE_ID), 6L);
+
+            assertEquals(RoleAssignmentResult.LEADER_TEAM_CONFLICT, result);
+            verify(userTeamDAO, never()).assignUserToTeam(any(Connection.class), anyLong(), anyLong());
+            verify(userRoleDAO, never()).replaceUserRoles(any(), anyLong(), anyList());
+        }
+
+        @Test
+        @DisplayName("assignTeam: Removing a CRM-42 unit leader from their team is rejected")
+        void assignTeam_removeUnitLeader_returnsLeaderTeamConflict() throws SQLException {
+            User target = mockUser(TARGET_ID, 5L);
+            when(userDAO.findByIdForUpdate(any(Connection.class), eq(TARGET_ID))).thenReturn(target);
+            when(userTeamDAO.findLedTeamIdByUserId(any(Connection.class), eq(TARGET_ID))).thenReturn(5L);
+
+            RoleAssignmentResult result = service.assignTeam(ACTOR_ID, TARGET_ID, null);
+
+            assertEquals(RoleAssignmentResult.LEADER_TEAM_CONFLICT, result);
+            verify(userTeamDAO, never()).removeUserFromTeam(any(Connection.class), anyLong());
+        }
+
+        @Test
+        @DisplayName("assignTeam: Reassigning a CRM-42 unit leader to the same team is allowed")
+        void assignTeam_sameUnitLeaderTeam_succeeds() throws SQLException {
+            User target = mockUser(TARGET_ID, 5L);
+            when(userDAO.findByIdForUpdate(any(Connection.class), eq(TARGET_ID))).thenReturn(target);
+            when(userTeamDAO.findLedTeamIdByUserId(any(Connection.class), eq(TARGET_ID))).thenReturn(5L);
+            when(userTeamDAO.teamExists(any(Connection.class), eq(5L))).thenReturn(true);
+
+            RoleAssignmentResult result = service.assignTeam(ACTOR_ID, TARGET_ID, 5L);
+
+            assertEquals(RoleAssignmentResult.SUCCESS, result);
+            verify(userTeamDAO).assignUserToTeam(any(Connection.class), eq(TARGET_ID), eq(5L));
+        }
 
         @Test
         @DisplayName("Assigning Team Lead to user WITHOUT a team returns TEAM_REQUIRED")
@@ -393,8 +437,8 @@ class UserRoleServiceTest {
 
     private User mockUser(long id, Long teamId) {
         User user = mock(User.class);
-        when(user.getId()).thenReturn(id);
-        when(user.getTeamId()).thenReturn(teamId);
+        lenient().when(user.getId()).thenReturn(id);
+        lenient().when(user.getTeamId()).thenReturn(teamId);
         return user;
     }
 }
