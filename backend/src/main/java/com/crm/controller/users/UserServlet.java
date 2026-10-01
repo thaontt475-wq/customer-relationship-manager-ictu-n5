@@ -175,7 +175,8 @@ public class UserServlet extends HttpServlet {
                 case "lock-handover" -> handleLock(
                         request, response, targetUserId, actorUserId, true);
                 case "unlock" -> handleUnlock(response, targetUserId);
-                case "transfer-data" -> handleTransfer(request, response, targetUserId);
+                case "transfer-data" -> handleTransfer(
+                        request, response, targetUserId, actorUserId);
                 case "team" -> handleTeamAssignment(request, response, targetUserId);
                 default -> writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
                         "Endpoint không tồn tại", null);
@@ -643,7 +644,7 @@ public class UserServlet extends HttpServlet {
     }
 
     private void handleTransfer(HttpServletRequest request, HttpServletResponse response,
-                                long sourceUserId) throws SQLException, IOException {
+                                long sourceUserId, long actorUserId) throws SQLException, IOException {
         Long recipientUserId = parsePositiveLong(request.getParameter("toUserId"));
         if (recipientUserId == null) {
             writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
@@ -651,7 +652,8 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-        TransferValidationResult result = userService.validateTransfer(sourceUserId, recipientUserId);
+        TransferValidationResult result = userService.validateTransfer(
+                sourceUserId, recipientUserId, actorUserId);
         switch (result) {
             case SAME_USER -> writeJson(response, HttpServletResponse.SC_BAD_REQUEST, false,
                     "Tài khoản nguồn và tài khoản nhận không được trùng nhau", null);
