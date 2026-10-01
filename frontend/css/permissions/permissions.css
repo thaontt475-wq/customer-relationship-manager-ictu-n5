@@ -12,21 +12,21 @@
    -------------------------------------------------------------------------- */
 .permission-page {
     /* Màu thương hiệu & cơ bản */
-    --perm-primary: #4f46e5;
-    --perm-primary-hover: #4338ca;
-    --perm-primary-light: #eef2ff;
-    --perm-primary-border: #c7d2fe;
+    --perm-primary: var(--crm-primary);
+    --perm-primary-hover: var(--crm-primary-hover);
+    --perm-primary-light: var(--crm-primary-soft);
+    --perm-primary-border: var(--crm-border);
 
     /* Màu trạng thái */
-    --perm-success: #10b981;
-    --perm-success-light: #ecfdf5;
-    --perm-success-border: #a7f3d0;
-    --perm-danger: #ef4444;
-    --perm-danger-light: #fef2f2;
-    --perm-danger-border: #fecaca;
-    --perm-warning: #f59e0b;
-    --perm-warning-light: #fffbeb;
-    --perm-warning-border: #fde68a;
+    --perm-success: var(--crm-success);
+    --perm-success-light: var(--crm-success-soft);
+    --perm-success-border: var(--crm-border);
+    --perm-danger: var(--crm-danger);
+    --perm-danger-light: var(--crm-danger-soft);
+    --perm-danger-border: var(--crm-border);
+    --perm-warning: var(--crm-warning);
+    --perm-warning-light: var(--crm-warning-soft);
+    --perm-warning-border: var(--crm-border);
     --perm-info: #0284c7;
     --perm-info-light: #f0f9ff;
     --perm-info-border: #bae6fd;
@@ -57,23 +57,23 @@
     --scope-all-badge-text: #047857;
 
     /* Màu nền & chữ giao diện */
-    --perm-bg-page: #f8fafc;
-    --perm-bg-card: #ffffff;
-    --perm-text-main: #0f172a;
-    --perm-text-sub: #475569;
-    --perm-text-muted: #94a3b8;
-    --perm-border: #e2e8f0;
-    --perm-border-subtle: #f1f5f9;
+    --perm-bg-page: var(--crm-bg);
+    --perm-bg-card: var(--crm-surface);
+    --perm-text-main: var(--crm-text-primary);
+    --perm-text-sub: var(--crm-text-secondary);
+    --perm-text-muted: var(--crm-muted);
+    --perm-border: var(--crm-border);
+    --perm-border-subtle: var(--crm-border);
 
     /* Bo góc & Đổ bóng */
-    --perm-radius-sm: 6px;
-    --perm-radius-md: 10px;
-    --perm-radius-lg: 14px;
-    --perm-radius-xl: 18px;
-    --perm-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-    --perm-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
-    --perm-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
-    --perm-shadow-glow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    --perm-radius-sm: var(--crm-radius-sm);
+    --perm-radius-md: var(--crm-radius-md);
+    --perm-radius-lg: var(--crm-radius-lg);
+    --perm-radius-xl: var(--crm-radius-lg);
+    --perm-shadow-sm: var(--crm-shadow-sm);
+    --perm-shadow-md: var(--crm-shadow-sm);
+    --perm-shadow-lg: var(--crm-shadow-md);
+    --perm-shadow-glow: var(--crm-focus-ring);
     --perm-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -1462,3 +1462,12 @@
     margin: 0;
     line-height: 1.5;
 }
+
+.permission-page { min-width:0; padding:var(--crm-page-padding); font-family:var(--crm-font-sans); }
+.permission-page .permission-card:hover { box-shadow:var(--crm-shadow-sm); }
+.permission-page :is(input,select) { max-width:100%; }
+.permission-page :is(button,a):focus-visible { outline:2px solid var(--crm-primary); outline-offset:3px; }
+.permission-page .scope-info-icon-badge { display:grid; place-items:center; }
+.permission-page .permission-card { min-width:0; }
+@media(max-width:768px) { .permission-layout-grid { grid-template-columns:minmax(0,1fr); } .permission-page .crm-btn { min-height:44px; } }
+@media(prefers-reduced-motion:reduce) { .permission-page * { animation:none!important; transition:none!important; } }
