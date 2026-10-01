@@ -1,5 +1,6 @@
 package com.crm.controller.products;
 
+import com.crm.controller.ServerForms;
 import com.crm.model.Product;
 import com.crm.model.User;
 import com.crm.service.products.ProductInUseException;
@@ -142,6 +143,7 @@ public class ProductServlet extends HttpServlet {
             return;
         }
 
+        if (!authorizeMutation(request, response)) return;
         Collection<String> roles = extractUserRoles(request);
         Product product = parseProductPayload(request);
         if (product == null) {
@@ -173,6 +175,7 @@ public class ProductServlet extends HttpServlet {
             return;
         }
 
+        if (!authorizeMutation(request, response)) return;
         Collection<String> roles = extractUserRoles(request);
         Product product = parseProductPayload(request);
         if (product == null) {
@@ -214,6 +217,7 @@ public class ProductServlet extends HttpServlet {
             return;
         }
 
+        if (!authorizeMutation(request, response)) return;
         Long productId = extractIdFromPath(request);
         if (productId == null || productId <= 0) {
             String paramId = request.getParameter("id");
@@ -253,6 +257,13 @@ public class ProductServlet extends HttpServlet {
     }
 
     // === Helpers ===
+
+    private boolean authorizeMutation(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (ServerForms.admin(request)) return true;
+        writeJson(response, HttpServletResponse.SC_FORBIDDEN, false,
+                "Bạn không có quyền quản lý sản phẩm.", null);
+        return false;
+    }
 
     private Product parseProductPayload(HttpServletRequest request) throws IOException {
         String contentType = request.getContentType();

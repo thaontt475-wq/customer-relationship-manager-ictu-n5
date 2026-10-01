@@ -117,6 +117,7 @@
                     <li class="sidebar__item<%= (selfActive || childActive) ? " sidebar__item--active" : "" %><%= hasChildren ? " sidebar__item--has-children" : "" %>">
                         <% if (logoutItem) { %>
                             <form class="sidebar__logout-form" method="post" action="<%= sidebarEscapeHtml(itemResolvedUrl) %>">
+<input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
                                 <input type="hidden" name="redirectToLogin" value="true">
                                 <button type="submit" class="sidebar__link sidebar__logout-button">
                                     <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarIcon(itemCode) %></span>

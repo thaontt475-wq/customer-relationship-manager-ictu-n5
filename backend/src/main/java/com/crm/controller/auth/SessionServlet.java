@@ -54,7 +54,8 @@ public class SessionServlet extends HttpServlet {
         Object resolvedRoles = (roles != null) ? roles : List.of();
         Object expiresAt = resolveExpiresAt(session);
 
-        SessionData data = new SessionData(currentUser, resolvedRoles, expiresAt);
+        SessionData data = new SessionData(currentUser, resolvedRoles, expiresAt,
+                com.crm.controller.ServerForms.csrf(request));
         response.setStatus(HttpServletResponse.SC_OK);
         GSON.toJson(new SessionResponse(true, "Lấy thông tin phiên làm việc thành công", data), response.getWriter());
     }
@@ -81,5 +82,5 @@ public class SessionServlet extends HttpServlet {
     }
 
     private record SessionResponse(boolean success, String message, SessionData data) { }
-    private record SessionData(Object currentUser, Object roles, Object expiresAt) { }
+    private record SessionData(Object currentUser, Object roles, Object expiresAt, String csrfToken) { }
 }

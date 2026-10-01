@@ -14,6 +14,7 @@
 <% if(request.getAttribute("error") != null) { %><p class="crm-alert crm-alert-danger" role="alert"><%= Html.escape(request.getAttribute("error")) %></p><% } %>
 <% if(request.getAttribute("message") != null) { %><p class="crm-alert crm-alert-success" role="status"><%= Html.escape(request.getAttribute("message")) %></p><% } %>
 <section class="cp-card crm-card"><form id="changePasswordForm" class="cp-form" method="post" action="${pageContext.request.contextPath}/change-password">
+<input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
 <div class="crm-form-group"><label class="crm-label" for="currentPassword">Mật khẩu hiện tại</label><input class="crm-input" id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required></div>
 <div class="crm-form-group"><label class="crm-label" for="newPassword">Mật khẩu mới</label><input class="crm-input" id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,72}" required aria-describedby="passwordPolicy"><p id="passwordPolicy" class="crm-field-help">Từ 8 đến 72 ký tự, có chữ cái và chữ số.</p></div>
 <div class="crm-form-group"><label class="crm-label" for="confirmPassword">Xác nhận mật khẩu mới</label><input class="crm-input" id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></div>

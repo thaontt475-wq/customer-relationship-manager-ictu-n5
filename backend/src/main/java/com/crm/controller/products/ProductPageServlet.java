@@ -32,8 +32,8 @@ public class ProductPageServlet extends HttpServlet {
         req.setAttribute("active", ServerForms.value(req,"active",""));
         int page = page(req.getParameter("page"));
         try {
-            Boolean active = "true".equals(req.getParameter("active")) ? true
-                    : "false".equals(req.getParameter("active")) ? false : null;
+            Boolean active = "true".equals(req.getParameter("active")) ? Boolean.TRUE
+                    : "false".equals(req.getParameter("active")) ? Boolean.FALSE : null;
             var result = service.searchProducts(req.getParameter("q"),
                     req.getParameter("category"), active, page, 20, ServerForms.roles(req));
             req.setAttribute("products", result);
