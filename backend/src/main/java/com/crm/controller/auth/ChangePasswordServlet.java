@@ -41,6 +41,9 @@ public class ChangePasswordServlet extends HttpServlet {
             return;
         }
 
+        if ("1".equals(request.getParameter("saved"))) {
+            request.setAttribute("message", "Đổi mật khẩu thành công. Các phiên đăng nhập khác đã được thu hồi.");
+        }
         request.getRequestDispatcher("/jsp/auth/change-password.jsp")
                 .forward(request, response);
     }
@@ -90,6 +93,13 @@ public class ChangePasswordServlet extends HttpServlet {
         } else {
             currentPassword = request.getParameter("currentPassword");
             newPassword = request.getParameter("newPassword");
+        }
+
+        if (!"/api/auth/change-password".equals(request.getServletPath())
+                && (newPassword == null || !newPassword.equals(request.getParameter("confirmPassword")))) {
+            writeResponse(request, response, HttpServletResponse.SC_BAD_REQUEST, false,
+                    "Mật khẩu xác nhận không khớp.", null);
+            return;
         }
 
         ChangePasswordResult result;
@@ -203,7 +213,8 @@ public class ChangePasswordServlet extends HttpServlet {
         response.setStatus(status);
 
         if (success) {
-            request.setAttribute("message", message);
+            response.sendRedirect(request.getContextPath() + "/change-password?saved=1");
+            return;
         } else {
             request.setAttribute("error", message);
         }
