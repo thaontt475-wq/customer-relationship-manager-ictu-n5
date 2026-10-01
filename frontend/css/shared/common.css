@@ -40,6 +40,10 @@
     --crm-page-padding: var(--crm-space-8);
     --crm-content-max-width: 1440px;
     --crm-form-max-width: 880px;
+    /* Compatibility with Phase 2 shared page patterns. */
+    --crm-content-max: 1200px;
+    --crm-form-max: var(--crm-form-max-width);
+    --crm-control-height: 40px;
     --crm-transition: 180ms ease;
     --crm-focus-ring: 0 0 0 3px rgb(54 94 220 / 20%);
     --crm-scrim: rgb(20 35 60 / 36%);
