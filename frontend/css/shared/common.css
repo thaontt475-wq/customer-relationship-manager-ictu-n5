@@ -5,14 +5,76 @@
 
 :root {
     --crm-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --crm-primary: #2f5bff;
-    --crm-primary-dark: #1f3fcf;
-    --crm-text: #1f2937;
-    --crm-muted: #667085;
-    --crm-border: #e7ebf5;
-    --crm-bg: #f8fafc;
+    --crm-bg: #f6f8fb;
+    --crm-surface: #ffffff;
+    --crm-surface-subtle: #f1f4f8;
+    --crm-primary: #365edc;
+    --crm-primary-hover: #294bb8;
+    --crm-primary-soft: #edf2ff;
+    --crm-text-primary: #202b3c;
+    --crm-text-secondary: #58677c;
+    --crm-muted: #64748b;
+    --crm-border: #e3e8ef;
+    --crm-success: #157347;
+    --crm-success-soft: #edf8f1;
+    --crm-warning: #a16207;
+    --crm-warning-soft: #fff8e6;
+    --crm-danger: #bc3434;
+    --crm-danger-soft: #fff1f1;
+    --crm-shadow-sm: 0 1px 3px rgb(20 35 60 / 5%);
+    --crm-shadow-md: 0 8px 28px rgb(20 35 60 / 10%);
+    --crm-radius-sm: 6px;
+    --crm-radius-md: 10px;
+    --crm-radius-lg: 14px;
+    --crm-space-1: 4px;
+    --crm-space-2: 8px;
+    --crm-space-3: 12px;
+    --crm-space-4: 16px;
+    --crm-space-5: 20px;
+    --crm-space-6: 24px;
+    --crm-space-8: 32px;
+    --crm-space-10: 40px;
+    --crm-space-12: 48px;
+    --crm-header-height: 64px;
+    --crm-sidebar-width: 248px;
+    --crm-page-padding: var(--crm-space-8);
+    --crm-content-max-width: 1440px;
+    --crm-form-max-width: 880px;
+    --crm-transition: 180ms ease;
+    --crm-focus-ring: 0 0 0 3px rgb(54 94 220 / 20%);
+    --crm-scrim: rgb(20 35 60 / 36%);
+    /* Compatibility aliases for existing modules. */
+    --crm-text: var(--crm-text-primary);
+    --crm-primary-dark: var(--crm-primary-hover);
 }
 
 *, *::before, *::after {
     box-sizing: border-box;
+}
+
+:where(.crm-header, .sidebar) :where(a, button):focus-visible {
+    outline: 2px solid var(--crm-primary);
+    outline-offset: 3px;
+}
+
+/* Opt-in surface primitive for subsequent module phases. */
+.crm-surface {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+    box-shadow: var(--crm-shadow-sm);
+}
+@media (max-width: 1024px) {
+    :root { --crm-page-padding: var(--crm-space-6); }
+}
+@media (max-width: 768px) {
+    :root { --crm-page-padding: var(--crm-space-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+    :root { --crm-transition: 0s; }
+    .crm-header *, .sidebar *, .sidebar, .sidebar__backdrop {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
 }
