@@ -25,6 +25,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đặt lại mật khẩu | CRM</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/auth/auth.css">
 </head>
 <body class="auth-page">
@@ -41,19 +43,19 @@
         </header>
 
         <% if (message != null && !message.isBlank()) { %>
-            <div class="auth-message auth-success" role="status"><%= escapeHtml(message) %></div>
+            <div class="auth-message auth-success crm-alert crm-alert-success" role="status"><%= escapeHtml(message) %></div>
             <div class="auth-actions auth-actions--center">
-                <a href="${pageContext.request.contextPath}/login" class="auth-button auth-button--link">Đăng nhập bằng mật khẩu mới</a>
+                <a href="${pageContext.request.contextPath}/login" class="auth-button crm-btn crm-btn-primary auth-button--link">Đăng nhập bằng mật khẩu mới</a>
             </div>
         <% } else if (token != null && !token.isBlank()) { %>
             <form class="auth-form" method="post"
                   action="${pageContext.request.contextPath}/reset-password">
                 <input type="hidden" name="token" value="<%= escapeHtml(token) %>">
 
-                <div class="field-group">
+                <div class="field-group crm-form-group">
                     <label for="newPassword">Mật khẩu mới</label>
                     <div class="password-field">
-                        <input id="newPassword" type="password" name="newPassword"
+                        <input class="crm-input" id="newPassword" type="password" name="newPassword"
                                autocomplete="new-password" minlength="8" maxlength="72"
                                pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,72}" required>
                         <button type="button" class="password-toggle" data-password-toggle="newPassword"
@@ -61,24 +63,24 @@
                     </div>
                 </div>
 
-                <div class="field-group">
+                <div class="field-group crm-form-group">
                     <label for="confirmPassword">Xác nhận mật khẩu mới</label>
                     <div class="password-field">
-                        <input id="confirmPassword" type="password" name="confirmPassword"
+                        <input class="crm-input" id="confirmPassword" type="password" name="confirmPassword"
                                autocomplete="new-password" minlength="8" maxlength="72" required>
                         <button type="button" class="password-toggle" data-password-toggle="confirmPassword"
                                 aria-label="Hiện xác nhận mật khẩu">Hiện</button>
                     </div>
                 </div>
 
-                <button type="submit" class="auth-button">Đặt lại mật khẩu</button>
+                <button type="submit" class="auth-button crm-btn crm-btn-primary">Đặt lại mật khẩu</button>
 
                 <% if (error != null && !error.isBlank()) { %>
-                    <div class="auth-message auth-error" role="alert"><%= escapeHtml(error) %></div>
+                    <div class="auth-message auth-error crm-alert crm-alert-danger" role="alert"><%= escapeHtml(error) %></div>
                 <% } %>
             </form>
         <% } else { %>
-            <div class="auth-message auth-error" role="alert"><%= escapeHtml(error) %></div>
+            <div class="auth-message auth-error crm-alert crm-alert-danger" role="alert"><%= escapeHtml(error) %></div>
             <div class="auth-actions auth-actions--center">
                 <a href="${pageContext.request.contextPath}/forgot-password" class="back-link">
                     Yêu cầu liên kết mới

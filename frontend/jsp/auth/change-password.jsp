@@ -8,9 +8,10 @@
 
     <!-- CSS dùng chung của hệ thống CRM -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
 
-    <!-- CSS riêng biệt của module Đổi mật khẩu (CRM-24) -->
+
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/auth/change-password.css">
 </head>
 <body class="crm-body">
@@ -23,11 +24,11 @@
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Khu vực nội dung chính của màn hình Đổi mật khẩu -->
-        <main class="change-password-page" id="changePasswordApp">
-            <div class="cp-container">
+        <main class="change-password-page crm-page" id="changePasswordApp">
+            <div class="cp-container crm-page-container">
 
                 <!-- Breadcrumb điều hướng -->
-                <nav class="cp-breadcrumb" aria-label="Breadcrumb">
+                <nav class="cp-breadcrumb crm-breadcrumb" aria-label="Điều hướng">
                     <a href="${pageContext.request.contextPath}/dashboard">CRM</a>
                     <span class="separator">/</span>
                     <span>Tài khoản</span>
@@ -36,20 +37,12 @@
                 </nav>
 
                 <!-- Header màn hình -->
-                <header class="cp-header">
+                <header class="cp-header crm-page-header">
                     <div class="cp-header-info">
                         <h1>Đổi mật khẩu</h1>
                         <p>Cập nhật mật khẩu định kỳ giúp bảo vệ tài khoản và đảm bảo an toàn cho dữ liệu khách hàng.</p>
                     </div>
-                    <div class="cp-header-badges">
-                        <span class="cp-badge">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </svg>
-                            S1-04 / CRM-24
-                        </span>
-                    </div>
+
                 </header>
 
                 <!-- Khu vực hiển thị thông báo phản hồi (Alert / Banner) -->
@@ -91,7 +84,7 @@
                 <div class="cp-grid">
 
                     <!-- Cột 1: Form đổi mật khẩu -->
-                    <div class="cp-card">
+                    <div class="cp-card crm-card">
                         <div class="cp-card-header">
                             <h2 class="cp-card-title">
                                 <svg class="cp-card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -106,8 +99,8 @@
                         <form class="cp-form" id="changePasswordForm" method="post" novalidate>
 
                             <!-- Trường 1: Mật khẩu hiện tại -->
-                            <div class="cp-field">
-                                <label for="currentPassword" class="cp-label">
+                            <div class="cp-field crm-form-group">
+                                <label for="currentPassword" class="cp-label crm-label">
                                     <span>Mật khẩu hiện tại <span class="cp-required" aria-hidden="true">*</span></span>
                                 </label>
                                 <div class="cp-input-wrap">
@@ -115,7 +108,7 @@
                                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                                     </svg>
-                                    <input type="password" id="currentPassword" name="currentPassword" class="cp-input"
+                                    <input type="password" id="currentPassword" name="currentPassword" class="cp-input crm-input"
                                            placeholder="Nhập mật khẩu hiện tại của bạn"
                                            autocomplete="current-password" required>
                                     <button type="button" class="cp-toggle-pwd" data-target="currentPassword"
@@ -134,15 +127,15 @@
                             </div>
 
                             <!-- Trường 2: Mật khẩu mới -->
-                            <div class="cp-field">
-                                <label for="newPassword" class="cp-label">
+                            <div class="cp-field crm-form-group">
+                                <label for="newPassword" class="cp-label crm-label">
                                     <span>Mật khẩu mới <span class="cp-required" aria-hidden="true">*</span></span>
                                 </label>
                                 <div class="cp-input-wrap">
                                     <svg class="cp-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5z"></path>
                                     </svg>
-                                    <input type="password" id="newPassword" name="newPassword" class="cp-input"
+                                    <input type="password" id="newPassword" name="newPassword" class="cp-input crm-input"
                                            placeholder="Tối thiểu 8 ký tự, gồm cả chữ và số"
                                            autocomplete="new-password" minlength="8" required>
                                     <button type="button" class="cp-toggle-pwd" data-target="newPassword"
@@ -195,8 +188,8 @@
                             </div>
 
                             <!-- Trường 3: Xác nhận mật khẩu mới -->
-                            <div class="cp-field">
-                                <label for="confirmPassword" class="cp-label">
+                            <div class="cp-field crm-form-group">
+                                <label for="confirmPassword" class="cp-label crm-label">
                                     <span>Xác nhận mật khẩu mới <span class="cp-required" aria-hidden="true">*</span></span>
                                 </label>
                                 <div class="cp-input-wrap">
@@ -205,7 +198,7 @@
                                         <circle cx="8.5" cy="7.5" r="4"></circle>
                                         <polyline points="17 11 19 13 23 9"></polyline>
                                     </svg>
-                                    <input type="password" id="confirmPassword" name="confirmPassword" class="cp-input"
+                                    <input type="password" id="confirmPassword" name="confirmPassword" class="cp-input crm-input"
                                            placeholder="Nhập lại mật khẩu mới vừa đặt"
                                            autocomplete="new-password" minlength="8" required>
                                     <button type="button" class="cp-toggle-pwd" data-target="confirmPassword"
@@ -225,14 +218,14 @@
 
                             <!-- Nút thao tác -->
                             <div class="cp-actions">
-                                <button type="reset" class="cp-btn cp-btn-secondary" id="cpResetBtn">
+                                <button type="reset" class="cp-btn crm-btn cp-btn-secondary crm-btn-secondary" id="cpResetBtn">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <polyline points="1 4 1 10 7 10"></polyline>
                                         <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                                     </svg>
                                     Nhập lại
                                 </button>
-                                <button type="submit" class="cp-btn cp-btn-primary" id="cpSubmitBtn">
+                                <button type="submit" class="cp-btn crm-btn cp-btn-primary crm-btn-primary" id="cpSubmitBtn">
                                     <span class="cp-spinner" id="cpSubmitSpinner" aria-hidden="true"></span>
                                     <svg id="cpSubmitIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -297,7 +290,7 @@
     <!-- Footer dùng chung của hệ thống -->
     <jsp:include page="/jsp/shared/footer.jsp" />
 
-    <!-- Script xử lý logic tương tác, validation & gọi API Contract CRM-24 -->
+
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         'use strict';

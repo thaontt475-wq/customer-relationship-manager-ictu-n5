@@ -8,9 +8,10 @@
 
     <!-- CSS dùng chung của hệ thống CRM -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
 
-    <!-- CSS riêng biệt của module Error Pages (CRM-27) -->
+
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/errors/errors.css">
 </head>
 <body class="crm-body">
@@ -23,8 +24,8 @@
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Khu vực nội dung chính của trang báo lỗi động -->
-        <main class="error-page" id="errorApp" role="main">
-            <section class="err-card" id="dynamicErrCard" aria-labelledby="errTitle">
+        <main class="error-page crm-page" id="errorApp" role="main">
+            <section class="err-card crm-card" id="dynamicErrCard" aria-labelledby="errTitle">
 
                 <!-- Đồ họa Icon minh họa động theo mã lỗi -->
                 <div class="err-illustration" id="dynamicErrIcon" aria-hidden="true">
@@ -67,7 +68,7 @@
                             </svg>
                             Mã tra cứu sự cố:
                         </span>
-                        <span class="err-diag-value" id="diagRequestId">${not empty requestId ? requestId : 'CRM-ERR-DYN'}</span>
+                        <span class="err-diag-value" id="diagRequestId">${not empty requestId ? requestId : 'Chưa có mã tra cứu'}</span>
                     </div>
                     <div class="err-diag-item">
                         <span class="err-diag-label">
@@ -89,20 +90,20 @@
 
                 <!-- Các nút hành động hỗ trợ người dùng quay lại luồng làm việc -->
                 <div class="err-actions">
-                    <button type="button" class="err-btn err-btn-secondary" onclick="window.history.back()">
+                    <button type="button" class="err-btn crm-btn err-btn-secondary crm-btn-secondary" onclick="window.history.back()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polyline points="15 18 9 12 15 6"></polyline>
                         </svg>
                         <span>Quay lại trang trước</span>
                     </button>
-                    <a href="${pageContext.request.contextPath}/dashboard" class="err-btn err-btn-primary">
+                    <a href="${pageContext.request.contextPath}/dashboard" class="err-btn crm-btn err-btn-primary crm-btn-primary">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                             <polyline points="9 22 9 12 15 12 15 22"></polyline>
                         </svg>
                         <span>Về bảng điều khiển</span>
                     </a>
-                    <a href="${pageContext.request.contextPath}/login" class="err-btn err-btn-login" id="dynamicLoginBtn" style="display: none;">
+                    <a href="${pageContext.request.contextPath}/login" class="err-btn crm-btn err-btn-login crm-btn-primary" id="dynamicLoginBtn" style="display: none;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                             <polyline points="10 17 15 12 10 7"></polyline>

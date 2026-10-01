@@ -8,11 +8,12 @@
 
     <!-- CSS dùng chung của hệ thống CRM -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
 
-    <!-- CSS riêng của module Phân quyền & Data Scope (CRM-25 & CRM-29) -->
+
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/permissions/permissions.css">
 </head>
 <body class="crm-body">
@@ -25,8 +26,8 @@
         <jsp:include page="/jsp/shared/sidebar.jsp" />
 
         <!-- Khu vực nội dung chính của màn hình Phân quyền -->
-        <main class="permission-page" id="permissionApp" role="main">
-            <div class="permission-container">
+        <main class="permission-page crm-page" id="permissionApp" role="main">
+            <div class="permission-container crm-page-container">
 
                 <!-- Breadcrumb điều hướng -->
                 <nav class="permission-breadcrumb" aria-label="Breadcrumb">
@@ -38,22 +39,12 @@
                 </nav>
 
                 <!-- Header màn hình -->
-                <header class="permission-header">
+                <header class="permission-header crm-page-header">
                     <div class="permission-header-info">
                         <h1>Phân quyền & Phạm vi dữ liệu sở hữu</h1>
                         <p>Cấu hình vai trò hệ thống (Roles) và phạm vi truy cập dữ liệu (Data Scope: SELF, TEAM, ALL) cho nhân sự trong CRM.</p>
                     </div>
-                    <div class="permission-header-badges">
-                        <span class="permission-badge">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                            S1-05 / CRM-25
-                        </span>
-                        <span class="permission-badge permission-badge-secondary">
-                            Bảo mật đa cấp độ
-                        </span>
-                    </div>
+
                 </header>
 
                 <!-- Khu vực hiển thị thông báo phản hồi (Alerts / Banners) -->
@@ -95,7 +86,7 @@
                             <input type="hidden" id="selectedUserIdHidden" name="userId" value="">
 
                             <!-- BƯỚC 1: Chọn người dùng -->
-                            <section class="permission-card" id="userCardSection" style="position: relative;">
+                            <section class="permission-card crm-card" id="userCardSection" style="position: relative;">
                                 <!-- Loading overlay -->
                                 <div class="permission-loading-overlay" id="userCardLoading" aria-hidden="true">
                                     <div class="permission-loading-box">
@@ -120,7 +111,7 @@
                                                 Tài khoản người dùng <span style="color: var(--perm-danger);">*</span>
                                             </label>
                                             <div class="permission-select-wrapper">
-                                                <select id="userSelect" name="viewUserId" class="permission-select" required>
+                                                <select id="userSelect" name="viewUserId" class="permission-select crm-select" required>
                                                     <option value="">-- Đang nạp danh sách tài khoản người dùng... --</option>
                                                 </select>
                                             </div>
@@ -151,7 +142,7 @@
 
                                         <!-- Empty state khi chưa chọn người dùng -->
                                         <div class="permission-empty-state" id="userEmptyStateNotice">
-                                            <div class="permission-empty-icon" aria-hidden="true">👤</div>
+                                            <div class="permission-empty-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></div>
                                             <div class="permission-empty-title">Chưa chọn tài khoản</div>
                                             <p class="permission-empty-desc">Vui lòng chọn một người dùng từ danh sách phía trên để nạp quyền hạn và phạm vi dữ liệu hiện tại.</p>
                                         </div>
@@ -159,8 +150,8 @@
                                 </div>
                             </section>
 
-                            <!-- BƯỚC 2: Gán nhóm kinh doanh (Sales Team - CRM-29) -->
-                            <section class="permission-card" id="teamCardSection" style="margin-top: 20px;">
+
+                            <section class="permission-card crm-card" id="teamCardSection" style="margin-top: 20px;">
                                 <div class="permission-card-header">
                                     <div class="permission-card-title-group">
                                         <span class="permission-card-step">2</span>
@@ -193,12 +184,12 @@
                                             <div class="permission-team-select-group">
                                                 <label for="teamSelect" class="permission-label">Chọn nhóm phân bổ mới</label>
                                                 <div class="permission-select-wrapper">
-                                                    <select id="teamSelect" name="teamId" class="permission-select" disabled>
+                                                    <select id="teamSelect" name="teamId" class="permission-select crm-select" disabled>
                                                         <option value="">-- Chọn nhóm kinh doanh --</option>
                                                     </select>
                                                 </div>
                                             </div>
-                                            <button type="button" class="permission-btn permission-btn-secondary" id="btnAssignTeam" disabled>
+                                            <button type="button" class="permission-btn crm-btn permission-btn-secondary crm-btn-secondary" id="btnAssignTeam" disabled>
                                                 <span class="permission-spinner permission-spinner-dark" id="btnAssignTeamSpinner" style="display: none;"></span>
                                                 <span id="btnAssignTeamText">Gán nhóm</span>
                                             </button>
@@ -221,7 +212,7 @@
                             </section>
 
                             <!-- BƯỚC 3: Chọn vai trò hệ thống (Roles) -->
-                            <section class="permission-card" id="rolesCardSection" style="margin-top: 20px;">
+                            <section class="permission-card crm-card" id="rolesCardSection" style="margin-top: 20px;">
                                 <div class="permission-card-header">
                                     <div class="permission-card-title-group">
                                         <span class="permission-card-step">3</span>
@@ -309,7 +300,7 @@
                             </section>
 
                             <!-- BƯỚC 4: Phạm vi dữ liệu sở hữu (Data Scope) -->
-                            <section class="permission-card" id="dataScopeCardSection" style="margin-top: 20px;">
+                            <section class="permission-card crm-card" id="dataScopeCardSection" style="margin-top: 20px;">
                                 <div class="permission-card-header">
                                     <div class="permission-card-title-group">
                                         <span class="permission-card-step">4</span>
@@ -400,14 +391,14 @@
                                     <span id="permissionStatusText">Chưa chọn người dùng</span>
                                 </div>
                                 <div class="permission-buttons">
-                                    <button type="button" class="permission-btn permission-btn-secondary" id="btnResetPermissions" disabled>
+                                    <button type="button" class="permission-btn crm-btn permission-btn-secondary crm-btn-secondary" id="btnResetPermissions" disabled>
                                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                             <polyline points="1 4 1 10 7 10"></polyline>
                                             <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
                                         </svg>
                                         Đặt lại
                                     </button>
-                                    <button type="button" class="permission-btn permission-btn-primary" id="btnSavePermissions" disabled>
+                                    <button type="button" class="permission-btn crm-btn permission-btn-primary crm-btn-primary" id="btnSavePermissions" disabled>
                                         <span class="permission-spinner" id="btnSaveSpinner" style="display: none;"></span>
                                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="btnSaveIcon" aria-hidden="true">
                                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -444,7 +435,7 @@
                                 <div class="scope-info-card info-self active-scope" id="infoCardSelf">
                                     <div class="scope-info-header">
                                         <div class="scope-info-title-group">
-                                            <div class="scope-info-icon-badge" aria-hidden="true">👤</div>
+                                            <div class="scope-info-icon-badge" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></div>
                                             <div class="scope-info-title">Cá nhân (SELF)</div>
                                         </div>
                                         <span class="scope-info-tag">Cơ bản</span>
@@ -462,12 +453,12 @@
                                 <div class="scope-info-card info-team" id="infoCardTeam">
                                     <div class="scope-info-header">
                                         <div class="scope-info-title-group">
-                                            <div class="scope-info-icon-badge" aria-hidden="true">👥</div>
+                                            <div class="scope-info-icon-badge" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></div>
                                             <div class="scope-info-title">Đội nhóm (TEAM)</div>
                                         </div>
                                         <span class="scope-info-tag">Quản lý nhóm</span>
                                     </div>
-                                    <p class="scope-info-desc">Dành cho Trưởng nhóm kinh doanh (Team Lead) để điều phối chỉ tiêu và hỗ trợ thành viên.</p>
+                                    <p class="scope-info-desc">Dành cho Trưởng nhóm kinh doanh  để điều phối chỉ tiêu và hỗ trợ thành viên.</p>
                                     <ul class="scope-info-list">
                                         <li><strong>Khách hàng:</strong> Xem và phân bổ khách hàng của tất cả thành viên trong nhóm.</li>
                                         <li><strong>Cơ hội:</strong> Giám sát tổng thể tiến độ các cơ hội của đội ngũ.</li>
@@ -480,15 +471,15 @@
                                 <div class="scope-info-card info-all" id="infoCardAll">
                                     <div class="scope-info-header">
                                         <div class="scope-info-title-group">
-                                            <div class="scope-info-icon-badge" aria-hidden="true">🌐</div>
+                                            <div class="scope-info-icon-badge" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></div>
                                             <div class="scope-info-title">Toàn hệ thống (ALL)</div>
                                         </div>
                                         <span class="scope-info-tag">Toàn quyền</span>
                                     </div>
-                                    <p class="scope-info-desc">Dành cho Ban Giám đốc (Director) và Quản trị viên hệ thống (Admin).</p>
+                                    <p class="scope-info-desc">Dành cho Ban Giám đốc  và Quản trị viên hệ thống .</p>
                                     <ul class="scope-info-list">
                                         <li><strong>Khách hàng:</strong> Toàn quyền xem và quản trị cơ sở dữ liệu khách toàn công ty.</li>
-                                        <li><strong>Cơ hội:</strong> Bức tranh toàn cảnh pipeline doanh thu đa phòng ban.</li>
+                                        <li><strong>Cơ hội:</strong> Bức tranh toàn cảnh quy trình bán hàng đa phòng ban.</li>
                                         <li><strong>Hoạt động & Báo giá:</strong> Kiểm toán, phê duyệt và giám sát không giới hạn.</li>
                                         <li><strong>Tìm kiếm & Excel:</strong> Xuất báo cáo tổng thể toàn bộ hệ thống.</li>
                                     </ul>
@@ -496,44 +487,11 @@
                             </div>
                         </section>
 
-                        <!-- 2. Khối Cảnh báo Tiếng Việt khi truy cập ngoài phạm vi dữ liệu (AC 3) -->
-                        <section class="permission-warning-preview-card">
-                            <header class="permission-warning-preview-header">
-                                <div class="permission-warning-preview-title">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                                    </svg>
-                                    <span>Cơ chế bảo vệ dữ liệu (AC 3)</span>
-                                </div>
-                                <span class="permission-warning-ac-badge">Tiêu chí nghiệm thu</span>
-                            </header>
-                            <div class="permission-warning-preview-body">
-                                <div class="permission-mock-banner">
-                                    <svg class="permission-mock-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                    </svg>
-                                    <div class="permission-mock-banner-content">
-                                        <div class="permission-mock-banner-status">
-                                            <span class="permission-mock-code-badge">HTTP 403 FORBIDDEN</span>
-                                        </div>
-                                        <div class="permission-mock-banner-title">
-                                            Bạn không có quyền truy cập bản ghi này do phạm vi dữ liệu.
-                                        </div>
-                                        <p class="permission-mock-banner-desc">
-                                            Hệ thống tự động phát hiện và chặn truy cập trái phép khi người dùng cố tình mở đường dẫn (URL) hoặc chỉnh sửa dữ liệu thuộc tài khoản khác ngoài phạm vi được phân công.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="permission-mock-scenario">
-                                    <strong>Ví dụ thực tế:</strong> Nhân viên kinh doanh A (phạm vi SELF) bấm vào liên kết xem chi tiết khách hàng do Nhân viên B sở hữu sẽ nhận được thông báo lỗi Tiếng Việt trên, ngăn chặn triệt để nguy cơ lộ lọt dữ liệu.
-                                </div>
-                            </div>
-                        </section>
 
-                        <!-- 3. Bảng ma trận phân quyền thực thể (AC 1 & AC 2) -->
-                        <section class="permission-card">
+
+
+
+                        <section class="permission-card crm-card">
                             <div class="permission-card-header">
                                 <div class="permission-card-title-group">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -567,8 +525,8 @@
                                             </tr>
                                             <tr>
                                                 <td><strong>Cơ hội bán hàng</strong></td>
-                                                <td><span class="permission-matrix-limit">Deals cá nhân</span></td>
-                                                <td><span class="permission-matrix-check">Deals của nhóm</span></td>
+                                                <td><span class="permission-matrix-limit">Cơ hội cá nhân</span></td>
+                                                <td><span class="permission-matrix-check">Cơ hội của nhóm</span></td>
                                                 <td><span class="permission-matrix-check">Toàn bộ cơ hội</span></td>
                                             </tr>
                                             <tr>
