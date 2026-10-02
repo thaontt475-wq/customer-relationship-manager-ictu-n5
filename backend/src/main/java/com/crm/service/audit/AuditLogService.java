@@ -115,6 +115,13 @@ public class AuditLogService {
         }
     }
 
+    public int countLogs(AuditLogFilter filter) throws SQLException {
+        AuditLogFilter normalized = validateAndNormalizeFilter(filter);
+        try (Connection conn = connectionProvider.getConnection()) {
+            return auditLogDAO.count(conn, normalized);
+        }
+    }
+
     AuditLogFilter validateAndNormalizeFilter(AuditLogFilter filter) {
         AuditLogFilter normalized = filter == null ? new AuditLogFilter() : filter;
         if (normalized.getUserId() != null && normalized.getUserId() <= 0) {
@@ -127,6 +134,11 @@ public class AuditLogService {
             normalized.setObjectType(normalizeIdentifier(normalized.getObjectType(), "objectType"));
         } else {
             normalized.setObjectType(null);
+        }
+        if (normalized.getAction() != null && !normalized.getAction().isBlank()) {
+            normalized.setAction(normalizeIdentifier(normalized.getAction(), "action"));
+        } else {
+            normalized.setAction(null);
         }
         if (normalized.getFrom() != null && normalized.getTo() != null
                 && normalized.getFrom().after(normalized.getTo())) {
