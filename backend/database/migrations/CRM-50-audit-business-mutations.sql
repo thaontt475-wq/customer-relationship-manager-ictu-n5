@@ -1,6 +1,6 @@
 -- CRM-50: actual quote-discount and monthly sales-target workflows (CRM-37 audit enhancement).
 -- Additive MySQL 8 migration. Back up and inspect before execution.
-USE crm_db;
+
 
 SET @ddl = IF(EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='quotes' AND column_name='discount_percent'),
  'SELECT 1', 'ALTER TABLE quotes ADD COLUMN discount_percent DECIMAL(5,2) NOT NULL DEFAULT 0.00');
