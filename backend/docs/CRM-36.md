@@ -30,8 +30,8 @@ contract riêng bên dưới, không đổi các API login/user hiện có. ID l
 - `../src/main/java/com/crm/dao/users/AvatarDAO.java`: SELECT / khóa user / upsert.
 - `../src/main/java/com/crm/model/UserAvatar.java`: hai storage key.
 - `../database/migrations/CRM-36-avatar.sql`: migration chạy lại được.
-- `../../frontend/WEB-INF/views/users/avatar.jsp`: form và preview, chỉ truy cập
-  qua Servlet; đặt dưới WEB-INF để không bỏ qua Filter khi gọi JSP trực tiếp.
+- `../../frontend/jsp/users/avatar.jsp`: form và preview, chỉ truy cập
+  qua Servlet; bảo vệ bởi ViewAccessFilter khi gọi JSP trực tiếp.
 - `../../frontend/css/users/avatar.css`: giao diện form.
 - `../src/test/java/com/crm/service/users/Avatar*Test.java`: unit tests.
 - `../tests/CRM36AvatarHttpCheck.java`: kiểm thử HTTP/JDBC có chủ đích.

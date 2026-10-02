@@ -125,7 +125,6 @@
                             <filtering>false</filtering>
                             <includes>
                                 <include>jsp/**/*.jsp</include>
-                                <include>WEB-INF/views/**/*.jsp</include>
                                 <include>css/**/*.css</include>
                                 <include>html/**/*.html</include>
                                 <include>images/**/*.png</include>

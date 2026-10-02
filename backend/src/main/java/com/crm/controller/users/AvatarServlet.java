@@ -117,7 +117,7 @@ public class AvatarServlet extends HttpServlet {
     }
     private void show(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         req.setAttribute("csrfToken", token(req));
-        req.getRequestDispatcher("/WEB-INF/views/users/avatar.jsp").forward(req, res);
+        req.getRequestDispatcher("/jsp/users/avatar.jsp").forward(req, res);
     }
     private void respond(HttpServletRequest req, HttpServletResponse res, int status, boolean success, String message)
             throws IOException, ServletException {
