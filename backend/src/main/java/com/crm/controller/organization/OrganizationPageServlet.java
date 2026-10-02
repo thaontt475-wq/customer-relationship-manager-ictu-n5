@@ -10,7 +10,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.crm.dao.teams.UserTeamDAO;
+import com.crm.dao.users.UserDAO;
+import com.crm.model.User;
+import com.crm.util.DBConnection;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
@@ -40,18 +45,59 @@ public class OrganizationPageServlet extends HttpServlet {
                 for (Organization unit : units) if (unit.getId() == editId) editUnit = unit;
                 if (editUnit == null) { res.sendError(404); return; }
             }
+
+            boolean isCreateMode = "create".equalsIgnoreCase(req.getParameter("mode"))
+                    || "1".equals(req.getParameter("create"));
+            if (isCreateMode && !ServerForms.admin(req)) {
+                res.sendError(403);
+                return;
+            }
+
+            Long selectedId = optionalId(req.getParameter("selected"));
+            Organization selectedUnit = editUnit;
+            if (selectedUnit == null && selectedId != null) {
+                for (Organization unit : units) {
+                    if (unit.getId() == selectedId) {
+                        selectedUnit = unit;
+                        break;
+                    }
+                }
+            }
+
             List<Organization> filtered = units.stream().filter(unit ->
                     (region.isEmpty() || region.equals(unit.getRegion())) &&
                     (q.isEmpty() || (safe(unit.getName()) + " " + safe(unit.getManagerName()))
                             .toLowerCase(Locale.ROOT).contains(q)))
                     .toList();
+
+            if (selectedUnit == null && !filtered.isEmpty() && !isCreateMode) {
+                selectedUnit = filtered.get(0);
+            }
+
+            List<User> allUsers = List.of();
+            try (Connection conn = DBConnection.getConnection()) {
+                allUsers = new UserDAO().findAll(conn);
+            } catch (SQLException e) {
+                LOG.log(Level.WARNING, "Unable to load all users for organization page", e);
+            }
+
             req.setAttribute("units", units);
             req.setAttribute("filtered", filtered);
-            req.setAttribute("editUnit", editUnit);
+            req.setAttribute("selectedUnit", selectedUnit);
+            req.setAttribute("editUnit", editUnit != null ? editUnit : selectedUnit);
+            req.setAttribute("isCreateMode", isCreateMode);
+            req.setAttribute("allUsers", allUsers);
             req.setAttribute("canManage", ServerForms.admin(req));
             req.setAttribute("keyword", ServerForms.value(req,"q",""));
             req.setAttribute("regionFilter", region);
-            if ("ok".equals(req.getParameter("result"))) req.setAttribute("notice", "Đã lưu đơn vị thành công.");
+
+            String result = req.getParameter("result");
+            if ("ok".equals(result) || "updated".equals(result)) req.setAttribute("notice", "Đã lưu cấu hình đơn vị thành công.");
+            else if ("created".equals(result)) req.setAttribute("notice", "Đã tạo nhóm kinh doanh mới thành công.");
+            else if ("deactivated".equals(result)) req.setAttribute("notice", "Đã giải thể / vô hiệu hóa đơn vị thành công.");
+            else if ("member_assigned".equals(result)) req.setAttribute("notice", "Đã phân bổ nhân sự vào nhóm thành công.");
+            else if ("member_removed".equals(result)) req.setAttribute("notice", "Đã gỡ nhân sự khỏi nhóm thành công.");
+
             req.getRequestDispatcher("/jsp/organization/organization.jsp").forward(req, res);
         } catch (IllegalArgumentException e) {
             res.sendError(400,"Tham số không hợp lệ.");
@@ -68,6 +114,30 @@ public class OrganizationPageServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         String action = req.getParameter("action");
         try {
+            if ("deactivate".equals(action)) {
+                long id = ServerForms.positive(req.getParameter("id"));
+                service.deactivateUnit(id);
+                res.sendRedirect(req.getContextPath() + "/organization/page?result=deactivated");
+                return;
+            }
+            if ("assign_member".equals(action)) {
+                long unitId = ServerForms.positive(req.getParameter("unitId"));
+                long userId = ServerForms.positive(req.getParameter("userId"));
+                try (Connection conn = DBConnection.getConnection()) {
+                    new UserTeamDAO().assignUserToTeam(conn, userId, unitId);
+                }
+                res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + unitId + "&result=member_assigned");
+                return;
+            }
+            if ("remove_member".equals(action)) {
+                long unitId = ServerForms.positive(req.getParameter("unitId"));
+                long userId = ServerForms.positive(req.getParameter("userId"));
+                try (Connection conn = DBConnection.getConnection()) {
+                    new UserTeamDAO().removeUserFromTeam(conn, userId);
+                }
+                res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + unitId + "&result=member_removed");
+                return;
+            }
             if (!"create".equals(action) && !"update".equals(action)) {
                 res.sendError(400,"Thao tác không hợp lệ."); return;
             }
@@ -77,12 +147,15 @@ public class OrganizationPageServlet extends HttpServlet {
             String region = req.getParameter("region");
             boolean active = "true".equals(req.getParameter("active"));
             UnitInput input = new UnitInput(name,parentId,managerId,region,active);
+            long targetId;
             if ("update".equals(action)) {
-                service.updateUnit(ServerForms.positive(req.getParameter("id")),input);
+                targetId = ServerForms.positive(req.getParameter("id"));
+                service.updateUnit(targetId, input);
+                res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + targetId + "&result=updated");
             } else {
-                service.createUnit(input);
+                Organization created = service.createUnit(input);
+                res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + created.getId() + "&result=created");
             }
-            res.sendRedirect(req.getContextPath() + "/organization/page?result=ok");
         } catch (IllegalArgumentException e) {
             res.sendError(400,"Dữ liệu không hợp lệ.");
         } catch (OrganizationException e) {
