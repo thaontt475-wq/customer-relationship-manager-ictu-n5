@@ -117,23 +117,53 @@
 
                     <failOnMissingWebXml>false</failOnMissingWebXml>
 
-                    <!-- Đưa toàn bộ Frontend vào WAR -->
+                    <!-- Only runtime frontend resources; preserve their WAR paths and bytes. -->
                     <webResources>
 
                         <resource>
                             <directory>../frontend</directory>
+                            <filtering>false</filtering>
+                            <includes>
+                                <include>jsp/**/*.jsp</include>
+                                <include>WEB-INF/views/**/*.jsp</include>
+                                <include>css/**/*.css</include>
+                                <include>html/**/*.html</include>
+                                <include>images/**/*.png</include>
+                                <include>images/**/*.jpg</include>
+                                <include>images/**/*.jpeg</include>
+                                <include>images/**/*.gif</include>
+                                <include>images/**/*.svg</include>
+                                <include>images/**/*.webp</include>
+                                <include>images/**/*.ico</include>
+                                <include>images/**/*.avif</include>
+                            </includes>
+                            <excludes>
+                                <!-- Metadata and non-runtime copies, even with a runtime extension. -->
+                                <exclude>**/.*</exclude>
+                                <exclude>**/.*/**</exclude>
+                                <exclude>**/*~</exclude>
+                                <exclude>**/*.bak*</exclude>
+                                <exclude>**/*.backup*</exclude>
+                                <exclude>**/*.orig*</exclude>
+                                <exclude>**/*.old*</exclude>
+                                <exclude>**/*.rej*</exclude>
+                                <exclude>**/*.tmp*</exclude>
+                                <exclude>**/*backup*</exclude>
+                                <exclude>**/*BACKUP*</exclude>
+                                <exclude>**/*Backup*</exclude>
+                                <exclude>**/*backup*/**</exclude>
+                                <exclude>**/*BACKUP*/**</exclude>
+                                <exclude>**/*Backup*/**</exclude>
+                                <exclude>**/docs/**</exclude>
+                                <exclude>**/secrets/**</exclude>
+                                <exclude>**/target/**</exclude>
+                            </excludes>
                         </resource>
 
                     </webResources>
 
                 </configuration>
 
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
             </plugin>
 
         </plugins>
