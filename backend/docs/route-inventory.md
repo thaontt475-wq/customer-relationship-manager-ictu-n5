@@ -35,7 +35,7 @@ Sinh từ annotation/import/JSP dispatcher trong mã nguồn; đây là inventor
 | ScopedEntityPageServlet | /customers, /opportunities, /activities, /quotes | /jsp/shared/scoped-records.jsp | com.crm.service.scope.* |
 | ScopedEntityServlet | /api/customers, /api/customers/*, /api/opportunities, /api/opportunities/*, /api/activities, /api/activities/*, /api/quotes, /api/quotes/* |  | com.crm.service.scope.DataScopeService, com.crm.service.scope.ScopeEntityType, com.crm.service.scope.ScopeRecord |
 | TeamServlet | /api/teams |  | com.crm.service.teams.TeamService |
-| AvatarServlet | /profile/avatar, /profile/avatar/image, /profile/avatar/thumbnail, /api/users/me/avatar | /WEB-INF/views/users/avatar.jsp | com.crm.service.users.AvatarException, com.crm.service.users.AvatarService |
+| AvatarServlet | /profile/avatar, /profile/avatar/image, /profile/avatar/thumbnail, /api/users/me/avatar | /jsp/users/avatar.jsp | com.crm.service.users.AvatarException, com.crm.service.users.AvatarService |
 | ProfileServlet | /profile, /user/profile, /api/profile, /api/user/profile, /api/users/profile, /api/users/me | /jsp/users/profile.jsp | com.crm.service.users.ProfileService |
 | UserServlet | /users, /users/detail, /users/lock-handover, /users/unlock, /api/users/* | /jsp/users/user-list.jsp, /jsp/users/user-detail.jsp | com.crm.service.teams.TeamService, com.crm.service.teams.TeamService.AssignmentResult, com.crm.service.users.UserService, com.crm.service.users.UserService.StatusChangeResult, com.crm.service.users.UserService.TransferValidationResult |
 | WinLossPageServlet | /winloss | /jsp/winloss/winloss.jsp | com.crm.service.winloss.WinLossService |
