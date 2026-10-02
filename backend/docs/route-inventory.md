@@ -1,5 +1,7 @@
 # URL và chuỗi xử lý thực tế
 
+> Các đường dẫn mã nguồn trong tài liệu tính từ gốc repository; URL runtime không thay đổi.
+
 Sinh từ annotation/import/JSP dispatcher trong mã nguồn; đây là inventory tĩnh, không thay thế kiểm thử HTTP.
 
 | Servlet | URL | JSP forward | Service imports |

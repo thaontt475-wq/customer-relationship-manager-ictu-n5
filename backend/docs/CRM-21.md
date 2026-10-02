@@ -1,9 +1,11 @@
 # CRM-21 login
 
+> File references below are relative to this document in `backend/docs/`. Shell commands and `target/` paths still use `backend/` as the working directory.
+
 ## Database setup
 
-- Fresh MySQL 8 database: run `database/schema.sql`, then `database/data.sql`.
-- Existing database from before CRM-21: run `database/migrations/CRM-21-login.sql` ONCE, then `database/data.sql`. Do not also run the migration on a fresh schema.
+- Fresh MySQL 8 database: run `../database/schema.sql`, then `../database/data.sql`.
+- Existing database from before CRM-21: run `../database/migrations/CRM-21-login.sql` ONCE, then `../database/data.sql`. Do not also run the migration on a fresh schema.
 - Existing users and password-reset/handover tables are preserved. Existing `full_name` is the display-name fallback. Login requires BOTH `active = TRUE` and `status = 'ACTIVE'` so CRM-30 locked users remain blocked.
 - The seed creates Admin, Sales Rep and Accountant roles only. It creates no accounts. For local testing, generate a hash using the existing `PasswordUtil.hashPassword`, insert a synthetic user (including the existing required `username`), and associate its ID with roles through `user_roles`. Never store plaintext in `password_hash`.
 - Configure the classpath `db.properties`; environment overrides are `CRM_DB_URL`, `CRM_DB_USERNAME`, `CRM_DB_PASSWORD`. No personal credentials were added by this change.

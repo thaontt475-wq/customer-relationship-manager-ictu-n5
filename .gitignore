@@ -1,6 +1,0 @@
-backend/target/
-*.class
-*.war
-.env
-.idea/
-.vscode/
