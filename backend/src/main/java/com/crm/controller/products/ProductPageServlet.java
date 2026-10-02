@@ -2,6 +2,7 @@ package com.crm.controller.products;
 
 import com.crm.controller.ServerForms;
 import com.crm.model.Product;
+import com.crm.service.permissions.MenuService;
 import com.crm.service.products.ProductService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,19 +16,84 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /** HTML presentation for S2-05. Existing /api/products JSON handlers remain unchanged. */
-@WebServlet("/products/page")
+@WebServlet({"/products/page", "/products/create", "/products/edit"})
 public class ProductPageServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(ProductPageServlet.class.getName());
     private final ProductService service;
-    public ProductPageServlet() { this(new ProductService()); }
-    public ProductPageServlet(ProductService service) { this.service = service; }
+    private final MenuService menuService;
+
+    public ProductPageServlet() {
+        this(new ProductService(), new MenuService());
+    }
+
+    public ProductPageServlet(ProductService service) {
+        this(service, new MenuService());
+    }
+
+    public ProductPageServlet(ProductService service, MenuService menuService) {
+        this.service = service;
+        this.menuService = menuService != null ? menuService : new MenuService();
+    }
 
     @Override protected void doGet(HttpServletRequest req, HttpServletResponse res)
             throws ServletException, IOException {
+        String servletPath = req.getServletPath();
+
+        // 1. GET /products/create
+        if ("/products/create".equals(servletPath)) {
+            if (!ServerForms.authorize(req, res, true)) return;
+            res.setHeader("Cache-Control", "no-store");
+            req.setAttribute("canManage", true);
+            req.setAttribute("canViewCostPrice", service.canAccessCostPrice(ServerForms.roles(req)));
+            try {
+                req.setAttribute("menuItems", menuService.getMenuItems(ServerForms.roles(req)));
+            } catch (Exception ignored) {}
+            req.getRequestDispatcher("/jsp/products/product-create.jsp").forward(req, res);
+            return;
+        }
+
+        // 2. GET /products/edit
+        if ("/products/edit".equals(servletPath)) {
+            if (!ServerForms.authorize(req, res, true)) return;
+            res.setHeader("Cache-Control", "no-store");
+            String idStr = req.getParameter("id");
+            if (idStr == null || idStr.isBlank()) {
+                res.sendError(400, "Thiếu mã sản phẩm.");
+                return;
+            }
+            try {
+                long editId = ServerForms.positive(idStr);
+                Product edit = service.getProductById(editId, ServerForms.roles(req));
+                if (edit == null) {
+                    res.sendError(404, "Không tìm thấy sản phẩm.");
+                    return;
+                }
+                req.setAttribute("canManage", true);
+                req.setAttribute("canViewCostPrice", service.canAccessCostPrice(ServerForms.roles(req)));
+                req.setAttribute("editProduct", edit);
+                try {
+                    req.setAttribute("menuItems", menuService.getMenuItems(ServerForms.roles(req)));
+                } catch (Exception ignored) {}
+                req.getRequestDispatcher("/jsp/products/product-edit.jsp").forward(req, res);
+                return;
+            } catch (IllegalArgumentException e) {
+                res.sendError(400, e.getMessage());
+                return;
+            } catch (SQLException e) {
+                LOG.log(Level.SEVERE, "Cannot load product for edit", e);
+                res.sendError(500, "Không tải được thông tin sản phẩm.");
+                return;
+            }
+        }
+
+        // 3. Default: /products/page
         if (!ServerForms.authorize(req, res, false)) return;
         res.setHeader("Cache-Control", "no-store");
         req.setAttribute("canManage", ServerForms.admin(req));
         req.setAttribute("canViewCostPrice", service.canAccessCostPrice(ServerForms.roles(req)));
+        try {
+            req.setAttribute("menuItems", menuService.getMenuItems(ServerForms.roles(req)));
+        } catch (Exception ignored) {}
         req.setAttribute("q", ServerForms.value(req,"q",""));
         req.setAttribute("category", ServerForms.value(req,"category",""));
         req.setAttribute("active", ServerForms.value(req,"active",""));
@@ -61,8 +127,13 @@ public class ProductPageServlet extends HttpServlet {
         if (!ServerForms.authorize(req,res,true)) return;
         if (!ServerForms.checkCsrf(req,res)) return;
         req.setCharacterEncoding("UTF-8");
+        String servletPath = req.getServletPath();
         try {
             String operation = req.getParameter("operation");
+            if (operation == null || operation.isBlank()) {
+                if ("/products/create".equals(servletPath)) operation = "create";
+                else if ("/products/edit".equals(servletPath)) operation = "update";
+            }
             if ("disable".equals(operation)) {
                 if (!"yes".equals(req.getParameter("confirm")))
                     throw new IllegalArgumentException("Bạn phải xác nhận ngừng kinh doanh.");
@@ -85,7 +156,9 @@ public class ProductPageServlet extends HttpServlet {
                 product.setFloorPrice(money(req.getParameter("floorPrice")));
                 if (req.getParameter("costPrice") != null && !req.getParameter("costPrice").isBlank())
                     product.setCostPrice(money(req.getParameter("costPrice")));
-                product.setActive("true".equals(req.getParameter("active")));
+                String activeParam = req.getParameter("active");
+                boolean isActive = "true".equalsIgnoreCase(activeParam) || "1".equals(activeParam) || "on".equalsIgnoreCase(activeParam);
+                product.setActive(isActive);
                 if ("create".equals(operation)) service.createProduct(product,ServerForms.roles(req));
                 else service.updateProduct(product,ServerForms.roles(req));
             }
