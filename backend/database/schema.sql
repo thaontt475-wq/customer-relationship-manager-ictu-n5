@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS quotes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     quote_number VARCHAR(100) NOT NULL,
     owner_user_id BIGINT NOT NULL,
+    discount_percent DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_quotes_owner (owner_user_id),
     CONSTRAINT fk_quotes_owner
@@ -381,3 +382,13 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     INDEX idx_audit_logs_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- CRM-50: Sales targets workflow
+CREATE TABLE IF NOT EXISTS sales_targets (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    period_month DATE NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    UNIQUE KEY uq_target_user_month (user_id, period_month),
+    CONSTRAINT fk_target_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT chk_target_amount CHECK (amount >= 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
