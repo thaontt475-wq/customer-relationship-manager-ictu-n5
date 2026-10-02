@@ -77,7 +77,7 @@
 
                         <div class="crm-form-group">
                             <label class="crm-form-label" for="phone">Sá»‘ Ä‘iá»‡n thoáº¡i <span class="crm-required">*</span></label>
-                            <input type="tel" id="phone" name="phone" class="crm-form-control" value="<%= Html.escape(person.getPhone()) %>" required autocomplete="tel" pattern="^0[3|5|7|8|9][0-9]{8}$" title="Sá»‘ Ä‘iá»‡n thoáº¡i Viá»‡t Nam há»£p lá»‡, vÃ­ dá»¥: 0912345678" placeholder="09xxxxxxxx">
+                            <input type="tel" id="phone" name="phone" class="crm-form-control" value="<%= Html.escape(person.getPhone()) %>" required autocomplete="tel" pattern="^0[35789][0-9]{8}$" title="Sá»‘ Ä‘iá»‡n thoáº¡i Viá»‡t Nam há»£p lá»‡, vÃ­ dá»¥: 0912345678" placeholder="09xxxxxxxx">
                         </div>
                     </div>
 
