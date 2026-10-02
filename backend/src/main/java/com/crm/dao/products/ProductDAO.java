@@ -302,6 +302,10 @@ public class ProductDAO {
             return false;
         }
 
+        if (!tableExists(conn, "quote_items")) {
+            throw new SQLException("Missing quote_items: cannot safely verify product references. Apply CRM-51.");
+        }
+
         for (String table : REFERENCE_TABLES) {
             if (tableExists(conn, table)) {
                 String sql = "SELECT 1 FROM " + table + " WHERE product_id = ? LIMIT 1";
@@ -315,8 +319,7 @@ public class ProductDAO {
                         }
                     }
                 } catch (SQLException e) {
-                    // Table might not have product_id column, continue checking others
-                    LOGGER.log(Level.FINE, "Failed to check reference in table " + table, e);
+                    throw new SQLException("Cannot verify product references in " + table, e);
                 }
             }
         }
@@ -329,14 +332,10 @@ public class ProductDAO {
         }
     }
 
-    private boolean tableExists(Connection conn, String tableName) {
-        try {
-            DatabaseMetaData meta = conn.getMetaData();
-            try (ResultSet rs = meta.getTables(conn.getCatalog(), null, tableName, new String[]{"TABLE"})) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            return false;
+    private boolean tableExists(Connection conn, String tableName) throws SQLException {
+        DatabaseMetaData meta = conn.getMetaData();
+        try (ResultSet rs = meta.getTables(conn.getCatalog(), null, tableName, new String[]{"TABLE"})) {
+            return rs.next();
         }
     }
 

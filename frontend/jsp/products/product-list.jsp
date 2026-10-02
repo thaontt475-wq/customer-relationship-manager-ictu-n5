@@ -11,6 +11,7 @@ private String url(Object v) {return URLEncoder.encode(v==null?"":v.toString(), 
 ProductSearchResult result=(ProductSearchResult)request.getAttribute("products");
 Product edit=(Product)request.getAttribute("editProduct");
 boolean canManage=Boolean.TRUE.equals(request.getAttribute("canManage"));
+boolean canViewCostPrice=Boolean.TRUE.equals(request.getAttribute("canViewCostPrice"));
 String q=String.valueOf(request.getAttribute("q"));
 String category=String.valueOf(request.getAttribute("category"));
 String active=String.valueOf(request.getAttribute("active"));
@@ -39,8 +40,8 @@ String filters="q="+url(q)+"&category="+url(category)+"&active="+url(active);
 <label>Trạng thái<select name="active"><option value="">Tất cả</option><option value="true" <%= "true".equals(active)?"selected":"" %>>Đang kinh doanh</option><option value="false" <%= "false".equals(active)?"selected":"" %>>Ngừng kinh doanh</option></select></label>
 <div class="catalog-actions"><button class="catalog-btn primary" type="submit">Tìm kiếm</button><a href="<%= esc(prefix) %>/products/page">Xóa bộ lọc</a></div>
 </form></section>
-<section class="catalog-card"><h2>Danh sách sản phẩm (<%= result.total() %>)</h2><div class="catalog-scroll"><table class="catalog-table"><thead><tr><th>Mã</th><th>Tên</th><th>Loại</th><th>Đơn vị</th><th>Giá niêm yết</th><th>Giá sàn</th><%if(canManage){%><th>Giá vốn</th><%}%><th>Trạng thái</th><%if(canManage){%><th>Thao tác</th><%}%></tr></thead><tbody>
-<%for(Product p:result.items()){%><tr><td><%=esc(p.getCode())%></td><td><%=esc(p.getName())%></td><td><%=esc(p.getCategory())%></td><td><%=esc(p.getUnit())%></td><td><%=esc(p.getListPrice())%></td><td><%=esc(p.getFloorPrice())%></td><%if(canManage){%><td><%=esc(p.getCostPrice())%></td><%}%><td><%=p.isActive()?"Đang kinh doanh":"Ngừng kinh doanh"%></td><%if(canManage){%><td><a href="<%=esc(prefix)%>/products/page?edit=<%=p.getId()%>">Sửa</a></td><%}%></tr><%}%>
+<section class="catalog-card"><h2>Danh sách sản phẩm (<%= result.total() %>)</h2><div class="catalog-scroll"><table class="catalog-table"><thead><tr><th>Mã</th><th>Tên</th><th>Loại</th><th>Đơn vị</th><th>Giá niêm yết</th><th>Giá sàn</th><%if(canViewCostPrice){%><th>Giá vốn</th><%}%><th>Trạng thái</th><%if(canManage){%><th>Thao tác</th><%}%></tr></thead><tbody>
+<%for(Product p:result.items()){%><tr><td><%=esc(p.getCode())%></td><td><%=esc(p.getName())%></td><td><%=esc(p.getCategory())%></td><td><%=esc(p.getUnit())%></td><td><%=esc(p.getListPrice())%></td><td><%=esc(p.getFloorPrice())%></td><%if(canViewCostPrice){%><td><%=esc(p.getCostPrice())%></td><%}%><td><%=p.isActive()?"Đang kinh doanh":"Ngừng kinh doanh"%></td><%if(canManage){%><td><a href="<%=esc(prefix)%>/products/page?edit=<%=p.getId()%>">Sửa</a></td><%}%></tr><%}%>
 <%if(result.items().isEmpty()){%><tr><td colspan="9">Không tìm thấy sản phẩm.</td></tr><%}%>
 </tbody></table></div><nav class="catalog-actions" aria-label="Phân trang"><%if(result.page()>1){%><a href="<%=esc(prefix)%>/products/page?<%=esc(filters)%>&page=<%=result.page()-1%>">Trang trước</a><%}%><span>Trang <%=result.page()%> / <%=result.totalPages()%></span><%if(result.page()<result.totalPages()){%><a href="<%=esc(prefix)%>/products/page?<%=esc(filters)%>&page=<%=result.page()+1%>">Trang sau</a><%}%></nav></section>
 <%if(canManage){%>
@@ -56,7 +57,7 @@ String filters="q="+url(q)+"&category="+url(category)+"&active="+url(active);
 <label>Đơn vị tính<input name="unit" maxlength="80" value="<%=esc(edit==null?"":edit.getUnit())%>"></label>
 <label>Giá niêm yết *<input type="number" step="0.01" min="0" required name="listPrice" value="<%=esc(edit==null?"0":edit.getListPrice())%>"></label>
 <label>Giá sàn *<input type="number" step="0.01" min="0" required name="floorPrice" value="<%=esc(edit==null?"0":edit.getFloorPrice())%>"></label>
-<label>Giá vốn (quản trị/giám đốc)<input type="number" step="0.01" min="0" name="costPrice" value="<%=esc(edit==null?"":edit.getCostPrice())%>"></label>
+<%if(canViewCostPrice){%><label>Giá vốn (chỉ Giám đốc kinh doanh)<input type="number" step="0.01" min="0" name="costPrice" value="<%=esc(edit==null?"":edit.getCostPrice())%>"></label><%}%>
 <label>Mô tả<textarea name="description" rows="2"><%=esc(edit==null?"":edit.getDescription())%></textarea></label>
 <label>Trạng thái<select name="active"><option value="true" <%=edit==null||edit.isActive()?"selected":""%>>Đang kinh doanh</option><option value="false" <%=edit!=null&&!edit.isActive()?"selected":""%>>Ngừng kinh doanh</option></select></label>
 </div><div class="catalog-actions"><button type="submit" class="catalog-btn primary">Lưu sản phẩm</button><a href="<%=esc(prefix)%>/products/page">Bỏ qua</a></div>

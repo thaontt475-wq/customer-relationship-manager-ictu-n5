@@ -392,3 +392,14 @@ CREATE TABLE IF NOT EXISTS sales_targets (
     CONSTRAINT fk_target_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
     CONSTRAINT chk_target_amount CHECK (amount >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- CRM-51: Quote pricing approvals workflow
+CREATE TABLE IF NOT EXISTS quote_pricing_approvals (
+    quote_id BIGINT PRIMARY KEY,
+    status VARCHAR(30) NOT NULL,
+    approved_by BIGINT NULL,
+    approved_at DATETIME NULL,
+    CONSTRAINT fk_quote_approval_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_quote_approval_actor FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE RESTRICT,
+    CONSTRAINT chk_quote_approval_status CHECK (status IN ('DRAFT','PENDING_APPROVAL','APPROVED'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

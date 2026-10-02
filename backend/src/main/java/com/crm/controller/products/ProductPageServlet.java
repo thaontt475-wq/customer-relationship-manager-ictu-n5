@@ -27,6 +27,7 @@ public class ProductPageServlet extends HttpServlet {
         if (!ServerForms.authorize(req, res, false)) return;
         res.setHeader("Cache-Control", "no-store");
         req.setAttribute("canManage", ServerForms.admin(req));
+        req.setAttribute("canViewCostPrice", service.canAccessCostPrice(ServerForms.roles(req)));
         req.setAttribute("q", ServerForms.value(req,"q",""));
         req.setAttribute("category", ServerForms.value(req,"category",""));
         req.setAttribute("active", ServerForms.value(req,"active",""));
