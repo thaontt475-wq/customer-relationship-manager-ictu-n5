@@ -1,5 +1,7 @@
 # CRM-36 / S2-03 — Ảnh đại diện
 
+> Các đường dẫn tệp bên dưới tính từ tài liệu trong `backend/docs/`. Lệnh terminal và đường dẫn `target/` vẫn tính từ thư mục làm việc `backend/`.
+
 ## Thiết kế theo project hiện có
 
 Giữ package `com.crm`, Java 21, Jakarta Servlet 6 / Tomcat 10.1, MySQL 8,
@@ -17,24 +19,24 @@ contract riêng bên dưới, không đổi các API login/user hiện có. ID l
 
 ## File mới / chỉnh sửa
 
-- `src/main/java/com/crm/filter/AvatarAuthenticationFilter.java`: yêu cầu session.
-- `src/main/java/com/crm/controller/users/AvatarServlet.java`: multipart, CSRF,
+- `../src/main/java/com/crm/filter/AvatarAuthenticationFilter.java`: yêu cầu session.
+- `../src/main/java/com/crm/controller/users/AvatarServlet.java`: multipart, CSRF,
   HTTP/JSON/JSP, phục vụ ảnh qua Service.
-- `src/main/java/com/crm/service/users/AvatarImageProcessor.java`: validation,
+- `../src/main/java/com/crm/service/users/AvatarImageProcessor.java`: validation,
   đọc có giới hạn, xác thực nội dung, decode/crop/resize.
-- `src/main/java/com/crm/service/users/AvatarService.java`: lưu cặp file,
+- `../src/main/java/com/crm/service/users/AvatarService.java`: lưu cặp file,
   transaction cập nhật đường dẫn, dọn ảnh cũ hoặc upload thất bại.
-- `src/main/java/com/crm/service/users/AvatarException.java`: lỗi nghiệp vụ.
-- `src/main/java/com/crm/dao/users/AvatarDAO.java`: SELECT / khóa user / upsert.
-- `src/main/java/com/crm/model/UserAvatar.java`: hai storage key.
-- `database/migrations/CRM-36-avatar.sql`: migration chạy lại được.
-- `../frontend/WEB-INF/views/users/avatar.jsp`: form và preview, chỉ truy cập
+- `../src/main/java/com/crm/service/users/AvatarException.java`: lỗi nghiệp vụ.
+- `../src/main/java/com/crm/dao/users/AvatarDAO.java`: SELECT / khóa user / upsert.
+- `../src/main/java/com/crm/model/UserAvatar.java`: hai storage key.
+- `../database/migrations/CRM-36-avatar.sql`: migration chạy lại được.
+- `../../frontend/WEB-INF/views/users/avatar.jsp`: form và preview, chỉ truy cập
   qua Servlet; đặt dưới WEB-INF để không bỏ qua Filter khi gọi JSP trực tiếp.
-- `../frontend/css/users/avatar.css`: giao diện form.
-- `src/test/java/com/crm/service/users/Avatar*Test.java`: unit tests.
-- `tests/CRM36AvatarHttpCheck.java`: kiểm thử HTTP/JDBC có chủ đích.
-- Chỉnh `database/schema.sql`, `../frontend/jsp/shared/header.jsp` và
-  `../frontend/css/shared/header.css`: schema mới, link đổi ảnh và thumbnail.
+- `../../frontend/css/users/avatar.css`: giao diện form.
+- `../src/test/java/com/crm/service/users/Avatar*Test.java`: unit tests.
+- `../tests/CRM36AvatarHttpCheck.java`: kiểm thử HTTP/JDBC có chủ đích.
+- Chỉnh `../database/schema.sql`, `../../frontend/jsp/shared/header.jsp` và
+  `../../frontend/css/shared/header.css`: schema mới, link đổi ảnh và thumbnail.
 
 ## Quy tắc ảnh
 
@@ -79,9 +81,9 @@ không hoạt động; 404 chưa có file ảnh; 413 quá dung lượng; 415 sai
 
 ## Migration và chạy trên Tomcat 10.1
 
-1. Dùng JDK 21. Với DB mới: chạy `database/schema.sql`, rồi `database/data.sql`
+1. Dùng JDK 21. Với DB mới: chạy `../database/schema.sql`, rồi `../database/data.sql`
    như CRM-21. Với DB hiện có: chọn đúng database rồi chạy
-   `database/migrations/CRM-36-avatar.sql` **trước khi deploy WAR**. Không chạy
+   `../database/migrations/CRM-36-avatar.sql` **trước khi deploy WAR**. Không chạy
    lại toàn bộ schema vào DB hiện có để thay migration.
 2. Cấu hình `CRM_DB_URL`, `CRM_DB_USERNAME`, `CRM_DB_PASSWORD` theo môi trường.
 3. Đặt `CRM_AVATAR_DIR` thành đường dẫn thư mục bền vững ngoài WAR, ví dụ
