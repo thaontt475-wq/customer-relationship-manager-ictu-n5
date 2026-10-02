@@ -153,6 +153,52 @@ public class OrganizationServlet extends HttpServlet {
         }
     }
 
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        if (!isAuthenticated(request)) {
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    false, "Yêu cầu đăng nhập", null);
+            return;
+        }
+        if (!hasPermissionAdminRole(request)) {
+            writeJson(response, HttpServletResponse.SC_FORBIDDEN,
+                    false, "Không có quyền quản lý cơ cấu tổ chức", null);
+            return;
+        }
+
+        Long unitId = parseUnitId(request.getPathInfo());
+        if (unitId == null) {
+            String idParam = request.getParameter("id");
+            if (idParam != null && !idParam.isBlank()) {
+                try {
+                    long parsed = Long.parseLong(idParam.trim());
+                    if (parsed > 0) {
+                        unitId = parsed;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+
+        if (unitId == null) {
+            writeJson(response, HttpServletResponse.SC_BAD_REQUEST,
+                    false, "ID đơn vị không hợp lệ", null);
+            return;
+        }
+
+        try {
+            Object deactivated = organizationService.deactivateUnit(unitId);
+            writeJson(response, HttpServletResponse.SC_OK, true,
+                    "Vô hiệu hóa đơn vị thành công", deactivated);
+        } catch (OrganizationException e) {
+            writeBusinessError(response, e);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "CRM-42: Unable to deactivate organization unit " + unitId, e);
+            writeJson(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    false, "Lỗi hệ thống khi vô hiệu hóa đơn vị", null);
+        }
+    }
+
     private UnitRequest readBody(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         try {
@@ -176,7 +222,7 @@ public class OrganizationServlet extends HttpServlet {
             case UNIT_NOT_FOUND, PARENT_NOT_FOUND, LEADER_NOT_FOUND -> HttpServletResponse.SC_NOT_FOUND;
             case INVALID_LEADER, SELF_PARENT, CYCLE, DUPLICATE_NAME,
                     USER_ALREADY_IN_TEAM, LEADER_ALREADY_ASSIGNED,
-                    UPDATE_CONFLICT -> HttpServletResponse.SC_CONFLICT;
+                    UPDATE_CONFLICT, HAS_ACTIVE_CHILDREN -> HttpServletResponse.SC_CONFLICT;
         };
         writeJson(response, status, false, error.getMessage(),
                 Map.of("code", error.getCode().name()));

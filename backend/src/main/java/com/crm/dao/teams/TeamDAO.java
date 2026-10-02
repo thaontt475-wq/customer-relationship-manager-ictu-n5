@@ -12,7 +12,7 @@ import java.util.List;
 public class TeamDAO {
 
     public List<Team> findAll(Connection conn) throws SQLException {
-        String sql = "SELECT id, name FROM teams ORDER BY name";
+        String sql = "SELECT id, name FROM teams WHERE active = TRUE ORDER BY name";
         List<Team> teams = new ArrayList<>();
 
         try (PreparedStatement stmt = conn.prepareStatement(sql);
@@ -30,7 +30,7 @@ public class TeamDAO {
     }
 
     public Team findById(Connection conn, long teamId) throws SQLException {
-        String sql = "SELECT id, name FROM teams WHERE id = ?";
+        String sql = "SELECT id, name FROM teams WHERE id = ? AND active = TRUE";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, teamId);

@@ -150,7 +150,7 @@ public class UserTeamDAO {
             return false;
         }
 
-        String sql = "SELECT 1 FROM teams WHERE id = ? LIMIT 1";
+        String sql = "SELECT 1 FROM teams WHERE id = ? AND active = TRUE LIMIT 1";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, teamId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -176,7 +176,7 @@ public class UserTeamDAO {
             return null;
         }
 
-        String sql = "SELECT id, name FROM teams WHERE id = ?";
+        String sql = "SELECT id, name FROM teams WHERE id = ? AND active = TRUE";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, teamId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -208,7 +208,7 @@ public class UserTeamDAO {
             return List.of();
         }
 
-        String sql = "SELECT id, name FROM teams ORDER BY name";
+        String sql = "SELECT id, name FROM teams WHERE active = TRUE ORDER BY name";
         List<Team> teams = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
