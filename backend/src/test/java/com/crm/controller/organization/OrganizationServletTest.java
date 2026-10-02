@@ -174,6 +174,51 @@ class OrganizationServletTest {
                 org.mockito.ArgumentMatchers.any(UnitInput.class));
     }
 
+    @Test
+    void deleteUnitByAdminReturns200AndSoftDeactivates() throws Exception {
+        Organization deactivated = organization(
+                10L, "North Branch", null, 102L, "Manager", "Manager", "NORTH", false);
+        when(organizationService.deactivateUnit(10L)).thenReturn(deactivated);
+        ResponseCapture response = new ResponseCapture();
+
+        servlet.doDelete(request(adminSession(), "/10", null), response.proxy());
+
+        assertEquals(HttpServletResponse.SC_OK, response.status);
+        JsonObject envelope = response.json();
+        assertTrue(envelope.get("success").getAsBoolean());
+        assertEquals("Vô hiệu hóa đơn vị thành công", envelope.get("message").getAsString());
+        assertEquals(10L, envelope.getAsJsonObject("data").get("id").getAsLong());
+        assertFalse(envelope.getAsJsonObject("data").get("active").getAsBoolean());
+        verify(organizationService).deactivateUnit(10L);
+    }
+
+    @Test
+    void deleteUnitWithActiveChildrenReturns409() throws Exception {
+        when(organizationService.deactivateUnit(10L))
+                .thenThrow(new OrganizationException(ErrorCode.HAS_ACTIVE_CHILDREN,
+                        "Không thể vô hiệu hóa đơn vị đang có đơn vị con hoạt động."));
+        ResponseCapture response = new ResponseCapture();
+
+        servlet.doDelete(request(adminSession(), "/10", null), response.proxy());
+
+        assertEquals(HttpServletResponse.SC_CONFLICT, response.status);
+        JsonObject envelope = response.json();
+        assertFalse(envelope.get("success").getAsBoolean());
+        assertEquals("HAS_ACTIVE_CHILDREN",
+                envelope.getAsJsonObject("data").get("code").getAsString());
+    }
+
+    @Test
+    void ordinaryUserCannotDeleteUnit() throws Exception {
+        HttpSession session = authenticatedSession();
+        ResponseCapture response = new ResponseCapture();
+
+        servlet.doDelete(request(session, "/10", null), response.proxy());
+
+        assertForbiddenEnvelope(response);
+        verify(organizationService, never()).deactivateUnit(org.mockito.ArgumentMatchers.anyLong());
+    }
+
     private void assertForbiddenEnvelope(ResponseCapture response) {
         assertEquals(HttpServletResponse.SC_FORBIDDEN, response.status);
         JsonObject envelope = response.json();

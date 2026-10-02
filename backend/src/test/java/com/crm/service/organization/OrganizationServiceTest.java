@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -268,6 +269,80 @@ class OrganizationServiceTest {
         assertEquals(2, result.size());
         assertNull(result.get(0).getParentId());
         assertEquals(1L, result.get(1).getParentId());
+    }
+
+    @Test
+    @DisplayName("Deactivate unit succeeds via soft delete without removing data")
+    void deactivateUnitSuccess() throws Exception {
+        Organization activeUnit = unit(10L, null, 1L, "NORTH");
+        Organization deactivatedUnit = unit(10L, null, 1L, "NORTH");
+        deactivatedUnit.setActive(false);
+
+        when(organizationDAO.findByIdForUpdate(connection, 10L)).thenReturn(activeUnit);
+        when(organizationDAO.countActiveChildren(connection, 10L)).thenReturn(0);
+        when(organizationDAO.softDelete(connection, 10L)).thenReturn(1);
+        when(organizationDAO.findById(connection, 10L)).thenReturn(deactivatedUnit);
+
+        Organization result = service.deactivateUnit(10L);
+
+        assertFalse(result.isActive());
+        verify(organizationDAO).softDelete(connection, 10L);
+        verify(connection).commit();
+    }
+
+    @Test
+    @DisplayName("Deactivate unit fails with HAS_ACTIVE_CHILDREN if active child units exist")
+    void deactivateUnitHasActiveChildren() throws Exception {
+        Organization activeUnit = unit(10L, null, 1L, "NATIONAL");
+
+        when(organizationDAO.findByIdForUpdate(connection, 10L)).thenReturn(activeUnit);
+        when(organizationDAO.countActiveChildren(connection, 10L)).thenReturn(2);
+
+        OrganizationException error = assertThrows(OrganizationException.class,
+                () -> service.deactivateUnit(10L));
+
+        assertEquals(ErrorCode.HAS_ACTIVE_CHILDREN, error.getCode());
+        verify(organizationDAO, never()).softDelete(eq(connection), anyLong());
+        verify(connection).rollback();
+    }
+
+    @Test
+    @DisplayName("Deactivate unit throws UNIT_NOT_FOUND if unit does not exist")
+    void deactivateUnitNotFound() throws Exception {
+        when(organizationDAO.findByIdForUpdate(connection, 999L)).thenReturn(null);
+
+        OrganizationException error = assertThrows(OrganizationException.class,
+                () -> service.deactivateUnit(999L));
+
+        assertEquals(ErrorCode.UNIT_NOT_FOUND, error.getCode());
+        verify(connection).rollback();
+    }
+
+    @Test
+    @DisplayName("Deactivate unit throws VALIDATION if id is invalid")
+    void deactivateUnitValidation() {
+        OrganizationException error = assertThrows(OrganizationException.class,
+                () -> service.deactivateUnit(0L));
+
+        assertEquals(ErrorCode.VALIDATION, error.getCode());
+    }
+
+    @Test
+    @DisplayName("Deactivating an already deactivated unit is idempotent and preserves deactivated state")
+    void deactivateUnitAlreadyDeactivated() throws Exception {
+        Organization alreadyDeactivated = unit(10L, null, 1L, "NORTH");
+        alreadyDeactivated.setActive(false);
+
+        when(organizationDAO.findByIdForUpdate(connection, 10L)).thenReturn(alreadyDeactivated);
+        when(organizationDAO.countActiveChildren(connection, 10L)).thenReturn(0);
+        when(organizationDAO.softDelete(connection, 10L)).thenReturn(1);
+        when(organizationDAO.findById(connection, 10L)).thenReturn(alreadyDeactivated);
+
+        Organization result = service.deactivateUnit(10L);
+
+        assertFalse(result.isActive());
+        verify(organizationDAO).softDelete(connection, 10L);
+        verify(connection).commit();
     }
 
     private User activeUser(long id, Long teamId) {

@@ -142,6 +142,24 @@ public class OrganizationDAO {
         }
     }
 
+    public int countActiveChildren(Connection conn, long parentId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM teams WHERE parent_id = ? AND active = TRUE";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, parentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    public int softDelete(Connection conn, long unitId) throws SQLException {
+        String sql = "UPDATE teams SET active = FALSE WHERE id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, unitId);
+            return stmt.executeUpdate();
+        }
+    }
+
     private void loadMembers(Connection conn, Map<Long, Organization> unitsById, Long unitId)
             throws SQLException {
         String sql = "SELECT u.id, u.team_id, "

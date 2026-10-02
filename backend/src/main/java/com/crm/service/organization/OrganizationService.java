@@ -158,6 +158,48 @@ public class OrganizationService {
         }
     }
 
+    public Organization deactivateUnit(long unitId) throws SQLException, OrganizationException {
+        if (unitId <= 0) {
+            throw error(ErrorCode.VALIDATION, "ID đơn vị không hợp lệ");
+        }
+
+        try (Connection conn = connectionProvider.getConnection()) {
+            boolean originalAutoCommit = conn.getAutoCommit();
+            try {
+                conn.setAutoCommit(false);
+
+                Organization existing = organizationDAO.findByIdForUpdate(conn, unitId);
+                if (existing == null) {
+                    throw error(ErrorCode.UNIT_NOT_FOUND, "Không tìm thấy đơn vị");
+                }
+
+                int activeChildren = organizationDAO.countActiveChildren(conn, unitId);
+                if (activeChildren > 0) {
+                    throw error(ErrorCode.HAS_ACTIVE_CHILDREN,
+                            "Không thể vô hiệu hóa đơn vị đang có đơn vị con hoạt động. Vui lòng vô hiệu hóa các đơn vị con trước.");
+                }
+
+                int updated = organizationDAO.softDelete(conn, unitId);
+                if (updated != 1) {
+                    throw error(ErrorCode.UPDATE_CONFLICT, "Đơn vị đã thay đổi, vui lòng thử lại");
+                }
+
+                Organization deactivatedUnit = organizationDAO.findById(conn, unitId);
+                if (deactivatedUnit == null) {
+                    throw error(ErrorCode.UPDATE_CONFLICT, "Không thể đọc lại đơn vị sau khi vô hiệu hóa");
+                }
+
+                conn.commit();
+                return deactivatedUnit;
+            } catch (SQLException | OrganizationException | RuntimeException e) {
+                rollback(conn, e);
+                throw e;
+            } finally {
+                conn.setAutoCommit(originalAutoCommit);
+            }
+        }
+    }
+
     private NormalizedInput validateAndNormalize(UnitInput input) throws OrganizationException {
         if (input == null) {
             throw error(ErrorCode.VALIDATION, "Dữ liệu đơn vị không được để trống");
@@ -308,7 +350,8 @@ public class OrganizationService {
         DUPLICATE_NAME,
         USER_ALREADY_IN_TEAM,
         LEADER_ALREADY_ASSIGNED,
-        UPDATE_CONFLICT
+        UPDATE_CONFLICT,
+        HAS_ACTIVE_CHILDREN
     }
 
     public static class OrganizationException extends Exception {
