@@ -15,6 +15,7 @@ ScopeRecord detail = (ScopeRecord) request.getAttribute("record");
 if (detail != null) { %>
 <p><%= Html.escape(detail.label()) %></p><p>Chủ sở hữu: <%= detail.ownerUserId() %></p>
 <% if("/quotes".equals(request.getServletPath())) { %>
+<p><a href="${pageContext.request.contextPath}/quotes/pricing?id=<%=detail.id()%>">Sản phẩm và phê duyệt chiết khấu</a></p>
 <form method="post" action="${pageContext.request.contextPath}/quotes/discount"><input type="hidden" name="csrfToken" value="<%=com.crm.controller.ServerForms.csrf(request)%>"><input type="hidden" name="id" value="<%=detail.id()%>"><label>Chiết khấu (%) <input type="number" min="0" max="100" step="0.01" name="discount" required></label><button type="submit">Lưu chiết khấu</button></form>
 <% } %>
 <a href="<%= Html.escape(route) %>">Quay lại danh sách</a>

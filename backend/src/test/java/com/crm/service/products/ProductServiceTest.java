@@ -48,8 +48,8 @@ class ProductServiceTest {
     class CostPriceAuthorizationTests {
 
         @ParameterizedTest
-        @ValueSource(strings = {"admin", "director", "Giám đốc", "GIAM DOC", "Quản trị viên"})
-        @DisplayName("Director and Admin can view cost_price")
+        @ValueSource(strings = {"director", "ROLE_DIRECTOR", "Giám đốc", "GIAM DOC", "Giám đốc kinh doanh"})
+        @DisplayName("Only Director can view cost_price")
         void directorOrAdmin_canViewCostPrice(String role) throws SQLException {
             Product raw = new Product(PRODUCT_ID, "PRD-01", "CRM Enterprise", "Software", "Gói",
                     new BigDecimal("10000000"), new BigDecimal("8000000"), new BigDecimal("5000000"),
@@ -64,7 +64,7 @@ class ProductServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"sales rep", "marketing", "cust. success", "accountant", "team lead"})
+        @ValueSource(strings = {"admin", "ROLE_ADMIN", "Quản trị viên", "sales rep", "marketing", "cust. success", "accountant", "team lead"})
         @DisplayName("Non-directors have cost_price masked to null")
         void nonDirector_hasCostPriceMasked(String role) throws SQLException {
             Product raw = new Product(PRODUCT_ID, "PRD-01", "CRM Enterprise", "Software", "Gói",
@@ -77,6 +77,14 @@ class ProductServiceTest {
 
             assertNotNull(result);
             assertNull(result.getCostPrice(), "cost_price must be masked to null for non-director roles");
+        }
+
+        @Test
+        @DisplayName("Admin does not gain cost-price rights")
+        void adminDeniedCostPrice() {
+            assertFalse(productService.canAccessCostPrice(List.of("admin")));
+            assertFalse(productService.canAccessCostPrice(List.of("ROLE_ADMIN")));
+            assertTrue(productService.canAccessCostPrice(List.of("admin", "director")));
         }
 
         @Test

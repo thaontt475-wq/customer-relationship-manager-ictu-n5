@@ -27,13 +27,9 @@ import java.util.logging.Logger;
 public class ProductService {
     private static final Logger LOGGER = Logger.getLogger(ProductService.class.getName());
 
-    private static final Set<String> DIRECTOR_ADMIN_ROLES = Set.of(
-            "admin",
-            "director",
-            "giám đốc",
-            "giam doc",
-            "quản trị viên",
-            "quan tri vien"
+    // AC S2-05: Admin alone must NOT be allowed to view or change cost_price.
+    private static final Set<String> DIRECTOR_ROLES = Set.of(
+            "director", "giám đốc", "giam doc", "giám đốc kinh doanh", "giam doc kinh doanh"
     );
 
     private final ProductDAO productDAO;
@@ -47,16 +43,20 @@ public class ProductService {
     }
 
     /**
-     * Checks if the given roles include Director or Admin privileges.
+     * Checks if the given roles include the Sales Director role (not Admin alone).
      */
-    public boolean isDirectorOrAdmin(Collection<String> roles) {
+    public boolean canAccessCostPrice(Collection<String> roles) {
         if (roles == null || roles.isEmpty()) {
             return false;
         }
         return roles.stream()
                 .filter(r -> r != null && !r.isBlank())
-                .map(r -> r.trim().toLowerCase(Locale.ROOT))
-                .anyMatch(DIRECTOR_ADMIN_ROLES::contains);
+                .map(r -> r.trim().toLowerCase(Locale.ROOT).replaceFirst("^role_", ""))
+                .anyMatch(DIRECTOR_ROLES::contains);
+    }
+
+    public boolean isDirectorOrAdmin(Collection<String> roles) {
+        return canAccessCostPrice(roles);
     }
 
     /**
