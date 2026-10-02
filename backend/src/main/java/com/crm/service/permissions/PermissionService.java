@@ -14,19 +14,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import com.crm.service.audit.AuditLogService;
+
 public class PermissionService {
     private static final Set<String> DATA_SCOPES = Set.of("SELF", "TEAM", "ALL");
 
     private final PermissionDAO permissionDAO;
     private final UserDAO userDAO;
+    private final AuditLogService audit;
 
     public PermissionService() {
-        this(new PermissionDAO(), new UserDAO());
+        this(new PermissionDAO(), new UserDAO(), new AuditLogService());
     }
 
     PermissionService(PermissionDAO permissionDAO, UserDAO userDAO) {
+        this(permissionDAO, userDAO, new AuditLogService());
+    }
+
+    PermissionService(PermissionDAO permissionDAO, UserDAO userDAO, AuditLogService audit) {
         this.permissionDAO = permissionDAO;
         this.userDAO = userDAO;
+        this.audit = audit;
     }
 
     public List<Role> findAllRoles() throws SQLException {
@@ -105,10 +113,19 @@ public class PermissionService {
                     }
                 }
 
+                List<Long> beforeRoles = permissionDAO.findRoleIdsByUserId(conn, userId);
                 permissionDAO.replaceUserRoles(conn, userId, normalizedRoleIds);
                 if (permissionDAO.updateDataScope(conn, userId, normalizedScope) != 1) {
                     conn.rollback();
                     return AssignmentResult.UPDATE_CONFLICT;
+                }
+
+                if (!new java.util.HashSet<>(beforeRoles).equals(new java.util.HashSet<>(normalizedRoleIds))) {
+                    audit.recordRoleChange(conn, actorUserId, userId, beforeRoles, normalizedRoleIds);
+                }
+                if (!normalizedScope.equalsIgnoreCase(target.getDataScope())) {
+                    audit.recordChange(conn, actorUserId, "DATA_SCOPE_CHANGED", "USER", userId,
+                            target.getDataScope(), normalizedScope);
                 }
 
                 conn.commit();
