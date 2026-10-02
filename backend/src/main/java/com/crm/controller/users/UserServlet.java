@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 @WebServlet({
         "/users",
         "/users/detail",
+        "/users/create",
+        "/users/edit",
         "/users/lock-handover",
         "/users/unlock",
         "/api/users/*"
@@ -42,6 +44,7 @@ public class UserServlet extends HttpServlet {
 
     private final UserService userService = new UserService();
     private final TeamService teamService = new TeamService();
+    private final com.crm.service.permissions.UserRoleService userRoleService = new com.crm.service.permissions.UserRoleService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -75,6 +78,16 @@ public class UserServlet extends HttpServlet {
         try {
             if ("/users".equals(request.getServletPath())) {
                 showList(request, response);
+                return;
+            }
+
+            if ("/users/create".equals(request.getServletPath())) {
+                showCreate(request, response);
+                return;
+            }
+
+            if ("/users/edit".equals(request.getServletPath())) {
+                showEdit(request, response);
                 return;
             }
 
@@ -130,18 +143,37 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
+        Long actorUserId = extractActorUserId(request);
+        if (actorUserId == null) {
+            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
+                    "YAu c u `ng nh-p", null);
+            return;
+        }
+
+        if ("/users/create".equals(servletPath)) {
+            try {
+                handlePostCreate(request, response, actorUserId);
+            } catch (SQLException e) {
+                throw new ServletException(e);
+            }
+            return;
+        }
+
+        if ("/users/edit".equals(servletPath)) {
+            try {
+                handlePostEdit(request, response, actorUserId);
+            } catch (SQLException e) {
+                throw new ServletException(e);
+            }
+            return;
+        }
+
         if (!"/api/users".equals(request.getServletPath())) {
             writeJson(response, HttpServletResponse.SC_NOT_FOUND, false,
                     "Endpoint không tồn tại", null);
             return;
         }
 
-        Long actorUserId = extractActorUserId(request);
-        if (actorUserId == null) {
-            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
-                    "Yêu cầu đăng nhập", null);
-            return;
-        }
 
         String pathInfo = request.getPathInfo();
 
@@ -285,6 +317,90 @@ public class UserServlet extends HttpServlet {
                     "Không thể xóa người dùng lúc này", null);
         }
     }
+    private void showCreate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
+        request.setAttribute("availableTeams", teamService.findAllTeams());
+        request.setAttribute("availableRoles", userRoleService.findAllRoles());
+        request.getRequestDispatcher("/jsp/users/user-create.jsp").forward(request, response);
+    }
+
+    private void showEdit(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
+        Long userId = parsePositiveLong(request.getParameter("id"));
+        if (userId == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        User user = userService.findById(userId);
+        if (user == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        request.setAttribute("user", user);
+        request.setAttribute("availableTeams", teamService.findAllTeams());
+        request.setAttribute("availableRoles", userRoleService.findAllRoles());
+        request.setAttribute("currentRoleIds", userRoleService.findRoleIdsByUserId(userId));
+        request.getRequestDispatcher("/jsp/users/user-edit.jsp").forward(request, response);
+    }
+
+    private void handlePostCreate(HttpServletRequest request, HttpServletResponse response, Long actorUserId) throws ServletException, IOException, SQLException {
+        if (!ServerForms.checkCsrf(request, response)) return;
+
+        String username = request.getParameter("username");
+        String email = request.getParameter("email");
+        String fullName = request.getParameter("fullName");
+        String phone = request.getParameter("phone");
+        Long teamId = parsePositiveLong(request.getParameter("teamId"));
+        String[] roleIdsStr = request.getParameterValues("roleIds");
+        java.util.List<Long> roleIds = new java.util.ArrayList<>();
+        if (roleIdsStr != null) {
+            for (String rid : roleIdsStr) {
+                Long id = parsePositiveLong(rid);
+                if (id != null) roleIds.add(id);
+            }
+        }
+
+        UserService.CreateUserResult result = userService.createUser(username, email, fullName, phone, teamId);
+        if (result.status() == UserService.CreateUserStatus.SUCCESS) {
+            userRoleService.assignRoles(actorUserId, result.userId(), roleIds, teamId);
+            response.sendRedirect(request.getContextPath() + "/users");
+        } else {
+            request.setAttribute("error", "Lỗi: " + result.status());
+            showCreate(request, response);
+        }
+    }
+
+    private void handlePostEdit(HttpServletRequest request, HttpServletResponse response, Long actorUserId) throws ServletException, IOException, SQLException {
+        if (!ServerForms.checkCsrf(request, response)) return;
+
+        Long userId = parsePositiveLong(request.getParameter("id"));
+        if (userId == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        
+        String username = request.getParameter("username"); 
+        String email = request.getParameter("email");
+        String fullName = request.getParameter("fullName");
+        String phone = request.getParameter("phone");
+        Long teamId = parsePositiveLong(request.getParameter("teamId"));
+        String[] roleIdsStr = request.getParameterValues("roleIds");
+        java.util.List<Long> roleIds = new java.util.ArrayList<>();
+        if (roleIdsStr != null) {
+            for (String rid : roleIdsStr) {
+                Long id = parsePositiveLong(rid);
+                if (id != null) roleIds.add(id);
+            }
+        }
+
+        UserService.UpdateUserStatus result = userService.updateUser(userId, username, email, fullName, phone, teamId);
+        if (result == UserService.UpdateUserStatus.SUCCESS) {
+            userRoleService.assignRoles(actorUserId, userId, roleIds, teamId);
+            response.sendRedirect(request.getContextPath() + "/users/detail?id=" + userId);
+        } else {
+            request.setAttribute("error", "Lỗi cập nhật: " + result);
+            showEdit(request, response);
+        }
+    }
+
     private void showList(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
 

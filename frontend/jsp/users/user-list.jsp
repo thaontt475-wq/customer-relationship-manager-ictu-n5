@@ -186,7 +186,7 @@ String filterQuery = "&q=" + java.net.URLEncoder.encode(keyword, "UTF-8")
                     Đặt lại
                 </a>
 
-                <a href="<%=base%>/users/import"
+                <a href="<%=base%>/users/create" class="crm-btn crm-btn-primary">Thêm tài khoản</a> <a href="<%=base%>/users/import"
                    class="crm-btn crm-btn-secondary">
                     Nhập từ Excel
                 </a>
@@ -260,6 +260,10 @@ String filterQuery = "&q=" + java.net.URLEncoder.encode(keyword, "UTF-8")
                                 <a class="crm-btn crm-btn-secondary"
                                    href="<%=base%>/users/detail?id=<%=user.getId()%>">
                                     Chi tiết
+                                </a>
+                                <a class="crm-btn crm-btn-secondary"
+                                   href="<%=base%>/users/edit?id=<%=user.getId()%>">
+                                    Sửa
                                 </a>
                             </td>
                         </tr>
