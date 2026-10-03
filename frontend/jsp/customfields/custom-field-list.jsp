@@ -22,6 +22,7 @@ String prefix = request.getContextPath();
 <link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/header.css">
 <link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/sidebar.css">
 <link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/components.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/customfields/customfields.css">
 <style>
 .cf-main{max-width:1150px;width:100%;padding:20px;margin:0 auto}.cf-card{border:1px solid #aaa;border-radius:7px;margin:16px 0;padding:18px}.cf-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.cf-fields label{display:flex;flex-direction:column;gap:6px}.cf-fields input,.cf-fields textarea,.cf-fields select{padding:8px;border:1px solid #999;border-radius:5px;background:inherit;color:inherit}.cf-table-wrap{overflow-x:auto}.cf-table{border-collapse:collapse;width:100%}.cf-table th,.cf-table td{border-bottom:1px solid #bbb;text-align:left;padding:8px}.cf-btn{display:inline-block;border:1px solid #999;padding:7px 12px;border-radius:5px;background:inherit;color:inherit;text-decoration:none;cursor:pointer}.cf-primary{background:#174f7a;color:white}.cf-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.cf-checks{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}.cf-notice{padding:12px;border:1px solid #397d43}.cf-muted{opacity:.8}
 </style></head>
