@@ -117,6 +117,7 @@ public class OrganizationPageServlet extends HttpServlet {
             if ("deactivate".equals(action)) {
                 long id = ServerForms.positive(req.getParameter("id"));
                 service.deactivateUnit(id);
+                ServerForms.setToast(req, "success", "Giải thể thành công", "Đơn vị đã được chuyển sang trạng thái ngừng hoạt động.");
                 res.sendRedirect(req.getContextPath() + "/organization/page?result=deactivated");
                 return;
             }
@@ -126,6 +127,7 @@ public class OrganizationPageServlet extends HttpServlet {
                 try (Connection conn = DBConnection.getConnection()) {
                     new UserTeamDAO().assignUserToTeam(conn, userId, unitId);
                 }
+                ServerForms.setToast(req, "success", "Phân bổ thành công", "Đã thêm nhân sự vào nhóm kinh doanh.");
                 res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + unitId + "&result=member_assigned");
                 return;
             }
@@ -135,6 +137,7 @@ public class OrganizationPageServlet extends HttpServlet {
                 try (Connection conn = DBConnection.getConnection()) {
                     new UserTeamDAO().removeUserFromTeam(conn, userId);
                 }
+                ServerForms.setToast(req, "success", "Đã gỡ nhân sự", "Nhân sự đã được đưa ra khỏi nhóm.");
                 res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + unitId + "&result=member_removed");
                 return;
             }
@@ -151,9 +154,11 @@ public class OrganizationPageServlet extends HttpServlet {
             if ("update".equals(action)) {
                 targetId = ServerForms.positive(req.getParameter("id"));
                 service.updateUnit(targetId, input);
+                ServerForms.setToast(req, "success", "Cập nhật thành công", "Thông tin đơn vị đã được lưu.");
                 res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + targetId + "&result=updated");
             } else {
                 Organization created = service.createUnit(input);
+                ServerForms.setToast(req, "success", "Tạo nhóm thành công", "Nhóm kinh doanh mới đã được kích hoạt.");
                 res.sendRedirect(req.getContextPath() + "/organization/page?selected=" + created.getId() + "&result=created");
             }
         } catch (IllegalArgumentException e) {

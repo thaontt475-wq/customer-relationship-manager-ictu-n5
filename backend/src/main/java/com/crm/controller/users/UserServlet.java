@@ -21,13 +21,17 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 @WebServlet({
         "/users",
+        "/users/export",
         "/users/detail",
         "/users/lock-handover",
         "/users/unlock",
@@ -40,8 +44,17 @@ public class UserServlet extends HttpServlet {
     private static final String USER_DETAIL_JSP = "/jsp/users/user-detail.jsp";
     private static final Gson GSON = new GsonBuilder().serializeNulls().create();
 
-    private final UserService userService = new UserService();
-    private final TeamService teamService = new TeamService();
+    private final UserService userService;
+    private final TeamService teamService;
+
+    public UserServlet() {
+        this(new UserService(), new TeamService());
+    }
+
+    public UserServlet(UserService userService, TeamService teamService) {
+        this.userService = userService != null ? userService : new UserService();
+        this.teamService = teamService != null ? teamService : new TeamService();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -75,6 +88,11 @@ public class UserServlet extends HttpServlet {
         try {
             if ("/users".equals(request.getServletPath())) {
                 showList(request, response);
+                return;
+            }
+
+            if ("/users/export".equals(request.getServletPath())) {
+                exportUsers(request, response);
                 return;
             }
 
@@ -292,11 +310,13 @@ public class UserServlet extends HttpServlet {
         int size = parsePositiveInt(request.getParameter("size"), 20);
 
         String keyword = request.getParameter("q");
+        if (keyword == null) keyword = request.getParameter("search");
+        String team = request.getParameter("team");
         String role = request.getParameter("role");
         String status = request.getParameter("status");
 
         UserService.UserPage result =
-                userService.searchUsers(keyword, role, status, page, size);
+                userService.searchUsers(keyword, team, role, status, page, size);
 
         request.setAttribute("users", result.items());
         request.setAttribute("page", result.page());
@@ -304,6 +324,7 @@ public class UserServlet extends HttpServlet {
         request.setAttribute("totalItems", result.totalItems());
         request.setAttribute("totalPages", result.totalPages());
         request.setAttribute("q", keyword);
+        request.setAttribute("team", team);
         request.setAttribute("role", role);
         request.setAttribute("status", status);
         request.setAttribute("teams", teamService.findAllTeams());
@@ -311,6 +332,44 @@ public class UserServlet extends HttpServlet {
         request.getRequestDispatcher(USER_LIST_JSP)
                 .forward(request, response);
     }
+
+    private void exportUsers(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+        String keyword = request.getParameter("q");
+        if (keyword == null) keyword = request.getParameter("search");
+        String team = request.getParameter("team");
+        String role = request.getParameter("role");
+        String status = request.getParameter("status");
+        List<User> rows = new ArrayList<>();
+        int page = 1;
+        UserService.UserPage result;
+        do {
+            result = userService.searchUsers(keyword, team, role, status, page++, 100);
+            rows.addAll(result.items());
+        } while (rows.size() < result.totalItems() && !result.items().isEmpty());
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=users.xlsx");
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            var sheet = workbook.createSheet("Users");
+            String[] headers = {"Họ tên", "Email", "Vai trò", "Nhóm kinh doanh", "Phạm vi dữ liệu", "Trạng thái"};
+            var header = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) header.createCell(i).setCellValue(headers[i]);
+            for (int i = 0; i < rows.size(); i++) {
+                User user = rows.get(i);
+                var row = sheet.createRow(i + 1);
+                row.createCell(0).setCellValue(safe(user.getFullName()));
+                row.createCell(1).setCellValue(safe(user.getEmail()));
+                row.createCell(2).setCellValue(safe(user.getRole()));
+                row.createCell(3).setCellValue(safe(user.getTeamName()));
+                row.createCell(4).setCellValue(safe(user.getDataScope()));
+                row.createCell(5).setCellValue(safe(user.getStatus()));
+            }
+            for (int i = 0; i < headers.length; i++) sheet.setColumnWidth(i, 6000);
+            workbook.write(response.getOutputStream());
+        }
+    }
+
+    private static String safe(String value) { return value == null ? "" : value; }
 
     private void handleApiList(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {

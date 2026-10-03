@@ -141,6 +141,7 @@ public class ProductPageServlet extends HttpServlet {
                 if (existing == null) { res.sendError(404); return; }
                 existing.setActive(false);
                 service.updateProduct(existing, ServerForms.roles(req));
+                ServerForms.setToast(req, "success", "Ngừng kinh doanh thành công", "Sản phẩm đã được chuyển sang trạng thái ngừng kinh doanh.");
             } else {
                 if (!"create".equals(operation) && !"update".equals(operation))
                     throw new IllegalArgumentException("Thao tác không hợp lệ.");
@@ -159,8 +160,13 @@ public class ProductPageServlet extends HttpServlet {
                 String activeParam = req.getParameter("active");
                 boolean isActive = "true".equalsIgnoreCase(activeParam) || "1".equals(activeParam) || "on".equalsIgnoreCase(activeParam);
                 product.setActive(isActive);
-                if ("create".equals(operation)) service.createProduct(product,ServerForms.roles(req));
-                else service.updateProduct(product,ServerForms.roles(req));
+                if ("create".equals(operation)) {
+                    service.createProduct(product,ServerForms.roles(req));
+                    ServerForms.setToast(req, "success", "Tạo sản phẩm thành công", "Sản phẩm mới đã được thêm vào bảng giá.");
+                } else {
+                    service.updateProduct(product,ServerForms.roles(req));
+                    ServerForms.setToast(req, "success", "Cập nhật thành công", "Thông tin sản phẩm đã được lưu.");
+                }
             }
             res.sendRedirect(req.getContextPath() + "/products/page?result=ok");
         } catch (IllegalArgumentException e) {

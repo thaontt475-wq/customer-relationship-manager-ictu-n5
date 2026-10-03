@@ -146,6 +146,24 @@ class ProfileServiceTest {
         }
 
         @Test
+        @DisplayName("FullName exceeding 255 chars throws IllegalArgumentException")
+        void fullNameExceeding255_throws() {
+            String longName = "A".repeat(256);
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> profileService.updateProfile(USER_ID, longName, "0912345678", "Sig"));
+            assertTrue(ex.getMessage().contains("255 ký tự"));
+        }
+
+        @Test
+        @DisplayName("Signature exceeding 2000 chars throws IllegalArgumentException")
+        void signatureExceeding2000_throws() {
+            String longSignature = "S".repeat(2001);
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                    () -> profileService.updateProfile(USER_ID, "Nguyen Van A", "0912345678", longSignature));
+            assertTrue(ex.getMessage().contains("2000 ký tự"));
+        }
+
+        @Test
         @DisplayName("Invalid phone throws IllegalArgumentException during update")
         void invalidPhone_throws() {
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
@@ -161,6 +179,19 @@ class ProfileServiceTest {
             IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                     () -> profileService.updateProfile(USER_ID, "Nguyen Van A", "0912345678", "Sig"));
             assertTrue(ex.getMessage().contains("Không tìm thấy"));
+        }
+
+        @Test
+        @DisplayName("Database update failure throws SQLException and triggers rollback")
+        void dbFailure_throwsSqlException() throws SQLException {
+            User existing = new User();
+            existing.setId(USER_ID);
+            when(userDAO.findByIdForUpdate(any(Connection.class), eq(USER_ID))).thenReturn(existing);
+            when(userDAO.updateUserSelfProfile(any(Connection.class), eq(USER_ID), anyString(), anyString(), anyString()))
+                    .thenThrow(new SQLException("Simulated DB Disk Failure"));
+
+            assertThrows(SQLException.class,
+                    () -> profileService.updateProfile(USER_ID, "Nguyen Van A", "0912345678", "Sig"));
         }
     }
 

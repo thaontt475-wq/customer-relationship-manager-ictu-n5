@@ -86,6 +86,7 @@ public class BusinessChangeServlet extends HttpServlet {
                 BigDecimal amount = new BigDecimal(amountParam.trim());
 
                 service.setTarget(actor, targetUserId, month, amount);
+                ServerForms.setToast(req, "success", "Lưu chỉ tiêu thành công", "Chỉ tiêu doanh số đã được phân bổ.");
                 res.sendRedirect(req.getContextPath() + "/kpi?saved=1");
             } else {
                 String idParam = req.getParameter("id");
@@ -101,6 +102,7 @@ public class BusinessChangeServlet extends HttpServlet {
                 BigDecimal discount = new BigDecimal(discountParam.trim());
 
                 service.changeDiscount(actor, quoteId, discount);
+                ServerForms.setToast(req, "success", "Chiết khấu thành công", "Mức chiết khấu báo giá đã được cập nhật.");
                 res.sendRedirect(req.getContextPath() + "/quotes?id=" + quoteId);
             }
         } catch (SecurityException e) {

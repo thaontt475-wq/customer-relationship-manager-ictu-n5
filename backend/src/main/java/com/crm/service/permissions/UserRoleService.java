@@ -17,8 +17,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Service handling role and team assignment with business logic validation (CRM-29).
@@ -30,8 +28,6 @@ import java.util.logging.Logger;
  * 3. Self-revoke Admin guard: An admin cannot revoke the Admin role from themselves.
  */
 public class UserRoleService {
-    private static final Logger LOGGER = Logger.getLogger(UserRoleService.class.getName());
-
     public static final String ROLE_TEAM_LEAD = "Team Lead";
     public static final String ROLE_ADMIN = "Admin";
 
