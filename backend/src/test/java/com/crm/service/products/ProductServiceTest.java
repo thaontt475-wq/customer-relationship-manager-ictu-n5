@@ -275,5 +275,69 @@ class ProductServiceTest {
 
             assertFalse(result);
         }
+
+        @Test
+        @DisplayName("Deactivating product calls softDelete on DAO")
+        void deactivateProduct_callsSoftDelete() throws SQLException {
+            when(productDAO.softDelete(PRODUCT_ID)).thenReturn(1);
+
+            boolean result = productService.deactivateProduct(PRODUCT_ID);
+
+            assertTrue(result);
+            verify(productDAO).softDelete(PRODUCT_ID);
+        }
+
+        @Test
+        @DisplayName("Deactivating non-positive product ID returns false")
+        void deactivateInvalidId_returnsFalse() throws SQLException {
+            assertFalse(productService.deactivateProduct(0));
+            assertFalse(productService.deactivateProduct(-1));
+            verify(productDAO, never()).softDelete(anyLong());
+        }
+    }
+
+    @Nested
+    @DisplayName("Validation and Search Tests")
+    class ValidationAndSearchTests {
+
+        @Test
+        @DisplayName("Code exceeding 50 characters throws IllegalArgumentException")
+        void codeTooLong_throwsException() {
+            String longCode = "A".repeat(51);
+            Product p = new Product(null, longCode, "Name", "Cat", "Unit", BigDecimal.TEN, BigDecimal.ONE, BigDecimal.ZERO, "Desc", true);
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> productService.createProduct(p, List.of("admin")));
+            assertTrue(ex.getMessage().contains("50 ký tự"));
+        }
+
+        @Test
+        @DisplayName("Name exceeding 255 characters throws IllegalArgumentException")
+        void nameTooLong_throwsException() {
+            String longName = "A".repeat(256);
+            Product p = new Product(null, "SKU-01", longName, "Cat", "Unit", BigDecimal.TEN, BigDecimal.ONE, BigDecimal.ZERO, "Desc", true);
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> productService.createProduct(p, List.of("admin")));
+            assertTrue(ex.getMessage().contains("255 ký tự"));
+        }
+
+        @Test
+        @DisplayName("Search products handles pagination and masks cost price for non-directors")
+        void searchProducts_paginationAndMasking() throws SQLException {
+            Product p1 = new Product(1L, "SKU-1", "Prod 1", "Software", "Gói", new BigDecimal("100"), new BigDecimal("80"), new BigDecimal("50"), "D1", true);
+            Product p2 = new Product(2L, "SKU-2", "Prod 2", "Software", "Gói", new BigDecimal("200"), new BigDecimal("150"), new BigDecimal("100"), "D2", true);
+
+            when(productDAO.countSearch(any(Connection.class), eq("SKU"), eq("Software"), eq(true))).thenReturn(25L);
+            when(productDAO.search(any(Connection.class), eq("SKU"), eq("Software"), eq(true), eq(0), eq(10)))
+                    .thenReturn(List.of(p1, p2));
+
+            ProductService.ProductSearchResult result = productService.searchProducts("SKU", "Software", true, 1, 10, List.of("Sales Rep"));
+
+            assertNotNull(result);
+            assertEquals(25L, result.total());
+            assertEquals(1, result.page());
+            assertEquals(10, result.size());
+            assertEquals(3, result.totalPages());
+            assertEquals(2, result.items().size());
+            assertNull(result.items().get(0).getCostPrice(), "cost price must be masked for non-director");
+            assertNull(result.items().get(1).getCostPrice(), "cost price must be masked for non-director");
+        }
     }
 }

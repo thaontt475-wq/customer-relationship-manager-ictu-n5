@@ -12,8 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Service implementing business logic for CRM-39 (Sản phẩm & bảng giá):
@@ -25,8 +23,6 @@ import java.util.logging.Logger;
  *    (Báo giá, Hợp đồng, Cơ hội, Đơn hàng), ném ProductInUseException để trả về HTTP 409/400.
  */
 public class ProductService {
-    private static final Logger LOGGER = Logger.getLogger(ProductService.class.getName());
-
     // AC S2-05: Admin alone must NOT be allowed to view or change cost_price.
     private static final Set<String> DIRECTOR_ROLES = Set.of(
             "director", "giám đốc", "giam doc", "giám đốc kinh doanh", "giam doc kinh doanh"

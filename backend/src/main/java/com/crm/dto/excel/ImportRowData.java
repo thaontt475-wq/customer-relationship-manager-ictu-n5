@@ -85,8 +85,16 @@ public class ImportRowData {
         return team;
     }
 
+    public String getTeamName() {
+        return team;
+    }
+
     public void setTeam(String team) {
         this.team = team;
+    }
+
+    public void setTeamName(String teamName) {
+        this.team = teamName;
     }
 
     public boolean isValid() {

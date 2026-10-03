@@ -2,6 +2,7 @@ package com.crm.controller.audit;
 
 import com.crm.model.AuditLogFilter;
 import com.crm.service.audit.AuditLogService;
+import com.crm.util.SessionKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -55,6 +56,7 @@ class AuditLogServletTest {
     void getParsesAllSupportedFilters() throws Exception {
         when(request.getSession(false)).thenReturn(session);
         when(session.getAttribute("userId")).thenReturn(5L);
+        when(session.getAttribute(SessionKey.ROLES)).thenReturn(List.of("admin"));
         when(request.getParameter("userId")).thenReturn("7");
         when(request.getParameter("objectType")).thenReturn("opportunity");
         when(request.getParameter("objectId")).thenReturn("12");

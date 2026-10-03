@@ -184,6 +184,7 @@ public class ProfileServlet extends HttpServlet {
                 writeJson(response, HttpServletResponse.SC_OK, true,
                         "Cập nhật hồ sơ cá nhân thành công.", new ProfileResponseData(updatedUser));
             } else {
+                ServerForms.setToast(request, "success", "Cập nhật thành công", "Thông tin hồ sơ cá nhân đã được lưu.");
                 response.sendRedirect(request.getContextPath() + "/profile?updated=1");
             }
 

@@ -40,7 +40,7 @@ public class LoginServlet extends HttpServlet {
         if ("1".equals(request.getParameter("expired"))) {
             request.setAttribute(
                     "error",
-                    "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+                    "Phiên đăng nhập đã hết hạn do không có hoạt động trong 5 phút."
             );
         }
 

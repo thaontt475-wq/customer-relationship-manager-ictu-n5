@@ -1,6 +1,5 @@
 package com.crm.service.permissions;
 
-import com.crm.dao.permissions.MenuDAO;
 import com.crm.dto.permissions.MenuItem;
 import com.crm.dto.permissions.UserNavigationProfile;
 import org.junit.jupiter.api.BeforeEach;

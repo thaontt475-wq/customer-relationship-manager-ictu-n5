@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -127,6 +126,7 @@
                                 <include>jsp/**/*.jsp</include>
                                 <include>css/**/*.css</include>
                                 <include>html/**/*.html</include>
+                                <include>images/**</include>
                                 <include>images/**/*.png</include>
                                 <include>images/**/*.jpg</include>
                                 <include>images/**/*.jpeg</include>

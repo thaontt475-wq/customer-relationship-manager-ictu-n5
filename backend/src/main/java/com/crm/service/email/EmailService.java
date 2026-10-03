@@ -28,7 +28,22 @@ public class EmailService {
         username = System.getenv("CRM_SMTP_USERNAME");
         password = System.getenv("CRM_SMTP_PASSWORD");
         fromAddress = System.getenv("CRM_SMTP_FROM");
-        appBaseUrl = System.getenv("CRM_APP_BASE_URL");
+        appBaseUrl = resolveAppBaseUrl();
+    }
+
+    private static String resolveAppBaseUrl() {
+        String configured = System.getProperty("CRM_APP_BASE_URL");
+        if (isBlank(configured)) {
+            configured = System.getenv("CRM_APP_BASE_URL");
+        }
+        if (isBlank(configured)) {
+            configured = "http://localhost:8080";
+        }
+        configured = configured.trim();
+        while (configured.endsWith("/")) {
+            configured = configured.substring(0, configured.length() - 1);
+        }
+        return configured;
     }
 
     public void sendPasswordResetEmail(String toEmail, String rawToken) {
@@ -49,6 +64,7 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(content);
             Transport.send(message);
+            LOGGER.info("Successfully sent password reset email to " + toEmail + " with reset base URL: " + appBaseUrl);
         } catch (MessagingException | RuntimeException e) {
             // Log error without exposing credentials or token
             LOGGER.log(Level.SEVERE, "Failed to send password reset email to " + toEmail, e);
