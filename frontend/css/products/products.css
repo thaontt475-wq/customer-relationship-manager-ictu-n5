@@ -31,8 +31,8 @@
 .product-table td { vertical-align: middle; }
 .product-table .row-inactive { color: var(--crm-muted); }
 .product-name-cell { display: flex; flex-direction: column; gap: var(--crm-space-1); min-width: 180px; max-width: 280px; overflow-wrap: anywhere; }
-.product-title { font-weight: 600; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-.product-desc-sub { color: var(--crm-muted); font-size: .75rem; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.product-title { font-weight: 600; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.product-desc-sub { color: var(--crm-muted); font-size: .75rem; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .col-code { display: inline-block; padding: 3px 6px; border-radius: var(--crm-radius-sm); background: var(--crm-primary-soft); color: var(--crm-primary-hover); font-size: .75rem; font-weight: 600; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .badge-type, .badge-status, .quote-count-badge { display: inline-flex; align-items: center; gap: 5px; border-radius: var(--crm-radius-sm); padding: 4px 8px; font-size: .75rem; line-height: 1.4; background: var(--crm-surface-subtle); color: var(--crm-text-secondary); border: 1px solid var(--crm-border); }
 .badge-status { white-space: nowrap; }
