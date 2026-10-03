@@ -87,13 +87,13 @@
             <span class="sidebar__section-label">Menu chức năng</span>
 
             <!-- Empty State khi không có mục menu nào thuộc quyền (AC 1) -->
-            <div class="sidebar__empty" id="crmSidebarEmpty" role="status" style="display: <%= sidebarHasServerMenu ? "none" : "flex" %>;">
+            <div class="sidebar__empty <%= sidebarHasServerMenu ? "is-hidden" : "is-visible" %>" id="crmSidebarEmpty" role="status">
                 <span class="sidebar__empty-icon" aria-hidden="true">&#8709;</span>
                 <span class="sidebar__empty-text">Không có menu khả dụng cho tài khoản này</span>
             </div>
 
             <!-- Menu do server render; không sử dụng Fetch API. -->
-            <ul class="sidebar__menu" id="crmSidebarMenuList" style="display: <%= sidebarHasServerMenu ? "flex" : "none" %>;">
+            <ul class="sidebar__menu <%= sidebarHasServerMenu ? "is-visible" : "is-hidden" %>" id="crmSidebarMenuList">
                 <% if (sidebarHasServerMenu) {
                     for (MenuItem item : sidebarServerMenuItems) {
                         if (item == null) continue;
