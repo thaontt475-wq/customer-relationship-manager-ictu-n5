@@ -53,10 +53,48 @@ public class AuditLogDAO {
                         + "before_value, after_value, created_at FROM audit_logs WHERE 1 = 1"
         );
         List<Object> parameters = new ArrayList<>();
+        appendConditions(sql, parameters, filter);
 
+        sql.append(" ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?");
+        parameters.add(filter.getLimit());
+        parameters.add(filter.getOffset());
+
+        List<AuditLog> results = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            bind(stmt, parameters);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    results.add(mapRow(rs));
+                }
+            }
+        }
+        return results;
+    }
+
+    public int count(Connection conn, AuditLogFilter filter) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM audit_logs WHERE 1 = 1");
+        List<Object> parameters = new ArrayList<>();
+        appendConditions(sql, parameters, filter);
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            bind(stmt, parameters);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
+    private void appendConditions(StringBuilder sql, List<Object> parameters, AuditLogFilter filter) {
         if (filter.getUserId() != null) {
             sql.append(" AND actor_user_id = ?");
             parameters.add(filter.getUserId());
+        }
+        if (filter.getAction() != null) {
+            sql.append(" AND action = ?");
+            parameters.add(filter.getAction());
         }
         if (filter.getObjectType() != null) {
             sql.append(" AND object_type = ?");
@@ -74,19 +112,6 @@ public class AuditLogDAO {
             sql.append(" AND created_at <= ?");
             parameters.add(filter.getTo());
         }
-        sql.append(" ORDER BY created_at DESC, id DESC LIMIT ?");
-        parameters.add(filter.getLimit());
-
-        List<AuditLog> results = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-            bind(stmt, parameters);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    results.add(mapRow(rs));
-                }
-            }
-        }
-        return results;
     }
 
     private void bind(PreparedStatement stmt, List<Object> parameters) throws SQLException {

@@ -19,9 +19,10 @@
             case "DASHBOARD": paths = "<rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/>"; break;
             case "USERS": case "CUSTOMERS": paths = "<circle cx='9' cy='8' r='3'/><path d='M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5'/>"; break;
             case "PERMISSIONS": case "USERS_AUDIT": paths = "<path d='M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7z'/><path d='m8 12 3 3 5-6'/>"; break;
+            case "ORGANIZATION": case "ORGANIZATION_MGT": paths = "<circle cx='12' cy='5' r='2'/><circle cx='6' cy='19' r='2'/><circle cx='18' cy='19' r='2'/><path d='M12 7v5m-6 5v-3a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3'/>"; break;
             case "CHANGE_PASSWORD": paths = "<rect x='5' y='10' width='14' height='11' rx='2'/><path d='M8 10V7a4 4 0 0 1 8 0v3m-4 5v2'/>"; break;
             case "LOGOUT": paths = "<path d='M9 21H4V3h5m7 4 5 5-5 5M9 12h12'/>"; break;
-            case "SALES_CONFIG": paths = "<path d='m12 3 9 5v8l-9 5-9-5V8zm0 9 9-4m-9 4L3 8m9 4v9'/>"; break;
+            case "SALES_CONFIG": case "PIPELINE": paths = "<path d='m12 3 9 5v8l-9 5-9-5V8zm0 9 9-4m-9 4L3 8m9 4v9'/>"; break;
             case "OPPORTUNITIES": case "KPI": case "REPORTS": paths = "<path d='M4 20V10m8 10V4m8 16v-7M2 22h20'/>"; break;
             case "ACTIVITIES": paths = "<rect x='3' y='5' width='18' height='16' rx='2'/><path d='M7 3v4m10-4v4M3 11h18'/>"; break;
             default: paths = "<rect x='4' y='4' width='16' height='16' rx='3'/><path d='M8 9h8m-8 6h8'/>";

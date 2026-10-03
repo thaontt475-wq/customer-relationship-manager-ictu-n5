@@ -92,6 +92,22 @@ public class PipelinePageServlet extends HttpServlet {
                         service.updateStage(stage);
                     } else service.createStage(stage);
                 }
+                case "reorder" -> {
+                    java.util.List<PipelineStage> allStages = service.getStages(pipelineId, null);
+                    java.util.List<long[]> pairs = new java.util.ArrayList<>();
+                    for (PipelineStage s : allStages) {
+                        String orderParam = req.getParameter("order_" + s.getId());
+                        if (orderParam != null && !orderParam.isBlank()) {
+                            int newOrder = Integer.parseInt(orderParam.trim());
+                            if (newOrder < 1) throw new IllegalArgumentException("Thứ tự phải >= 1.");
+                            pairs.add(new long[]{s.getId(), newOrder});
+                        }
+                    }
+                    pairs.sort(java.util.Comparator.comparingLong(a -> a[1]));
+                    java.util.List<Long> orderedIds = new java.util.ArrayList<>();
+                    for (long[] pair : pairs) orderedIds.add(pair[0]);
+                    if (!orderedIds.isEmpty()) service.reorderStages(pipelineId, orderedIds);
+                }
                 case "delete" -> {
                     if (!"yes".equals(req.getParameter("confirm"))) {
                         res.sendError(400, "Cần xác nhận xóa giai đoạn."); return;

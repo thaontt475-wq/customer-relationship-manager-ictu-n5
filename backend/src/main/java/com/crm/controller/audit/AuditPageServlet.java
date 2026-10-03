@@ -53,10 +53,27 @@ public class AuditPageServlet extends HttpServlet {
             filter.setObjectId(positiveLong(request.getParameter("objectId")));
             String type = trim(request.getParameter("objectType"));
             filter.setObjectType(type.isEmpty() ? null : type);
+            String action = trim(request.getParameter("action"));
+            filter.setAction(action.isEmpty() ? null : action);
             filter.setFrom(date(request.getParameter("from"), false));
             filter.setTo(date(request.getParameter("to"), true));
-            filter.setLimit(200);
+            filter.setLimit(50); // Set smaller limit for pages
+            
+            String pageStr = request.getParameter("page");
+            int page = 1;
+            if (pageStr != null && !pageStr.isBlank()) {
+                try {
+                    page = Integer.parseInt(pageStr);
+                    if (page < 1) page = 1;
+                } catch (NumberFormatException ignored) {}
+            }
+            filter.setPage(page);
+
             request.setAttribute("auditLogs", service.findLogs(filter));
+            int totalLogs = service.countLogs(filter);
+            int totalPages = (int) Math.ceil((double) totalLogs / filter.getLimit());
+            request.setAttribute("currentPage", filter.getPage());
+            request.setAttribute("totalPages", totalPages);
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             request.setAttribute("auditError", e.getMessage());

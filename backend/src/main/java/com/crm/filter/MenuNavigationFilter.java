@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 @WebFilter(
         urlPatterns = {
                 "/dashboard",
+                "/organization", "/organization/*",
                 "/users", "/users/*",
                 "/permissions", "/permissions/*",
                 "/products", "/products/*",

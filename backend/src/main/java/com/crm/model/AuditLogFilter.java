@@ -11,10 +11,12 @@ public class AuditLogFilter {
 
     private Long userId;
     private String objectType;
+    private String action;
     private Long objectId;
     private Timestamp from;
     private Timestamp to;
     private int limit = DEFAULT_LIMIT;
+    private int page = 1;
 
     public Long getUserId() {
         return userId;
@@ -22,6 +24,26 @@ public class AuditLogFilter {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page < 1 ? 1 : page;
+    }
+
+    public int getOffset() {
+        return (page - 1) * limit;
     }
 
     public String getObjectType() {

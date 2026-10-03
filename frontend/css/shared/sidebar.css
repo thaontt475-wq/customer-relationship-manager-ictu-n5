@@ -32,6 +32,8 @@
 .sidebar__logout-button { width: 100%; border: 0; background: transparent; font-family: inherit; text-align: left; cursor: pointer; }
 .sidebar__logout-button:hover { color: var(--crm-danger); background: var(--crm-danger-soft); }
 .sidebar__empty { display: flex; gap: 8px; padding: 12px; border-radius: var(--crm-radius-md); background: var(--crm-surface-subtle); color: var(--crm-muted); font-size: 12px; line-height: 1.5; }
+.sidebar .is-hidden { display: none !important; }
+.sidebar .is-visible { display: flex !important; }
 .sidebar__loading { display: flex; flex-direction: column; gap: 8px; padding: 4px; }
 .sidebar__skeleton-item { height: 38px; background: var(--crm-surface-subtle); border-radius: var(--crm-radius-md); }
 .sidebar__footer { flex: none; border-top: 1px solid var(--crm-border); padding: 12px 4px 0; }

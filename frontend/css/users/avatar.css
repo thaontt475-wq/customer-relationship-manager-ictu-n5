@@ -1,79 +1,86 @@
-/* ==========================================================================
-   CRM User Avatar Styles (CRM-36 / S2-03)
-   ========================================================================== */
-
 .avatar-page {
-    max-width: 760px;
-    margin: 40px auto;
-    padding: 32px;
-    background: #ffffff;
-    border-radius: 14px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.07);
+    padding: 24px;
+    width: 100%;
 }
 
-.avatar-page h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0f172a;
-    margin: 0 0 8px 0;
+.avatar-card {
+    max-width: 600px;
 }
 
-.avatar-page p {
-    color: #475569;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin: 0 0 12px 0;
-}
-
-.avatar-preview {
+.avatar-current {
     display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    align-items: center;
-    padding: 16px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    margin: 16px 0 24px 0;
+    justify-content: center;
+    margin-bottom: 32px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.avatar-preview figure {
-    margin: 0;
-    text-align: center;
-}
-
-.avatar-preview img {
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #cbd5e1;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-}
-
-.avatar-preview figcaption {
-    font-size: 0.78rem;
-    color: #64748b;
-    margin-top: 6px;
-    font-weight: 500;
-}
-
-.avatar-page form {
-    display: grid;
-    gap: 16px;
-}
-
-.avatar-page button {
-    padding: 10px 20px;
-    background: #2563eb;
-    color: #ffffff;
-    border: none;
+.avatar-img-large {
+    width: 192px;
+    height: 192px;
     border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s ease;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
-.avatar-page button:hover {
-    background: #1d4ed8;
+.avatar-placeholder {
+    width: 192px;
+    height: 192px;
+    border-radius: 8px;
+    background-color: var(--bg-secondary);
+    border: 2px dashed var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.avatar-placeholder svg {
+    width: 64px;
+    height: 64px;
+}
+
+.avatar-instructions {
+    background-color: var(--bg-secondary);
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.avatar-instructions h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.avatar-instructions ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.file-input {
+    padding: 8px;
+    background-color: var(--bg-secondary);
+    cursor: pointer;
+}
+
+.file-input::file-selector-button {
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 6px 12px;
+    margin-right: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: background-color 0.2s;
+}
+
+.file-input::file-selector-button:hover {
+    background-color: var(--bg-secondary);
 }

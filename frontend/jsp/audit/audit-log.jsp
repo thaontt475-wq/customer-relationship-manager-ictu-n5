@@ -27,6 +27,8 @@
 <form class="audit-filter-bar crm-toolbar" method="get" action="${pageContext.request.contextPath}/audit">
 <div class="crm-form-group"><label for="actor" class="crm-label">Người thực hiện (ID)</label>
 <input id="actor" class="crm-input" name="userId" type="number" min="1" value="<%= Html.escape(request.getParameter("userId")) %>"></div>
+<div class="crm-form-group"><label for="action" class="crm-label">Hành động</label>
+<input id="action" class="crm-input" name="action" maxlength="50" value="<%= Html.escape(request.getParameter("action")) %>" placeholder="UPDATE, DELETE..."></div>
 <div class="crm-form-group"><label for="objectType" class="crm-label">Đối tượng</label>
 <input id="objectType" class="crm-input" name="objectType" maxlength="50" value="<%= Html.escape(request.getParameter("objectType")) %>" placeholder="USER, CUSTOMER..."></div>
 <div class="crm-form-group"><label for="objectId" class="crm-label">Mã bản ghi</label>
@@ -50,6 +52,24 @@
 <% } %>
 </tbody></table></div>
 <% if (logs.isEmpty() && error == null) { %><p>Chưa có nhật ký phù hợp.</p><% } %>
-<p>Hiển thị tối đa 200 bản ghi. Có thể thu hẹp bộ lọc để xem các bản ghi khác.</p>
+
+<% 
+    int currentPage = request.getAttribute("currentPage") != null ? (Integer) request.getAttribute("currentPage") : 1;
+    int totalPages = request.getAttribute("totalPages") != null ? (Integer) request.getAttribute("totalPages") : 1;
+    if (totalPages > 0) { 
+        String queryString = request.getQueryString() != null ? request.getQueryString() : "";
+        queryString = queryString.replaceAll("&?page=\\d+", "");
+        if (!queryString.isEmpty()) queryString = "&" + queryString;
+%>
+<div class="crm-pagination" style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+    <% if (currentPage > 1) { %>
+        <a class="crm-btn crm-btn-secondary" href="?page=<%= currentPage - 1 %><%= Html.escape(queryString) %>">Trang trước</a>
+    <% } %>
+    <span>Trang <%= currentPage %> / <%= totalPages %></span>
+    <% if (currentPage < totalPages) { %>
+        <a class="crm-btn crm-btn-secondary" href="?page=<%= currentPage + 1 %><%= Html.escape(queryString) %>">Trang sau</a>
+    <% } %>
+</div>
+<% } %>
 </div></section></div></main></div><jsp:include page="/jsp/shared/footer.jsp"/>
 </body></html>
