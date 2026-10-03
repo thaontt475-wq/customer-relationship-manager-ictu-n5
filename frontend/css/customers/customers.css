@@ -1,0 +1,448 @@
+/* ==========================================================================
+   CRM Customer 360 CSS
+   Sprint 3 — Customer 360 View
+   ========================================================================== */
+
+.crm-customer-360 {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-6);
+    width: 100%;
+    max-width: var(--crm-content-max-width, 1440px);
+    margin-inline: auto;
+}
+
+/* Hero Header Card */
+.c360-hero-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+    box-shadow: var(--crm-shadow-sm);
+    padding: var(--crm-space-6);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--crm-space-6);
+    flex-wrap: wrap;
+}
+
+.c360-hero-main {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--crm-space-5);
+    flex: 1 1 500px;
+    min-width: 0;
+}
+
+.c360-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--crm-radius-md);
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.c360-hero-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-2);
+    min-width: 0;
+}
+
+.c360-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--crm-space-3);
+}
+
+.c360-name {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--crm-text-primary);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.c360-meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--crm-space-3);
+    color: var(--crm-text-secondary);
+    font-size: 0.875rem;
+}
+
+.c360-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--crm-space-1);
+}
+
+.c360-stats-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--crm-space-4);
+    font-size: 0.875rem;
+    margin-top: var(--crm-space-1);
+}
+
+.c360-stat-highlight {
+    color: var(--crm-primary);
+    font-weight: 600;
+}
+
+/* Churn Risk Banner */
+.c360-churn-banner {
+    flex: 0 1 360px;
+    min-width: 280px;
+    background: var(--crm-danger-soft);
+    border: 1px solid var(--crm-danger);
+    border-radius: var(--crm-radius-md);
+    padding: var(--crm-space-4);
+    display: flex;
+    gap: var(--crm-space-3);
+    align-items: flex-start;
+}
+
+.c360-churn-icon {
+    color: var(--crm-danger);
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.c360-churn-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-1);
+    font-size: 0.8125rem;
+}
+
+.c360-churn-title {
+    font-weight: 700;
+    color: var(--crm-danger);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.c360-churn-desc {
+    color: var(--crm-text-primary);
+    line-height: 1.4;
+}
+
+.c360-churn-action {
+    color: var(--crm-text-secondary);
+    font-style: italic;
+}
+
+/* 3-Column Content Grid */
+.c360-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--crm-space-6);
+    align-items: start;
+}
+
+.c360-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-6);
+    min-width: 0;
+}
+
+.c360-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+    box-shadow: var(--crm-shadow-sm);
+    overflow: hidden;
+}
+
+.c360-card-header {
+    padding: var(--crm-space-4) var(--crm-space-5);
+    border-bottom: 1px solid var(--crm-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+}
+
+.c360-card-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--crm-text-primary);
+}
+
+.c360-card-body {
+    padding: var(--crm-space-5);
+}
+
+/* Contact List */
+.c360-contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-4);
+}
+
+.c360-contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--crm-space-3);
+    padding-bottom: var(--crm-space-4);
+    border-bottom: 1px solid var(--crm-border);
+}
+
+.c360-contact-item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.c360-contact-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--crm-radius-sm);
+    background: var(--crm-surface-subtle);
+    color: var(--crm-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.c360-contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.c360-contact-name {
+    font-weight: 600;
+    color: var(--crm-text-primary);
+    font-size: 0.875rem;
+}
+
+.c360-contact-role-title {
+    color: var(--crm-muted);
+    font-size: 0.75rem;
+}
+
+.c360-buying-role {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: var(--crm-radius-sm);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.c360-buying-role.decision-maker {
+    background: var(--crm-danger-soft);
+    color: var(--crm-danger);
+}
+
+.c360-buying-role.buyer {
+    background: var(--crm-warning-soft);
+    color: var(--crm-warning);
+}
+
+.c360-buying-role.champion {
+    background: var(--crm-success-soft);
+    color: var(--crm-success);
+}
+
+.c360-buying-role.influencer {
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary);
+}
+
+.c360-contact-meta {
+    color: var(--crm-text-secondary);
+    font-size: 0.75rem;
+    margin-top: 2px;
+}
+
+/* Deal Item */
+.c360-deal-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-4);
+}
+
+.c360-deal-item {
+    background: var(--crm-bg);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    padding: var(--crm-space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-2);
+}
+
+.c360-deal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+}
+
+.c360-deal-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--crm-text-primary);
+}
+
+.c360-deal-amount {
+    font-weight: 700;
+    font-size: 0.9375rem;
+    color: var(--crm-success);
+    white-space: nowrap;
+}
+
+.c360-deal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--crm-text-secondary);
+    gap: var(--crm-space-2);
+}
+
+.c360-deal-stage {
+    color: var(--crm-primary);
+    font-weight: 600;
+}
+
+/* Timeline */
+.c360-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-4);
+    position: relative;
+    padding-left: var(--crm-space-4);
+}
+
+.c360-timeline::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--crm-border);
+}
+
+.c360-timeline-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--crm-space-1);
+}
+
+.c360-timeline-dot {
+    position: absolute;
+    left: -19px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--crm-primary);
+    border: 2px solid var(--crm-surface);
+}
+
+.c360-timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-2);
+}
+
+.c360-timeline-subject {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--crm-text-primary);
+}
+
+.c360-timeline-time {
+    font-size: 0.75rem;
+    color: var(--crm-muted);
+}
+
+.c360-timeline-desc {
+    font-size: 0.8125rem;
+    color: var(--crm-text-secondary);
+    line-height: 1.4;
+}
+
+/* Custom fields key-value table */
+.c360-kv-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--crm-space-3);
+    font-size: 0.8125rem;
+}
+
+.c360-kv-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.c360-kv-label {
+    color: var(--crm-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.c360-kv-value {
+    color: var(--crm-text-primary);
+    font-weight: 500;
+}
+
+/* Empty state */
+.c360-empty {
+    text-align: center;
+    padding: var(--crm-space-6) var(--crm-space-4);
+    color: var(--crm-muted);
+    font-size: 0.8125rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .c360-grid {
+        grid-template-columns: 1fr;
+    }
+    .c360-hero-card {
+        flex-direction: column;
+    }
+    .c360-churn-banner {
+        width: 100%;
+        flex-basis: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .c360-hero-card {
+        padding: var(--crm-space-4);
+    }
+    .c360-card-body {
+        padding: var(--crm-space-4);
+    }
+    .c360-kv-list {
+        grid-template-columns: 1fr;
+    }
+}
