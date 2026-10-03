@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,19 +52,29 @@ public class WinLossPageServlet extends HttpServlet {
             if ("delete".equals(operation) && !"yes".equals(req.getParameter("confirm")))
                 throw new IllegalArgumentException("Bạn phải xác nhận trước khi xóa hoặc ngừng sử dụng.");
             if ("COMPETITOR".equals(tab)) {
-                if ("delete".equals(operation)) service.deleteCompetitor(ServerForms.positive(req.getParameter("id")));
-                else {
+                if ("delete".equals(operation)) {
+                    service.deleteCompetitor(ServerForms.positive(req.getParameter("id")));
+                    ServerForms.setToast(req, "success", "Xóa đối thủ thành công", "Thông tin đối thủ cạnh tranh đã được xóa.");
+                } else {
                     Competitor c = new Competitor();
-                    if ("update".equals(operation)) c.setId(ServerForms.positive(req.getParameter("id")));
-                    else if (!"create".equals(operation)) throw new IllegalArgumentException("Thao tác không hợp lệ.");
+                    if ("update".equals(operation)) {
+                        c.setId(ServerForms.positive(req.getParameter("id")));
+                    } else if (!"create".equals(operation)) {
+                        throw new IllegalArgumentException("Thao tác không hợp lệ.");
+                    }
                     c.setName(req.getParameter("name"));
                     c.setStrengths(req.getParameter("strengths"));
                     c.setWeaknesses(req.getParameter("weaknesses"));
                     c.setWebsite(req.getParameter("website"));
                     c.setActive("true".equals(req.getParameter("active")));
                     c.setDisplayOrder(order(req.getParameter("displayOrder")));
-                    if ("create".equals(operation)) service.createCompetitor(c);
-                    else service.updateCompetitor(c);
+                    if ("create".equals(operation)) {
+                        service.createCompetitor(c);
+                        ServerForms.setToast(req, "success", "Thêm đối thủ thành công", "Đối thủ cạnh tranh mới đã được tạo.");
+                    } else {
+                        service.updateCompetitor(c);
+                        ServerForms.setToast(req, "success", "Cập nhật thành công", "Thông tin đối thủ cạnh tranh đã được lưu.");
+                    }
                 }
             } else {
                 if ("delete".equals(operation)) {
@@ -75,6 +84,7 @@ public class WinLossPageServlet extends HttpServlet {
                     if (group.stream().noneMatch(r -> r.getId() != null && r.getId() == id))
                         throw new IllegalArgumentException("Lý do không thuộc nhóm đã chọn.");
                     service.deleteReason(id);
+                    ServerForms.setToast(req, "success", "Xóa lý do thành công", "Lý do thắng/thua đã được gỡ bỏ.");
                 } else {
                     if (!"create".equals(operation) && !"update".equals(operation))
                         throw new IllegalArgumentException("Thao tác không hợp lệ.");
@@ -91,7 +101,11 @@ public class WinLossPageServlet extends HttpServlet {
                             throw new IllegalArgumentException("Lý do không thuộc nhóm đã chọn.");
                         r.setId(id);
                         service.updateReason(r);
-                    } else service.createReason(r);
+                        ServerForms.setToast(req, "success", "Cập nhật thành công", "Lý do thắng/thua đã được lưu.");
+                    } else {
+                        service.createReason(r);
+                        ServerForms.setToast(req, "success", "Thêm lý do thành công", "Lý do mới đã được bổ sung vào hệ thống.");
+                    }
                 }
             }
             res.sendRedirect(req.getContextPath() + "/winloss?tab=" + tab + "&result=ok");

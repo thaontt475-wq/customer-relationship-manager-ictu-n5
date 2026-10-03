@@ -1,7 +1,6 @@
 package com.crm.dao.categories;
 
 import com.crm.model.Category;
-import com.crm.model.CategoryType;
 import com.crm.util.DBConnection;
 
 import java.sql.Connection;

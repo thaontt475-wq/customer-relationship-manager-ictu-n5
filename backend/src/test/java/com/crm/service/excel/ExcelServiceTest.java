@@ -2,7 +2,6 @@ package com.crm.service.excel;
 
 import com.crm.dao.excel.UserImportDAO;
 import com.crm.dto.excel.ImportReportResult;
-import com.crm.dto.excel.ImportRowData;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Set;
@@ -184,6 +182,67 @@ class ExcelServiceTest {
             assertEquals(1, result.getErrorRows().size());
             assertTrue(result.getErrorRows().get(0).getErrors().stream().anyMatch(e -> e.contains("Team Lead")));
         }
+
+        @Test
+        @DisplayName("Duplicate username within the same file is flagged as error")
+        void duplicateUsernameInFile_flaggedAsError() throws Exception {
+            String csvData = "Họ và tên,Email,Tên đăng nhập,Số điện thoại,Vai trò,Nhóm kinh doanh\n"
+                    + "Nguyen Van A,user1@test.com,same_user,0912345678,Sales Rep,Miền Bắc\n"
+                    + "Nguyen Van B,user2@test.com,same_user,0987654321,Sales Rep,Miền Bắc\n";
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(csvData.getBytes(StandardCharsets.UTF_8));
+            ImportReportResult result = excelService.parseAndValidate(inputStream, "test.csv");
+
+            assertEquals(2, result.getTotalRows());
+            assertEquals(1, result.getValidRows().size());
+            assertEquals(1, result.getErrorRows().size());
+            assertTrue(result.getErrorRows().get(0).getErrors().stream().anyMatch(e -> e.contains("Tên đăng nhập trùng lặp")));
+        }
+
+        @Test
+        @DisplayName("Username already in database is flagged as error")
+        void existingDbUsername_flaggedAsError() throws Exception {
+            String csvData = "Họ và tên,Email,Tên đăng nhập,Số điện thoại,Vai trò,Nhóm kinh doanh\n"
+                    + "Nguyen Van A,newuser@test.com,existing_user,0912345678,Sales Rep,Miền Bắc\n";
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(csvData.getBytes(StandardCharsets.UTF_8));
+            ImportReportResult result = excelService.parseAndValidate(inputStream, "test.csv");
+
+            assertEquals(1, result.getTotalRows());
+            assertEquals(0, result.getValidRows().size());
+            assertEquals(1, result.getErrorRows().size());
+            assertTrue(result.getErrorRows().get(0).getErrors().stream().anyMatch(e -> e.contains("Tên đăng nhập đã tồn tại")));
+        }
+
+        @Test
+        @DisplayName("Invalid role is flagged as error")
+        void invalidRole_flaggedAsError() throws Exception {
+            String csvData = "Họ và tên,Email,Tên đăng nhập,Số điện thoại,Vai trò,Nhóm kinh doanh\n"
+                    + "Nguyen Van A,role@test.com,user_role,0912345678,NonExistentRole,Miền Bắc\n";
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(csvData.getBytes(StandardCharsets.UTF_8));
+            ImportReportResult result = excelService.parseAndValidate(inputStream, "test.csv");
+
+            assertEquals(1, result.getTotalRows());
+            assertEquals(0, result.getValidRows().size());
+            assertEquals(1, result.getErrorRows().size());
+            assertTrue(result.getErrorRows().get(0).getErrors().stream().anyMatch(e -> e.contains("Vai trò không tồn tại")));
+        }
+
+        @Test
+        @DisplayName("Invalid team is flagged as error")
+        void invalidTeam_flaggedAsError() throws Exception {
+            String csvData = "Họ và tên,Email,Tên đăng nhập,Số điện thoại,Vai trò,Nhóm kinh doanh\n"
+                    + "Nguyen Van A,team@test.com,user_team,0912345678,Sales Rep,NonExistentTeam\n";
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(csvData.getBytes(StandardCharsets.UTF_8));
+            ImportReportResult result = excelService.parseAndValidate(inputStream, "test.csv");
+
+            assertEquals(1, result.getTotalRows());
+            assertEquals(0, result.getValidRows().size());
+            assertEquals(1, result.getErrorRows().size());
+            assertTrue(result.getErrorRows().get(0).getErrors().stream().anyMatch(e -> e.contains("Nhóm kinh doanh không tồn tại")));
+        }
     }
 
     @Nested
@@ -227,6 +286,29 @@ class ExcelServiceTest {
         @DisplayName("confirmImport with non-existent token throws IllegalStateException")
         void confirmImport_invalidToken_throws() {
             assertThrows(IllegalStateException.class, () -> excelService.confirmImport("non_existent_token"));
+        }
+
+        @Test
+        @DisplayName("importDirect parses, validates, skips errors and persists valid rows in one step")
+        void importDirect_persistsValidRowsDirectly() throws Exception {
+            when(userImportDAO.findExistingEmails(any(), anyCollection())).thenReturn(Set.of());
+            when(userImportDAO.findExistingUsernames(any(), anyCollection())).thenReturn(Set.of());
+            when(userImportDAO.findAllRolesMap(any())).thenReturn(Map.of("sales rep", 1L));
+            when(userImportDAO.findAllTeamsMap(any())).thenReturn(Map.of());
+            when(userImportDAO.saveImportedUsers(any(), anyList(), anyString())).thenReturn(1);
+
+            String csvData = "Họ và tên,Email,Tên đăng nhập,Số điện thoại,Vai trò,Nhóm kinh doanh\n"
+                    + "Nguyen Van A,valid@test.com,vana,0912345678,Sales Rep,\n"
+                    + "Invalid User,,invalid,0987654321,Sales Rep,\n";
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(csvData.getBytes(StandardCharsets.UTF_8));
+            ImportReportResult directReport = excelService.importDirect(inputStream, "direct.csv", 1L);
+
+            assertNotNull(directReport);
+            assertEquals(2, directReport.getTotalRows());
+            assertEquals(1, directReport.getSuccessRows());
+            assertEquals(1, directReport.getFailedRows());
+            verify(userImportDAO, times(1)).saveImportedUsers(any(), argThat(list -> list.size() == 1), anyString());
         }
     }
 }

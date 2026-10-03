@@ -90,7 +90,11 @@ public class PipelinePageServlet extends HttpServlet {
                         }
                         stage.setId(id);
                         service.updateStage(stage);
-                    } else service.createStage(stage);
+                        ServerForms.setToast(req, "success", "Cập nhật thành công", "Giai đoạn bán hàng đã được lưu.");
+                    } else {
+                        service.createStage(stage);
+                        ServerForms.setToast(req, "success", "Tạo giai đoạn thành công", "Giai đoạn mới đã được thêm vào quy trình.");
+                    }
                 }
                 case "reorder" -> {
                     java.util.List<PipelineStage> allStages = service.getStages(pipelineId, null);
@@ -106,7 +110,10 @@ public class PipelinePageServlet extends HttpServlet {
                     pairs.sort(java.util.Comparator.comparingLong(a -> a[1]));
                     java.util.List<Long> orderedIds = new java.util.ArrayList<>();
                     for (long[] pair : pairs) orderedIds.add(pair[0]);
-                    if (!orderedIds.isEmpty()) service.reorderStages(pipelineId, orderedIds);
+                    if (!orderedIds.isEmpty()) {
+                        service.reorderStages(pipelineId, orderedIds);
+                        ServerForms.setToast(req, "success", "Sắp xếp thành công", "Thứ tự các giai đoạn pipeline đã được cập nhật.");
+                    }
                 }
                 case "delete" -> {
                     if (!"yes".equals(req.getParameter("confirm"))) {
@@ -126,6 +133,7 @@ public class PipelinePageServlet extends HttpServlet {
                             throw new IllegalArgumentException("Giai đoạn nhận phải thuộc cùng pipeline.");
                     }
                     if (!service.deleteStage(id, targetId)) { res.sendError(404); return; }
+                    ServerForms.setToast(req, "success", "Xóa thành công", "Giai đoạn đã được xóa khỏi quy trình bán hàng.");
                 }
                 default -> { res.sendError(400, "Thao tác không hợp lệ."); return; }
             }

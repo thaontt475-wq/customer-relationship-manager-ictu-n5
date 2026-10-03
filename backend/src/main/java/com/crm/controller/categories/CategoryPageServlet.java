@@ -86,7 +86,11 @@ public class CategoryPageServlet extends HttpServlet {
                         Category previous = service.getCategoryById(data.getId());
                         if (previous == null || previous.getType() != type) {res.sendError(404);return;}
                         service.updateCategory(data);
-                    } else service.createCategory(data);
+                        ServerForms.setToast(req, "success", "Cập nhật thành công", "Danh mục đã được lưu.");
+                    } else {
+                        service.createCategory(data);
+                        ServerForms.setToast(req, "success", "Tạo danh mục thành công", "Danh mục mới đã được thêm.");
+                    }
                 }
                 case "delete" -> {
                     long id = ServerForms.positive(req.getParameter("id"));
@@ -94,6 +98,7 @@ public class CategoryPageServlet extends HttpServlet {
                     if (previous == null || previous.getType() != type) {res.sendError(404);return;}
                     if (!"yes".equals(req.getParameter("confirm"))) {res.sendError(400,"Cần xác nhận xóa.");return;}
                     if (!service.deleteCategory(id)) {res.sendError(404);return;}
+                    ServerForms.setToast(req, "success", "Xóa danh mục thành công", "Danh mục đã được xóa.");
                 }
                 default -> {res.sendError(400,"Thao tác không hợp lệ.");return;}
             }

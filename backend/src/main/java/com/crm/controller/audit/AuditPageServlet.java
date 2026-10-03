@@ -1,10 +1,8 @@
 package com.crm.controller.audit;
 
 import com.crm.model.AuditLogFilter;
-import com.crm.service.permissions.MenuService;
-import java.util.ArrayList;
-import java.util.List;
 import com.crm.service.audit.AuditLogService;
+import com.crm.service.permissions.MenuService;
 import com.crm.util.SessionKey;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,6 +17,8 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,9 +28,32 @@ import java.util.logging.Logger;
 public class AuditPageServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(AuditPageServlet.class.getName());
     private final AuditLogService service;
+    private final MenuService menuService;
 
-    public AuditPageServlet() { this(new AuditLogService()); }
-    public AuditPageServlet(AuditLogService service) { this.service = service; }
+    public AuditPageServlet() {
+        this(new AuditLogService(), new MenuService());
+    }
+
+    public AuditPageServlet(AuditLogService service) {
+        this(service, new MenuService());
+    }
+
+    public AuditPageServlet(AuditLogService service, MenuService menuService) {
+        this.service = service != null ? service : new AuditLogService();
+        this.menuService = menuService != null ? menuService : new MenuService();
+    }
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String method = request.getMethod();
+        if ("PATCH".equalsIgnoreCase(method)) {
+            response.setHeader("Allow", "GET");
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+            return;
+        }
+        super.service(request, response);
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -40,9 +63,8 @@ public class AuditPageServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login?expired=1");
             return;
         }
-        // MenuNavigationFilter guards /audit with the existing module permission.
-        // Restrict direct access here as well when the filter is accidentally unmapped.
-        if (!new MenuService().isAuthorized(sessionRoles(session), "/audit")) {
+        // Restrict access to authorized roles (Admin, Director)
+        if (!menuService.isAuthorized(sessionRoles(session), "/audit")) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -57,13 +79,27 @@ public class AuditPageServlet extends HttpServlet {
             filter.setAction(action.isEmpty() ? null : action);
             filter.setFrom(date(request.getParameter("from"), false));
             filter.setTo(date(request.getParameter("to"), true));
-            filter.setLimit(50); // Set smaller limit for pages
+
+            String sizeStr = request.getParameter("pageSize");
+            if (sizeStr == null || sizeStr.isBlank()) {
+                sizeStr = request.getParameter("size");
+            }
+            int pageSize = 20;
+            if (sizeStr != null && !sizeStr.isBlank()) {
+                try {
+                    int parsed = Integer.parseInt(sizeStr.trim());
+                    if (parsed == 10 || parsed == 20 || parsed == 50 || parsed == 100) {
+                        pageSize = parsed;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+            filter.setLimit(pageSize);
             
             String pageStr = request.getParameter("page");
             int page = 1;
             if (pageStr != null && !pageStr.isBlank()) {
                 try {
-                    page = Integer.parseInt(pageStr);
+                    page = Integer.parseInt(pageStr.trim());
                     if (page < 1) page = 1;
                 } catch (NumberFormatException ignored) {}
             }
@@ -74,15 +110,43 @@ public class AuditPageServlet extends HttpServlet {
             int totalPages = (int) Math.ceil((double) totalLogs / filter.getLimit());
             request.setAttribute("currentPage", filter.getPage());
             request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalLogs", totalLogs);
+            request.setAttribute("pageSize", pageSize);
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             request.setAttribute("auditError", e.getMessage());
+            request.setAttribute("auditLogs", List.of());
+            request.setAttribute("currentPage", 1);
+            request.setAttribute("totalPages", 1);
+            request.setAttribute("totalLogs", 0);
         } catch (SQLException e) {
             LOG.log(Level.SEVERE, "Unable to render audit page", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             request.setAttribute("auditError", "Không thể tải nhật ký. Vui lòng thử lại sau.");
+            request.setAttribute("auditLogs", List.of());
+            request.setAttribute("currentPage", 1);
+            request.setAttribute("totalPages", 1);
+            request.setAttribute("totalLogs", 0);
         }
         request.getRequestDispatcher("/jsp/audit/audit-log.jsp").forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setHeader("Allow", "GET");
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setHeader("Allow", "GET");
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setHeader("Allow", "GET");
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
     }
 
     private static String trim(String s) { return s == null ? "" : s.trim(); }

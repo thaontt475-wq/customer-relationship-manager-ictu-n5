@@ -28,8 +28,8 @@ class ScopeEntityTypeTest {
         ScopeAccessPolicy policy = new ScopeAccessPolicy();
         ScopeContext employeeA = new ScopeContext(10L, 1L, "SELF");
 
-        for (ScopeEntityType ignored : ScopeEntityType.values()) {
-            ScopeRecord ownedByEmployeeB = new ScopeRecord(100L, "Bản ghi của B", 20L, 1L);
+        for (ScopeEntityType entityType : ScopeEntityType.values()) {
+            ScopeRecord ownedByEmployeeB = new ScopeRecord(100L, "Bản ghi của B (" + entityType + ")", 20L, 1L);
             assertFalse(policy.canAccess(employeeA, ownedByEmployeeB));
         }
     }
@@ -39,9 +39,9 @@ class ScopeEntityTypeTest {
         ScopeAccessPolicy policy = new ScopeAccessPolicy();
         ScopeContext employeeA = new ScopeContext(10L, 1L, "TEAM");
 
-        for (ScopeEntityType ignored : ScopeEntityType.values()) {
-            ScopeRecord sameTeam = new ScopeRecord(100L, "Bản ghi cùng nhóm", 20L, 1L);
-            ScopeRecord otherTeam = new ScopeRecord(101L, "Bản ghi khác nhóm", 30L, 2L);
+        for (ScopeEntityType entityType : ScopeEntityType.values()) {
+            ScopeRecord sameTeam = new ScopeRecord(100L, "Bản ghi cùng nhóm (" + entityType + ")", 20L, 1L);
+            ScopeRecord otherTeam = new ScopeRecord(101L, "Bản ghi khác nhóm (" + entityType + ")", 30L, 2L);
 
             assertTrue(policy.canAccess(employeeA, sameTeam));
             assertFalse(policy.canAccess(employeeA, otherTeam));
@@ -53,8 +53,8 @@ class ScopeEntityTypeTest {
         ScopeAccessPolicy policy = new ScopeAccessPolicy();
         ScopeContext employeeA = new ScopeContext(10L, 1L, "ALL");
 
-        for (ScopeEntityType ignored : ScopeEntityType.values()) {
-            ScopeRecord otherOwner = new ScopeRecord(100L, "Bản ghi bất kỳ", 999L, 99L);
+        for (ScopeEntityType entityType : ScopeEntityType.values()) {
+            ScopeRecord otherOwner = new ScopeRecord(100L, "Bản ghi bất kỳ (" + entityType + ")", 999L, 99L);
             assertTrue(policy.canAccess(employeeA, otherOwner));
         }
     }

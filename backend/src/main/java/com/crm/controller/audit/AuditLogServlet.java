@@ -4,6 +4,7 @@ import com.crm.model.AuditLog;
 import com.crm.model.AuditLogFilter;
 import com.crm.model.User;
 import com.crm.service.audit.AuditLogService;
+import com.crm.service.permissions.MenuService;
 import com.crm.util.SessionKey;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -42,13 +44,30 @@ public class AuditLogServlet extends HttpServlet {
             .create();
 
     private final AuditLogService auditLogService;
+    private final MenuService menuService;
 
     public AuditLogServlet() {
-        this(new AuditLogService());
+        this(new AuditLogService(), new MenuService());
     }
 
     public AuditLogServlet(AuditLogService auditLogService) {
+        this(auditLogService, new MenuService());
+    }
+
+    public AuditLogServlet(AuditLogService auditLogService, MenuService menuService) {
         this.auditLogService = auditLogService != null ? auditLogService : new AuditLogService();
+        this.menuService = menuService != null ? menuService : new MenuService();
+    }
+
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String method = request.getMethod();
+        if ("PATCH".equalsIgnoreCase(method)) {
+            writeMethodNotAllowed(response);
+            return;
+        }
+        super.service(request, response);
     }
 
     @Override
@@ -56,8 +75,17 @@ public class AuditLogServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        if (extractActorUserId(request) == null) {
+        HttpSession session = request.getSession(false);
+        Long actorUserId = extractActorUserId(request);
+        if (session == null || actorUserId == null) {
             writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false, "Yêu cầu đăng nhập", null);
+            return;
+        }
+
+        List<String> roles = sessionRoles(session);
+        if (!menuService.isAuthorized(roles, "/audit")) {
+            writeJson(response, HttpServletResponse.SC_FORBIDDEN, false,
+                    "Không có quyền truy cập nhật ký kiểm toán", null);
             return;
         }
 
@@ -88,6 +116,19 @@ public class AuditLogServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
         writeMethodNotAllowed(response);
+    }
+
+    private List<String> sessionRoles(HttpSession session) {
+        if (session == null) return List.of();
+        Object roles = session.getAttribute(SessionKey.ROLES);
+        if (roles == null) roles = session.getAttribute("roles");
+        List<String> result = new ArrayList<>();
+        if (roles instanceof Iterable<?> iterable) {
+            for (Object role : iterable) {
+                if (role != null) result.add(String.valueOf(role));
+            }
+        }
+        return result;
     }
 
     private AuditLogFilter parseFilter(HttpServletRequest request) {

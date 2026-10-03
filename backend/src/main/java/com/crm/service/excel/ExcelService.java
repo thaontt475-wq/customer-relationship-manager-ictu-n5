@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -49,8 +47,6 @@ import java.util.regex.Pattern;
  * 4. Producing detailed import reports.
  */
 public class ExcelService {
-    private static final Logger LOGGER = Logger.getLogger(ExcelService.class.getName());
-
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s.]{8,20}$");
     private static final String DEFAULT_PASSWORD = "Password@123";

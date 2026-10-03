@@ -6,8 +6,6 @@ import com.crm.util.DBConnection;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -18,8 +16,6 @@ import java.util.regex.Pattern;
  * 3. Vietnamese phone number validation: starts with 0 (or +84), valid carrier prefixes (3, 5, 7, 8, 9), 10 digits total.
  */
 public class ProfileService {
-    private static final Logger LOGGER = Logger.getLogger(ProfileService.class.getName());
-
     /**
      * Regex matching valid 10-digit Vietnamese phone numbers:
      * Examples: 0912345678, 0387654321, 0791122334, 0855667788, 0566778899,

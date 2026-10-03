@@ -337,7 +337,13 @@ public class UserDAO {
     public long countSearch(Connection conn, String keyword, String role, String status)
             throws SQLException {
 
-        SearchClause clause = buildSearchClause(keyword, role, status);
+        return countSearch(conn, keyword, null, role, status);
+    }
+
+    public long countSearch(Connection conn, String keyword, String team, String role, String status)
+            throws SQLException {
+
+        SearchClause clause = buildSearchClause(keyword, team, role, status);
         String sql = "SELECT COUNT(*) FROM users u "
                 + "LEFT JOIN teams t ON t.id = u.team_id "
                 + clause.sql();
@@ -354,7 +360,13 @@ public class UserDAO {
     public List<User> search(Connection conn, String keyword, String role, String status,
                              int limit, int offset) throws SQLException {
 
-        SearchClause clause = buildSearchClause(keyword, role, status);
+        return search(conn, keyword, null, role, status, limit, offset);
+    }
+
+    public List<User> search(Connection conn, String keyword, String team, String role, String status,
+                             int limit, int offset) throws SQLException {
+
+        SearchClause clause = buildSearchClause(keyword, team, role, status);
 
         String sql = "SELECT u.id, u.username, u.email, u.full_name, u.display_name, u.active, u.phone, u.status, "
                 + "u.team_id, u.data_scope, t.name AS team_name, "
@@ -385,7 +397,7 @@ public class UserDAO {
         return users;
     }
 
-    private SearchClause buildSearchClause(String keyword, String role, String status) {
+    private SearchClause buildSearchClause(String keyword, String team, String role, String status) {
         StringBuilder sql = new StringBuilder(" WHERE 1 = 1");
         List<Object> parameters = new ArrayList<>();
 
@@ -398,6 +410,15 @@ public class UserDAO {
             parameters.add(pattern);
             parameters.add(pattern);
             parameters.add(pattern);
+        }
+
+        if (team != null && !team.isBlank()) {
+            try {
+                sql.append(" AND u.team_id = ?");
+                parameters.add(Long.parseLong(team.trim()));
+            } catch (NumberFormatException invalidTeam) {
+                sql.append(" AND 1 = 0");
+            }
         }
 
         if (role != null && !role.isBlank()) {
