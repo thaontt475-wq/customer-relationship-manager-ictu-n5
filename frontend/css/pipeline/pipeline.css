@@ -1,8 +1,381 @@
-.pipeline-stepper { display: flex; flex-wrap: wrap; gap: var(--crm-space-2); margin-bottom: var(--crm-space-6); }
-.pipeline-stepper .crm-btn { flex: 1 1 150px; text-align: left; justify-content: flex-start; overflow-wrap: anywhere; }
-.pipeline-stepper .crm-badge { flex-shrink: 0; }
-.pipeline-probability { display: flex; align-items: center; gap: var(--crm-space-4); }
-.pipeline-probability input[type="range"] { flex: 1; min-width: 0; accent-color: var(--crm-primary); }
-.pipeline-probability .crm-input { width: 88px; }
-.pipeline-page #noticeActiveDealsAlert { margin-bottom: var(--crm-space-5); }
-.pipeline-page .crm-settings-table { min-width: 1100px; }
+/* ==========================================================================
+   Pipeline Stages Configuration — CRM-47 / S2-09
+   Pure CSS3. Zero JavaScript.
+   ========================================================================== */
+
+/* --- Page Shell --- */
+.pipeline-page {
+    padding: 24px;
+    min-width: 0;
+    flex: 1;
+    max-width: 1200px;
+}
+.pipeline-page h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--text-color, #1a1a2e);
+}
+.pipeline-page .page-subtitle {
+    color: var(--text-muted, #6b7280);
+    font-size: 0.92rem;
+    margin: 0 0 20px;
+}
+
+/* --- Cards / Sections --- */
+.pipeline-card {
+    background: var(--card-bg, #fff);
+    color: var(--text-color, #222);
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+.pipeline-card h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 14px;
+    color: var(--text-color, #1a1a2e);
+}
+
+/* --- Notice / Alert --- */
+.pipeline-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #28794a;
+    background: #e6f3e8;
+    color: #153c25;
+    margin-bottom: 16px;
+    font-size: 0.92rem;
+}
+.pipeline-notice::before {
+    content: "\2713";
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* --- Filter Bar --- */
+.pipeline-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 16px;
+}
+.pipeline-filter label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted, #555);
+}
+.pipeline-filter select,
+.pipeline-filter input[type="number"] {
+    padding: 8px 10px;
+    border: 1px solid var(--border-color, #bbb);
+    border-radius: 6px;
+    background: var(--input-bg, #fff);
+    color: inherit;
+    min-width: 140px;
+}
+
+/* --- Stage Table --- */
+.pipeline-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.pipeline-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 780px;
+}
+.pipeline-table th,
+.pipeline-table td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+.pipeline-table thead th {
+    background: var(--table-header-bg, #f8f9fa);
+    font-weight: 600;
+    color: var(--text-muted, #374151);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+.pipeline-table tbody tr:hover {
+    background: var(--row-hover, rgba(25, 74, 131, 0.04));
+}
+
+/* Order column */
+.pipeline-table .col-order {
+    text-align: center;
+    width: 60px;
+    font-weight: 700;
+    color: var(--text-color, #1e3a5f);
+}
+
+/* Probability badge */
+.prob-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.82rem;
+}
+.prob-badge--high { background: #dcfce7; color: #166534; }
+.prob-badge--mid  { background: #fef9c3; color: #854d0e; }
+.prob-badge--low  { background: #fee2e2; color: #991b1b; }
+
+/* Stage type badge */
+.type-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.type-badge--won    { background: #bbf7d0; color: #14532d; }
+.type-badge--lost   { background: #fecaca; color: #7f1d1d; }
+.type-badge--normal { background: #e0e7ff; color: #3730a3; }
+
+/* Status badge */
+.status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-badge--active   { background: #dcfce7; color: #166534; }
+.status-badge--inactive { background: #f3f4f6; color: #6b7280; }
+
+/* Requirements column */
+.req-text {
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    color: var(--text-muted, #555);
+}
+
+/* --- Empty State --- */
+.pipeline-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted, #9ca3af);
+}
+.pipeline-empty-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* --- Action Buttons --- */
+.pipeline-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    border: 1px solid var(--border-color, #999);
+    border-radius: 6px;
+    background: var(--card-bg, #f7f7f7);
+    color: var(--text-color, #222);
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background 0.15s, border-color 0.15s;
+}
+.pipeline-btn:hover {
+    background: var(--row-hover, #eef2f7);
+    border-color: #777;
+}
+.pipeline-btn--primary {
+    background: #194a83;
+    color: #fff;
+    border-color: #194a83;
+}
+.pipeline-btn--primary:hover {
+    background: #153d6e;
+}
+.pipeline-btn--danger {
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+.pipeline-btn--danger:hover {
+    background: #fef2f2;
+}
+.pipeline-btn--sm {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+}
+.pipeline-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* --- Delete form inline --- */
+.pipeline-delete-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border-color, #ddd);
+}
+.pipeline-delete-form select {
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 0.82rem;
+}
+.pipeline-delete-form label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.82rem;
+    color: var(--text-muted, #666);
+}
+
+/* --- Reorder Form --- */
+.reorder-section {
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border-color, #e5e7eb);
+}
+.reorder-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+}
+.reorder-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: var(--card-bg, #fafbfc);
+}
+.reorder-item label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+.reorder-item input[type="number"] {
+    width: 60px;
+    padding: 4px 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    text-align: center;
+}
+.reorder-item .reorder-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+/* --- Create / Edit Form --- */
+.pipeline-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+}
+.pipeline-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-muted, #374151);
+}
+.pipeline-form input[type="text"],
+.pipeline-form input[type="number"],
+.pipeline-form select,
+.pipeline-form textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border-color, #bbb);
+    border-radius: 6px;
+    background: var(--input-bg, #fff);
+    color: inherit;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+.pipeline-form textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+.pipeline-form .full-width {
+    grid-column: 1 / -1;
+}
+.pipeline-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    grid-column: 1 / -1;
+}
+
+/* --- Opportunity count column --- */
+.opp-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.opp-count--nonzero {
+    color: #b45309;
+    font-weight: 600;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .pipeline-page {
+        padding: 14px;
+    }
+    .pipeline-card {
+        padding: 14px;
+    }
+    .pipeline-form {
+        grid-template-columns: 1fr;
+    }
+    .pipeline-filter {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .pipeline-filter label {
+        width: 100%;
+    }
+    .pipeline-table {
+        min-width: 600px;
+    }
+}
+@media (max-width: 480px) {
+    .pipeline-page {
+        padding: 10px;
+    }
+    .pipeline-card {
+        padding: 10px;
+        border-radius: 6px;
+    }
+    .pipeline-page h1 {
+        font-size: 1.2rem;
+    }
+}
