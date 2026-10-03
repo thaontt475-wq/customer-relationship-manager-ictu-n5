@@ -8,11 +8,7 @@ import com.crm.util.DBConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Service managing Common Master Data Categories (CRM-44):
@@ -26,8 +22,6 @@ import java.util.logging.Logger;
  * - Blocks deletion when category is referenced in other records.
  */
 public class CategoryService {
-    private static final Logger LOGGER = Logger.getLogger(CategoryService.class.getName());
-
     private final CategoryDAO categoryDAO;
 
     public CategoryService() {

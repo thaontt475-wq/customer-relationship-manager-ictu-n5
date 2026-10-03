@@ -1,7 +1,6 @@
 package com.crm.dao.excel;
 
 import com.crm.dto.excel.ImportRowData;
-import com.crm.util.DBConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,15 +15,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * DAO layer managing database batch checks and persistence for Excel User Import (CRM-32).
  */
 public class UserImportDAO {
-    private static final Logger LOGGER = Logger.getLogger(UserImportDAO.class.getName());
-
     /**
      * Check which emails among the provided set already exist in the database.
      */
@@ -35,11 +30,9 @@ public class UserImportDAO {
         }
 
         StringBuilder sql = new StringBuilder("SELECT LOWER(email) AS email FROM users WHERE LOWER(email) IN (");
-        int index = 0;
-        for (String ignored : emails) {
-            if (index > 0) sql.append(",");
+        for (int i = 0; i < emails.size(); i++) {
+            if (i > 0) sql.append(",");
             sql.append("?");
-            index++;
         }
         sql.append(")");
 
@@ -67,11 +60,9 @@ public class UserImportDAO {
         }
 
         StringBuilder sql = new StringBuilder("SELECT LOWER(username) AS username FROM users WHERE LOWER(username) IN (");
-        int index = 0;
-        for (String ignored : usernames) {
-            if (index > 0) sql.append(",");
+        for (int i = 0; i < usernames.size(); i++) {
+            if (i > 0) sql.append(",");
             sql.append("?");
-            index++;
         }
         sql.append(")");
 

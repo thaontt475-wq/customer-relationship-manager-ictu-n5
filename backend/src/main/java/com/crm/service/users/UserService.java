@@ -231,15 +231,27 @@ public class UserService {
             int requestedPage,
             int requestedSize) throws SQLException {
 
+        return searchUsers(keyword, null, role, status, requestedPage, requestedSize);
+    }
+
+    public UserPage searchUsers(
+            String keyword,
+            String team,
+            String role,
+            String status,
+            int requestedPage,
+            int requestedSize) throws SQLException {
+
         int page = Math.max(requestedPage, 1);
         int size = requestedSize <= 0 ? 20 : Math.min(requestedSize, 100);
         int offset = (page - 1) * size;
 
         try (Connection conn = DBConnection.getConnection()) {
-            long totalItems = userDAO.countSearch(conn, keyword, role, status);
+            long totalItems = userDAO.countSearch(conn, keyword, team, role, status);
             List<User> items = userDAO.search(
                     conn,
                     keyword,
+                    team,
                     role,
                     status,
                     size,

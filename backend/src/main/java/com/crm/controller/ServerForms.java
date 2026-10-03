@@ -5,12 +5,38 @@ import com.crm.model.User;
 import com.crm.util.SessionKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 /** Shared presentation boundary for HTML forms; JSON API controllers are unaffected. */
 public final class ServerForms {
+    private static final String FLASH_TOAST_KEY = "CRM_FLASH_TOAST";
+
+    public record FlashToast(String type, String title, String message) implements Serializable {}
+
     private ServerForms() { }
+
+    public static void setToast(HttpServletRequest request, String type, String title, String message) {
+        HttpSession session = request.getSession(true);
+        if (session != null) {
+            session.setAttribute(FLASH_TOAST_KEY, new FlashToast(type, title, message));
+        }
+    }
+
+    public static FlashToast consumeToast(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Object obj = session.getAttribute(FLASH_TOAST_KEY);
+            if (obj instanceof FlashToast toast) {
+                session.removeAttribute(FLASH_TOAST_KEY);
+                return toast;
+            }
+        }
+        return null;
+    }
+
     public static Long actor(HttpServletRequest request) {
         var session = request.getSession(false);
         if (session == null) return null;
