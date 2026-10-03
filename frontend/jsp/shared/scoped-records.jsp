@@ -21,6 +21,9 @@ if (detail != null) { %>
 <a href="<%= Html.escape(route) %>">Quay lại danh sách</a>
 <% } else { %>
 <form method="get" action="<%= Html.escape(route) %>"><label>Tìm kiếm <input name="q" value="<%= Html.escape(request.getParameter("q")) %>"></label><button type="submit">Tìm kiếm</button></form>
+<% if ("/customers".equals(request.getServletPath())) { %>
+<p><a href="${pageContext.request.contextPath}/customers/duplicates">Phát hiện &amp; Gộp khách hàng trùng</a></p>
+<% } %>
 <form method="get" action="<%= Html.escape(request.getContextPath() + "/api" + request.getServletPath() + "/export") %>"><input type="hidden" name="q" value="<%= Html.escape(request.getParameter("q")) %>"><button type="submit">Xuất Excel</button></form>
 <ul><% for (ScopeRecord row : (List<ScopeRecord>)request.getAttribute("records")) { %>
 <li><a href="<%= Html.escape(route) %>?id=<%= row.id() %>"><%= Html.escape(row.label()) %></a></li>
