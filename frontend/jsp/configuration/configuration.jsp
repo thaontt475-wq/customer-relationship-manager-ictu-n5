@@ -24,6 +24,7 @@ String prefix = request.getContextPath();
 <link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/header.css">
 <link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/sidebar.css">
 <link rel="stylesheet" href="<%=esc(prefix)%>/css/shared/components.css">
+<link rel="stylesheet" href="<%=esc(prefix)%>/css/configuration/configuration.css">
 <style>
 .category-shell{width:100%;max-width:1180px;margin:0 auto;padding:20px}.category-box{border:1px solid #bbb;padding:18px;border-radius:8px;margin:18px 0;background:var(--card-bg,#fff);color:var(--text-color,#222)}
 .category-flex{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.category-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.category-fields label{display:flex;flex-direction:column;gap:5px}
