@@ -73,3 +73,10 @@
 
 /* Desktop: opening the URL fragment does not change the sticky sidebar. */
 @media (min-width: 769px) { .sidebar__close-btn { display:none; } }
+
+.sidebar .is-hidden {
+    display: none !important;
+}
+.sidebar .is-visible {
+    display: flex !important;
+}
