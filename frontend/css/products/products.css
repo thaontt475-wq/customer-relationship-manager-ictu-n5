@@ -611,60 +611,87 @@
     margin: 0 auto;
 }
 
-/* --- 4 Info Spec Cards (Matching Mockup Footer) --- */
-.product-spec-cards-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-top: 24px;
-}
-.spec-card {
-    background: #0f172a;
-    color: #f8fafc;
-    border-radius: 10px;
-    padding: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-.spec-card-header {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #334155;
-}
-.spec-card-badge {
-    align-self: flex-start;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.6875rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-.badge-blue { background-color: #1e40af; color: #dbeafe; }
-.badge-red { background-color: #991b1b; color: #fee2e2; }
-.badge-orange { background-color: #9a3412; color: #ffedd5; }
-.badge-purple { background-color: #581c87; color: #f3e8ff; }
-.spec-card-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin: 0;
-    color: #ffffff;
-}
-.spec-card-body {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+/* --- Status Badges (Soft Pill Badges) --- */
+.product-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 16px;
     font-size: 0.75rem;
-    color: #cbd5e1;
-    line-height: 1.45;
+    font-weight: 600;
+    white-space: nowrap;
 }
-.spec-card-body strong {
-    color: #ffffff;
+.badge-active {
+    background-color: #ecfdf5;
+    color: #15803d;
+    border: 1px solid #a7f3d0;
+}
+.badge-inactive {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+/* --- Action Links .btn-text --- */
+.btn-text {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    padding: 3px 6px;
+    border-radius: 4px;
+    transition: all 120ms ease;
+}
+.btn-text:hover {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* --- Form Action Buttons --- */
+.btn-outline-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 150ms ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.btn-outline-danger:hover {
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
+}
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 150ms ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.btn-outline:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
 }
 
 /* ==========================================================================
@@ -681,9 +708,7 @@
 
 /* Standard Desktops / Laptops (1025px - 1365px) */
 @media (max-width: 1280px) {
-    .product-spec-cards-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
+
 }
 
 /* Tablets / Medium Screens (769px - 1024px) */
@@ -694,9 +719,7 @@
     .product-form-card {
         margin-top: 16px;
     }
-    .product-spec-cards-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
+
 }
 
 /* Mobile Devices (<= 768px) */
@@ -736,9 +759,7 @@
     .form-row-2, .form-row-prices.has-3-prices, .form-row-prices.has-2-prices {
         grid-template-columns: 1fr;
     }
-    .product-spec-cards-container {
-        grid-template-columns: 1fr;
-    }
+
 }
 
 /* Small Mobiles (360px - 480px) */
