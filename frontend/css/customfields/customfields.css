@@ -1,9 +1,0 @@
-.customfields-page .crm-settings-table { min-width: 1080px; }
-.customfields-page .crm-settings-table td:nth-child(2) { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
-.customfields-page .crm-settings-table td:nth-child(3) { min-width: 210px; }
-.cf-option-input { display: flex; gap: var(--crm-space-2); }
-.cf-option-list { display: flex; flex-wrap: wrap; gap: var(--crm-space-2); margin-top: var(--crm-space-3); }
-.cf-option-chip { display: inline-flex; align-items: center; gap: var(--crm-space-1); padding: 5px var(--crm-space-2); border: 1px solid var(--crm-border); border-radius: var(--crm-radius-sm); background: var(--crm-surface-subtle); font-size: .75rem; overflow-wrap: anywhere; }
-.cf-option-chip button { border: 0; background: transparent; color: var(--crm-danger); cursor: pointer; font-size: 1rem; }
-.cf-scope-list { display: flex; flex-wrap: wrap; gap: var(--crm-space-1); }
-@media (max-width: 480px) { .cf-option-input { flex-direction: column; } }
