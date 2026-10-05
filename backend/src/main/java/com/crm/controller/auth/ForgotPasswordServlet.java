@@ -37,6 +37,19 @@ public class ForgotPasswordServlet extends HttpServlet {
         }
         if ("1".equals(request.getParameter("sent"))) {
             request.setAttribute("message", GENERIC_MESSAGE);
+
+            var session = request.getSession(false);
+            if (session != null) {
+                Object resultObj = session.getAttribute("LATEST_RESET_RESULT");
+                if (resultObj instanceof com.crm.service.email.EmailSendResult result) {
+                    session.removeAttribute("LATEST_RESET_RESULT");
+                    request.setAttribute("resetResult", result);
+                    request.setAttribute("resetLink", result.resetLink());
+                    request.setAttribute("resetSentSuccess", result.success());
+                    request.setAttribute("resetStatusMessage", result.statusMessage());
+                    request.setAttribute("resetEmail", result.toEmail());
+                }
+            }
         }
         forwardView(request, response);
     }
@@ -70,11 +83,15 @@ public class ForgotPasswordServlet extends HttpServlet {
             return;
         }
 
-        authService.requestPasswordReset(email);
+        com.crm.service.email.EmailSendResult sendResult = authService.requestPasswordResetWithResult(email);
 
         if (isApiRequest(request)) {
             writeJson(response, HttpServletResponse.SC_OK, true, GENERIC_MESSAGE);
             return;
+        }
+
+        if (sendResult != null) {
+            request.getSession().setAttribute("LATEST_RESET_RESULT", sendResult);
         }
 
         response.sendRedirect(request.getContextPath() + "/forgot-password?sent=1");

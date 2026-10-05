@@ -6,6 +6,7 @@ import com.crm.model.User;
 import com.crm.util.DBConnection;
 import com.crm.util.PasswordUtil;
 import com.crm.util.ResetTokenUtil;
+import com.crm.service.email.EmailSendResult;
 import com.crm.service.email.EmailService;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -57,6 +58,13 @@ public class AuthService {
      * bất kể email có tồn tại hay không (chống email enumeration).
      */
     public void requestPasswordReset(String email) {
+        requestPasswordResetWithResult(email);
+    }
+
+    /**
+     * Request a password reset and return EmailSendResult containing reset link and delivery status.
+     */
+    public EmailSendResult requestPasswordResetWithResult(String email) {
         Connection conn = null;
         boolean committed = false;
         String rawTokenToSend = null;
@@ -120,8 +128,9 @@ public class AuthService {
 
         // Gửi email hoàn toàn ngoài transaction
         if (rawTokenToSend != null && emailToSend != null) {
-            emailService.sendPasswordResetEmail(emailToSend, rawTokenToSend);
+            return emailService.sendPasswordResetEmail(emailToSend, rawTokenToSend);
         }
+        return null;
     }
 
     /**
@@ -176,7 +185,15 @@ public class AuthService {
             // Đánh dấu token đã dùng
             tokenDAO.markUsed(conn, token.getId());
 
+            User user = userDAO.findById(conn, token.getUserId());
+            String emailToSend = user != null ? user.getEmail() : null;
+            String nameToSend = user != null ? user.getFullName() : null;
+
             conn.commit();
+
+            if (emailToSend != null) {
+                emailService.sendPasswordChangeNotificationEmail(emailToSend, nameToSend);
+            }
             return true;
 
         } catch (SQLException e) {
@@ -200,6 +217,7 @@ public class AuthService {
             }
         }
     }
+
     public ChangePasswordResult changePassword(long userId, String currentPassword, String newPassword)
             throws SQLException {
 
@@ -212,6 +230,9 @@ public class AuthService {
         if (!PasswordUtil.isValidPassword(newPassword)) {
             return ChangePasswordResult.INVALID_NEW_PASSWORD;
         }
+
+        String emailToSend = null;
+        String nameToSend = null;
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
@@ -237,8 +258,14 @@ public class AuthService {
 
                 String newHash = PasswordUtil.hashPassword(newPassword);
                 userDAO.updatePasswordHash(conn, userId, newHash);
+
+                User user = userDAO.findById(conn, userId);
+                if (user != null) {
+                    emailToSend = user.getEmail();
+                    nameToSend = user.getFullName();
+                }
+
                 conn.commit();
-                return ChangePasswordResult.SUCCESS;
 
             } catch (SQLException | RuntimeException e) {
                 try {
@@ -249,6 +276,12 @@ public class AuthService {
                 throw e;
             }
         }
+
+        if (emailToSend != null) {
+            emailService.sendPasswordChangeNotificationEmail(emailToSend, nameToSend);
+        }
+
+        return ChangePasswordResult.SUCCESS;
     }
 
     public enum ChangePasswordResult {

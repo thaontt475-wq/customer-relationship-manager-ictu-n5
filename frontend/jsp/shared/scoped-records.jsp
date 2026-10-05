@@ -231,7 +231,7 @@ if (isCustomers) {
     masterList.add(new CustItem(
         1L, "Công ty TNHH Công Nghệ Ánh Dương", "CUST-00101",
         "Tập đoàn mẹ", "cust-tag-purple", "0108923451",
-        "Công nghệ phần mềm", "tech", "Phạm Kinh Doanh", "PKD", "salesrep",
+        "Công nghệ phần mềm", "tech", "Nguyễn Văn Thắng", "NVT", "salesrep",
         "3 cơ hội (450M)", "1.850.000.000 đ",
         "active", "Đang hoạt động", "cust-status-active",
         "024 3792 1188", "contact@anhduongtech.vn",
@@ -240,7 +240,7 @@ if (isCustomers) {
     masterList.add(new CustItem(
         2L, "Tập đoàn Bán lẻ Sao Việt", "CUST-00102",
         "Khách hàng VIP", "cust-tag-amber", "0314567890",
-        "Bán lẻ / Phân phối", "retail", "Lê Trưởng Nhóm", "LTN", "teamlead",
+        "Bán lẻ / Phân phối", "retail", "Nguyễn Trọng Nghĩa", "NTN", "teamlead",
         "1 cơ hội (120M)", "3.420.000.000 đ",
         "churn_warning", "Cảnh báo rời bỏ", "cust-status-warning",
         "028 3822 5566", "cskh@saovietretail.com.vn",
@@ -249,7 +249,7 @@ if (isCustomers) {
     masterList.add(new CustItem(
         3L, "Ngân hàng TMCP Phương Nam", "CUST-00103",
         "Khách hàng chiến lược", "cust-tag-blue", "0102345678",
-        "Tài chính / Ngân hàng", "finance", "Trần Giám Đốc", "TGD", "director",
+        "Tài chính / Ngân hàng", "finance", "Hoàng Trọng Thái", "HTT", "director",
         "5 cơ hội (2.1B)", "8.650.000.000 đ",
         "active", "Đang hoạt động", "cust-status-active",
         "024 3936 8899", "partnership@phuongnambank.vn",
@@ -258,7 +258,7 @@ if (isCustomers) {
     masterList.add(new CustItem(
         4L, "Tổng Công ty Viễn thông Toàn Cầu", "CUST-00104",
         "Đối tác cấp 1", "cust-tag-indigo", "0105678912",
-        "Viễn thông & CNTT", "tech", "Nguyễn Quản Trị", "NQT", "admin",
+        "Viễn thông & CNTT", "tech", "Nông Quang Tiệp", "NQT", "admin",
         "2 cơ hội (890M)", "5.230.000.000 đ",
         "active", "Đang hoạt động", "cust-status-active",
         "024 3833 4455", "procurement@globaltelecom.com.vn",
@@ -267,7 +267,7 @@ if (isCustomers) {
     masterList.add(new CustItem(
         5L, "Bệnh viện Đa khoa Quốc tế An Sinh", "CUST-00105",
         "Trọng điểm", "cust-tag-teal", "0309876543",
-        "Y tế & Dược phẩm", "healthcare", "Phạm Kinh Doanh", "PKD", "salesrep",
+        "Y tế & Dược phẩm", "healthcare", "Nguyễn Văn Thắng", "NVT", "salesrep",
         "0 cơ hội", "950.000.000 đ",
         "suspended", "Tạm ngừng", "cust-status-suspended",
         "028 3997 9999", "admin@ansinhhospital.vn",
@@ -290,10 +290,96 @@ if (isCustomers) {
                 masterList.add(new CustItem(
                     rid, cleanName(rid, sr.label()), "CUST-00" + (100 + rid),
                     "Tiêu chuẩn", "cust-tag-blue", "010" + (8000000 + rid),
-                    "Dịch vụ doanh nghiệp", "tech", "Phạm Kinh Doanh", "PKD", "salesrep",
+                    "Dịch vụ doanh nghiệp", "tech", "Nguyễn Văn Thắng", "NVT", "salesrep",
                     "1 cơ hội (150M)", "500.000.000 đ",
                     "active", "Đang hoạt động", "cust-status-active",
                     "024 3800 0000", "info@enterprise.vn", "Hà Nội, Việt Nam"
+                ));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, String>> customCustList = (List<Map<String, String>>) session.getAttribute("custom_created_records_CUSTOMERS");
+    if (customCustList != null && !customCustList.isEmpty()) {
+        for (Map<String, String> meta : customCustList) {
+            long mid = 0;
+            try {
+                mid = Long.parseLong(meta.getOrDefault("id", "0"));
+            } catch (Exception ignored) {}
+            String mName = meta.getOrDefault("name", "Khách hàng mới");
+            String mTaxId = meta.getOrDefault("taxId", "");
+            if (mTaxId == null || mTaxId.isBlank()) mTaxId = "010" + (8000000 + mid);
+            String mIndustry = meta.getOrDefault("industry", "Công nghệ phần mềm");
+            String mIndustryCode = "tech";
+            if ("Bán lẻ / Phân phối".equalsIgnoreCase(mIndustry)) mIndustryCode = "retail";
+            else if ("Tài chính / Ngân hàng".equalsIgnoreCase(mIndustry)) mIndustryCode = "finance";
+            else if ("Viễn thông & CNTT".equalsIgnoreCase(mIndustry)) mIndustryCode = "telecom";
+            else if ("Y tế & Dược phẩm".equalsIgnoreCase(mIndustry)) mIndustryCode = "healthcare";
+            else if ("Sản xuất / Chế tạo".equalsIgnoreCase(mIndustry)) mIndustryCode = "manufacturing";
+
+            String mTag = meta.getOrDefault("tagBadge", "Tiêu chuẩn");
+            if (mTag == null || mTag.isBlank()) mTag = "Tiêu chuẩn";
+            String mTagClass = "cust-tag-blue";
+            if ("Tập đoàn mẹ".equalsIgnoreCase(mTag)) mTagClass = "cust-tag-purple";
+            else if ("Khách hàng VIP".equalsIgnoreCase(mTag)) mTagClass = "cust-tag-orange";
+            else if ("Khách hàng chiến lược".equalsIgnoreCase(mTag)) mTagClass = "cust-tag-blue";
+            else if ("Đối tác cấp 1".equalsIgnoreCase(mTag)) mTagClass = "cust-tag-cyan";
+            else if ("Trọng điểm".equalsIgnoreCase(mTag)) mTagClass = "cust-tag-emerald";
+
+            String mStatus = meta.getOrDefault("status", "active");
+            if (mStatus == null || mStatus.isBlank()) mStatus = "active";
+            String mStatusText = "Đang hoạt động";
+            String mStatusClass = "cust-status-active";
+            if ("risk".equalsIgnoreCase(mStatus)) {
+                mStatusText = "Cảnh báo rời bỏ";
+                mStatusClass = "cust-status-risk";
+            } else if ("suspended".equalsIgnoreCase(mStatus)) {
+                mStatusText = "Tạm ngừng";
+                mStatusClass = "cust-status-suspended";
+            }
+
+            String mPhone = meta.getOrDefault("phone", "024 3800 0000");
+            if (mPhone == null || mPhone.isBlank()) mPhone = "024 3800 0000";
+            String mEmail = meta.getOrDefault("email", "info@customer.vn");
+            if (mEmail == null || mEmail.isBlank()) mEmail = "info@customer.vn";
+            String mAddress = meta.getOrDefault("address", "Hà Nội, Việt Nam");
+            if (mAddress == null || mAddress.isBlank()) mAddress = "Hà Nội, Việt Nam";
+            String mRevenue = meta.getOrDefault("revenue", "0 đ");
+            if (mRevenue == null || mRevenue.isBlank()) mRevenue = "0 đ";
+
+            CustItem matched = null;
+            for (CustItem ci : masterList) {
+                if ((mid > 0 && ci.id == mid) || ci.name.equalsIgnoreCase(mName)) {
+                    matched = ci;
+                    break;
+                }
+            }
+            if (matched != null) {
+                matched.name = mName;
+                matched.taxId = mTaxId;
+                matched.industry = mIndustry;
+                matched.industryCode = mIndustryCode;
+                matched.tagBadge = mTag;
+                matched.tagClass = mTagClass;
+                matched.status = mStatus;
+                matched.statusText = mStatusText;
+                matched.statusClass = mStatusClass;
+                matched.phone = mPhone;
+                matched.email = mEmail;
+                matched.address = mAddress;
+                matched.revenue = mRevenue;
+            } else {
+                masterList.add(0, new CustItem(
+                    mid > 0 ? mid : (900 + masterList.size()),
+                    mName,
+                    "CUST-00" + (mid > 0 ? (100 + mid) : (100 + masterList.size() + 1)),
+                    mTag, mTagClass, mTaxId,
+                    mIndustry, mIndustryCode,
+                    "Nông Quang Tiệp", "NQT", "admin",
+                    "0 cơ hội", mRevenue,
+                    mStatus, mStatusText, mStatusClass,
+                    mPhone, mEmail, mAddress
                 ));
             }
         }
@@ -325,7 +411,7 @@ if (isCustomers) {
         }
         boolean matchTab = true;
         if ("mine".equalsIgnoreCase(currentTab)) {
-            matchTab = "salesrep".equalsIgnoreCase(item.ownerCode) || "Phạm Kinh Doanh".equals(item.ownerName);
+            matchTab = "salesrep".equalsIgnoreCase(item.ownerCode) || "Nguyễn Văn Thắng".equals(item.ownerName);
         } else if ("vip".equalsIgnoreCase(currentTab)) {
             matchTab = item.tagBadge.contains("VIP") || item.tagBadge.contains("chiến lược") || item.tagBadge.contains("mẹ");
         } else if ("inactive".equalsIgnoreCase(currentTab)) {
@@ -389,7 +475,7 @@ if (isActivities) {
         "Tập đoàn Bán lẻ Sao Việt", "CUST-00102",
         "Chị Mai (Trưởng phòng Mua hàng)", "Hệ thống Omni-channel Bán lẻ (1.2B)",
         "02/10/2026 09:00", "1 giờ 15 phút",
-        "Lê Trưởng Nhóm", "L", "teamlead",
+        "Nguyễn Trọng Nghĩa", "N", "teamlead",
         "🔵 Đã gửi báo giá", "act-status-info"
     ));
     actMasterList.add(new ActItem(
@@ -399,7 +485,7 @@ if (isActivities) {
         "Ngân hàng TMCP Phương Nam", "CUST-00103",
         "Ông Trần Hải (Phó Tổng Giám Đốc)", "Gói CRM Tài chính & Bảo mật lõi (2.8B)",
         "30/09/2026 15:00", "2 giờ",
-        "Trần Giám Đốc", "T", "director",
+        "Hoàng Trọng Thái", "H", "director",
         "⚪ Đang xử lý", "act-status-pending"
     ));
 
@@ -424,7 +510,7 @@ if (isActivities) {
             "Bệnh viện Đa khoa Quốc tế An Sinh", "CUST-00105",
             "BS. Nguyễn Văn Hùng", "-",
             "26/09/2026 16:45", "10 phút",
-            "Phạm Kinh Doanh", "P", "salesrep",
+            "Nguyễn Văn Thắng", "N", "salesrep",
             "⚪ Đang xử lý", "act-status-pending"
         ));
     }
@@ -531,7 +617,7 @@ if (isQuotes) {
         2L, "BG-2026-002", "v1.0",
         "Công ty TNHH Công Nghệ Ánh Dương", "Triển khai CRM Enterprise 50 Users",
         "450.000.000 đ", "8%", 8.0,
-        "Lê Trưởng Nhóm", "L", "teamlead", "Trưởng nhóm Kinh doanh B2B",
+        "Nguyễn Trọng Nghĩa", "N", "teamlead", "Trưởng nhóm Kinh doanh B2B",
         "APPROVED", "🟢 Đã duyệt (Approved)", "status-approved",
         "30/10/2026", "28/09/2026", "Thanh toán 3 đợt theo mốc tiến độ Milestone"
     ));
@@ -539,7 +625,7 @@ if (isQuotes) {
         3L, "BG-2026-003", "v1.5",
         "Ngân hàng TMCP Phương Nam", "Gói CRM Tài chính & Bảo mật lõi",
         "2.800.000.000 đ", "15%", 15.0,
-        "Trần Giám Đốc", "T", "director", "Giám đốc Phát triển Dự án",
+        "Hoàng Trọng Thái", "H", "director", "Giám đốc Phát triển Dự án",
         "REJECTED", "🔴 Từ chối (Rejected)", "status-rejected",
         "20/10/2026", "25/09/2026", "Thanh toán chuyển khoản bảo lãnh qua ngân hàng"
     ));
@@ -547,7 +633,7 @@ if (isQuotes) {
         4L, "BG-2026-004", "v1.0",
         "Tập đoàn Bán lẻ Sao Việt", "Hệ thống Omni-channel Bán lẻ",
         "1.200.000.000 đ", "5%", 5.0,
-        "Phạm Kinh Doanh", "P", "salesrep", "Chuyên viên Khách hàng Doanh nghiệp",
+        "Nguyễn Văn Thắng", "N", "salesrep", "Chuyên viên Khách hàng Doanh nghiệp",
         "CONTRACTED", "📄 Đã ký hợp đồng", "status-contracted",
         "05/11/2026", "20/09/2026", "Đã xuất hóa đơn VAT điện tử đợt 1"
     ));
@@ -677,7 +763,7 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
     <link rel="stylesheet" href="<%= contextPath %>/css/shared/responsive.css?v=20261005_3">
     <link rel="stylesheet" href="<%= contextPath %>/css/shared/components.css?v=20261005_3">
     <% if (isCustomers) { %>
-    <link rel="stylesheet" href="<%= contextPath %>/css/customers/customers.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= contextPath %>/css/customers/customers.css?v=20261005_4">
     <% } else if (isActivities) { %>
     <link rel="stylesheet" href="<%= contextPath %>/css/activities/activities.css?v=20261005_3">
     <% } else if (isQuotes) { %>
@@ -879,15 +965,15 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
                 <p class="crm-cust-subtitle">Sprint 3 • S3-01 &amp; S3-07 • Quản lý hồ sơ 360° khách hàng B2B, kiểm soát phân quyền dữ liệu (Data Scope: <%= esc(dataScope) %>)</p>
             </div>
             <div class="crm-cust-header-actions">
-                <a href="<%= route %>?action=create" class="crm-btn-primary-action">
+                <a href="<%= route %>?action=create" id="btnOpenCreateCustomer" class="crm-btn-primary-action" onclick="openCreateCustModal(event)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    + Thêm khách hàng
+                    Thêm khách hàng
                 </a>
-                <a href="<%= contextPath %>/api/customers/export" class="crm-btn-secondary-action">
+                <a href="<%= route %>?export=1<%= qVal.isEmpty() ? "" : "&amp;q=" + esc(qVal) %>" class="crm-btn-secondary-action">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     Xuất Excel
                 </a>
-                <a href="<%= route %>?import=1" class="crm-btn-secondary-action">
+                <a href="<%= route %>?import=1" id="btnOpenImportCustomer" class="crm-btn-secondary-action" onclick="openImportCustModal(event)">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                     Nhập Excel
                 </a>
@@ -937,10 +1023,10 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
                 </select>
                 <select name="owner" class="crm-filter-select" aria-label="Người phụ trách">
                     <option value="" <%= ownerVal.isEmpty() ? "selected" : "" %>>Tất cả người phụ trách</option>
-                    <option value="salesrep" <%= "salesrep".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Phạm Kinh Doanh (Sales Rep)</option>
-                    <option value="teamlead" <%= "teamlead".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Lê Trưởng Nhóm (Team Lead)</option>
-                    <option value="director" <%= "director".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Trần Giám Đốc (Director)</option>
-                    <option value="admin" <%= "admin".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Nguyễn Quản Trị (Admin)</option>
+                    <option value="salesrep" <%= "salesrep".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Nguyễn Văn Thắng (Sales Rep)</option>
+                    <option value="teamlead" <%= "teamlead".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Nguyễn Trọng Nghĩa (Team Lead)</option>
+                    <option value="director" <%= "director".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Hoàng Trọng Thái (Director)</option>
+                    <option value="admin" <%= "admin".equalsIgnoreCase(ownerVal) ? "selected" : "" %>>Nông Quang Tiệp (Admin)</option>
                 </select>
                 <div class="crm-filter-actions-group">
                     <button type="submit" class="crm-btn-apply">Lọc dữ liệu</button>
@@ -1017,6 +1103,192 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
         </section>
 
     <% } %>
+
+    <!-- MODAL THÊM MỚI KHÁCH HÀNG DOANH NGHIỆP -->
+    <div id="createCustModal" class="crm-cust-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="createCustModalTitle">
+        <div class="crm-cust-modal-card">
+            <header class="crm-cust-modal-header">
+                <div class="crm-cust-modal-header-info">
+                    <div class="crm-cust-modal-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+                    </div>
+                    <div>
+                        <h2 id="createCustModalTitle" class="crm-cust-modal-title">Thêm mới Khách hàng Doanh nghiệp</h2>
+                        <p class="crm-cust-modal-subtitle">Tạo hồ sơ 360° khách hàng B2B vào hệ thống và kiểm soát phân quyền dữ liệu</p>
+                    </div>
+                </div>
+                <button type="button" class="crm-cust-modal-close" onclick="closeCreateCustModal()" aria-label="Đóng">&times;</button>
+            </header>
+
+            <form method="POST" action="<%= route %>" class="crm-cust-modal-form" id="createCustomerForm">
+                <input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
+
+                <div class="crm-cust-modal-body">
+                    <div class="crm-cust-form-group full-width">
+                        <label for="custName" class="crm-cust-form-label">Tên Doanh nghiệp / Tổ chức <span class="required">*</span></label>
+                        <input type="text" id="custName" name="name" class="crm-cust-form-input" placeholder="Ví dụ: Công ty Cổ phần Công nghệ Nam Á" required autofocus>
+                    </div>
+
+                    <div class="crm-cust-form-row">
+                        <div class="crm-cust-form-group">
+                            <label for="custTaxId" class="crm-cust-form-label">Mã số thuế (MST)</label>
+                            <input type="text" id="custTaxId" name="taxId" class="crm-cust-form-input" placeholder="Ví dụ: 0109876543">
+                        </div>
+                        <div class="crm-cust-form-group">
+                            <label for="custIndustry" class="crm-cust-form-label">Lĩnh vực hoạt động</label>
+                            <select id="custIndustry" name="industry" class="crm-cust-form-select">
+                                <option value="Công nghệ phần mềm">Công nghệ phần mềm</option>
+                                <option value="Bán lẻ / Phân phối">Bán lẻ / Phân phối</option>
+                                <option value="Tài chính / Ngân hàng">Tài chính / Ngân hàng</option>
+                                <option value="Viễn thông & CNTT">Viễn thông &amp; CNTT</option>
+                                <option value="Y tế & Dược phẩm">Y tế &amp; Dược phẩm</option>
+                                <option value="Sản xuất / Chế tạo">Sản xuất / Chế tạo</option>
+                                <option value="Dịch vụ doanh nghiệp">Dịch vụ doanh nghiệp</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="crm-cust-form-row">
+                        <div class="crm-cust-form-group">
+                            <label for="custTagBadge" class="crm-cust-form-label">Phân loại / Cấp độ</label>
+                            <select id="custTagBadge" name="tagBadge" class="crm-cust-form-select">
+                                <option value="Tiêu chuẩn">Tiêu chuẩn</option>
+                                <option value="Khách hàng VIP">Khách hàng VIP</option>
+                                <option value="Khách hàng chiến lược">Khách hàng chiến lược</option>
+                                <option value="Tập đoàn mẹ">Tập đoàn mẹ</option>
+                                <option value="Đối tác cấp 1">Đối tác cấp 1</option>
+                                <option value="Trọng điểm">Trọng điểm</option>
+                            </select>
+                        </div>
+                        <div class="crm-cust-form-group">
+                            <label for="custStatus" class="crm-cust-form-label">Trạng thái</label>
+                            <select id="custStatus" name="status" class="crm-cust-form-select">
+                                <option value="active">Đang hoạt động</option>
+                                <option value="risk">Cảnh báo rời bỏ</option>
+                                <option value="suspended">Tạm ngừng</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="crm-cust-form-row">
+                        <div class="crm-cust-form-group">
+                            <label for="custPhone" class="crm-cust-form-label">Số điện thoại</label>
+                            <input type="text" id="custPhone" name="phone" class="crm-cust-form-input" placeholder="Ví dụ: 024 3800 8888">
+                        </div>
+                        <div class="crm-cust-form-group">
+                            <label for="custEmail" class="crm-cust-form-label">Email doanh nghiệp</label>
+                            <input type="email" id="custEmail" name="email" class="crm-cust-form-input" placeholder="Ví dụ: contact@nama.com.vn">
+                        </div>
+                    </div>
+
+                    <div class="crm-cust-form-row">
+                        <div class="crm-cust-form-group">
+                            <label for="custRevenue" class="crm-cust-form-label">Quy mô doanh thu</label>
+                            <input type="text" id="custRevenue" name="revenue" class="crm-cust-form-input" placeholder="Ví dụ: 1.500.000.000 đ">
+                        </div>
+                        <div class="crm-cust-form-group">
+                            <label for="custOwner" class="crm-cust-form-label">Người phụ trách</label>
+                            <input type="text" id="custOwner" class="crm-cust-form-input" value="Nông Quang Tiệp (Admin)" readonly style="background-color: var(--crm-bg-alt, #f8fafc); cursor: not-allowed;">
+                        </div>
+                    </div>
+
+                    <div class="crm-cust-form-group full-width">
+                        <label for="custAddress" class="crm-cust-form-label">Địa chỉ trụ sở</label>
+                        <input type="text" id="custAddress" name="address" class="crm-cust-form-input" placeholder="Ví dụ: Tòa nhà Discovery Complex, Cầu Giấy, Hà Nội">
+                    </div>
+                </div>
+
+                <footer class="crm-cust-modal-footer">
+                    <button type="button" class="crm-btn-modal-cancel" onclick="closeCreateCustModal()">Hủy bỏ</button>
+                    <button type="submit" class="crm-btn-modal-submit" id="btnSubmitCreateCustomer">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Lưu khách hàng
+                    </button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NHẬP KHÁCH HÀNG TỪ EXCEL / CSV -->
+    <div id="importCustModal" class="crm-cust-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="importCustModalTitle">
+        <div class="crm-cust-modal-card" style="max-width: 640px;">
+            <header class="crm-cust-modal-header">
+                <div class="crm-cust-modal-header-info">
+                    <div class="crm-cust-modal-icon" style="background-color: #ecfdf5; border-color: #a7f3d0; color: #059669;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <div>
+                        <h2 id="importCustModalTitle" class="crm-cust-modal-title">Nhập danh sách Khách hàng từ Excel</h2>
+                        <p class="crm-cust-modal-subtitle">Thêm hàng loạt khách hàng doanh nghiệp vào hệ thống qua tệp Excel hoặc CSV</p>
+                    </div>
+                </div>
+                <button type="button" class="crm-cust-modal-close" onclick="closeImportCustModal()" aria-label="Đóng">&times;</button>
+            </header>
+
+            <form method="POST" action="<%= route %>" enctype="multipart/form-data" class="crm-cust-modal-form" id="importCustomerForm">
+                <input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
+                <input type="hidden" name="action" value="import">
+
+                <div class="crm-cust-modal-body" style="gap: 20px;">
+                    <!-- BƯỚC 1: TẢI TỆP MẪU -->
+                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.875rem; color: #1e293b;">Bước 1: Tải tệp mẫu chuẩn</div>
+                                <div style="font-size: 0.8125rem; color: #64748b;">Tải tệp mẫu định dạng sẵn để nhập đúng các trường dữ liệu yêu cầu.</div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <a href="<%= route %>?download=template&amp;format=xlsx" class="crm-btn-secondary-action" style="padding:6px 12px; font-size:0.8125rem; text-decoration:none;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    Mẫu .XLSX
+                                </a>
+                                <a href="<%= route %>?download=template&amp;format=csv" class="crm-btn-secondary-action" style="padding:6px 12px; font-size:0.8125rem; text-decoration:none;">
+                                    Mẫu .CSV
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BƯỚC 2: CHỌN HOẶC KÉO THẢ TỆP -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label class="crm-cust-form-label" style="font-size: 0.875rem;">Bước 2: Chọn tệp Excel hoặc CSV cần nhập <span class="required">*</span></label>
+                        <div id="importDropzone" style="border: 2px dashed #93c5fd; background-color: #f0f7ff; border-radius: 8px; padding: 28px 20px; text-align: center; cursor: pointer; transition: all 150ms ease;">
+                            <input type="file" id="custImportFileInput" name="file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleCustFileSelect(this)">
+                            <div onclick="document.getElementById('custImportFileInput').click()">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <div id="importDropzoneText" style="font-weight: 600; font-size: 0.9375rem; color: #1e293b;">Bấm để chọn tệp hoặc kéo thả tệp vào đây</div>
+                                <div style="font-size: 0.8125rem; color: #64748b; margin-top: 4px;">Hỗ trợ định dạng Microsoft Excel (.xlsx, .xls) và CSV (.csv) • Tối đa 10MB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DỮ LIỆU MẪU NHẬP NHANH (DEMO) -->
+                    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <span style="font-weight: 600; font-size: 0.84375rem; color: #166534;">Dữ liệu mẫu thử nghiệm:</span>
+                            <span style="font-size: 0.8125rem; color: #15803d; margin-left: 4px;">Nhập trực tiếp 5 khách hàng doanh nghiệp mẫu vào hệ thống</span>
+                        </div>
+                        <button type="button" class="crm-btn-secondary-action" style="padding: 5px 12px; font-size: 0.8125rem; background:#ffffff; color:#166534; border-color:#86efac; cursor:pointer;" onclick="submitSampleImport()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Nhập 5 khách hàng mẫu
+                        </button>
+                    </div>
+
+                    <div style="font-size: 0.75rem; color: #64748b; line-height: 1.5; background: #f8fafc; border-radius: 6px; padding: 10px 14px;">
+                        <strong>Ghi chú các cột dữ liệu:</strong> Cột 1: Tên doanh nghiệp (bắt buộc) | Cột 2: Mã số thuế | Cột 3: Lĩnh vực | Cột 4: Phân loại | Cột 5: Trạng thái | Cột 6: SĐT | Cột 7: Email | Cột 8: Địa chỉ | Cột 9: Doanh thu dự kiến.
+                    </div>
+                </div>
+
+                <footer class="crm-cust-modal-footer">
+                    <button type="button" class="crm-btn-modal-cancel" onclick="closeImportCustModal()">Hủy bỏ</button>
+                    <button type="submit" class="crm-btn-modal-submit" id="btnSubmitImportCustomer" style="background-color: #059669; border-color: #059669;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Bắt đầu Nhập dữ liệu
+                    </button>
+                </footer>
+            </form>
+        </div>
+    </div>
 
 </div>
 </main>
@@ -1123,7 +1395,7 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     Xem Timeline
                 </a>
-                <a href="<%= contextPath %>/api/activities/export" class="btn-outline act-btn-outline">
+                <a href="<%= route %>?export=1<%= qVal.isEmpty() ? "" : "&amp;q=" + esc(qVal) %>" class="btn-outline act-btn-outline">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     Xuất Excel
                 </a>
@@ -1166,9 +1438,9 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
                 <select name="owner" class="act-select" aria-label="Người phụ trách">
                     <option value="all" <%= ("all".equalsIgnoreCase(actOwnerParam) || actOwnerParam.isEmpty()) ? "selected" : "" %>>Tất cả người phụ trách...</option>
                     <option value="admin" <%= "admin".equalsIgnoreCase(actOwnerParam) ? "selected" : "" %>>Nông Quang Tiệp (Admin)</option>
-                    <option value="salesrep" <%= "salesrep".equalsIgnoreCase(actOwnerParam) ? "selected" : "" %>>Phạm Kinh Doanh (Sales Rep)</option>
-                    <option value="teamlead" <%= "teamlead".equalsIgnoreCase(actOwnerParam) ? "selected" : "" %>>Lê Trưởng Nhóm (Team Lead)</option>
-                    <option value="director" <%= "director".equalsIgnoreCase(actOwnerParam) ? "selected" : "" %>>Trần Giám Đốc (Director)</option>
+                    <option value="salesrep" <%= "salesrep".equalsIgnoreCase(actOwnerParam) ? "selected" : "" %>>Nguyễn Văn Thắng (Sales Rep)</option>
+                    <option value="teamlead" <%= "teamlead".equalsIgnoreCase(actOwnerParam) ? "selected" : "" %>>Nguyễn Trọng Nghĩa (Team Lead)</option>
+                    <option value="director" <%= "director".equalsIgnoreCase(actOwnerParam) ? "selected" : "" %>>Hoàng Trọng Thái (Director)</option>
                 </select>
                 <select name="period" class="act-select" aria-label="Khoảng thời gian">
                     <option value="all" <%= ("all".equalsIgnoreCase(actPeriodParam) || actPeriodParam.isEmpty()) ? "selected" : "" %>>Tất cả thời gian</option>
@@ -1606,7 +1878,7 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
                 <a href="<%= route %>?action=create" class="quote-btn-primary">
                     + Tạo báo giá mới
                 </a>
-                <a href="<%= contextPath %>/api/quotes/export?q=<%= esc(qVal) %>" class="quote-btn-outline">
+                <a href="<%= route %>?export=1<%= qVal.isEmpty() ? "" : "&amp;q=" + esc(qVal) %>" class="quote-btn-outline">
                     Xuất Excel
                 </a>
             </div>
@@ -1659,9 +1931,9 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
                 <select name="owner" class="quote-filter-select" aria-label="Lọc theo người soạn thảo">
                     <option value="all" <%= "all".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Tất cả người soạn thảo...</option>
                     <option value="admin" <%= "admin".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Nông Quang Tiệp (Admin)</option>
-                    <option value="teamlead" <%= "teamlead".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Lê Trưởng Nhóm</option>
-                    <option value="director" <%= "director".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Trần Giám Đốc</option>
-                    <option value="salesrep" <%= "salesrep".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Phạm Kinh Doanh</option>
+                    <option value="teamlead" <%= "teamlead".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Nguyễn Trọng Nghĩa (Team Lead)</option>
+                    <option value="director" <%= "director".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Hoàng Trọng Thái (Director)</option>
+                    <option value="salesrep" <%= "salesrep".equalsIgnoreCase(quoteOwnerParam) ? "selected" : "" %>>Nguyễn Văn Thắng (Sales Rep)</option>
                 </select>
                 <div class="quote-filter-actions">
                     <button type="submit" class="quote-btn-filter-submit">
@@ -1805,7 +2077,8 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
                         <input name="q" class="crm-filter-input-search" style="min-width:260px;" placeholder="Tìm kiếm <%= esc(request.getAttribute("moduleTitle")) %>..." value="<%= esc(qVal) %>">
                         <button type="submit" class="crm-btn-apply">Tìm kiếm</button>
                     </form>
-                    <form method="get" action="<%= contextPath + "/api" + servletPath + "/export" %>">
+                    <form method="get" action="<%= route %>">
+                        <input type="hidden" name="export" value="1">
                         <input type="hidden" name="q" value="<%= esc(qVal) %>">
                         <button type="submit" class="crm-btn-secondary-action">Xuất Excel</button>
                     </form>
@@ -1856,5 +2129,125 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
 <% } %>
 
 </div>
+
+<script>
+function openCreateCustModal(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    var modal = document.getElementById('createCustModal');
+    if (modal) {
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        var input = document.getElementById('custName');
+        if (input) setTimeout(function() { input.focus(); }, 80);
+        if (window.history && window.history.pushState) {
+            var url = new URL(window.location.href);
+            url.searchParams.set('action', 'create');
+            window.history.pushState({}, '', url);
+        }
+    }
+}
+
+function closeCreateCustModal() {
+    var modal = document.getElementById('createCustModal');
+    if (modal) {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        if (window.history && window.history.pushState) {
+            var url = new URL(window.location.href);
+            url.searchParams.delete('action');
+            window.history.pushState({}, '', url);
+        }
+    }
+}
+
+function openImportCustModal(e) {
+    if (e && e.preventDefault) e.preventDefault();
+    var modal = document.getElementById('importCustModal');
+    if (modal) {
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        if (window.history && window.history.pushState) {
+            var url = new URL(window.location.href);
+            url.searchParams.set('import', '1');
+            window.history.pushState({}, '', url);
+        }
+    }
+}
+
+function closeImportCustModal() {
+    var modal = document.getElementById('importCustModal');
+    if (modal) {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        if (window.history && window.history.pushState) {
+            var url = new URL(window.location.href);
+            url.searchParams.delete('import');
+            window.history.pushState({}, '', url);
+        }
+    }
+}
+
+function handleCustFileSelect(input) {
+    if (input.files && input.files[0]) {
+        var file = input.files[0];
+        var textElem = document.getElementById('importDropzoneText');
+        var dropzone = document.getElementById('importDropzone');
+        if (textElem && dropzone) {
+            textElem.innerHTML = '✅ <strong style="color:#059669;">' + file.name + '</strong> (' + Math.round(file.size / 1024) + ' KB)';
+            dropzone.style.borderColor = '#10b981';
+            dropzone.style.backgroundColor = '#ecfdf5';
+        }
+    }
+}
+
+function submitSampleImport() {
+    var form = document.getElementById('importCustomerForm');
+    if (form) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'directSample';
+        input.value = '1';
+        form.appendChild(input);
+        var fileIn = document.getElementById('custImportFileInput');
+        if (fileIn) fileIn.removeAttribute('required');
+        form.submit();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('action') === 'create') {
+        openCreateCustModal();
+    }
+    if (params.get('import') === '1') {
+        openImportCustModal();
+    }
+
+    var createModal = document.getElementById('createCustModal');
+    if (createModal) {
+        createModal.addEventListener('click', function(e) {
+            if (e.target === createModal) {
+                closeCreateCustModal();
+            }
+        });
+    }
+
+    var importModal = document.getElementById('importCustModal');
+    if (importModal) {
+        importModal.addEventListener('click', function(e) {
+            if (e.target === importModal) {
+                closeImportCustModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCreateCustModal();
+            closeImportCustModal();
+        }
+    });
+});
+</script>
 </body>
 </html>

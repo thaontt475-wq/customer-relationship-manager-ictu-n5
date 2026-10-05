@@ -286,12 +286,13 @@ public class UserDAO {
      */
     public int updateUserSelfProfile(Connection conn, long userId, String fullName, String phone, String signature)
             throws SQLException {
-        String sql = "UPDATE users SET full_name = ?, phone = ?, signature = ? WHERE id = ?";
+        String sql = "UPDATE users SET full_name = ?, display_name = ?, phone = ?, signature = ? WHERE id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, fullName);
-            stmt.setString(2, phone);
-            stmt.setString(3, signature);
-            stmt.setLong(4, userId);
+            stmt.setString(2, fullName);
+            stmt.setString(3, phone);
+            stmt.setString(4, signature);
+            stmt.setLong(5, userId);
             return stmt.executeUpdate();
         }
     }

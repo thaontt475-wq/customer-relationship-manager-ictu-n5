@@ -174,10 +174,11 @@ public class ProfileServlet extends HttpServlet {
             // Update session cache with updated user profile
             HttpSession session = request.getSession(false);
             if (session != null && updatedUser != null) {
-                session.setAttribute(SessionKey.CURRENT_USER, updatedUser);
                 if (updatedUser.getFullName() != null) {
+                    updatedUser.setDisplayName(updatedUser.getFullName());
                     session.setAttribute("displayName", updatedUser.getFullName());
                 }
+                session.setAttribute(SessionKey.CURRENT_USER, updatedUser);
             }
 
             if (isApi) {

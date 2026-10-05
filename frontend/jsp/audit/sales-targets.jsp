@@ -17,22 +17,27 @@ private String formatVnd(BigDecimal amount) {
 private String cleanUserName(String raw) {
     if (raw == null) return "";
     String s = raw.trim();
-    if (s.contains("Tr??ng Nh?m") || s.contains("L?")) return "Lê Trưởng Nhóm";
-    if (s.contains("Nh?n Vi?n") || s.contains("Nhân Viên")) return "Nguyễn Nhân Viên";
-    if (s.contains("Qu?n Tr?") || s.contains("Nguy?n")) return "Nguyễn Quản Trị";
-    if (s.contains("Kinh Doanh") || s.contains("Ph?m")) return "Phạm Kinh Doanh";
-    if (s.contains("Gi?m ??c") || s.contains("Tr?n")) return "Trần Giám Đốc";
-    if (s.contains("K? To?n") || s.contains("V?")) return "Vũ Kế Toán";
+    if (s.contains("Nghĩa") || s.contains("Tr??ng Nh?m") || s.contains("L?")) return "Nguyễn Trọng Nghĩa";
+    if (s.contains("Tiệp") || s.contains("Qu?n Tr?")) return "Nông Quang Tiệp";
+    if (s.contains("Thái") || s.contains("Gi?m ??c") || s.contains("Tr?n")) return "Hoàng Trọng Thái";
+    if (s.contains("Toán") || s.contains("K? To?n") || s.contains("V?")) return "Hoàng Văn Thắng";
+    if (s.contains("Thảo")) return "Nguyễn Thị Thu Thảo";
+    if (s.contains("Toàn")) return "Nguyễn Đình Toàn";
+    if (s.contains("Tiến")) return "Nguyễn Việt Tiến";
+    if (s.contains("Thắng") || s.contains("Kinh Doanh") || s.contains("Ph?m")) return "Nguyễn Văn Thắng";
     return s;
 }
 
 private String getUserRole(String cleanName) {
-    if ("Lê Trưởng Nhóm".equals(cleanName)) return "Trưởng nhóm Kinh doanh B2B";
-    if ("Nguyễn Quản Trị".equals(cleanName)) return "Quản trị viên / Solution Architect";
-    if ("Phạm Kinh Doanh".equals(cleanName)) return "Chuyên viên Kinh doanh Doanh nghiệp";
-    if ("Nguyễn Nhân Viên".equals(cleanName)) return "Chuyên viên Kinh doanh";
-    if ("Trần Giám Đốc".equals(cleanName)) return "Giám đốc Phát triển Dự án";
-    if ("Vũ Kế Toán".equals(cleanName)) return "Kế toán trưởng / Tài chính";
+    if ("Nguyễn Trọng Nghĩa".equals(cleanName)) return "Trưởng nhóm Kinh doanh B2B";
+    if ("Nông Quang Tiệp".equals(cleanName)) return "Quản trị viên / Solution Architect";
+    if ("Nguyễn Văn Thắng".equals(cleanName)) return "Chuyên viên Kinh doanh Doanh nghiệp";
+    if ("Hoàng Trọng Thái".equals(cleanName)) return "Giám đốc Phát triển Dự án";
+    if ("Hoàng Văn Thắng".equals(cleanName)) return "Kế toán trưởng / Tài chính";
+    if ("Nguyễn Thị Thu Thảo".equals(cleanName)) return "Trưởng nhóm Kinh doanh";
+    if ("Nguyễn Đình Toàn".equals(cleanName)) return "Chuyên viên Kinh doanh";
+    if ("Nguyễn Việt Tiến".equals(cleanName)) return "Kế toán viên";
+    if ("Giàng Văn Thắng".equals(cleanName)) return "Quản trị viên";
     return "Chuyên viên Kinh doanh";
 }
 
@@ -97,22 +102,22 @@ List<Target> serverTargets = (List<Target>) request.getAttribute("targets");
 // Tổng Target toàn đội: 2.500.000.000 đ | Thực đạt: 1.850.000.000 đ | Tỷ lệ: 74.0%
 List<StaffKpi> kpiList = new ArrayList<>();
 kpiList.add(new StaffKpi(
-    1L, 3L, "Lê Trưởng Nhóm", "Trưởng nhóm Kinh doanh B2B", "L",
+    1L, 3L, "Nguyễn Trọng Nghĩa", "Trưởng nhóm Kinh doanh B2B", "N",
     new BigDecimal("800000000"), new BigDecimal("680000000"), 85.0,
     "🟡 Đang bám sát", "kpi-badge-warning", "fill-info"
 ));
 kpiList.add(new StaffKpi(
-    2L, 2L, "Nguyễn Quản Trị", "Quản trị viên / Solution Architect", "N",
+    2L, 1L, "Nông Quang Tiệp", "Quản trị viên / Solution Architect", "T",
     new BigDecimal("900000000"), new BigDecimal("920000000"), 102.2,
     "🟢 Đạt chỉ tiêu", "kpi-badge-success", "fill-success"
 ));
 kpiList.add(new StaffKpi(
-    3L, 5L, "Phạm Kinh Doanh", "Chuyên viên Kinh doanh Doanh nghiệp", "P",
+    3L, 4L, "Nguyễn Văn Thắng", "Chuyên viên Kinh doanh Doanh nghiệp", "T",
     new BigDecimal("500000000"), new BigDecimal("210000000"), 42.0,
     "🔴 Chậm tiến độ", "kpi-badge-danger", "fill-danger"
 ));
 kpiList.add(new StaffKpi(
-    4L, 4L, "Trần Giám Đốc", "Giám đốc Phát triển Dự án", "T",
+    4L, 2L, "Hoàng Trọng Thái", "Giám đốc Phát triển Dự án", "T",
     new BigDecimal("300000000"), new BigDecimal("40000000"), 13.3,
     "🔴 Chậm tiến độ", "kpi-badge-danger", "fill-danger"
 ));

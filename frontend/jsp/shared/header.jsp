@@ -123,7 +123,13 @@ if (headerCookies != null) {
 
             <!-- User Info Widget hiển thị Tên, Vai trò và Avatar -->
             <a href="${pageContext.request.contextPath}/profile" class="crm-header__user" title="Hồ sơ cá nhân" aria-label="Hồ sơ cá nhân" id="crmHeaderUserWidget">
-                <div class="crm-header__avatar" aria-hidden="true">
+                <div class="crm-header__avatar" aria-hidden="true" style="overflow: hidden;">
+                    <img src="${pageContext.request.contextPath}/profile/avatar/thumbnail"
+                         alt="Avatar"
+                         class="crm-header__avatar-img"
+                         onload="this.style.display='block'; var s=this.nextElementSibling; if(s) s.style.display='none';"
+                         onerror="this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='grid';"
+                         style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                     <span id="crmHeaderAvatarText"><%= headerEsc(headerDisplayName.substring(0, 1).toUpperCase(java.util.Locale.ROOT)) %></span>
                 </div>
                 <div class="crm-header__user-details">
@@ -172,7 +178,13 @@ if (headerCookies != null) {
     <div class="crm-mobile-drawer__body">
         <!-- Thông tin tóm tắt người dùng -->
         <div class="crm-mobile-drawer__user-card">
-            <div class="crm-header__avatar" aria-hidden="true">
+            <div class="crm-header__avatar" aria-hidden="true" style="overflow: hidden;">
+                <img src="${pageContext.request.contextPath}/profile/avatar/thumbnail"
+                     alt="Avatar"
+                     class="crm-header__avatar-img"
+                     onload="this.style.display='block'; var s=this.nextElementSibling; if(s) s.style.display='none';"
+                     onerror="this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='grid';"
+                     style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                 <span><%= headerEsc(headerDisplayName.substring(0, 1).toUpperCase(java.util.Locale.ROOT)) %></span>
             </div>
             <div class="crm-mobile-drawer__user-info">

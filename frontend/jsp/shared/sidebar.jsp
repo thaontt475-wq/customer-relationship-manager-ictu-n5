@@ -207,11 +207,26 @@
     </nav>
 
     <!-- Footer Sidebar hiển thị Tên, Vai trò và Nhóm kinh doanh -->
+    <%
+    Object sidebarNameObj = request.getAttribute("currentUserDisplayName");
+    if (sidebarNameObj == null || String.valueOf(sidebarNameObj).isBlank()) {
+        sidebarNameObj = session == null ? null : session.getAttribute("displayName");
+    }
+    String sidebarDisplayName = (sidebarNameObj == null || String.valueOf(sidebarNameObj).isBlank()) ? "Tài khoản" : String.valueOf(sidebarNameObj);
+    %>
     <div class="sidebar__footer">
         <div class="sidebar__user-card" id="crmSidebarUserCard">
-            <div class="sidebar__user-avatar" id="crmSidebarAvatarText"><%= sidebarEscapeHtml(request.getAttribute("currentUserDisplayName") == null || String.valueOf(request.getAttribute("currentUserDisplayName")).isBlank() ? "U" : String.valueOf(request.getAttribute("currentUserDisplayName")).substring(0,1).toUpperCase(java.util.Locale.ROOT)) %></div>
+            <div class="sidebar__user-avatar" id="crmSidebarAvatarContainer" style="overflow: hidden;">
+                <img src="${pageContext.request.contextPath}/profile/avatar/thumbnail"
+                     alt="Avatar"
+                     class="sidebar__user-avatar-img"
+                     onload="this.style.display='block'; var s=this.nextElementSibling; if(s) s.style.display='none';"
+                     onerror="this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='grid';"
+                     style="display: none; width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                <span id="crmSidebarAvatarText"><%= sidebarEscapeHtml(sidebarDisplayName.substring(0, 1).toUpperCase(java.util.Locale.ROOT)) %></span>
+            </div>
             <div class="sidebar__user-info">
-                <div class="sidebar__user-name" id="crmSidebarUserName"><%= sidebarEscapeHtml(request.getAttribute("currentUserDisplayName") == null ? "Tài khoản" : String.valueOf(request.getAttribute("currentUserDisplayName"))) %></div>
+                <div class="sidebar__user-name" id="crmSidebarUserName"><%= sidebarEscapeHtml(sidebarDisplayName) %></div>
                 <div class="sidebar__user-sub">
                     <span class="sidebar__role-tag" id="crmSidebarUserRole"><%= sidebarEscapeHtml(request.getAttribute("currentUserRoleLabel") == null ? "Người dùng" : String.valueOf(request.getAttribute("currentUserRoleLabel"))) %></span>
                     <span class="sidebar__team-tag" id="crmSidebarUserTeam"><%= sidebarEscapeHtml(request.getAttribute("currentUserTeamName") == null ? "Chưa phân nhóm" : String.valueOf(request.getAttribute("currentUserTeamName"))) %></span>
