@@ -1,6 +1,0 @@
-# Local files within frontend/
-*.class
-*.war
-.env
-.idea/
-.vscode/
