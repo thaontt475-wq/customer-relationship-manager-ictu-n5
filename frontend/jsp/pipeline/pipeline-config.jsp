@@ -91,13 +91,19 @@ for (DemoStep ds : stepperList) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Cấu hình Pipeline Bán hàng | CRM ICTU</title>
 
+    <!-- Google Fonts Plus Jakarta Sans / Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- CSS dùng chung của hệ thống -->
-    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/common.css">
-    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/layout.css">
-    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/header.css">
-    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/sidebar.css">
-    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/components.css">
-    <link rel="stylesheet" href="<%= esc(prefix) %>/css/pipeline/pipeline.css">
+    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/common.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/layout.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/header.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/sidebar.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/responsive.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= esc(prefix) %>/css/shared/components.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= esc(prefix) %>/css/pipeline/pipeline.css?v=20261005_3">
 
     <!-- Khối CSS chuẩn doanh nghiệp nhúng trực tiếp tránh mất style -->
     <style>
@@ -106,10 +112,10 @@ for (DemoStep ds : stepperList) {
             min-width: 0;
             width: 100%;
             padding: 24px 32px;
-            background-color: #f6f8fb;
+            background-color: var(--crm-bg, #f6f8fb);
             min-height: calc(100vh - 64px);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: #1e293b;
+            font-family: var(--crm-font-sans, 'Plus Jakarta Sans', 'Inter', sans-serif);
+            color: var(--crm-text-primary, #1e293b);
             box-sizing: border-box;
         }
         .pipeline-container {
@@ -597,12 +603,117 @@ for (DemoStep ds : stepperList) {
             .pipeline-split-layout { flex-direction: column; }
             .pipeline-col-left, .pipeline-col-right { flex: 1 1 100%; width: 100%; }
         }
-        @media (max-width: 768px) {
-            .pipeline-page-wrapper { padding: 16px; }
-            .pipeline-header { flex-direction: column; }
-            .pipeline-header-actions { width: 100%; }
-            .pipeline-form-actions-footer { flex-direction: column; align-items: stretch; }
-            .pipeline-btn-delete { margin-left: 0; text-align: center; }
+        /* ==========================================================================
+           Dark Mode Overrides for Pipeline Configuration Module
+           ========================================================================== */
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) :is(
+            .pipeline-title, .pipeline-panel-title, .gate-rules-title,
+            .stage-row-title, .pipeline-label, .gate-rule-name, .pipeline-step-name
+        ) {
+            color: #f8fafc !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) :is(
+            .pipeline-panel-card, .pipeline-step-card, .pipeline-stage-row, .gate-rule-item
+        ) {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) :is(
+            .pipeline-step-card:hover, .pipeline-stage-row:hover, .gate-rule-item:hover
+        ) {
+            background-color: #273549 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-step-card.active,
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-stage-row.active {
+            background-color: rgba(99, 102, 241, 0.2) !important;
+            border-color: #6366f1 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-step-card.active .pipeline-step-name,
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-stage-row.active .stage-row-title {
+            color: #a5b4fc !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-step-card.active .pipeline-step-prob {
+            color: #818cf8 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-step-card.step-won {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+            border-color: rgba(16, 185, 129, 0.4) !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-step-card.step-won .pipeline-step-name {
+            color: #6ee7b7 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-step-card.step-lost {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+            border-color: rgba(239, 68, 68, 0.4) !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-step-card.step-lost .pipeline-step-name {
+            color: #fca5a5 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-input-text {
+            background-color: #273549 !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-btn-outline {
+            background-color: #1e293b !important;
+            color: #f8fafc !important;
+            border-color: #334155 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-btn-delete {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+            color: #fca5a5 !important;
+            border-color: rgba(239, 68, 68, 0.35) !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-panel-header,
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .gate-rules-section,
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-form-actions-footer {
+            border-color: #334155 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .pipeline-code-badge,
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .stage-rule-tag,
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .gate-rule-badge-optional {
+            background-color: #334155 !important;
+            color: #cbd5e1 !important;
+            border-color: #475569 !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .gate-rule-badge-required {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+            color: #6ee7b7 !important;
+            border-color: rgba(16, 185, 129, 0.35) !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .prob-badge-blue {
+            background-color: rgba(99, 102, 241, 0.2) !important;
+            color: #a5b4fc !important;
+            border-color: rgba(99, 102, 241, 0.4) !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .prob-badge-green {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+            color: #6ee7b7 !important;
+            border-color: rgba(16, 185, 129, 0.35) !important;
+        }
+
+        :is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .prob-badge-red {
+            background-color: rgba(239, 68, 68, 0.15) !important;
+            color: #fca5a5 !important;
+            border-color: rgba(239, 68, 68, 0.35) !important;
         }
     </style>
 </head>

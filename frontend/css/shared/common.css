@@ -1,10 +1,15 @@
 /* ==========================================================================
-   CRM Shared Common CSS
-   Các quy tắc CSS cơ bản, biến màu hệ thống dùng chung
+   CRM Shared Common CSS - Enterprise Design System
+   Google Font: Plus Jakarta Sans / Inter (100% Vietnamese support)
+   Hỗ trợ Dark / Light Theme toàn diện thuần CSS qua Checkbox Hack
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("responsive.css");
+
 :root {
-    --crm-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --crm-font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --crm-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --crm-bg: #f6f8fb;
     --crm-surface: #ffffff;
     --crm-surface-subtle: #f1f4f8;
@@ -36,24 +41,54 @@
     --crm-space-10: 40px;
     --crm-space-12: 48px;
     --crm-header-height: 64px;
-    --crm-sidebar-width: 248px;
+    --crm-sidebar-width: 250px;
     --crm-page-padding: var(--crm-space-8);
     --crm-content-max-width: 1440px;
     --crm-form-max-width: 880px;
-    /* Phase 2 page patterns; retain existing token names for consumers. */
     --crm-content-max: 1200px;
     --crm-form-max: var(--crm-form-max-width);
     --crm-control-height: 40px;
     --crm-transition: 180ms ease;
     --crm-focus-ring: 0 0 0 3px rgb(54 94 220 / 20%);
     --crm-scrim: rgb(20 35 60 / 36%);
-    /* Compatibility aliases for existing modules. */
     --crm-text: var(--crm-text-primary);
     --crm-primary-dark: var(--crm-primary-hover);
 }
 
+/* ==========================================================================
+   Dark Theme Tokens (Pure CSS Checkbox Hack)
+   ========================================================================== */
+html:has(#crm-theme-toggle:checked),
+body:has(#crm-theme-toggle:checked) {
+    --crm-bg: #0b1120;
+    --crm-surface: #1e293b;
+    --crm-surface-subtle: #273549;
+    --crm-primary: #6366f1;
+    --crm-primary-hover: #4f46e5;
+    --crm-primary-soft: rgba(99, 102, 241, 0.2);
+    --crm-text-primary: #f8fafc;
+    --crm-text-secondary: #94a3b8;
+    --crm-muted: #64748b;
+    --crm-border: #334155;
+    --crm-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --crm-shadow-md: 0 8px 28px rgba(0, 0, 0, 0.6);
+    --crm-scrim: rgba(0, 0, 0, 0.7);
+    --crm-text: var(--crm-text-primary);
+    color-scheme: dark;
+}
+
 *, *::before, *::after {
     box-sizing: border-box;
+}
+
+html, body, button, input, select, textarea, optgroup, table, th, td, a, p, span, h1, h2, h3, h4, h5, h6, label {
+    font-family: var(--crm-font-sans) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+code, kbd, samp, pre, .crm-font-mono, [class*="code-text"], [class*="-code"] {
+    font-family: var(--crm-font-mono) !important;
 }
 
 :where(.crm-header, .sidebar) :where(a, button):focus-visible {
@@ -61,24 +96,583 @@
     outline-offset: 3px;
 }
 
-/* Opt-in surface primitive for subsequent module phases. */
+/* ==========================================================================
+   Thanh Tab lọc nhanh (Quick Filter Pills)
+   Hỗ trợ cả .crm-cust-tabs-bar và .crm-cust-tabs
+   ========================================================================== */
+.crm-cust-tabs-bar, .crm-cust-tabs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--crm-border);
+    padding-bottom: 12px;
+}
+
+.crm-cust-tab, .crm-tab-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none !important;
+    color: var(--crm-text-secondary);
+    background-color: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    transition: all 180ms ease;
+    cursor: pointer;
+}
+
+.crm-cust-tab:hover, .crm-tab-link:hover {
+    background-color: var(--crm-surface-subtle);
+    color: var(--crm-text-primary);
+    border-color: var(--crm-primary);
+    text-decoration: none !important;
+}
+
+.crm-cust-tab.active, .crm-tab-link.active {
+    background-color: var(--crm-primary-soft);
+    color: var(--crm-primary);
+    border-color: var(--crm-primary);
+    font-weight: 650;
+    box-shadow: 0 1px 3px rgba(54, 94, 220, 0.15);
+}
+
+.crm-cust-tab .tab-count, .crm-tab-link .tab-count, .crm-tab-link .crm-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    background-color: var(--crm-surface-subtle);
+    color: var(--crm-text-secondary);
+}
+
+.crm-cust-tab.active .tab-count, .crm-tab-link.active .tab-count, .crm-tab-link.active .crm-tab-count {
+    background-color: rgba(54, 94, 220, 0.2);
+    color: var(--crm-primary);
+}
+
+/* ==========================================================================
+   Bố cục bộ lọc 1 hàng ngang trên Desktop (Desktop Filter Form 1 Single Row)
+   ========================================================================== */
+@media (min-width: 1024px) {
+    .crm-filter-form, .act-filter-form, .quote-filter-form {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+    }
+    .crm-filter-search-wrap, .act-search-wrap, .quote-search-wrap {
+        flex: 2 1 240px !important;
+        max-width: 320px !important;
+        min-width: 180px !important;
+    }
+    .crm-filter-select, .act-select, .quote-select {
+        flex: 1 1 150px !important;
+        width: auto !important;
+        min-width: 135px !important;
+    }
+    .crm-filter-actions-group, .act-filter-actions, .quote-filter-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
+    }
+}
+
+/* ==========================================================================
+   Đồng bộ toàn diện Giao diện Tối (Dark Mode) cho Toàn bộ Module Hệ thống
+   Áp dụng cho Tiêu đề, Breadcrumbs, Bộ lọc, Ô nhập liệu, Bảng dữ liệu & Thẻ Card
+   ========================================================================== */
+body:has(#crm-theme-toggle:checked) {
+    background-color: var(--crm-bg) !important;
+    color: var(--crm-text-primary) !important;
+}
+
+/* Vùng bao trang & Main layout */
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-body, .crm-main-layout, .crm-customer-page, .act-page-wrapper,
+    .crm-page, main, .permission-page, .crm-customer-container, .act-container
+) {
+    background-color: var(--crm-bg) !important;
+    color: var(--crm-text-primary) !important;
+}
+
+/* 1. Tiêu đề, đề mục & đường dẫn Breadcrumbs */
+body:has(#crm-theme-toggle:checked) :is(
+    h1, h2, h3, h4, h5, h6,
+    .crm-cust-title, .act-title, .crm-page-title, .page-title,
+    .title, .card-title, .crm-card-title, .box-title,
+    .act-detail-title, .act-detail-box-title,
+    .crm-title, [class*="-title"]
+) {
+    color: var(--crm-text-primary) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-cust-subtitle, .act-subtitle, .page-subtitle, .crm-page-subtitle,
+    .subtitle, .crm-cust-breadcrumb, .act-breadcrumb, .breadcrumb,
+    .text-muted, .crm-text-muted, .crm-desc-text, .act-desc-text
+) {
+    color: var(--crm-muted) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-cust-breadcrumb a, .act-breadcrumb a, .breadcrumb a
+) {
+    color: var(--crm-muted) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-cust-breadcrumb .current, .act-breadcrumb .current, .breadcrumb .active
+) {
+    color: var(--crm-text-primary) !important;
+}
+
+/* 2. Thẻ Card, Hộp chứa & Bộ lọc Card */
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-card, .card, .crm-filter-card, .act-filter-card, .crm-filter-panel,
+    .crm-table-container, .act-table-card, .crm-table-wrap,
+    .crm-detail-card, .act-detail-card, .crm-detail-box, .act-detail-box,
+    .act-content-box, .crm-box, .box, .panel,
+    .dashboard__card, .user-card, .config-card, .pipeline-card
+) {
+    background-color: var(--crm-surface) !important;
+    border-color: var(--crm-border) !important;
+    box-shadow: var(--crm-shadow-sm) !important;
+    color: var(--crm-text-primary) !important;
+}
+
+/* 3. Ô nhập liệu Form, Tìm kiếm & Dropdown Select */
+body:has(#crm-theme-toggle:checked) :is(
+    input[type="text"], input[type="search"], input[type="email"],
+    input[type="password"], input[type="tel"], input[type="number"],
+    input[type="date"], select, textarea,
+    .crm-filter-input-search, .crm-filter-select,
+    .act-search-input, .act-select,
+    .crm-input, .crm-select, .form-control
+) {
+    background-color: var(--crm-surface-subtle) !important;
+    color: var(--crm-text-primary) !important;
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    input[type="text"]:focus, input[type="search"]:focus, input[type="email"]:focus,
+    input[type="password"]:focus, select:focus, textarea:focus,
+    .crm-filter-input-search:focus, .crm-filter-select:focus,
+    .act-search-input:focus, .act-select:focus,
+    .crm-input:focus, .crm-select:focus, .form-control:focus
+) {
+    background-color: var(--crm-surface) !important;
+    border-color: var(--crm-primary) !important;
+    box-shadow: 0 0 0 3px var(--crm-primary-soft) !important;
+    color: var(--crm-text-primary) !important;
+}
+
+body:has(#crm-theme-toggle:checked) ::placeholder {
+    color: var(--crm-muted) !important;
+    opacity: 0.8 !important;
+}
+
+body:has(#crm-theme-toggle:checked) select option {
+    background-color: var(--crm-surface) !important;
+    color: var(--crm-text-primary) !important;
+}
+
+/* 4. Tab lọc nhanh (Pills / Filter Tabs) trong Dark Mode */
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-cust-tabs, .crm-cust-tabs-bar, .act-tabs-bar, .nav-tabs
+) {
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-tab-link, .crm-cust-tab, .act-tab-item, .nav-link:not(.active)
+) {
+    background-color: var(--crm-surface) !important;
+    color: var(--crm-text-secondary) !important;
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-tab-link:hover, .crm-cust-tab:hover, .act-tab-item:hover
+) {
+    background-color: var(--crm-surface-subtle) !important;
+    color: var(--crm-text-primary) !important;
+    border-color: #818cf8 !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-tab-link.active, .crm-cust-tab.active, .act-tab-item.active
+) {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+    color: #a5b4fc !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.3) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-tab-count, .tab-count, .act-count, .badge-secondary
+) {
+    background-color: var(--crm-surface-subtle) !important;
+    color: var(--crm-text-secondary) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-tab-link.active .crm-tab-count, .crm-cust-tab.active .tab-count, .act-tab-item.active .act-count
+) {
+    background-color: rgba(99, 102, 241, 0.35) !important;
+    color: #c7d2fe !important;
+}
+
+/* 5. Nút bấm phụ (Secondary / Outline / Reset) trong Dark Mode */
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-btn-secondary-action, .btn-outline, .act-btn-outline,
+    .btn-secondary, .crm-btn-reset, .act-btn-reset, .btn-default
+) {
+    background-color: var(--crm-surface) !important;
+    color: var(--crm-text-primary) !important;
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-btn-secondary-action:hover, .btn-outline:hover, .act-btn-outline:hover,
+    .btn-secondary:hover, .crm-btn-reset:hover, .act-btn-reset:hover
+) {
+    background-color: var(--crm-surface-subtle) !important;
+    color: #ffffff !important;
+    border-color: var(--crm-muted) !important;
+}
+
+/* 6. Bảng dữ liệu Enterprise Data Table trong Dark Mode */
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-enterprise-table, .act-table, .data-table, .crm-table, table
+) {
+    background-color: var(--crm-surface) !important;
+    color: var(--crm-text-primary) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-enterprise-table thead, .act-table thead, .data-table thead, .crm-table thead, thead
+) {
+    background-color: #1a2436 !important;
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-enterprise-table th, .act-table th, .data-table th, .crm-table th, th
+) {
+    background-color: #1a2436 !important;
+    color: var(--crm-text-secondary) !important;
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-enterprise-table td, .act-table td, .data-table td, .crm-table td, td
+) {
+    color: var(--crm-text-primary) !important;
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-enterprise-table tbody tr, .act-table tbody tr, .data-table tbody tr, .crm-table tbody tr, tbody tr
+) {
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-enterprise-table tbody tr:hover, .act-table tbody tr:hover,
+    .data-table tbody tr:hover, .crm-table tbody tr:hover, tbody tr:hover
+) {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Badges phân loại khách hàng trong Dark Mode */
+body:has(#crm-theme-toggle:checked) :is(.cust-tag-purple, .tag-purple) {
+    background-color: rgba(168, 85, 247, 0.2) !important;
+    color: #d8b4fe !important;
+    border: 1px solid rgba(168, 85, 247, 0.4) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-tag-amber, .tag-amber, .tag-warning) {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fcd34d !important;
+    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-tag-blue, .tag-blue, .tag-info) {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    color: #93c5fd !important;
+    border: 1px solid rgba(59, 130, 246, 0.4) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-tag-teal, .tag-teal) {
+    background-color: rgba(20, 184, 166, 0.2) !important;
+    color: #5eead4 !important;
+    border: 1px solid rgba(20, 184, 166, 0.4) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-tag-indigo, .tag-indigo) {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+    color: #a5b4fc !important;
+    border: 1px solid rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Badges trạng thái trong Dark Mode */
+body:has(#crm-theme-toggle:checked) :is(.cust-status-active, .act-status-success) {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #6ee7b7 !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-status-warning) {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-status-suspended, .act-status-pending) {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+    color: #fcd34d !important;
+    border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Avatar và người phụ trách trong Dark Mode */
+body:has(#crm-theme-toggle:checked) :is(.cust-avatar-circle, .act-avatar) {
+    background-color: #334155 !important;
+    color: #f1f5f9 !important;
+    border: 1px solid #475569 !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-owner-name, .act-user-name) {
+    color: #f1f5f9 !important;
+}
+
+/* Dữ liệu số, mã code, doanh thu trong Dark Mode */
+body:has(#crm-theme-toggle:checked) :is(
+    .cust-code, .cust-tax, .cust-industry, .cust-opps-text, .cust-revenue,
+    .crm-code-link, .crm-cell-sub, .crm-contact-name,
+    .act-desc-text, .act-code-text, .act-deal-text,
+    .act-detail-label, .crm-detail-label, .act-pagination-info
+) {
+    color: #cbd5e1 !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .cust-name-link, .crm-name-link, .act-title-link, .act-customer-link
+) {
+    color: #60a5fa !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.cust-btn-360) {
+    background-color: rgba(99, 102, 241, 0.15) !important;
+    color: #a5b4fc !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    text-decoration: none !important;
+    font-weight: 550 !important;
+}
+
+/* 7. Phân trang Pagination */
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-pagination, .crm-pagination-bar, .act-pagination, .pagination
+) {
+    background-color: var(--crm-surface) !important;
+    border-color: var(--crm-border) !important;
+    color: var(--crm-text-secondary) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-page-btn, .act-page-btn, .page-link
+) {
+    background-color: var(--crm-surface-subtle) !important;
+    color: var(--crm-text-primary) !important;
+    border-color: var(--crm-border) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-page-btn:hover, .act-page-btn:hover, .page-link:hover
+) {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-page-btn.active, .act-page-btn.active, .page-item.active .page-link
+) {
+    background-color: var(--crm-primary) !important;
+    border-color: var(--crm-primary) !important;
+    color: #ffffff !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .crm-scope-tag, .act-scope-tag, .act-duration-tag
+) {
+    background-color: var(--crm-surface-subtle) !important;
+    color: var(--crm-text-secondary) !important;
+    border-color: var(--crm-border) !important;
+}
+
+/* 8. Chi tiết Record & Hàng phân cách */
+body:has(#crm-theme-toggle:checked) :is(
+    .act-detail-header, .crm-detail-header,
+    .act-detail-row, .crm-detail-row
+) {
+    border-color: var(--crm-border) !important;
+}
+
+/* 9. Đồng bộ Dark Mode cho Pipeline, Cấu hình, Win/Loss, Quyền & Settings */
+body:has(#crm-theme-toggle:checked) :is(
+    .pipeline-title, .pipeline-panel-title, .gate-rules-title,
+    .stage-row-title, .pipeline-label, .gate-rule-name, .pipeline-step-name,
+    .wl-title, .wl-card-title, .cfg-title, .customfields-title
+) {
+    color: #f8fafc !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .pipeline-panel-card, .pipeline-step-card, .pipeline-stage-row, .gate-rule-item,
+    .wl-card, .wl-stat-card, .cfg-card, .customfields-card, .crm-settings-table
+) {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(
+    .pipeline-step-card:hover, .pipeline-stage-row:hover, .gate-rule-item:hover,
+    .wl-card:hover, .wl-stat-card:hover, .cfg-card:hover
+) {
+    background-color: #273549 !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-step-card.active,
+body:has(#crm-theme-toggle:checked) .pipeline-stage-row.active {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+    border-color: #6366f1 !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-step-card.active .pipeline-step-name,
+body:has(#crm-theme-toggle:checked) .pipeline-stage-row.active .stage-row-title {
+    color: #a5b4fc !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-step-card.active .pipeline-step-prob {
+    color: #818cf8 !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-step-card.step-won {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-step-card.step-won .pipeline-step-name {
+    color: #6ee7b7 !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-step-card.step-lost {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-step-card.step-lost .pipeline-step-name {
+    color: #fca5a5 !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.pipeline-input-text, .wl-input, .cfg-input) {
+    background-color: #273549 !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.pipeline-btn-outline, .wl-btn-outline, .btn-ghost) {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+body:has(#crm-theme-toggle:checked) .pipeline-btn-delete {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.pipeline-panel-header, .gate-rules-section, .pipeline-form-actions-footer) {
+    border-color: #334155 !important;
+}
+
+body:has(#crm-theme-toggle:checked) :is(.pipeline-code-badge, .stage-rule-tag, .gate-rule-badge-optional) {
+    background-color: #334155 !important;
+    color: #cbd5e1 !important;
+    border-color: #475569 !important;
+}
+
+body:has(#crm-theme-toggle:checked) .gate-rule-badge-required {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+body:has(#crm-theme-toggle:checked) .prob-badge-blue {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+    color: #a5b4fc !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+body:has(#crm-theme-toggle:checked) .prob-badge-green {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #6ee7b7 !important;
+    border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+body:has(#crm-theme-toggle:checked) .prob-badge-red {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Opt-in surface primitive */
 .crm-surface {
     background: var(--crm-surface);
     border: 1px solid var(--crm-border);
     border-radius: var(--crm-radius-lg);
     box-shadow: var(--crm-shadow-sm);
 }
-@media (max-width: 1024px) {
+
+@media (max-width: 1023.98px) {
     :root { --crm-page-padding: var(--crm-space-6); }
 }
-@media (max-width: 768px) {
+
+@media (max-width: 767.98px) {
     :root { --crm-page-padding: var(--crm-space-4); }
 }
+
 @media (prefers-reduced-motion: reduce) {
     :root { --crm-transition: 0s; }
     .crm-header *, .sidebar *, .sidebar, .sidebar__backdrop {
         animation: none !important;
         transition: none !important;
         scroll-behavior: auto !important;
+    }
+}
+
+/* Đảm bảo Bottom Nav và Mobile Drawer luôn ẩn trên Desktop */
+@media (min-width: 768px) {
+    .crm-bottom-nav,
+    .crm-mobile-drawer,
+    .crm-mobile-drawer__backdrop {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
     }
 }

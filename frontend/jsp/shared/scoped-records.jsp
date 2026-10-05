@@ -667,19 +667,23 @@ if (isQuotes && (detail != null || "view".equals(quoteActionParam) || "approve".
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><%= isCustomers ? "Danh sách Khách hàng Doanh nghiệp & Bộ lọc Nâng cao (Customer List)" : (isActivities ? "Quản lý Hoạt động & Lịch sử Tương tác (Sales Activities)" : (isQuotes ? "Danh sách Báo giá & Phê duyệt Chiết khấu (Quotes & Approvals)" : esc(request.getAttribute("moduleTitle")))) %> | CRM ICTU</title>
-    <link rel="stylesheet" href="<%= contextPath %>/css/shared/common.css">
-    <link rel="stylesheet" href="<%= contextPath %>/css/shared/layout.css">
-    <link rel="stylesheet" href="<%= contextPath %>/css/shared/header.css">
-    <link rel="stylesheet" href="<%= contextPath %>/css/shared/sidebar.css">
-    <link rel="stylesheet" href="<%= contextPath %>/css/shared/components.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<%= contextPath %>/css/shared/common.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= contextPath %>/css/shared/layout.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= contextPath %>/css/shared/header.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= contextPath %>/css/shared/sidebar.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= contextPath %>/css/shared/responsive.css?v=20261005_3">
+    <link rel="stylesheet" href="<%= contextPath %>/css/shared/components.css?v=20261005_3">
     <% if (isCustomers) { %>
-    <link rel="stylesheet" href="<%= contextPath %>/css/customers/customers.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/customers/customers.css?v=20261005_3">
     <% } else if (isActivities) { %>
-    <link rel="stylesheet" href="<%= contextPath %>/css/activities/activities.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/activities/activities.css?v=20261005_3">
     <% } else if (isQuotes) { %>
-    <link rel="stylesheet" href="<%= contextPath %>/css/quotes/quotes.css">
+    <link rel="stylesheet" href="<%= contextPath %>/css/quotes/quotes.css?v=20261005_3">
     <style>
-        .act-page-wrapper { flex: 1; min-width: 0; width: 100%; padding: 24px 32px; background-color: #f6f8fb; min-height: calc(100vh - 64px); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e293b; box-sizing: border-box; }
+        .act-page-wrapper { flex: 1; min-width: 0; width: 100%; padding: 24px 32px; background-color: var(--crm-bg, #f6f8fb); min-height: calc(100vh - 64px); font-family: var(--crm-font-sans, 'Plus Jakarta Sans', 'Inter', sans-serif); color: var(--crm-text-primary, #1e293b); box-sizing: border-box; }
         .act-container { max-width: 1440px; margin: 0 auto; width: 100%; box-sizing: border-box; }
         .act-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.8125rem; color: #64748b; margin-bottom: 16px; line-height: 1.4; }
         .act-breadcrumb a { color: #64748b; text-decoration: none; transition: color 150ms ease; }

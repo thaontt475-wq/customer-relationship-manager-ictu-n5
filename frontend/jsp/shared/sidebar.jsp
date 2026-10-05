@@ -1,7 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List, com.crm.dto.permissions.MenuItem" %>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
-<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css?v=20261005">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css?v=20261005">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/responsive.css?v=20261005">
 <%!
     private String sidebarEscapeHtml(String input) {
         if (input == null) return "";
@@ -67,9 +68,43 @@
         sidebarCurrentUri = request.getRequestURI();
     }
     String sidebarContextPath = request.getContextPath();
+    jakarta.servlet.http.Cookie[] sidebarCookies = request.getCookies();
+    boolean sidebarIsRail = false;
+    if (sidebarCookies != null) {
+        for (jakarta.servlet.http.Cookie c : sidebarCookies) {
+            if ("crm_sidebar_rail".equals(c.getName()) && "true".equals(c.getValue())) {
+                sidebarIsRail = true;
+                break;
+            }
+        }
+    }
 %>
-<!-- Backdrop overlay khi mở mobile sidebar drawer (AC 3) -->
-<div class="sidebar__backdrop" id="crmSidebarBackdrop" aria-hidden="true"></div>
+
+<!-- Checkbox hack cho Chế độ Thu gọn Sidebar Rail Mode 68px trên PC (Lưu trạng thái qua Cookie/localStorage) -->
+<input type="checkbox" id="crm-sidebar-rail-cb" class="crm-sidebar-rail-cb" <%= sidebarIsRail ? "checked" : "" %> hidden>
+<script>
+(function() {
+    var railCb = document.getElementById('crm-sidebar-rail-cb');
+    if (!railCb) return;
+    try {
+        var savedRail = localStorage.getItem('crm_sidebar_rail');
+        if (savedRail === 'true' && !railCb.checked) {
+            railCb.checked = true;
+            document.cookie = "crm_sidebar_rail=true;path=/;max-age=31536000;SameSite=Lax";
+        } else if (savedRail === 'false' && railCb.checked) {
+            railCb.checked = false;
+            document.cookie = "crm_sidebar_rail=false;path=/;max-age=31536000;SameSite=Lax";
+        }
+    } catch (e) {}
+    railCb.addEventListener('change', function() {
+        var val = this.checked ? 'true' : 'false';
+        try {
+            localStorage.setItem('crm_sidebar_rail', val);
+        } catch (e) {}
+        document.cookie = "crm_sidebar_rail=" + val + ";path=/;max-age=31536000;SameSite=Lax";
+    });
+})();
+</script>
 
 <!-- Sidebar chính của hệ thống CRM -->
 <aside class="sidebar" id="crmSidebar" aria-label="Sidebar navigation">
@@ -78,8 +113,12 @@
             <span class="sidebar__brand-mark">CRM</span>
             <span class="sidebar__brand-text">CRM System</span>
         </div>
-        <!-- Nút đóng Drawer trên thiết bị di động (AC 3) -->
-        <a href="#" class="sidebar__close-btn" aria-label="Đóng menu điều hướng" title="Đóng menu">&#10005;</a>
+        <!-- Nút thu gọn dạng thanh icon mỏng (Rail mode 68px) trên PC Desktop -->
+        <label for="crm-sidebar-rail-cb" class="sidebar__rail-toggle" title="Thu gọn / Mở rộng thanh điều hướng" aria-label="Thu gọn / Mở rộng sidebar">
+            <svg class="rail-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </label>
     </div>
 
     <!-- Khu vực danh sách điều hướng chức năng -->
@@ -93,7 +132,7 @@
                 <span class="sidebar__empty-text">Không có menu khả dụng cho tài khoản này</span>
             </div>
 
-            <!-- Menu do server render; không sử dụng Fetch API. -->
+            <!-- Menu do server render; không sử dụng JavaScript -->
             <ul class="sidebar__menu <%= sidebarHasServerMenu ? "is-visible" : "is-hidden" %>" id="crmSidebarMenuList">
                 <% if (sidebarHasServerMenu) {
                     for (MenuItem item : sidebarServerMenuItems) {
@@ -118,7 +157,7 @@
                     <li class="sidebar__item<%= (selfActive || childActive) ? " sidebar__item--active" : "" %><%= hasChildren ? " sidebar__item--has-children" : "" %>">
                         <% if (logoutItem) { %>
                             <form class="sidebar__logout-form" method="post" action="<%= sidebarEscapeHtml(itemResolvedUrl) %>">
-<input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
+                                <input type="hidden" name="csrfToken" value="<%= com.crm.controller.ServerForms.csrf(request) %>">
                                 <input type="hidden" name="redirectToLogin" value="true">
                                 <button type="submit" class="sidebar__link sidebar__logout-button">
                                     <span class="sidebar__icon sidebar__icon--custom" aria-hidden="true"><%= sidebarIcon(itemCode) %></span>
@@ -167,7 +206,7 @@
         </div>
     </nav>
 
-    <!-- Footer Sidebar hiển thị Tên, Vai trò và Nhóm kinh doanh (AC 2) -->
+    <!-- Footer Sidebar hiển thị Tên, Vai trò và Nhóm kinh doanh -->
     <div class="sidebar__footer">
         <div class="sidebar__user-card" id="crmSidebarUserCard">
             <div class="sidebar__user-avatar" id="crmSidebarAvatarText"><%= sidebarEscapeHtml(request.getAttribute("currentUserDisplayName") == null || String.valueOf(request.getAttribute("currentUserDisplayName")).isBlank() ? "U" : String.valueOf(request.getAttribute("currentUserDisplayName")).substring(0,1).toUpperCase(java.util.Locale.ROOT)) %></div>
@@ -187,4 +226,36 @@
     </div>
 </aside>
 
-<!-- Menu động và responsive drawer được xử lý bằng JSP/CSS, không cần JavaScript. -->
+<!-- Bottom Navigation Bar cố định ở đáy màn hình trên Mobile (< 768px, 4 icon chính) -->
+<!-- Mặc định style="display: none;" để tuyệt đối không hiển thị trên Desktop kể cả khi chưa nạp CSS -->
+<nav class="crm-bottom-nav" aria-label="Điều hướng nhanh mobile" style="display: none;">
+    <a href="${pageContext.request.contextPath}/dashboard" class="crm-bottom-nav__item <%= sidebarUrlActive("/dashboard", sidebarCurrentUri, sidebarContextPath) ? "crm-bottom-nav__item--active" : "" %>">
+        <svg class="crm-bottom-nav__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 22px; height: 22px; max-width: 22px; max-height: 22px;">
+            <rect x="3" y="3" width="7" height="7" rx="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        <span class="crm-bottom-nav__label">Tổng quan</span>
+    </a>
+    <a href="${pageContext.request.contextPath}/customers" class="crm-bottom-nav__item <%= (sidebarUrlActive("/customers", sidebarCurrentUri, sidebarContextPath) || sidebarUrlActive("/users", sidebarCurrentUri, sidebarContextPath)) ? "crm-bottom-nav__item--active" : "" %>">
+        <svg class="crm-bottom-nav__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 22px; height: 22px; max-width: 22px; max-height: 22px;">
+            <circle cx="9" cy="8" r="3"/>
+            <path d="M3 21v-3a6 6 0 0 1 12 0v3m1-16a3 3 0 0 1 0 6m2 4a5 5 0 0 1 3 5"/>
+        </svg>
+        <span class="crm-bottom-nav__label">Khách hàng</span>
+    </a>
+    <a href="${pageContext.request.contextPath}/opportunities" class="crm-bottom-nav__item <%= (sidebarUrlActive("/opportunities", sidebarCurrentUri, sidebarContextPath) || sidebarUrlActive("/pipeline", sidebarCurrentUri, sidebarContextPath)) ? "crm-bottom-nav__item--active" : "" %>">
+        <svg class="crm-bottom-nav__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 22px; height: 22px; max-width: 22px; max-height: 22px;">
+            <path d="m12 3 9 5v8l-9 5-9-5V8zm0 9 9-4m-9 4L3 8m9 4v9"/>
+        </svg>
+        <span class="crm-bottom-nav__label">Cơ hội</span>
+    </a>
+    <a href="${pageContext.request.contextPath}/activities" class="crm-bottom-nav__item <%= (sidebarUrlActive("/activities", sidebarCurrentUri, sidebarContextPath) || sidebarUrlActive("/dashboard#activities", sidebarCurrentUri, sidebarContextPath)) ? "crm-bottom-nav__item--active" : "" %>">
+        <svg class="crm-bottom-nav__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 22px; height: 22px; max-width: 22px; max-height: 22px;">
+            <rect x="3" y="5" width="18" height="16" rx="2"/>
+            <path d="M7 3v4m10-4v4M3 11h18"/>
+        </svg>
+        <span class="crm-bottom-nav__label">Lịch</span>
+    </a>
+</nav>

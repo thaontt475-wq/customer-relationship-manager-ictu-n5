@@ -1,0 +1,417 @@
+/* ==========================================================================
+   CRM Enterprise - Responsive & Adaptive UI Stylesheet
+   Breakpoints:
+     - Mobile:  @media (max-width: 767.98px)
+     - Tablet:  @media (min-width: 768px) and (max-width: 1023.98px)
+     - Desktop: @media (min-width: 1024px)
+   100% Pure CSS (Media Queries, Flexbox/Grid, Touch Targets >= 44px)
+   ========================================================================== */
+
+/* Ẩn các thành phần di động trên màn hình lớn (Tablet & Desktop >= 768px) */
+@media (min-width: 768px) {
+    .crm-bottom-nav,
+    .crm-mobile-drawer,
+    .crm-mobile-drawer__backdrop,
+    .crm-header__menu-toggle {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
+/* ==========================================================================
+   1. DESKTOP SPECIFICATIONS (min-width: 1024px)
+   ========================================================================== */
+@media (min-width: 1024px) {
+    /* 2-Column Master Layout */
+    .crm-main-layout {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        min-height: calc(100dvh - var(--crm-header-height));
+    }
+
+    .crm-main-layout > main,
+    .crm-main-layout > .permission-page {
+        flex: 1;
+        min-width: 0;
+        padding: 32px 40px;
+    }
+
+    /* Bộ lọc (Filter bar): Gom các ô tìm kiếm, dropdown, nút bấm thành 1 hàng ngang duy nhất */
+    .crm-toolbar,
+    .crm-settings-toolbar,
+    .crm-filter-bar,
+    .filter-bar,
+    .search-filter-row,
+    .user-toolbar,
+    .product-toolbar,
+    .scoped-toolbar,
+    .crm-filter-form,
+    .act-filter-form,
+    .quote-filter-form {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 10px !important;
+        flex-wrap: nowrap !important;
+        margin-bottom: 20px !important;
+        width: 100% !important;
+    }
+
+    .crm-toolbar .crm-input,
+    .crm-filter-bar input,
+    .filter-bar input,
+    .search-filter-row input,
+    .crm-filter-search-wrap,
+    .act-search-wrap {
+        max-width: 320px !important;
+        flex: 2 1 240px !important;
+    }
+
+    .crm-toolbar .crm-select,
+    .crm-filter-bar select,
+    .filter-bar select,
+    .search-filter-row select,
+    .crm-filter-select,
+    .act-select {
+        width: auto !important;
+        min-width: 150px !important;
+        flex: 1 1 160px !important;
+    }
+
+    .crm-filter-actions-group,
+    .crm-filter-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+    }
+
+    /* Bảng dữ liệu (Data Table): Dạng bảng lưới chuẩn doanh nghiệp, padding thoáng đãng */
+    .crm-table-wrap,
+    .table-responsive,
+    .crm-table-container,
+    .crm-settings-table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--crm-border);
+        border-radius: var(--crm-radius-md);
+        background: var(--crm-surface);
+        box-shadow: var(--crm-shadow-sm);
+    }
+
+    .crm-table,
+    .data-table,
+    .crm-settings-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .crm-table th,
+    .data-table th,
+    .crm-settings-table th {
+        padding: 14px 18px;
+        background: var(--crm-surface-subtle);
+        color: var(--crm-text-secondary);
+        font-weight: 650;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--crm-border);
+        white-space: nowrap;
+    }
+
+    .crm-table td,
+    .data-table td,
+    .crm-settings-table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--crm-border);
+        vertical-align: middle;
+        color: var(--crm-text-primary);
+    }
+
+    .crm-table tbody tr:hover,
+    .data-table tbody tr:hover,
+    .crm-settings-table tbody tr:hover {
+        background-color: var(--crm-surface-subtle);
+    }
+
+    /* Nút thao tác trong bảng căn thẳng hàng */
+    .crm-table-actions,
+    .table-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+}
+
+/* ==========================================================================
+   2. TABLET SPECIFICATIONS (768px to 1023.98px)
+   ========================================================================== */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+    .crm-main-layout > main,
+    .crm-main-layout > .permission-page {
+        padding: 24px;
+    }
+
+    .crm-toolbar,
+    .crm-settings-toolbar,
+    .crm-filter-bar,
+    .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .crm-toolbar .crm-input,
+    .crm-filter-bar input {
+        flex: 1 1 200px;
+    }
+
+    .crm-table th,
+    .crm-table td {
+        padding: 12px 14px;
+        font-size: 13px;
+    }
+}
+
+/* ==========================================================================
+   3. MOBILE SPECIFICATIONS (< 767.98px)
+   ========================================================================== */
+@media (max-width: 767.98px) {
+    /* Khung tổng thể: Xếp dọc, đệm đáy 76px để không bị che bởi Bottom Nav */
+    .crm-main-layout {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-height: auto;
+    }
+
+    .crm-main-layout > main,
+    .crm-main-layout > .permission-page,
+    .crm-body {
+        padding: 16px 14px 76px !important; /* Đệm an toàn cho Bottom Navigation Bar */
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Chuẩn Touch Target: Chiều cao tối thiểu 44px trên toàn bộ nút và ô nhập liệu */
+    .crm-btn,
+    .crm-input,
+    .crm-select,
+    .form-control,
+    .crm-settings-toolbar .crm-input,
+    .crm-settings-toolbar .crm-select,
+    button:not(.rail-icon),
+    select,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="number"],
+    .btn,
+    .crm-mobile-drawer__link,
+    .crm-mobile-drawer__logout-btn {
+        min-height: 44px !important;
+        font-size: 15px !important; /* Chống zoom tự động trên Safari iOS */
+        border-radius: 8px !important;
+        box-sizing: border-box !important;
+    }
+
+    .crm-header__menu-toggle,
+    .crm-header__theme-btn,
+    .crm-header__bell-btn {
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    /* Tối ưu Bộ lọc trên Mobile: Chuyển sang dạng xếp dọc full-width */
+    .crm-toolbar,
+    .crm-settings-toolbar,
+    .crm-filter-bar,
+    .filter-bar,
+    .search-filter-row,
+    .user-toolbar,
+    .product-toolbar,
+    .scoped-toolbar {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 10px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .crm-toolbar > *,
+    .crm-settings-toolbar > *,
+    .crm-filter-bar > *,
+    .filter-bar > *,
+    .search-filter-row > *,
+    .crm-toolbar .crm-input,
+    .crm-toolbar .crm-select,
+    .crm-toolbar .crm-btn,
+    .crm-filter-bar input,
+    .crm-filter-bar select,
+    .crm-filter-bar button {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 100% !important;
+        margin: 0 !important;
+    }
+
+    /* Tối ưu Data Table trên Mobile: Vùng cuộn ngang mượt mà */
+    .crm-table-wrap,
+    .table-responsive,
+    .crm-table-container,
+    .crm-settings-table-wrap {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 1px solid var(--crm-border);
+        border-radius: var(--crm-radius-md);
+        background: var(--crm-surface);
+        box-shadow: var(--crm-shadow-sm);
+        margin-bottom: 16px;
+    }
+
+    .crm-table,
+    .data-table,
+    .crm-settings-table {
+        min-width: 580px; /* Đảm bảo các cột không bị ép chặt gây vỡ chữ */
+        width: 100%;
+    }
+
+    .crm-table th,
+    .crm-table td,
+    .data-table th,
+    .data-table td {
+        padding: 12px 10px !important;
+        font-size: 13px !important;
+    }
+
+    /* Chế độ Bảng dạng Card cuộn dọc linh hoạt (Card Mode) */
+    .crm-table-cards,
+    .crm-table-mobile-cards,
+    table[data-responsive="card"] {
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    .crm-table-cards thead,
+    .crm-table-mobile-cards thead,
+    table[data-responsive="card"] thead {
+        display: none !important;
+    }
+
+    .crm-table-cards tbody,
+    .crm-table-mobile-cards tbody,
+    table[data-responsive="card"] tbody {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    .crm-table-cards tr,
+    .crm-table-mobile-cards tr,
+    table[data-responsive="card"] tr {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        background: var(--crm-surface) !important;
+        border: 1px solid var(--crm-border) !important;
+        border-radius: 12px !important;
+        padding: 14px 16px !important;
+        box-shadow: var(--crm-shadow-sm) !important;
+        box-sizing: border-box !important;
+    }
+
+    .crm-table-cards td,
+    .crm-table-mobile-cards td,
+    table[data-responsive="card"] td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px solid var(--crm-surface-subtle) !important;
+        font-size: 13px !important;
+        min-width: 0 !important;
+    }
+
+    .crm-table-cards td:last-child,
+    .crm-table-mobile-cards td:last-child,
+    table[data-responsive="card"] td:last-child {
+        border-bottom: none !important;
+        margin-top: 8px !important;
+        justify-content: flex-end !important;
+    }
+
+    /* Form căn full-width, margin hai bên từ 12px - 16px (14px) */
+    .crm-card,
+    .crm-form-container,
+    .form-container,
+    .crm-settings,
+    .crm-page-container,
+    .auth-container,
+    .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .crm-card-body {
+        padding: 16px 14px !important;
+    }
+
+    .crm-card-header {
+        padding: 14px 16px !important;
+    }
+
+    .crm-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .crm-page-title {
+        font-size: 20px !important;
+    }
+
+    .crm-settings-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+    }
+}
+
+/* ==========================================================================
+   4. CHUYỂN ĐỘNG & TRANSITION MƯỢT MÀ (transition: all 0.3s ease)
+   ========================================================================== */
+.sidebar,
+.crm-header,
+.crm-mobile-drawer,
+.crm-mobile-drawer__backdrop,
+.crm-bottom-nav,
+.crm-table-wrap,
+.crm-btn,
+.crm-input,
+.crm-main-layout,
+.crm-main-layout > main,
+.sidebar__link,
+.crm-header__icon-btn,
+.sidebar__rail-toggle {
+    transition: all 0.3s ease;
+}

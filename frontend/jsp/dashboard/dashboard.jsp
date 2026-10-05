@@ -39,12 +39,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tổng quan - CRM ICTU</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/dashboard/dashboard.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/common.css?v=20261005_3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/layout.css?v=20261005_3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/header.css?v=20261005_3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/sidebar.css?v=20261005_3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/responsive.css?v=20261005_3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/shared/components.css?v=20261005_3">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/dashboard/dashboard.css?v=20261005_3">
 </head>
 <body class="crm-body">
     <jsp:include page="/jsp/shared/header.jsp" />

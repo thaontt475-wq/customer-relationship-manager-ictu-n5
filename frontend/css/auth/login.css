@@ -1,0 +1,474 @@
+/* ==========================================================================
+   CRM Enterprise - Login UI/UX Specification Stylesheet
+   Pure CSS implementation: No JavaScript dependency
+   ========================================================================== */
+
+/* --- Base & Background Layout --- */
+body.login-page {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f8fafc;
+    background-image: 
+        radial-gradient(#cbd5e1 1.25px, transparent 1.25px),
+        radial-gradient(#cbd5e1 1.25px, #f8fafc 1.25px);
+    background-size: 24px 24px;
+    background-position: 0 0, 12px 12px;
+    color: #0f172a;
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Centered Card Shell --- */
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 24px 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.login-card {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+/* --- Header & Brand Logo --- */
+.login-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.login-brand-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.login-brand-logo svg {
+    display: block;
+    width: 48px;
+    height: 48px;
+}
+
+.login-title {
+    font-size: 21px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 16px 0 0;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+/* --- Form Fields & Inputs --- */
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-group {
+    margin-bottom: 20px;
+}
+
+.field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.login-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #0f172a;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    outline: none;
+    font-family: inherit;
+}
+
+.login-input::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+.login-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* --- Pure CSS Password Toggle (Checkbox Hack) --- */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.pwd-toggle-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    margin: 0;
+}
+
+.login-input.pwd-masked-input {
+    padding-right: 42px;
+    -webkit-text-security: disc;
+    letter-spacing: 0.05em;
+}
+
+.pwd-toggle-label {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 4px;
+    border-radius: 4px;
+    user-select: none;
+    transition: color 0.15s ease;
+}
+
+.pwd-toggle-label:hover {
+    color: #475569;
+}
+
+.pwd-toggle-label .eye-off {
+    display: block;
+}
+
+.pwd-toggle-label .eye-on {
+    display: none;
+}
+
+/* When checkbox is checked via pure CSS: reveal plain text and flip eye icon */
+.pwd-toggle-checkbox:checked ~ .pwd-masked-input {
+    -webkit-text-security: none;
+    letter-spacing: normal;
+}
+
+.pwd-toggle-checkbox:checked ~ .pwd-toggle-label .eye-off {
+    display: none;
+}
+
+.pwd-toggle-checkbox:checked ~ .pwd-toggle-label .eye-on {
+    display: block;
+    color: #2563eb;
+}
+
+/* --- Error State: Sai Email hoặc Mật khẩu --- */
+.password-wrapper.has-error .login-input {
+    border-color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.password-wrapper.has-error .login-input:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.field-error-notice {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    color: #ef4444;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.error-circle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+/* --- Lockout State (Tài khoản bị khóa tạm thời 15 phút) --- */
+.lockout-alert {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.lockout-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.4;
+}
+
+.lockout-subtitle {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.unlock-action {
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.unlock-action a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.unlock-action a:hover {
+    text-decoration: underline;
+}
+
+/* --- CTA Button (Đăng nhập hệ thống) --- */
+.login-submit-btn {
+    width: 100%;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #2563eb;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease, transform 0.05s ease, box-shadow 0.15s ease;
+    font-family: inherit;
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+.login-submit-btn:hover {
+    background-color: #1e40af;
+}
+
+.login-submit-btn:active {
+    background-color: #1d4ed8;
+    transform: scale(0.99);
+}
+
+.login-submit-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* Disabled state */
+.login-submit-btn:disabled,
+.login-submit-btn.is-disabled {
+    background-color: #d1d5db;
+    color: #9ca3af;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+    border-color: transparent;
+}
+
+/* --- Footer Links (Quên mật khẩu?) --- */
+.login-footer-links {
+    margin-top: 18px;
+    text-align: center;
+}
+
+.forgot-pwd-link {
+    display: inline-block;
+    font-size: 13px;
+    color: #64748b;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.forgot-pwd-link:hover {
+    color: #2563eb;
+}
+
+.forgot-pwd-link:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* --- Toast Notification: Hết hạn phiên làm việc (Session Timeout) --- */
+.session-timeout-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    padding: 14px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 320px;
+    z-index: 10000;
+    animation: toastSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+}
+
+@keyframes toastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.toast-circle-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+    line-height: 1;
+}
+
+.toast-text-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.4;
+}
+
+.toast-text-desc {
+    font-size: 12.5px;
+    color: #64748b;
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+/* --- Demo State Navigation Bar --- */
+.demo-bar {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.demo-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.demo-chip:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.demo-chip.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+.demo-chip-reset {
+    color: #dc2626;
+}
+
+.demo-chip-reset:hover {
+    border-color: #dc2626;
+    color: #b91c1c;
+}
+
+/* --- Mobile Responsive Layout (< 576px) --- */
+@media (max-width: 575.98px) {
+    body.login-page {
+        align-items: flex-start;
+        padding-top: 24px;
+        background-image: none;
+        background-color: #ffffff;
+    }
+
+    .login-container {
+        padding: 0 16px;
+        max-width: 100%;
+    }
+
+    .login-card {
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        padding: 16px 4px;
+    }
+
+    .login-brand-logo svg {
+        width: 42px;
+        height: 42px;
+    }
+
+    .login-title {
+        font-size: 20px;
+        margin: 12px 0 20px;
+    }
+
+    .session-timeout-toast {
+        top: 12px;
+        right: 12px;
+        left: 12px;
+        max-width: calc(100% - 24px);
+    }
+}

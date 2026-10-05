@@ -1,51 +1,595 @@
-/* Shared application header: tokens live in common.css. */
-.crm-header { height: var(--crm-header-height); width: 100%; position: sticky; top: 0; z-index: 100; background: var(--crm-surface); border-bottom: 1px solid var(--crm-border); }
-.crm-header__container { display: flex; align-items: center; justify-content: space-between; gap: var(--crm-space-4); height: 100%; padding: 0 var(--crm-space-6); }
-.crm-header__brand, .crm-header__brand-link, .crm-header__actions, .crm-header__user, .crm-header__user-meta { display: flex; align-items: center; }
-.crm-header__brand { gap: var(--crm-space-2); min-width: 0; }
-.crm-header__brand-link { gap: var(--crm-space-3); text-decoration: none; color: var(--crm-text); }
-.crm-header__brand-mark { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: var(--crm-radius-md); background: var(--crm-primary); color: var(--crm-surface); font-size: 10px; font-weight: 750; letter-spacing: .03em; }
-.crm-header__brand-info { display: flex; flex-direction: column; gap: 2px; }
-.crm-header__brand-title { font-size: 14px; font-weight: 700; letter-spacing: -.02em; }
-.crm-header__brand-subtitle { font-size: 11px; color: var(--crm-muted); }
-.crm-header__actions { gap: var(--crm-space-3); min-width: 0; }
-.crm-header__user { gap: var(--crm-space-3); min-width: 0; padding: 5px 8px; border-radius: var(--crm-radius-md); color: var(--crm-text); text-decoration: none; transition: background-color var(--crm-transition); }
-.crm-header__user:hover { background: var(--crm-surface-subtle); }
-.crm-header__avatar { position: relative; display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 50%; background: var(--crm-primary-soft); color: var(--crm-primary); font-size: 13px; font-weight: 700; }
-.crm-header__avatar img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.crm-header__avatar img[hidden] { display: none; }
-.crm-header__user-details { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.crm-header__user-name { font-size: 13px; font-weight: 650; max-width: 200px; }
-.crm-header__user-name, .crm-header__role-badge, .crm-header__team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.crm-header__user-meta { gap: 6px; font-size: 11px; color: var(--crm-muted); }
-.crm-header__role-badge { max-width: 150px; color: var(--crm-text-secondary); }
-.crm-header__team-name { max-width: 150px; }
-.crm-header__team-name::before { content: "/"; margin-right: 6px; color: var(--crm-border); }
-.crm-header__role-badge, .crm-header__team-name { display: none; }
-.crm-header__status-text { font-size: 10px; color: var(--crm-success); }
-.crm-header__avatar-link { color: var(--crm-muted); font-size: 12px; text-decoration: none; padding: 8px; border-radius: var(--crm-radius-sm); }
-.crm-header__avatar-link:hover { background: var(--crm-surface-subtle); color: var(--crm-primary); }
-.crm-header__logout-form { display: flex; margin: 0; }
-.crm-header__logout-btn, .crm-header__menu-toggle { display: inline-flex; align-items: center; justify-content: center; gap: var(--crm-space-2); min-height: 40px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--crm-radius-md); background: transparent; color: var(--crm-text-secondary); font: inherit; font-size: 12px; cursor: pointer; transition: color var(--crm-transition), background-color var(--crm-transition); }
-.crm-header__logout-btn:hover { color: var(--crm-danger); background: var(--crm-danger-soft); }
-.crm-header__menu-toggle { display: none; width: 40px; flex: none; padding: 0; }
-.crm-header__menu-toggle:hover { background: var(--crm-surface-subtle); color: var(--crm-primary); }
-.crm-header__logout-icon { flex: none; }
-@media (max-width: 1024px) {
-    .crm-header__avatar-link, .crm-header__status-text { display: none; }
-    .crm-header__team-name { max-width: 100px; }
+/* ==========================================================================
+   CRM Shared Application Header
+   Hỗ trợ Global Search, Dark/Light Mode toggle, Notification Bell,
+   User Profile Widget và Mobile Drawer Menu trượt 100% Pure CSS
+   ========================================================================== */
+
+.crm-header {
+    height: var(--crm-header-height);
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--crm-surface);
+    border-bottom: 1px solid var(--crm-border);
+    transition: background-color var(--crm-transition), border-color var(--crm-transition);
 }
-@media (max-width: 768px) {
-    .crm-header__container { padding: 0 var(--crm-space-4); gap: var(--crm-space-2); }
-    .crm-header__menu-toggle { display: inline-flex; }
-    .crm-header__brand-subtitle, .crm-header__user-details { display: none; }
-    .crm-header__actions { gap: var(--crm-space-1); }
-    .crm-header__user { padding: 4px; }
-    .crm-header__logout-text { display: none; }
-    .crm-header__logout-btn { width: 40px; }
+
+.crm-header__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--crm-space-4);
+    height: 100%;
+    padding: 0 var(--crm-space-6);
+    max-width: 100%;
 }
-@media (max-width: 400px) {
-    .crm-header__container { padding: 0 var(--crm-space-3); }
-    .crm-header__brand-link { gap: var(--crm-space-2); }
-    .crm-header__brand-title { font-size: 13px; }
+
+/* ==========================================================================
+   Brand & Logo
+   ========================================================================== */
+.crm-header__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-3);
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.crm-header__brand-link {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-3);
+    text-decoration: none;
+    color: var(--crm-text-primary);
+}
+
+.crm-header__brand-mark {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: var(--crm-radius-md);
+    background: linear-gradient(135deg, var(--crm-primary), var(--crm-primary-hover));
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    box-shadow: 0 2px 6px rgba(54, 94, 220, 0.25);
+}
+
+.crm-header__brand-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.crm-header__brand-title {
+    font-size: 15px;
+    font-weight: 750;
+    letter-spacing: -.02em;
+    color: var(--crm-text-primary);
+    line-height: 1.2;
+}
+
+.crm-header__brand-subtitle {
+    font-size: 11px;
+    color: var(--crm-muted);
+    line-height: 1;
+}
+
+/* ==========================================================================
+   Global Search Bar (Desktop PC >= 1024px)
+   ========================================================================== */
+.crm-header__search {
+    flex: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.crm-header__search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--crm-muted);
+    pointer-events: none;
+}
+
+.crm-header__search-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 76px 0 40px;
+    border: 1px solid var(--crm-border);
+    border-radius: 20px;
+    background: var(--crm-surface-subtle);
+    color: var(--crm-text-primary);
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.crm-header__search-input:focus {
+    background: var(--crm-surface);
+    border-color: var(--crm-primary);
+    box-shadow: 0 0 0 3px var(--crm-primary-soft);
+}
+
+.crm-header__search-input::placeholder {
+    color: var(--crm-muted);
+    font-size: 13px;
+}
+
+.crm-header__search-kbd {
+    position: absolute;
+    right: 12px;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--crm-muted);
+    pointer-events: none;
+    box-shadow: var(--crm-shadow-sm);
+}
+
+/* ==========================================================================
+   Header Action Buttons (Right)
+   ========================================================================== */
+.crm-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-3);
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+/* Generic Icon Button */
+.crm-header__icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface-subtle);
+    color: var(--crm-text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.crm-header__icon-btn:hover {
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary);
+    border-color: var(--crm-primary);
+}
+
+/* Dark / Light Mode Toggle Pure CSS */
+.crm-header__theme-btn .crm-icon-sun {
+    display: none;
+}
+
+.crm-header__theme-btn .crm-icon-moon {
+    display: block;
+}
+
+body:has(#crm-theme-toggle:checked) .crm-header__theme-btn .crm-icon-sun,
+#crm-theme-toggle:checked ~ * .crm-header__theme-btn .crm-icon-sun {
+    display: block !important;
+}
+
+body:has(#crm-theme-toggle:checked) .crm-header__theme-btn .crm-icon-moon,
+#crm-theme-toggle:checked ~ * .crm-header__theme-btn .crm-icon-moon {
+    display: none !important;
+}
+
+/* Notification Bell with Badge */
+.crm-header__bell-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.crm-header__bell-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 17px;
+    text-align: center;
+    border: 2px solid var(--crm-surface);
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.4);
+}
+
+/* User Profile Widget */
+.crm-header__user {
+    display: flex;
+    align-items: center;
+    gap: var(--crm-space-3);
+    min-width: 0;
+    padding: 4px 8px;
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-text-primary);
+    text-decoration: none;
+    transition: background-color var(--crm-transition);
+}
+
+.crm-header__user:hover {
+    background: var(--crm-surface-subtle);
+}
+
+.crm-header__avatar {
+    position: relative;
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary);
+    font-size: 14px;
+    font-weight: 700;
+    border: 1px solid var(--crm-border);
+}
+
+.crm-header__user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.crm-header__user-name {
+    font-size: 13px;
+    font-weight: 650;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--crm-text-primary);
+}
+
+.crm-header__user-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--crm-muted);
+}
+
+.crm-header__role-badge {
+    display: inline-block;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--crm-primary);
+}
+
+.crm-header__team-name,
+.crm-header__status-text,
+.crm-header__avatar-link {
+    display: none;
+}
+
+.crm-header__user-chevron {
+    color: var(--crm-muted);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.crm-header__user:hover .crm-header__user-chevron {
+    color: var(--crm-text-primary);
+}
+
+/* Logout Button on Desktop */
+.crm-header__logout-form {
+    display: flex;
+    margin: 0;
+}
+
+.crm-header__logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    background: var(--crm-surface-subtle);
+    color: var(--crm-text-secondary);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.crm-header__logout-btn:hover {
+    color: var(--crm-danger);
+    background: var(--crm-danger-soft);
+    border-color: var(--crm-danger);
+}
+
+.crm-header__logout-icon {
+    flex: none;
+}
+
+/* Hamburger Menu Button */
+.crm-header__menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--crm-radius-md);
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface-subtle);
+    color: var(--crm-text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.crm-header__menu-toggle:hover {
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary);
+}
+
+/* ==========================================================================
+   Mobile Drawer Menu (Pure CSS Checkbox Hack)
+   ========================================================================== */
+.crm-mobile-drawer__backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 1090;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.crm-mobile-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 290px;
+    max-width: 82vw;
+    background: var(--crm-surface);
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: var(--crm-shadow-md);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+/* Checkbox Toggle Drawer State */
+#crm-mobile-drawer-cb:checked ~ .crm-mobile-drawer,
+body:has(#crm-mobile-drawer-cb:checked) .crm-mobile-drawer {
+    transform: translateX(0) !important;
+}
+
+#crm-mobile-drawer-cb:checked ~ .crm-mobile-drawer__backdrop,
+body:has(#crm-mobile-drawer-cb:checked) .crm-mobile-drawer__backdrop {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+body:has(#crm-mobile-drawer-cb:checked) {
+    overflow: hidden;
+}
+
+/* Mobile Drawer Contents */
+.crm-mobile-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--crm-border);
+}
+
+.crm-mobile-drawer__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.crm-mobile-drawer__brand-title {
+    font-size: 15px;
+    font-weight: 750;
+    color: var(--crm-text-primary);
+}
+
+.crm-mobile-drawer__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--crm-radius-md);
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface-subtle);
+    color: var(--crm-muted);
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.crm-mobile-drawer__close:hover {
+    background: var(--crm-danger-soft);
+    color: var(--crm-danger);
+}
+
+.crm-mobile-drawer__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 20px;
+}
+
+.crm-mobile-drawer__user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--crm-surface-subtle);
+    border-radius: var(--crm-radius-md);
+    border: 1px solid var(--crm-border);
+}
+
+.crm-mobile-drawer__user-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--crm-text-primary);
+}
+
+.crm-mobile-drawer__user-role {
+    font-size: 11px;
+    color: var(--crm-primary);
+    font-weight: 600;
+}
+
+.crm-mobile-drawer__section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--crm-muted);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.crm-mobile-drawer__menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.crm-mobile-drawer__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: var(--crm-radius-md);
+    color: var(--crm-text-primary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 550;
+    transition: all 0.2s ease;
+}
+
+.crm-mobile-drawer__link:hover {
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary);
+}
+
+.crm-mobile-drawer__footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--crm-border);
+}
+
+.crm-mobile-drawer__logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    border-radius: var(--crm-radius-md);
+    border: 1px solid var(--crm-danger);
+    background: var(--crm-danger-soft);
+    color: var(--crm-danger);
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.crm-mobile-drawer__logout-btn:hover {
+    background: var(--crm-danger);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   Responsive Breakpoints for Header
+   ========================================================================== */
+@media (min-width: 768px) {
+    .crm-mobile-drawer,
+    .crm-mobile-drawer__backdrop,
+    .crm-header__menu-toggle {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+}
+
+@media (max-width: 1023.98px) {
+    .crm-header__search {
+        max-width: 280px;
+    }
+    .crm-header__user-details,
+    .crm-header__user-chevron {
+        display: none;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .crm-header__container {
+        padding: 0 14px;
+        gap: 8px;
+    }
+    .crm-header__menu-toggle {
+        display: inline-flex !important;
+        width: 44px !important;
+        height: 44px !important;
+    }
+    .crm-header__brand-subtitle,
+    .crm-header__search,
+    .crm-header__user-details,
+    .crm-header__logout-form {
+        display: none !important;
+    }
+    .crm-header__brand-title {
+        font-size: 14px;
+    }
+    .crm-header__icon-btn {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    .crm-header__actions {
+        gap: 6px;
+    }
 }

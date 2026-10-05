@@ -1,16 +1,82 @@
-/* Header / Sidebar / Main Content shell. */
-html, body { margin: 0; padding: 0; width: 100%; min-height: 100%; }
-.crm-body { display: flex; flex-direction: column; min-height: 100dvh; background: var(--crm-bg); font-family: var(--crm-font-sans); color: var(--crm-text); line-height: 1.5; }
-.crm-main-layout { display: flex; flex: 1; min-height: calc(100dvh - var(--crm-header-height)); width: 100%; }
-.crm-main-layout > main, .crm-main-layout > .permission-page { flex: 1; min-width: 0; max-width: 100%; padding: var(--crm-page-padding); }
-/* Only outer containers share gutters; module components keep their styling. */
+/* ==========================================================================
+   CRM Shared Application Shell Layout
+   Master Layout 2 cột trên PC Desktop và 1 cột linh hoạt trên Mobile
+   ========================================================================== */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+.crm-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    background: var(--crm-bg);
+    font-family: var(--crm-font-sans);
+    color: var(--crm-text-primary);
+    line-height: 1.5;
+    transition: background-color var(--crm-transition), color var(--crm-transition);
+}
+
+.crm-main-layout {
+    display: flex;
+    flex: 1;
+    min-height: calc(100dvh - var(--crm-header-height));
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.crm-main-layout > main,
+.crm-main-layout > .permission-page {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--crm-page-padding);
+    transition: all 0.3s ease;
+}
+
+/* Container chia sẻ max-width cho các module */
 .crm-main-layout > main > :where(.dashboard__container, .user-container,
     .product-container, .org-container, .cf-container, .config-container,
     .pipeline-container, .winloss-container, .audit-container, .permission-container,
     .import-container) {
-    width: 100%; max-width: var(--crm-content-max-width); margin-inline: auto; padding: 0;
+    width: 100%;
+    max-width: var(--crm-content-max-width);
+    margin-inline: auto;
+    padding: 0;
 }
-.crm-page-container { width: 100%; max-width: var(--crm-content-max-width); margin-inline: auto; }
-.crm-form-container { width: 100%; max-width: var(--crm-form-max-width); margin-inline: auto; }
-.crm-shell-drawer-open { overflow: hidden; }
-@media (max-width: 768px) { .crm-main-layout { flex-direction: column; min-height: auto; } }
+
+.crm-page-container {
+    width: 100%;
+    max-width: var(--crm-content-max-width);
+    margin-inline: auto;
+}
+
+.crm-form-container {
+    width: 100%;
+    max-width: var(--crm-form-max-width);
+    margin-inline: auto;
+}
+
+.crm-shell-drawer-open {
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Mobile Shell Layout (< 768px)
+   ========================================================================== */
+@media (max-width: 767.98px) {
+    .crm-main-layout {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .crm-main-layout > main,
+    .crm-main-layout > .permission-page,
+    .crm-body {
+        padding: 16px 14px 76px !important; /* 76px buffer tránh bị che bởi Bottom Nav */
+    }
+}

@@ -1,86 +1,248 @@
+/* ==========================================================================
+   CRM Avatar Page Styles (Ảnh đại diện)
+   Hỗ trợ hoàn toàn Light & Dark Mode, typography Plus Jakarta Sans / Inter
+   ========================================================================== */
+
 .avatar-page {
-    padding: 24px;
+    flex: 1;
+    min-width: 0;
     width: 100%;
+    padding: 24px 32px;
+    background-color: var(--crm-bg, #f6f8fb);
+    min-height: calc(100vh - 64px);
+    font-family: var(--crm-font-sans, 'Plus Jakarta Sans', 'Inter', sans-serif);
+    color: var(--crm-text-primary, #1e293b);
+    box-sizing: border-box;
+}
+
+.avatar-container {
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.avatar-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.avatar-breadcrumb a {
+    color: #64748b;
+    text-decoration: none;
+    transition: color 150ms ease;
+}
+
+.avatar-breadcrumb a:hover {
+    color: #2563eb;
+}
+
+.avatar-breadcrumb .sep {
+    color: #cbd5e1;
+    font-size: 0.75rem;
+}
+
+.avatar-breadcrumb .current {
+    color: #1e293b;
+    font-weight: 500;
 }
 
 .avatar-card {
-    max-width: 600px;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
 }
 
-.avatar-current {
+.avatar-current-section {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    margin-bottom: 32px;
-    padding: 24px 0;
-    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 28px;
+    padding: 24px 0 28px 0;
+    border-bottom: 1px solid #e2e8f0;
 }
 
-.avatar-img-large {
-    width: 192px;
-    height: 192px;
-    border-radius: 8px;
-    object-fit: cover;
-    border: 2px solid var(--border-color);
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-}
-
-.avatar-placeholder {
-    width: 192px;
-    height: 192px;
-    border-radius: 8px;
-    background-color: var(--bg-secondary);
-    border: 2px dashed var(--border-color);
+.avatar-current-wrapper {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
+    background-color: #f1f5f9;
 }
 
-.avatar-placeholder svg {
-    width: 64px;
-    height: 64px;
+.avatar-img-large {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-large {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8fafc;
+    color: #94a3b8;
+}
+
+.avatar-placeholder-large svg {
+    width: 72px;
+    height: 72px;
+}
+
+.avatar-current-label {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 12px;
+    font-weight: 500;
 }
 
 .avatar-instructions {
-    background-color: var(--bg-secondary);
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
     padding: 16px 20px;
     border-radius: 8px;
     margin-bottom: 24px;
 }
 
-.avatar-instructions h3 {
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text-primary);
+.instructions-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .avatar-instructions ul {
     margin: 0;
     padding-left: 20px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+    color: #475569;
+    font-size: 0.8125rem;
     line-height: 1.6;
 }
 
 .file-input {
     padding: 8px;
-    background-color: var(--bg-secondary);
+    background-color: #f8fafc;
     cursor: pointer;
+    height: auto;
 }
 
 .file-input::file-selector-button {
-    background-color: white;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 6px 12px;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 14px;
     margin-right: 12px;
     cursor: pointer;
-    font-weight: 500;
-    color: var(--text-primary);
-    transition: background-color 0.2s;
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: #334155;
+    transition: all 150ms ease;
+    font-family: inherit;
 }
 
 .file-input::file-selector-button:hover {
-    background-color: var(--bg-secondary);
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+
+/* ==========================================================================
+   DARK MODE OVERRIDES
+   ========================================================================== */
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-page {
+    background-color: #0b0f19 !important;
+    color: #f1f5f9 !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-card {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-breadcrumb .current {
+    color: #f1f5f9 !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-breadcrumb a,
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-breadcrumb .sep {
+    color: #64748b !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-current-section {
+    border-color: #334155 !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-current-wrapper {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-placeholder-large {
+    background-color: #0f172a !important;
+    color: #64748b !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-instructions {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .instructions-title {
+    color: #f8fafc !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .avatar-instructions ul {
+    color: #94a3b8 !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .file-input {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .file-input::file-selector-button {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+:is(body:has(#crm-theme-toggle:checked), #crm-theme-toggle:checked ~ *, html[data-theme="dark"], body.dark-mode) .file-input::file-selector-button:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+    .avatar-page {
+        padding: 16px;
+    }
+    .avatar-card {
+        padding: 20px;
+    }
+    .avatar-current-wrapper {
+        width: 140px;
+        height: 140px;
+    }
 }
