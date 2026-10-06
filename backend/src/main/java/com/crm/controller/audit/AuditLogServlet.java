@@ -61,10 +61,11 @@ public class AuditLogServlet
                     userValue != null &&
                     !userValue.isBlank()
             ) {
-                userId =
-                        Long.valueOf(
-                                userValue
-                        );
+                try {
+                    userId = Long.valueOf(userValue);
+                } catch (NumberFormatException ignored) {
+                    // Nếu truyền tên thay vì ID thì bỏ qua filter ID để tìm kiếm trên client
+                }
             }
 
             int page =
@@ -78,7 +79,7 @@ public class AuditLogServlet
                     intParam(
                             request,
                             "size",
-                            20
+                            50
                     );
 
             ResponseUtil.json(
@@ -103,6 +104,77 @@ public class AuditLogServlet
                                     page,
                                     size
                             )
+                    )
+            );
+
+        } catch (Exception e) {
+
+            ResponseUtil.json(
+                    response,
+                    400,
+                    ApiResponse.error(
+                            e.getMessage(),
+                            null
+                    )
+            );
+        }
+    }
+
+    @Override
+    protected void doPost(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
+
+        try {
+
+            Long currentUserId = null;
+            HttpSession session = request.getSession(false);
+            if (session != null && session.getAttribute("userId") != null) {
+                currentUserId = (Long) session.getAttribute("userId");
+            }
+
+            java.util.Map<String, Object> body =
+                    com.crm.util.JsonUtil.getGson()
+                            .fromJson(
+                                    request.getReader(),
+                                    java.util.Map.class
+                            );
+
+            if (body == null) {
+                throw new IllegalArgumentException("Dữ liệu trống");
+            }
+
+            String entity = (String) (body.get("entity") != null ? body.get("entity") : body.get("objectType"));
+            String entityId = body.get("entityId") != null ? String.valueOf(body.get("entityId")) : (body.get("objectId") != null ? String.valueOf(body.get("objectId")) : "0");
+            String action = (String) body.get("action");
+            String description = (String) body.get("description");
+            String beforeValue = body.get("beforeValue") != null ? String.valueOf(body.get("beforeValue")) : (body.get("before_value") != null ? String.valueOf(body.get("before_value")) : null);
+            String afterValue = body.get("afterValue") != null ? String.valueOf(body.get("afterValue")) : (body.get("after_value") != null ? String.valueOf(body.get("after_value")) : null);
+
+            if (entity == null || entity.isBlank()) {
+                entity = "GENERAL";
+            }
+            if (action == null || action.isBlank()) {
+                action = "UPDATE";
+            }
+
+            service.log(
+                    currentUserId != null ? currentUserId : 1L,
+                    entity,
+                    entityId,
+                    action,
+                    description,
+                    beforeValue,
+                    afterValue
+            );
+
+            ResponseUtil.json(
+                    response,
+                    201,
+                    ApiResponse.success(
+                            "Ghi audit log thành công",
+                            null
                     )
             );
 

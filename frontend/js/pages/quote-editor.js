@@ -514,6 +514,47 @@ function saveQuote() {
         );
 
 
+    const existingQuote =
+        existingIndex >= 0
+            ? quotes[existingIndex]
+            : null;
+
+    const oldDiscountPercent =
+        existingQuote
+            ? (existingQuote.discountPercent || 0)
+            : 0;
+
+    const oldDiscountAmount =
+        existingQuote
+            ? (existingQuote.discount || 0)
+            : 0;
+
+    const newDiscountPercent =
+        quote.discountPercent || 0;
+
+    const newDiscountAmount =
+        quote.discount || 0;
+
+    if (!existingQuote && newDiscountPercent > 0) {
+        recordAuditLog({
+            entity: "DISCOUNT",
+            entityId: quote.code,
+            action: "UPDATE_DISCOUNT",
+            description: `Thiết lập chiết khấu báo giá ${quote.code}`,
+            beforeValue: "0% (0 đ)",
+            afterValue: `${newDiscountPercent.toFixed(1)}% (${money(newDiscountAmount)})`
+        });
+    } else if (existingQuote && (Math.abs(oldDiscountPercent - newDiscountPercent) > 0.01 || Math.abs(oldDiscountAmount - newDiscountAmount) > 1)) {
+        recordAuditLog({
+            entity: "DISCOUNT",
+            entityId: quote.code,
+            action: "UPDATE_DISCOUNT",
+            description: `Điều chỉnh chiết khấu báo giá ${quote.code}`,
+            beforeValue: `${oldDiscountPercent.toFixed(1)}% (${money(oldDiscountAmount)})`,
+            afterValue: `${newDiscountPercent.toFixed(1)}% (${money(newDiscountAmount)})`
+        });
+    }
+
     if (
         existingIndex >= 0
     ) {
@@ -728,3 +769,68 @@ function escapeAttribute(value) {
 
 
 renderLines();
+
+
+/* =========================================================
+   AUDIT LOG HELPER
+========================================================= */
+
+async function recordAuditLog(entry) {
+    const API_BASE = "http://localhost:8080/crm";
+    const timestamp = new Date().toISOString();
+
+    let actorName = "Quản trị viên";
+    let actorId = 1;
+    let actorEmail = "admin@company.com";
+
+    try {
+        const sessionRaw = localStorage.getItem("crm_ui_session");
+        if (sessionRaw) {
+            const sess = JSON.parse(sessionRaw);
+            if (sess?.fullName) actorName = sess.fullName;
+            if (sess?.id) actorId = sess.id;
+            if (sess?.email) actorEmail = sess.email;
+        }
+    } catch (_) {}
+
+    try {
+        await fetch(`${API_BASE}/api/audit-logs`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                entity: entry.entity,
+                entityId: entry.entityId,
+                action: entry.action,
+                description: entry.description,
+                beforeValue: entry.beforeValue,
+                afterValue: entry.afterValue
+            })
+        });
+    } catch (err) {
+        console.warn("Backend audit log record warning:", err);
+    }
+
+    try {
+        const raw = localStorage.getItem("crm_audit_logs");
+        const list = raw ? JSON.parse(raw) : [];
+        list.unshift({
+            id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            createdAt: timestamp,
+            userId: actorId,
+            userName: actorName,
+            userEmail: actorEmail,
+            entity: entry.entity,
+            entityId: entry.entityId,
+            action: entry.action,
+            description: entry.description,
+            beforeValue: entry.beforeValue,
+            afterValue: entry.afterValue
+        });
+        if (list.length > 100) list.length = 100;
+        localStorage.setItem("crm_audit_logs", JSON.stringify(list));
+    } catch (_) {}
+}
