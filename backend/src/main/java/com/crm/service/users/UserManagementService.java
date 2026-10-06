@@ -172,7 +172,33 @@ public class UserManagementService {
                 status
         );
 
-        return dao.findById(id);
+        Map<String, Object> updated = dao.findById(id);
+
+        try {
+            com.crm.service.audit.AuditLogService auditService =
+                    new com.crm.service.audit.AuditLogService();
+            Map<String, Object> before = new LinkedHashMap<>();
+            before.put("fullName", existing.get("fullName"));
+            before.put("email", existing.get("email"));
+            before.put("status", existing.get("status"));
+
+            Map<String, Object> after = new LinkedHashMap<>();
+            after.put("fullName", updated != null ? updated.get("fullName") : body.getFullName());
+            after.put("email", updated != null ? updated.get("email") : email);
+            after.put("status", updated != null ? updated.get("status") : status);
+
+            auditService.log(
+                    currentUserId,
+                    "USER",
+                    String.valueOf(id),
+                    "UPDATE_USER",
+                    "Cập nhật thông tin người dùng",
+                    com.crm.util.JsonUtil.getGson().toJson(before),
+                    com.crm.util.JsonUtil.getGson().toJson(after)
+            );
+        } catch (Exception ignored) {}
+
+        return updated;
     }
 
     public void delete(

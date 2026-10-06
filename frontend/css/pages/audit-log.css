@@ -144,3 +144,114 @@
 @media (hover: hover) and (pointer: fine) {
     .audit-table-card table tbody tr:hover { background: #f8fafc; }
 }
+
+/* =========================================================
+   AUDIT LOG RICH STYLING
+========================================================= */
+
+.audit-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.audit-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.audit-user-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.audit-user-info strong {
+    font-size: 12.5px;
+    color: var(--crm-text, #1e293b);
+}
+
+.audit-user-info small {
+    font-size: 11px;
+    color: var(--crm-muted, #64748b);
+}
+
+.audit-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.audit-badge.badge-chiet-khau {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.audit-badge.badge-chi-tieu {
+    background: #f3e8ff;
+    color: #7e22ce;
+    border: 1px solid #e9d5ff;
+}
+
+.audit-badge.badge-quyen-so-huu {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.audit-badge.badge-vai-tro {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+.audit-field-name {
+    font-weight: 600;
+    color: var(--crm-text, #334155);
+}
+
+.audit-val {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    max-width: 280px;
+    word-break: break-word;
+    line-height: 1.35;
+}
+
+.audit-val-before {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px dashed #fca5a5;
+}
+
+.audit-val-after {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #86efac;
+    font-weight: 500;
+}
+
+.audit-time {
+    color: var(--crm-muted, #64748b);
+    font-variant-numeric: tabular-nums;
+    font-size: 11.5px;
+    white-space: nowrap;
+}
