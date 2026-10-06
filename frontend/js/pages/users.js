@@ -290,6 +290,7 @@ function prepareFormControls() {
 
     if (selfCheck) {
         selfCheck.hidden = true;
+        selfCheck.style.display = "none";
     }
 }
 
@@ -1138,6 +1139,8 @@ function openUserDrawer(
         if (passwordLabel) {
             passwordLabel.hidden =
                 false;
+            passwordLabel.style.display =
+                "";
         }
 
         if (password) {
@@ -1208,6 +1211,8 @@ function openUserDrawer(
         if (passwordLabel) {
             passwordLabel.hidden =
                 true;
+            passwordLabel.style.display =
+                "none";
         }
 
         if (password) {
@@ -1296,6 +1301,15 @@ async function saveUserForm(
     const userId =
         editValue
             ? Number(editValue)
+            : null;
+
+    const existing =
+        userId !== null
+            ? users.find(
+                item =>
+                    Number(item.id) ===
+                    userId
+            )
             : null;
 
 
@@ -1405,13 +1419,6 @@ async function saveUserForm(
 
         } else {
 
-            const existing =
-                users.find(
-                    item =>
-                        Number(item.id) ===
-                        userId
-                );
-
             savedUser =
                 await api(
                     `/api/users/${userId}`,
@@ -1481,42 +1488,46 @@ async function saveUserForm(
             }
         );
 
-        if (existing) {
-            const oldRoles = (existing.roles || []).map(r => r.name).sort().join(", ");
-            const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
-            if (oldRoles !== newRoleNames) {
+        try {
+            if (existing) {
+                const oldRoles = (existing.roles || []).map(r => r.name).sort().join(", ");
+                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
+                if (oldRoles !== newRoleNames) {
+                    await recordAuditLog({
+                        entity: "USER_ROLE",
+                        entityId: String(savedId),
+                        action: "UPDATE_ROLE",
+                        description: `Cập nhật vai trò người dùng (${fullName})`,
+                        beforeValue: oldRoles || "Chưa có vai trò",
+                        afterValue: newRoleNames || "Chưa có vai trò"
+                    });
+                }
+
+                const scopeMap = { SELF: "Chỉ bản thân (SELF)", TEAM: "Dữ liệu nhóm (TEAM)", ALL: "Toàn bộ dữ liệu (ALL)" };
+                if (existing.dataScope !== dataScope) {
+                    await recordAuditLog({
+                        entity: "DATA_OWNERSHIP",
+                        entityId: String(savedId),
+                        action: "CHANGE_SCOPE",
+                        description: `Thay đổi phạm vi quyền sở hữu dữ liệu (${fullName})`,
+                        beforeValue: scopeMap[existing.dataScope] || existing.dataScope || "Chỉ bản thân (SELF)",
+                        afterValue: scopeMap[dataScope] || dataScope || "Chỉ bản thân (SELF)"
+                    });
+                }
+            } else {
+                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
+                const scopeMap = { SELF: "Chỉ bản thân (SELF)", TEAM: "Dữ liệu nhóm (TEAM)", ALL: "Toàn bộ dữ liệu (ALL)" };
                 await recordAuditLog({
                     entity: "USER_ROLE",
                     entityId: String(savedId),
-                    action: "UPDATE_ROLE",
-                    description: `Cập nhật vai trò người dùng (${fullName})`,
-                    beforeValue: oldRoles || "Chưa có vai trò",
-                    afterValue: newRoleNames || "Chưa có vai trò"
+                    action: "CREATE_USER",
+                    description: `Tạo người dùng mới (${fullName})`,
+                    beforeValue: "Chưa có tài khoản",
+                    afterValue: `Vai trò: ${newRoleNames || "Chưa có"} | Phạm vi: ${scopeMap[dataScope] || dataScope}`
                 });
             }
-
-            const scopeMap = { SELF: "Chỉ bản thân (SELF)", TEAM: "Dữ liệu nhóm (TEAM)", ALL: "Toàn bộ dữ liệu (ALL)" };
-            if (existing.dataScope !== dataScope) {
-                await recordAuditLog({
-                    entity: "DATA_OWNERSHIP",
-                    entityId: String(savedId),
-                    action: "CHANGE_SCOPE",
-                    description: `Thay đổi phạm vi quyền sở hữu dữ liệu (${fullName})`,
-                    beforeValue: scopeMap[existing.dataScope] || existing.dataScope || "Chỉ bản thân (SELF)",
-                    afterValue: scopeMap[dataScope] || dataScope || "Chỉ bản thân (SELF)"
-                });
-            }
-        } else {
-            const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
-            const scopeMap = { SELF: "Chỉ bản thân (SELF)", TEAM: "Dữ liệu nhóm (TEAM)", ALL: "Toàn bộ dữ liệu (ALL)" };
-            await recordAuditLog({
-                entity: "USER_ROLE",
-                entityId: String(savedId),
-                action: "CREATE_USER",
-                description: `Tạo người dùng mới (${fullName})`,
-                beforeValue: "Chưa có tài khoản",
-                afterValue: `Vai trò: ${newRoleNames || "Chưa có"} | Phạm vi: ${scopeMap[dataScope] || dataScope}`
-            });
+        } catch (auditErr) {
+            console.warn("Audit logging warning:", auditErr);
         }
 
 
