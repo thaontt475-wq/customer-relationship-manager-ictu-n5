@@ -2,169 +2,212 @@ package com.crm.service.permissions;
 
 import com.crm.dao.permissions.PermissionDAO;
 import com.crm.dao.users.UserDAO;
-import com.crm.model.Role;
-import com.crm.model.User;
-import com.crm.util.DBConnection;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import com.crm.service.audit.AuditLogService;
+import com.crm.util.JsonUtil;
+
+import java.util.*;
 
 public class PermissionService {
-    private static final Set<String> DATA_SCOPES = Set.of("SELF", "TEAM", "ALL");
 
-    private final PermissionDAO permissionDAO;
-    private final UserDAO userDAO;
-    private final AuditLogService audit;
+    private final PermissionDAO dao =
+            new PermissionDAO();
 
-    public PermissionService() {
-        this(new PermissionDAO(), new UserDAO(), new AuditLogService());
+    private final UserDAO userDAO =
+            new UserDAO();
+
+    private final AuditLogService audit =
+            new AuditLogService();
+
+
+    public Set<String> getPermissions(
+            long userId
+    ) throws Exception {
+
+        return dao.findByUserId(
+                userId
+        );
     }
 
-    PermissionService(PermissionDAO permissionDAO, UserDAO userDAO) {
-        this(permissionDAO, userDAO, new AuditLogService());
+
+    public boolean hasPermission(
+            long userId,
+            String permission
+    ) throws Exception {
+
+        return getPermissions(
+                userId
+        )
+                .contains(
+                        permission
+                );
     }
 
-    PermissionService(PermissionDAO permissionDAO, UserDAO userDAO, AuditLogService audit) {
-        this.permissionDAO = permissionDAO;
-        this.userDAO = userDAO;
-        this.audit = audit;
+
+    public Map<String, Object> getUserPermissions(
+            long userId
+    ) throws Exception {
+
+        if (
+                !userDAO.existsById(
+                        userId
+                )
+        ) {
+            return null;
+        }
+
+
+        Map<String, Object> data =
+                new LinkedHashMap<>();
+
+        data.put(
+                "userId",
+                userId
+        );
+
+        data.put(
+                "roles",
+                dao.findRolesByUserId(
+                        userId
+                )
+        );
+
+        data.put(
+                "dataScope",
+                dao.findDataScope(
+                        userId
+                )
+        );
+
+        data.put(
+                "permissions",
+                new TreeSet<>(
+                        dao.findByUserId(
+                                userId
+                        )
+                )
+        );
+
+        return data;
     }
 
-    public List<Role> findAllRoles() throws SQLException {
-        try (Connection conn = DBConnection.getConnection()) {
-            return permissionDAO.findAllRoles(conn);
-        }
-    }
 
-    public List<User> findAllUsers() throws SQLException {
-        try (Connection conn = DBConnection.getConnection()) {
-            return userDAO.findAll(conn);
-        }
-    }
+    public Map<String, Object> assign(
+            long userId,
+            List<Long> roleIds,
+            String dataScope,
+            long currentUserId
+    ) throws Exception {
 
-    public User findUserById(long userId) throws SQLException {
-        try (Connection conn = DBConnection.getConnection()) {
-            return userDAO.findById(conn, userId);
-        }
-    }
+        if (
+                !userDAO.existsById(
+                        userId
+                )
+        ) {
 
-    public List<Long> findRoleIdsByUserId(long userId) throws SQLException {
-        try (Connection conn = DBConnection.getConnection()) {
-            return permissionDAO.findRoleIdsByUserId(conn, userId);
-        }
-    }
-
-    public AssignmentResult assign(long actorUserId, long userId, List<Long> roleIds, String dataScope)
-            throws SQLException {
-        if (actorUserId <= 0 || userId <= 0) {
-            return AssignmentResult.INVALID_USER;
+            throw new IllegalArgumentException(
+                    "User không tồn tại"
+            );
         }
 
-        String normalizedScope = dataScope == null
-                ? ""
-                : dataScope.trim().toUpperCase(Locale.ROOT);
-        if (!DATA_SCOPES.contains(normalizedScope)) {
-            return AssignmentResult.INVALID_DATA_SCOPE;
+
+        if (
+                roleIds == null ||
+                roleIds.isEmpty()
+        ) {
+
+            throw new IllegalArgumentException(
+                    "Phải có ít nhất một role"
+            );
         }
 
-        List<Long> normalizedRoleIds = normalizeRoleIds(roleIds);
-        if (normalizedRoleIds == null) {
-            return AssignmentResult.INVALID_ROLE;
-        }
 
-        try (Connection conn = DBConnection.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                User target = userDAO.findByIdForUpdate(conn, userId);
-                if (target == null) {
-                    conn.rollback();
-                    return AssignmentResult.USER_NOT_FOUND;
-                }
+        for (
+                Long roleId :
+                roleIds
+        ) {
 
-                if (!permissionDAO.allRolesExist(conn, normalizedRoleIds)) {
-                    conn.rollback();
-                    return AssignmentResult.INVALID_ROLE;
-                }
+            if (
+                    roleId == null ||
+                    !dao.roleExists(
+                            roleId
+                    )
+            ) {
 
-                List<Role> roles = permissionDAO.findAllRoles(conn);
-                Long teamLeadRoleId = findRoleIdByName(roles, "Team Lead");
-                Long adminRoleId = findRoleIdByName(roles, "Admin");
-
-                if (teamLeadRoleId != null
-                        && normalizedRoleIds.contains(teamLeadRoleId)
-                        && target.getTeamId() == null) {
-                    conn.rollback();
-                    return AssignmentResult.TEAM_REQUIRED;
-                }
-
-                if (actorUserId == userId && adminRoleId != null) {
-                    List<Long> currentRoles = permissionDAO.findRoleIdsByUserId(conn, userId);
-                    if (currentRoles.contains(adminRoleId)
-                            && !normalizedRoleIds.contains(adminRoleId)) {
-                        conn.rollback();
-                        return AssignmentResult.CANNOT_REVOKE_OWN_ADMIN;
-                    }
-                }
-
-                List<Long> beforeRoles = permissionDAO.findRoleIdsByUserId(conn, userId);
-                permissionDAO.replaceUserRoles(conn, userId, normalizedRoleIds);
-                if (permissionDAO.updateDataScope(conn, userId, normalizedScope) != 1) {
-                    conn.rollback();
-                    return AssignmentResult.UPDATE_CONFLICT;
-                }
-
-                if (!new java.util.HashSet<>(beforeRoles).equals(new java.util.HashSet<>(normalizedRoleIds))) {
-                    audit.recordRoleChange(conn, actorUserId, userId, beforeRoles, normalizedRoleIds);
-                }
-                if (!normalizedScope.equalsIgnoreCase(target.getDataScope())) {
-                    audit.recordChange(conn, actorUserId, "DATA_SCOPE_CHANGED", "USER", userId,
-                            target.getDataScope(), normalizedScope);
-                }
-
-                conn.commit();
-                return AssignmentResult.SUCCESS;
-            } catch (SQLException | RuntimeException e) {
-                try { conn.rollback(); } catch (SQLException rollbackException) { e.addSuppressed(rollbackException); }
-                throw e;
+                throw new IllegalArgumentException(
+                        "Role không hợp lệ"
+                );
             }
         }
-    }
 
-    private Long findRoleIdByName(List<Role> roles, String roleName) {
-        for (Role role : roles) {
-            if (role != null && role.getName() != null
-                    && roleName.equalsIgnoreCase(role.getName().trim())) {
-                return role.getId();
-            }
+
+        if (
+                dataScope == null
+        ) {
+
+            throw new IllegalArgumentException(
+                    "dataScope là bắt buộc"
+            );
         }
-        return null;
-    }
 
-    private List<Long> normalizeRoleIds(List<Long> roleIds) {
-        if (roleIds == null || roleIds.isEmpty()) return List.of();
-        LinkedHashSet<Long> unique = new LinkedHashSet<>();
-        for (Long roleId : roleIds) {
-            if (roleId == null || roleId <= 0) return null;
-            unique.add(roleId);
+
+        dataScope =
+                dataScope.trim()
+                        .toUpperCase();
+
+
+        if (
+                !dataScope.equals(
+                        "SELF"
+                ) &&
+                !dataScope.equals(
+                        "TEAM"
+                ) &&
+                !dataScope.equals(
+                        "ALL"
+                )
+        ) {
+
+            throw new IllegalArgumentException(
+                    "dataScope chỉ nhận SELF, TEAM hoặc ALL"
+            );
         }
-        return new ArrayList<>(unique);
-    }
 
-    public enum AssignmentResult {
-        SUCCESS,
-        INVALID_USER,
-        INVALID_ROLE,
-        INVALID_DATA_SCOPE,
-        USER_NOT_FOUND,
-        TEAM_REQUIRED,
-        CANNOT_REVOKE_OWN_ADMIN,
-        UPDATE_CONFLICT
+
+        Map<String, Object> before =
+                getUserPermissions(
+                        userId
+                );
+
+
+        dao.assignRoles(
+                userId,
+                roleIds,
+                dataScope,
+                currentUserId
+        );
+
+
+        Map<String, Object> after =
+                getUserPermissions(
+                        userId
+                );
+
+
+        audit.log(
+                currentUserId,
+                "USER_PERMISSION",
+                String.valueOf(
+                        userId
+                ),
+                "ASSIGN_ROLES",
+                "Cập nhật role và phạm vi dữ liệu",
+                JsonUtil.getGson()
+                        .toJson(before),
+                JsonUtil.getGson()
+                        .toJson(after)
+        );
+
+
+        return after;
     }
 }

@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Báo giá</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/quotations.css">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <div class="crm-nav-section">
+            Không gian làm việc
+        </div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="quotations.html" class="crm-nav-item active">
+            <span class="crm-nav-icon">▤</span>
+            <span class="crm-nav-label">Báo giá</span>
+        </a>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Quản lý
+        </div>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3 6 0 1 4 4 1 1 6-4 2-1 4-6 1-2-4-4-1-1-6 4-2 1-4Z"/></svg></span>
+            <span class="crm-nav-label">Cấu hình</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Tìm kiếm báo giá..."
+        >
+
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+    <div class="crm-top-actions">
+
+        <button class="crm-icon-btn" type="button">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+
+            <button
+                id="userButton"
+                class="crm-user-button"
+                type="button"
+            >
+                <div class="crm-avatar">U</div>
+
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Người dùng</span>
+                    <span class="crm-user-role">Vai trò</span>
+                </div>
+
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="#">Hồ sơ cá nhân</a>
+                <a href="#">Đổi mật khẩu</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main quote-list-page">
+
+    <section class="quote-list-head">
+
+        <div>
+
+            <p class="page-kicker">
+                CRM / Báo giá
+            </p>
+
+            <h1>
+                Quản lý Báo giá
+            </h1>
+
+            <p>
+                Theo dõi báo giá, trạng thái duyệt và tạo hợp đồng.
+            </p>
+
+        </div>
+
+        <a
+            href="quote-editor.html"
+            class="crm-btn crm-btn-primary"
+            style="text-decoration:none"
+        >
+            + Tạo báo giá
+        </a>
+
+    </section>
+
+
+    <section class="quote-filter crm-card">
+
+        <input
+            id="quoteSearch"
+            class="crm-input"
+            type="search"
+            placeholder="Tìm mã báo giá / khách hàng..."
+        >
+
+        <select
+            id="quoteStatusFilter"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả trạng thái
+            </option>
+
+            <option value="draft">
+                Nháp
+            </option>
+
+            <option value="pending">
+                Chờ duyệt
+            </option>
+
+            <option value="approved">
+                Đã duyệt
+            </option>
+
+            <option value="rejected">
+                Từ chối
+            </option>
+        </select>
+
+    </section>
+
+
+    <section class="crm-card quote-table-card">
+
+        <div class="quote-table-scroll">
+
+            <table class="quote-table">
+
+                <thead>
+                <tr>
+                    <th>Mã báo giá</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền</th>
+                    <th>Chiết khấu</th>
+                    <th>Trạng thái</th>
+                    <th>Hiệu lực</th>
+                    <th></th>
+                </tr>
+                </thead>
+
+                <tbody id="quoteTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+        <div
+            id="quoteEmpty"
+            class="quote-empty"
+        >
+            <div class="quote-empty-icon">
+                ▤
+            </div>
+
+            <strong>
+                Chưa có báo giá
+            </strong>
+
+            <span>
+                Tạo báo giá mới để bắt đầu.
+            </span>
+        </div>
+
+    </section>
+
+
+    <section
+        id="quoteMobileList"
+        class="quote-mobile-list"
+    ></section>
+
+</main>
+
+
+<header class="crm-mobile-header">
+
+    <button
+        id="mobileMenuButton"
+        class="crm-mobile-menu"
+        type="button"
+    >
+        <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <div class="crm-avatar">U</div>
+
+</header>
+
+
+<div
+    id="drawerOverlay"
+    class="crm-drawer-overlay"
+></div>
+
+
+<aside
+    id="mobileDrawer"
+    class="crm-mobile-drawer"
+>
+
+    <div class="crm-drawer-header">
+        <div class="crm-avatar">U</div>
+
+        <div class="crm-drawer-user">
+            <strong>Người dùng</strong>
+            <span>Vai trò</span>
+        </div>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="quotations.html" class="crm-nav-item active">
+            <span class="crm-nav-icon">▤</span>
+            <span class="crm-nav-label">Báo giá</span>
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<nav class="crm-bottom-nav">
+
+    <a
+        href="dashboard.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+        </span>
+
+        <span>Tổng quan</span>
+    </a>
+
+
+    <a
+        href="customers.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+        </span>
+
+        <span>Khách hàng</span>
+    </a>
+
+
+    <a
+        href="pipeline.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="m12 3 8 9-8 9-8-9 8-9Z"/>
+            </svg>
+        </span>
+
+        <span>Cơ hội</span>
+    </a>
+
+
+    <a
+        href="calendar.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M8 3v4m8-4v4M3 10h18"/>
+            </svg>
+        </span>
+
+        <span>Lịch</span>
+    </a>
+
+</nav>
+
+
+
+
+
+<script src="js/pages/quotations.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

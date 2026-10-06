@@ -1,25 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         xsi:schemaLocation="
+         http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.crm</groupId>
-    <artifactId>crm-web</artifactId>
+    <artifactId>crm-backend</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <packaging>war</packaging>
 
     <properties>
-        <maven.compiler.release>21</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+
+        <project.build.sourceEncoding>
+            UTF-8
+        </project.build.sourceEncoding>
+
     </properties>
 
     <dependencies>
 
-        <!-- Jakarta Servlet - Tomcat 10.1 -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -27,139 +34,85 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- MySQL JDBC Driver -->
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>8.4.0</version>
-        </dependency>
-
-        <!-- JSON serialization for navigation API -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.14.0</version>
+            <version>2.13.2</version>
         </dependency>
 
-        <!-- Password Hashing - BCrypt -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>9.4.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
-
-        <!-- Jakarta Mail API & Angus Mail Implementation for Tomcat 10.1 -->
-        <dependency>
-            <groupId>jakarta.mail</groupId>
-            <artifactId>jakarta.mail-api</artifactId>
-            <version>2.1.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.angus</groupId>
-            <artifactId>angus-mail</artifactId>
-            <version>2.0.3</version>
-            <scope>runtime</scope>
-        </dependency>
-
-        <!-- Apache POI for Excel Import/Export (CRM-32) -->
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
-            <version>5.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
-            <version>5.3.0</version>
-        </dependency>
-
-        <!-- CRM-25 automated scope tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.11.4</version>
             <scope>test</scope>
         </dependency>
-        <!-- Required by the existing DAO/service unit-test convention and CRM-46 tests. -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <version>5.15.2</version>
-            <scope>test</scope>
+
+            <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.4.1</version>
         </dependency>
+    
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>jakarta.mail</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>
 
-        <finalName>ROOT</finalName>
+        <finalName>crm</finalName>
 
         <plugins>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+
+                <groupId>
+                    org.apache.maven.plugins
+                </groupId>
+
+                <artifactId>
+                    maven-compiler-plugin
+                </artifactId>
+
                 <version>3.13.0</version>
+
+                <configuration>
+                    <release>21</release>
+                </configuration>
+
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
-            </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
+                <groupId>
+                    org.apache.maven.plugins
+                </groupId>
+
+                <artifactId>
+                    maven-war-plugin
+                </artifactId>
+
                 <version>3.4.0</version>
 
                 <configuration>
 
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-
-                    <!-- Only runtime frontend resources; preserve their WAR paths and bytes. -->
-                    <webResources>
-
-                        <resource>
-                            <directory>../frontend</directory>
-                            <filtering>false</filtering>
-                            <includes>
-                                <include>jsp/**/*.jsp</include>
-                                <include>css/**/*.css</include>
-                                <include>html/**/*.html</include>
-                                <include>images/**</include>
-                                <include>images/**/*.png</include>
-                                <include>images/**/*.jpg</include>
-                                <include>images/**/*.jpeg</include>
-                                <include>images/**/*.gif</include>
-                                <include>images/**/*.svg</include>
-                                <include>images/**/*.webp</include>
-                                <include>images/**/*.ico</include>
-                                <include>images/**/*.avif</include>
-                            </includes>
-                            <excludes>
-                                <!-- Metadata and non-runtime copies, even with a runtime extension. -->
-                                <exclude>**/.*</exclude>
-                                <exclude>**/.*/**</exclude>
-                                <exclude>**/*~</exclude>
-                                <exclude>**/*.bak*</exclude>
-                                <exclude>**/*.backup*</exclude>
-                                <exclude>**/*.orig*</exclude>
-                                <exclude>**/*.old*</exclude>
-                                <exclude>**/*.rej*</exclude>
-                                <exclude>**/*.tmp*</exclude>
-                                <exclude>**/*backup*</exclude>
-                                <exclude>**/*BACKUP*</exclude>
-                                <exclude>**/*Backup*</exclude>
-                                <exclude>**/*backup*/**</exclude>
-                                <exclude>**/*BACKUP*/**</exclude>
-                                <exclude>**/*Backup*/**</exclude>
-                                <exclude>**/docs/**</exclude>
-                                <exclude>**/secrets/**</exclude>
-                                <exclude>**/target/**</exclude>
-                            </excludes>
-                        </resource>
-
-                    </webResources>
+                    <failOnMissingWebXml>
+                        false
+                    </failOnMissingWebXml>
 
                 </configuration>
 

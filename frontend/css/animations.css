@@ -1,0 +1,39 @@
+/* Motion only. Component appearance is maintained in its original CSS. */
+@keyframes crm-page-enter {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.crm-private.crm-page-ready .crm-main {
+    animation: crm-page-enter 220ms var(--crm-ease);
+}
+.crm-private.crm-page-leaving .crm-main {
+    opacity: 0;
+    transition: opacity 85ms ease;
+}
+@keyframes crm-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: .10; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+.crm-click-highlight { position: fixed; z-index: 10001; overflow: hidden; pointer-events: none; }
+.crm-click-highlight > span { position: absolute; border-radius: 50%; background: #60a5fa; animation: crm-ripple 400ms ease-out forwards; }
+@keyframes crm-toast-enter {
+    from { transform: translateX(16px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes crm-toast-progress { to { transform: scaleX(0); } }
+.crm-toast { animation: crm-toast-enter 200ms var(--crm-ease); transition: opacity 200ms ease, transform 200ms var(--crm-ease); }
+.crm-toast.closing { opacity: 0; transform: translateX(16px); }
+.crm-toast-progress { animation: crm-toast-progress var(--crm-toast-duration) linear forwards; }
+.crm-toast.paused .crm-toast-progress { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+    .crm-private *, .crm-private *::before, .crm-private *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+    .crm-private.crm-page-leaving .crm-main { opacity: 1; }
+    .crm-click-highlight, .crm-toast-progress { display: none; }
+    .crm-private .crm-btn:active, .crm-private .crm-btn:hover,
+    .crm-private .dashboard-kpi:hover, .crm-private .system-tile:hover,
+    .crm-private .crm-user-button:hover .crm-avatar { transform: none; }
+}

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Trường tùy chỉnh</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/custom-fields.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Cấu hình
+        </div>
+
+        <a href="organization.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/></svg></span>
+            <span class="crm-nav-label">Cơ cấu tổ chức</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+
+        <a href="custom-fields.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg></span>
+            <span class="crm-nav-label">Trường tùy chỉnh</span>
+        </a>
+
+        <a href="win-loss-settings.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
+            <span class="crm-nav-label">Win / Loss</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main custom-page">
+
+    <section class="custom-head">
+
+        <div>
+
+            <p>
+                Cấu hình / Trường tùy chỉnh
+            </p>
+
+            <h1>
+                Trường tùy chỉnh
+            </h1>
+
+            <span>
+                Tạo thêm field cho Khách hàng, Cơ hội hoặc Báo giá.
+            </span>
+
+        </div>
+
+
+        <button
+            id="addCustomField"
+            class="crm-btn crm-btn-primary"
+            type="button"
+        >
+            + Tạo trường
+        </button>
+
+    </section>
+
+
+    <section class="crm-card custom-filter">
+
+        <select
+            id="moduleFilter"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả module
+            </option>
+
+            <option value="customer">
+                Khách hàng
+            </option>
+
+            <option value="opportunity">
+                Cơ hội
+            </option>
+
+            <option value="quotation">
+                Báo giá
+            </option>
+        </select>
+
+
+        <select
+            id="fieldStatusFilter"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả trạng thái
+            </option>
+
+            <option value="active">
+                Đang bật
+            </option>
+
+            <option value="inactive">
+                Đang tắt
+            </option>
+        </select>
+
+    </section>
+
+
+    <section class="crm-card custom-table-card">
+
+        <div class="custom-table-scroll">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>Nhãn trường</th>
+                    <th>Mã trường</th>
+                    <th>Kiểu dữ liệu</th>
+                    <th>Bắt buộc</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+                </thead>
+
+                <tbody id="customFieldBody"></tbody>
+
+            </table>
+
+        </div>
+
+
+        <div
+            id="customFieldEmpty"
+            class="custom-empty"
+        >
+            Chưa có trường tùy chỉnh.
+        </div>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<!-- CUSTOM FIELD DRAWER -->
+
+<div
+    id="customOverlay"
+    class="custom-overlay"
+></div>
+
+
+<aside
+    id="customDrawer"
+    class="custom-drawer"
+>
+
+    <header>
+
+        <div>
+            <strong id="customDrawerTitle">
+                Tạo trường tùy chỉnh
+            </strong>
+
+            <span>
+                Thiết lập metadata cho field
+            </span>
+        </div>
+
+        <button
+            id="closeCustomDrawer"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form id="customFieldForm">
+
+        <input
+            id="editingFieldId"
+            type="hidden"
+        >
+
+
+        <label>
+            Module
+            <em>*</em>
+
+            <select
+                id="fieldModule"
+                class="crm-input"
+            >
+                <option value="customer">
+                    Khách hàng
+                </option>
+
+                <option value="opportunity">
+                    Cơ hội
+                </option>
+
+                <option value="quotation">
+                    Báo giá
+                </option>
+            </select>
+        </label>
+
+
+        <label>
+            Nhãn hiển thị
+            <em>*</em>
+
+            <input
+                id="fieldLabel"
+                class="crm-input"
+                type="text"
+                placeholder="VD: Mã khu vực"
+            >
+        </label>
+
+
+        <label>
+            Mã trường
+            <em>*</em>
+
+            <input
+                id="fieldKey"
+                class="crm-input"
+                type="text"
+                placeholder="VD: region_code"
+            >
+        </label>
+
+
+        <label>
+            Kiểu dữ liệu
+
+            <select
+                id="fieldType"
+                class="crm-input"
+            >
+                <option value="text">
+                    Text
+                </option>
+
+                <option value="number">
+                    Number
+                </option>
+
+                <option value="date">
+                    Date
+                </option>
+
+                <option value="select">
+                    Select
+                </option>
+
+                <option value="textarea">
+                    Textarea
+                </option>
+
+                <option value="checkbox">
+                    Checkbox
+                </option>
+            </select>
+        </label>
+
+
+        <label
+            id="fieldOptionsWrap"
+            hidden
+        >
+            Các lựa chọn
+
+            <textarea
+                id="fieldOptions"
+                rows="5"
+                placeholder="Mỗi lựa chọn một dòng"
+            ></textarea>
+        </label>
+
+
+        <label class="check-line">
+
+            <input
+                id="fieldRequired"
+                type="checkbox"
+            >
+
+            Bắt buộc nhập
+        </label>
+
+
+        <label>
+            Trạng thái
+
+            <select
+                id="fieldStatus"
+                class="crm-input"
+            >
+                <option value="active">
+                    Đang bật
+                </option>
+
+                <option value="inactive">
+                    Đang tắt
+                </option>
+            </select>
+        </label>
+
+
+        <div
+            id="customFieldError"
+            class="custom-error"
+        ></div>
+
+
+        <footer>
+
+            <button
+                id="cancelCustomField"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Lưu
+            </button>
+
+        </footer>
+
+    </form>
+
+</aside>
+
+
+
+
+
+<script src="js/pages/custom-fields.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

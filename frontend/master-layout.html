@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CRM Master Layout</title>
+
+    <link rel="stylesheet" href="css/master-layout.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- ================= DESKTOP SIDEBAR ================= -->
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="brand">
+            <div class="brand-mark"></div>
+
+            <span class="brand-text">
+                Corporate Logo
+            </span>
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a
+                href="#"
+                class="nav-item active"
+                data-label="Dashboard"
+            >
+                <span class="nav-icon">▦</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+
+            <a
+                href="#"
+                class="nav-item"
+                data-label="Clients"
+            >
+                <span class="nav-icon">♙</span>
+                <span class="nav-label">Clients</span>
+            </a>
+
+            <button
+                class="nav-item nav-parent"
+                type="button"
+                data-label="Opportunities"
+            >
+                <span class="nav-icon">◇</span>
+                <span class="nav-label">Opportunities</span>
+                <span class="nav-chevron">⌄</span>
+            </button>
+
+            <div class="subnav">
+                <a href="#">Pipeline</a>
+                <a href="#">Danh sách cơ hội</a>
+            </div>
+
+            <button
+                class="nav-item nav-parent"
+                type="button"
+                data-label="Reports"
+            >
+                <span class="nav-icon">▤</span>
+                <span class="nav-label">Reports</span>
+                <span class="nav-chevron">⌄</span>
+            </button>
+
+            <div class="subnav">
+                <a href="#">Báo cáo tổng quan</a>
+                <a href="#">Audit Log</a>
+            </div>
+
+            <a
+                href="#"
+                class="nav-item"
+                data-label="Settings"
+            >
+                <span class="nav-icon">⚙</span>
+                <span class="nav-label">Settings</span>
+            </a>
+
+            <a
+                href="#"
+                class="nav-item"
+                data-label="Lettings"
+            >
+                <span class="nav-icon">↪</span>
+                <span class="nav-label">Lettings</span>
+                <span class="nav-chevron">›</span>
+            </a>
+
+        </nav>
+
+
+        <button
+            type="button"
+            class="sidebar-collapse"
+            id="sidebarCollapse"
+        >
+            <span class="collapse-icon">‹</span>
+            <span class="collapse-text">Thu gọn</span>
+        </button>
+
+    </aside>
+
+
+    <!-- ================= DESKTOP HEADER ================= -->
+
+    <header class="topbar">
+
+        <div class="search-box">
+            <span class="search-icon">⌕</span>
+
+            <input
+                id="globalSearch"
+                type="search"
+                placeholder="Global Search..."
+            >
+        </div>
+
+
+        <div class="topbar-actions">
+
+            <button
+                class="top-icon-btn"
+                type="button"
+                aria-label="Thông báo"
+            >
+                ♧
+                <span class="notification-dot"></span>
+            </button>
+
+            <button
+                class="top-icon-btn"
+                type="button"
+                aria-label="Tin nhắn"
+            >
+                ▢
+            </button>
+
+            <div class="user-menu-wrap">
+
+                <button
+                    id="userMenuButton"
+                    class="user-button"
+                    type="button"
+                >
+                    <div class="avatar">
+                        CA
+                    </div>
+
+                    <span class="user-chevron">
+                        ˅
+                    </span>
+                </button>
+
+                <div
+                    id="userDropdown"
+                    class="user-dropdown"
+                >
+                    <a href="#">Hồ sơ cá nhân</a>
+                    <a href="#">Đổi mật khẩu</a>
+                    <button type="button">Đăng xuất</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="main-content">
+
+        <div class="content-placeholder">
+
+            <div class="placeholder-note">
+                Menu access restricted by role:
+                <strong>Admin only</strong>
+            </div>
+
+            <div class="placeholder-note">
+                Menu access restricted by role:
+                <strong>Admin only</strong>
+            </div>
+
+            <div class="placeholder-note right">
+                Desktop Sidebar transitions to
+                Hamburger Menu on Mobile
+                <strong>→ Open drawer component</strong>
+            </div>
+
+            <div class="placeholder-note right">
+                Desktop Sidebar transitions to
+                Hamburger Menu on Mobile
+                <strong>→ No popups</strong>
+            </div>
+
+            <div class="placeholder-note right">
+                Desktop Sidebar transitions to
+                Hamburger Menu on Mobile
+                <strong>→ Suction not adapted</strong>
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- ================= MOBILE HEADER ================= -->
+
+    <header class="mobile-header">
+
+        <button
+            id="mobileMenuButton"
+            class="mobile-menu-btn"
+            type="button"
+        >
+            ☰
+        </button>
+
+        <div class="mobile-avatar">
+            CA
+        </div>
+
+    </header>
+
+
+    <!-- ================= MOBILE OVERLAY ================= -->
+
+    <div
+        id="drawerOverlay"
+        class="drawer-overlay"
+    ></div>
+
+
+    <!-- ================= MOBILE DRAWER ================= -->
+
+    <aside
+        id="mobileDrawer"
+        class="mobile-drawer"
+    >
+
+        <div class="drawer-top">
+
+            <div class="avatar large">
+                CA
+            </div>
+
+            <div>
+                <strong>CRM Admin</strong>
+                <span>Administrator</span>
+            </div>
+
+        </div>
+
+
+        <nav class="drawer-menu">
+
+            <a class="active" href="#">
+                Dashboard
+            </a>
+
+            <a href="#">
+                Clients
+            </a>
+
+            <a href="#">
+                Opportunities
+            </a>
+
+            <a href="#">
+                Reports
+            </a>
+
+            <a href="#">
+                Settings
+            </a>
+
+            <a href="#">
+                Lettings
+            </a>
+
+            <a class="logout" href="#">
+                Đăng xuất
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- ================= MOBILE BOTTOM NAV ================= -->
+
+    <nav class="bottom-nav">
+
+        <a
+            href="#"
+            class="bottom-item active"
+        >
+            <span class="bottom-icon">▦</span>
+            <span>Tổng quan</span>
+        </a>
+
+        <a
+            href="#"
+            class="bottom-item"
+        >
+            <span class="bottom-icon">♙</span>
+            <span>Khách hàng</span>
+        </a>
+
+        <a
+            href="#"
+            class="bottom-item"
+        >
+            <span class="bottom-icon">◇</span>
+            <span>Cơ hội</span>
+        </a>
+
+        <a
+            href="#"
+            class="bottom-item"
+        >
+            <span class="bottom-icon">□</span>
+            <span>Lịch</span>
+        </a>
+
+    </nav>
+
+</div>
+
+
+<script src="js/master-layout.js"></script>
+
+</body>
+</html>

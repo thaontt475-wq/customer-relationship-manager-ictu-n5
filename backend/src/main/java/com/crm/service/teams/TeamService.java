@@ -2,85 +2,66 @@ package com.crm.service.teams;
 
 import com.crm.dao.teams.TeamDAO;
 import com.crm.dao.users.UserDAO;
-import com.crm.model.Team;
-import com.crm.model.User;
-import com.crm.util.DBConnection;
+import com.crm.dao.users.UserManagementDAO;
+import com.crm.dao.permissions.PermissionDAO;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class TeamService {
 
-    private final TeamDAO teamDAO = new TeamDAO();
-    private final UserDAO userDAO = new UserDAO();
+    private final TeamDAO teamDAO =
+            new TeamDAO();
 
-    public List<Team> findAllTeams() throws SQLException {
-        try (Connection conn = DBConnection.getConnection()) {
-            return teamDAO.findAll(conn);
-        }
+    private final UserDAO userDAO =
+            new UserDAO();
+
+    private final UserManagementDAO userManagementDAO =
+            new UserManagementDAO();
+    private final PermissionDAO permissionDAO = new PermissionDAO();
+
+    public List<Map<String, Object>> getTeams(
+            String keyword,
+            Boolean active
+    ) throws Exception {
+
+        return teamDAO.findAll(
+                keyword,
+                active
+        );
     }
 
-    public AssignmentResult assignUserToTeam(
+    public Map<String, Object> assignTeam(
             long userId,
-            long teamId) throws SQLException {
+            Long teamId
+    ) throws Exception {
 
-        if (userId <= 0) {
-            return AssignmentResult.INVALID_USER;
+        if (!userDAO.existsById(userId)) {
+            throw new IllegalArgumentException(
+                    "User không tồn tại"
+            );
         }
 
-        if (teamId <= 0) {
-            return AssignmentResult.INVALID_TEAM;
+        if (
+                teamId != null &&
+                !teamDAO.existsActive(teamId)
+        ) {
+            throw new IllegalArgumentException(
+                    "Team không tồn tại hoặc đã bị khóa"
+            );
         }
 
-        try (Connection conn = DBConnection.getConnection()) {
-            boolean oldAutoCommit = conn.getAutoCommit();
-
-            try {
-                conn.setAutoCommit(false);
-
-                User user = userDAO.findByIdForUpdate(conn, userId);
-                if (user == null) {
-                    conn.rollback();
-                    return AssignmentResult.USER_NOT_FOUND;
-                }
-
-                Team team = teamDAO.findById(conn, teamId);
-                if (team == null) {
-                    conn.rollback();
-                    return AssignmentResult.TEAM_NOT_FOUND;
-                }
-
-                int updated =
-                        teamDAO.assignUserToTeam(
-                                conn,
-                                userId,
-                                teamId
-                        );
-
-                if (updated != 1) {
-                    conn.rollback();
-                    return AssignmentResult.UPDATE_CONFLICT;
-                }
-
-                conn.commit();
-                return AssignmentResult.SUCCESS;
-
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            } finally {
-                conn.setAutoCommit(oldAutoCommit);
-            }
+        if (teamId == null && permissionDAO.hasRole(userId, "TEAM_LEAD")) {
+            throw new IllegalArgumentException("Trưởng nhóm kinh doanh phải được gán vào một nhóm.");
         }
-    }
 
-    public enum AssignmentResult {
-        SUCCESS,
-        INVALID_USER,
-        INVALID_TEAM,
-        USER_NOT_FOUND,
-        TEAM_NOT_FOUND,
-        UPDATE_CONFLICT
+        userManagementDAO.assignTeam(
+                userId,
+                teamId
+        );
+
+        return userManagementDAO.findById(
+                userId
+        );
     }
 }

@@ -1,62 +1,89 @@
 package com.crm.filter;
 
-import com.crm.util.SessionKey;
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.annotation.WebFilter;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import com.crm.dto.common.ApiResponse;
+import com.crm.util.ResponseUtil;
+
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
-@WebFilter(urlPatterns = {"/permissions", "/permissions/*", "/api/permissions/*"})
-public class AuthenticationFilter implements Filter {
+public class AuthenticationFilter
+        implements Filter {
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
+    public void doFilter(
+            ServletRequest request,
+            ServletResponse response,
+            FilterChain chain
+    ) throws IOException, ServletException {
 
-        HttpSession session;
+        HttpServletRequest req =
+                (HttpServletRequest) request;
+
+        HttpServletResponse res =
+                (HttpServletResponse) response;
+
+        String uri =
+                req.getRequestURI();
+
+        if (
+                uri.endsWith(
+                        "/api/auth/login"
+                ) ||
+                uri.endsWith(
+                        "/api/auth/forgot-password"
+                ) ||
+                uri.endsWith(
+                        "/api/auth/reset-password"
+                ) ||
+                "OPTIONS".equalsIgnoreCase(
+                        req.getMethod()
+                )
+        ) {
+
+            chain.doFilter(
+                    request,
+                    response
+            );
+
+            return;
+        }
+
+        HttpSession session =
+                req.getSession(false);
+
+        if (
+                session == null ||
+                session.getAttribute(
+                        "userId"
+                ) == null
+        ) {
+
+            ResponseUtil.json(
+                    res,
+                    401,
+                    ApiResponse.error(
+                            "Chưa đăng nhập",
+                            null
+                    )
+            );
+
+            return;
+        }
+
         try {
-            session = httpRequest.getSession(false);
-        } catch (IllegalStateException e) {
-            rejectUnauthenticated(httpRequest, httpResponse);
-            return;
-        }
-
-        if (session == null) {
-            rejectUnauthenticated(httpRequest, httpResponse);
-            return;
-        }
-
-        Object currentUser;
-        try {
-            currentUser = session.getAttribute(SessionKey.CURRENT_USER);
-        } catch (IllegalStateException e) {
-            rejectUnauthenticated(httpRequest, httpResponse);
-            return;
-        }
-
-        if (currentUser == null) {
-            rejectUnauthenticated(httpRequest, httpResponse);
-            return;
-        }
-
-        chain.doFilter(request, response);
-    }
-
-    private void rejectUnauthenticated(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        if (request.getRequestURI().startsWith(request.getContextPath() + "/api/")) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        } else {
-            response.sendRedirect(request.getContextPath() + "/login?expired=1");
+            var account = new com.crm.service.auth.SessionService().account(
+                    ((Number) session.getAttribute("userId")).longValue());
+            if (account == null || !"ACTIVE".equals(account.get("status"))
+                    || !java.util.Objects.equals(session.getAttribute("sessionVersion"), account.get("sessionVersion"))) {
+                session.invalidate();
+                ResponseUtil.json(res, 401, ApiResponse.error("Phiên đăng nhập đã hết hiệu lực", null));
+                return;
+            }
+            chain.doFilter(request, response);
+        } catch (java.sql.SQLException e) {
+            ResponseUtil.json(res, 500, ApiResponse.error("Không thể kiểm tra phiên đăng nhập", null));
         }
     }
 }

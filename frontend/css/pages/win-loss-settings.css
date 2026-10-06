@@ -1,0 +1,331 @@
+.winloss-head {
+    margin-bottom: 24px;
+}
+
+.winloss-head p {
+    margin: 0 0 6px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.winloss-head h1 {
+    margin: 0;
+
+    font-size: 27px;
+}
+
+.winloss-head span {
+    display: block;
+
+    margin-top: 7px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+.winloss-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr));
+
+    gap: 16px;
+
+    align-items: start;
+}
+
+.competitor-card {
+    grid-column:
+        1 / -1;
+}
+
+
+.settings-card {
+    overflow: hidden;
+}
+
+.settings-card > header {
+    min-height: 72px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 14px 15px;
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+}
+
+.settings-card h2 {
+    margin: 0;
+
+    font-size: 15px;
+}
+
+.settings-card header p {
+    margin: 5px 0 0;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+.settings-list {
+    padding: 9px;
+}
+
+.settings-item {
+    min-height: 54px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 9px 10px;
+
+    margin-bottom: 6px;
+
+    border:
+        1px solid
+        var(--crm-border);
+
+    border-radius: 8px;
+
+    background: #fff;
+}
+
+.settings-item strong {
+    font-size: 12px;
+}
+
+.settings-item-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+}
+
+.list-status {
+    display: inline-flex;
+
+    min-height: 23px;
+
+    align-items: center;
+
+    padding: 0 7px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.list-status.active {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.list-status.inactive {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.settings-edit {
+    min-height: 28px;
+
+    padding: 0 7px;
+
+    border:
+        1px solid
+        var(--crm-border);
+
+    border-radius: 6px;
+
+    background: #fff;
+
+    font-size: 11px;
+}
+
+.settings-empty {
+    min-height: 170px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+/* MODAL */
+
+.item-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 3000;
+
+    background: rgba(15,23,42,.35);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.item-overlay.open {
+    opacity: 1;
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+.item-modal {
+    position: fixed;
+
+    top: 50%;
+    left: 50%;
+
+    z-index: 3100;
+
+    width:
+        min(410px,calc(100% - 30px));
+
+    transform: translate(-50%, calc(-50% + 6px)) scale(.97);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, transform 180ms var(--crm-ease), visibility 0s linear 180ms;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+
+    border-radius: var(--crm-radius-md);
+}
+
+.item-modal.open {
+    transform: translate(-50%, -50%) scale(1);
+
+    opacity: 1;
+
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+.item-modal > header {
+    min-height: 58px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 16px;
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+}
+
+.item-modal header button {
+    width: 34px;
+    height: 34px;
+
+    border: 0;
+
+    background: transparent;
+
+    font-size: 22px;
+}
+
+.item-modal form {
+    padding: 16px;
+}
+
+.item-modal form > label {
+    display: block;
+
+    margin-bottom: 16px;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 650;
+}
+
+.item-modal input,
+.item-modal select {
+    margin-top: 6px;
+}
+
+.item-modal em {
+    color: var(--crm-danger);
+
+    font-style: normal;
+}
+
+.item-error {
+    min-height: 17px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+.item-modal footer {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-top: 10px;
+}
+
+
+@media (max-width:768px) {
+
+    .winloss-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .competitor-card {
+        grid-column: auto;
+    }
+
+    .settings-item {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .settings-item-right {
+        width: 100%;
+
+        justify-content: space-between;
+    }
+}

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>Cấu hình Pipeline</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/pipeline-settings.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <div class="crm-nav-section">
+            Không gian làm việc
+        </div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+
+        <div class="crm-nav-section">
+            Quản trị
+        </div>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a
+            href="pipeline-settings.html"
+            class="crm-nav-item active"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3 6 0 1 4 4 1 1 6-4 2-1 4-6 1-2-4-4-1-1-6 4-2 1-4Z"/></svg></span>
+            <span class="crm-nav-label">Cấu hình Pipeline</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Tìm kiếm..."
+        >
+
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+
+    <div class="crm-top-actions">
+
+        <div class="crm-user">
+
+            <button
+                id="userButton"
+                class="crm-user-button"
+                type="button"
+            >
+
+                <div class="crm-avatar">
+                    A
+                </div>
+
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Administrator</span>
+                    <span class="crm-user-role">Quản trị</span>
+                </div>
+
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+
+            </button>
+
+            <div
+                id="userDropdown"
+                class="crm-user-dropdown"
+            >
+                <a href="#">Hồ sơ cá nhân</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main pipeline-settings-page">
+
+    <section class="settings-head">
+
+        <div>
+
+            <p class="settings-kicker">
+                Cấu hình / Pipeline
+            </p>
+
+            <h1>
+                Giai đoạn & Xác suất
+            </h1>
+
+            <p>
+                Cấu hình trình tự các giai đoạn của cơ hội bán hàng.
+            </p>
+
+        </div>
+
+        <button
+            id="addStageButton"
+            class="crm-btn crm-btn-primary"
+            type="button"
+        >
+            + Thêm giai đoạn
+        </button>
+
+    </section>
+
+
+    <div class="settings-layout">
+
+        <aside class="crm-card settings-nav">
+
+            <a class="active" href="#">
+                Pipeline & Giai đoạn
+            </a>
+
+            <a href="#">
+                Lý do Thắng / Thua
+            </a>
+
+            <a href="#">
+                Đối thủ cạnh tranh
+            </a>
+
+            <a href="#">
+                Danh mục dùng chung
+            </a>
+
+            <a href="#">
+                Trường tùy chỉnh
+            </a>
+
+        </aside>
+
+
+        <section class="crm-card stages-panel">
+
+            <header class="stages-header">
+
+                <div>
+
+                    <h2>
+                        Chuỗi giai đoạn
+                    </h2>
+
+                    <p>
+                        Dùng nút ↑ ↓ để thay đổi thứ tự hiển thị.
+                    </p>
+
+                </div>
+
+            </header>
+
+
+            <div
+                id="stageList"
+                class="stage-list"
+            ></div>
+
+
+            <div
+                id="stageEmpty"
+                class="stage-empty"
+            >
+                Chưa có giai đoạn Pipeline.
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<!-- =========================================================
+     STAGE DRAWER
+========================================================= -->
+
+<div
+    id="stageOverlay"
+    class="stage-overlay"
+></div>
+
+
+<aside
+    id="stageDrawer"
+    class="stage-drawer"
+>
+
+    <header>
+
+        <div>
+
+            <strong id="stageDrawerTitle">
+                Thêm giai đoạn
+            </strong>
+
+            <span>
+                Cấu hình xác suất và điều kiện rời giai đoạn
+            </span>
+
+        </div>
+
+        <button
+            id="closeStageDrawer"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form id="stageForm">
+
+        <input
+            id="editingStageIndex"
+            type="hidden"
+        >
+
+
+        <label>
+            Tên giai đoạn
+            <em>*</em>
+
+            <input
+                id="stageName"
+                class="crm-input"
+                type="text"
+                placeholder="VD: Tiếp cận"
+            >
+        </label>
+
+
+        <label>
+            Xác suất thắng mặc định
+            <em>*</em>
+
+            <div class="probability-field">
+
+                <input
+                    id="stageProbability"
+                    class="crm-input"
+                    type="number"
+                    min="0"
+                    max="100"
+                >
+
+                <span>%</span>
+
+            </div>
+        </label>
+
+
+        <label>
+            Điều kiện bắt buộc để rời giai đoạn
+
+            <textarea
+                id="stageCondition"
+                rows="4"
+                placeholder="VD: Phải có ít nhất một cuộc gặp..."
+            ></textarea>
+        </label>
+
+
+        <label class="condition-toggle">
+
+            <input
+                id="stageConditionRequired"
+                type="checkbox"
+            >
+
+            Bắt buộc thỏa điều kiện trước khi chuyển giai đoạn
+        </label>
+
+
+        <div
+            id="stageFormError"
+            class="stage-form-error"
+        ></div>
+
+
+        <footer>
+
+            <button
+                id="cancelStage"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Lưu giai đoạn
+            </button>
+
+        </footer>
+
+    </form>
+
+</aside>
+
+
+
+
+
+<script src="js/pages/pipeline-settings.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

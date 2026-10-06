@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Lịch CRM</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/calendar.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="activities.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m7 12 3 3 7-7"/></svg></span>
+            <span class="crm-nav-label">Hoạt động</span>
+        </a>
+
+        <a href="tasks.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
+            <span class="crm-nav-label">Công việc</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+    <div class="crm-top-actions">
+        <div class="crm-avatar">U</div>
+    </div>
+
+</header>
+
+
+<main class="crm-main calendar-page">
+
+    <section class="calendar-head">
+
+        <div>
+
+            <p>
+                CRM / Lịch
+            </p>
+
+            <h1>
+                Lịch hoạt động
+            </h1>
+
+            <span>
+                Xem lịch cuộc gọi, họp, email và công việc.
+            </span>
+
+        </div>
+
+
+        <a
+            href="activities.html"
+            class="crm-btn crm-btn-primary"
+            style="text-decoration:none"
+        >
+            + Tạo hoạt động
+        </a>
+
+    </section>
+
+
+    <section class="crm-card calendar-card">
+
+        <header class="calendar-toolbar">
+
+            <div class="month-controls">
+
+                <button
+                    id="previousMonth"
+                    type="button"
+                >
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+                </button>
+
+                <button
+                    id="todayButton"
+                    type="button"
+                >
+                    Hôm nay
+                </button>
+
+                <button
+                    id="nextMonth"
+                    type="button"
+                >
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+                </button>
+
+            </div>
+
+
+            <h2 id="calendarTitle">
+                —
+            </h2>
+
+
+            <select
+                id="calendarTypeFilter"
+                class="crm-input"
+            >
+                <option value="">
+                    Tất cả hoạt động
+                </option>
+
+                <option value="call">
+                    Cuộc gọi
+                </option>
+
+                <option value="meeting">
+                    Cuộc họp
+                </option>
+
+                <option value="task">
+                    Công việc
+                </option>
+
+                <option value="email">
+                    Email
+                </option>
+
+                <option value="note">
+                    Ghi chú
+                </option>
+            </select>
+
+        </header>
+
+
+        <div class="calendar-weekdays">
+
+            <span>T2</span>
+            <span>T3</span>
+            <span>T4</span>
+            <span>T5</span>
+            <span>T6</span>
+            <span>T7</span>
+            <span>CN</span>
+
+        </div>
+
+
+        <div
+            id="calendarGrid"
+            class="calendar-grid"
+        ></div>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<!-- DETAIL MODAL -->
+
+<div
+    id="calendarOverlay"
+    class="calendar-overlay"
+></div>
+
+
+<section
+    id="calendarModal"
+    class="calendar-modal crm-card"
+>
+
+    <header>
+
+        <strong id="calendarModalTitle">
+            Chi tiết
+        </strong>
+
+        <button
+            id="closeCalendarModal"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <div class="calendar-detail">
+
+        <div>
+            <span>Loại</span>
+            <strong id="detailActivityType">—</strong>
+        </div>
+
+        <div>
+            <span>Liên quan</span>
+            <strong id="detailActivityRelation">—</strong>
+        </div>
+
+        <div>
+            <span>Lịch</span>
+            <strong id="detailActivityDate">—</strong>
+        </div>
+
+        <div>
+            <span>Người phụ trách</span>
+            <strong id="detailActivityOwner">—</strong>
+        </div>
+
+        <p id="detailActivityDescription"></p>
+
+    </div>
+
+</section>
+
+
+
+
+
+<script src="js/pages/calendar.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>
