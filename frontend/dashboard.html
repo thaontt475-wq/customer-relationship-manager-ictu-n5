@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>Tổng quan CRM</title>
+
+<link
+    rel="stylesheet"
+    href="css/design-system.css"
+>
+
+<link
+    rel="stylesheet"
+    href="css/app-shell.css"
+>
+
+<link
+    rel="stylesheet"
+    href="css/pages/dashboard.css"
+>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+
+<body class="crm-private">
+
+
+<!-- ======================================================
+     DESKTOP SIDEBAR
+====================================================== -->
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+
+        <div class="crm-brand-mark">
+            C
+        </div>
+
+        <span class="crm-brand-name">
+            Corporate CRM
+        </span>
+
+    </div>
+
+
+    <nav class="crm-nav">
+
+        <div class="crm-nav-section">
+            Không gian làm việc
+        </div>
+
+
+        <a
+            href="dashboard.html"
+            class="crm-nav-item active"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+
+        <a
+            href="customers.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+
+        <a
+            href="pipeline.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+
+        <a
+            href="activities.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m7 12 3 3 7-7"/></svg></span>
+            <span class="crm-nav-label">Hoạt động</span>
+        </a>
+
+
+        <a
+            href="tasks.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
+            <span class="crm-nav-label">Công việc</span>
+        </a>
+
+
+        <a
+            href="calendar.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+
+        <a
+            href="quotations.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon">▤</span>
+            <span class="crm-nav-label">Báo giá</span>
+        </a>
+
+
+        <a
+            href="products.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+
+        <div class="crm-nav-section">
+            Quản trị
+        </div>
+
+
+        <a
+            href="users.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+
+        <a
+            href="organization.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/></svg></span>
+            <span class="crm-nav-label">Tổ chức</span>
+        </a>
+
+
+        <a
+            href="pipeline-settings.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3 6 0 1 4 4 1 1 6-4 2-1 4-6 1-2-4-4-1-1-6 4-2 1-4Z"/></svg></span>
+            <span class="crm-nav-label">Cấu hình</span>
+        </a>
+
+    </nav>
+
+
+    
+
+</aside>
+
+
+<!-- ======================================================
+     DESKTOP TOPBAR
+====================================================== -->
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Tìm kiếm khách hàng, cơ hội... (Ctrl + K)"
+        >
+
+        <kbd>
+            Ctrl K
+        </kbd>
+
+    </div>
+
+
+    <div class="crm-top-actions">
+
+        <button
+            class="crm-icon-btn"
+            type="button"
+            title="Thông báo"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+
+            <span class="crm-notification-dot"></span>
+        </button>
+
+
+        <div class="crm-user">
+
+            <button
+                id="userButton"
+                class="crm-user-button"
+                type="button"
+            >
+
+                <div class="crm-avatar">
+                    U
+                </div>
+
+
+                <div class="crm-user-copy">
+
+                    <span class="crm-user-name">
+                        Người dùng
+                    </span>
+
+                    <span class="crm-user-role">
+                        Vai trò
+                    </span>
+
+                </div>
+
+
+                <span>
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </span>
+
+            </button>
+
+
+            <div
+                id="userDropdown"
+                class="crm-user-dropdown"
+            >
+
+                <a href="profile.html">
+                    Hồ sơ cá nhân
+                </a>
+
+                <a href="#">
+                    Đổi mật khẩu
+                </a>
+
+                <button type="button">
+                    Đăng xuất
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- ======================================================
+     MOBILE HEADER
+====================================================== -->
+
+<header class="crm-mobile-header">
+
+    <button
+        id="mobileMenuButton"
+        class="crm-mobile-menu"
+        type="button"
+    >
+        <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <strong>
+        Corporate CRM
+    </strong>
+
+    <div class="crm-avatar">
+        U
+    </div>
+
+</header>
+
+
+<!-- ======================================================
+     MAIN
+====================================================== -->
+
+<main class="crm-main dashboard-page">
+
+
+    <!-- HEADING -->
+
+    <section class="dashboard-head">
+
+        <div>
+
+            <p>
+                CRM / Tổng quan
+            </p>
+
+            <h1>
+                Bảng điều khiển
+            </h1>
+
+            <span>
+                Tổng quan hoạt động bán hàng từ dữ liệu đang thao tác trên frontend.
+            </span>
+
+        </div>
+
+
+        <button
+            id="refreshDashboard"
+            class="crm-btn crm-btn-secondary"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 5"/></svg> Làm mới
+        </button>
+
+    </section>
+
+
+    <!-- KPI -->
+
+    <section class="dashboard-kpis">
+
+
+        <article class="crm-card dashboard-kpi">
+
+            <header>
+                <span>Doanh thu dự kiến</span>
+                <span class="kpi-menu">⋮</span>
+            </header>
+
+            <strong id="kpiRevenue">
+                0 ₫
+            </strong>
+
+            <small>
+                Tổng giá trị cơ hội đang mở
+            </small>
+
+        </article>
+
+
+        <article class="crm-card dashboard-kpi">
+
+            <header>
+                <span>Cơ hội đang mở</span>
+                <span class="kpi-menu">⋮</span>
+            </header>
+
+            <strong id="kpiOpportunities">
+                0
+            </strong>
+
+            <small>
+                Chưa đóng thắng / thua
+            </small>
+
+        </article>
+
+
+        <article class="crm-card dashboard-kpi">
+
+            <header>
+                <span>Báo giá đã duyệt</span>
+                <span class="kpi-menu">⋮</span>
+            </header>
+
+            <strong id="kpiApprovedQuotes">
+                0
+            </strong>
+
+            <small id="kpiApprovedValue">
+                Tổng giá trị 0 ₫
+            </small>
+
+        </article>
+
+
+        <article class="crm-card dashboard-kpi">
+
+            <header>
+                <span>Công việc chưa xong</span>
+                <span class="kpi-menu">⋮</span>
+            </header>
+
+            <strong id="kpiTasks">
+                0
+            </strong>
+
+            <small id="kpiLateTasks">
+                0 công việc quá hạn
+            </small>
+
+        </article>
+
+
+    </section>
+
+
+    <!-- MAIN CONTENT -->
+
+    <section class="dashboard-grid">
+
+
+        <!-- FUNNEL -->
+
+        <article class="crm-card dashboard-panel">
+
+            <header class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Biểu đồ Phễu
+                    </h2>
+
+                    <p>
+                        Phân bố cơ hội theo giai đoạn.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="pipeline.html"
+                    class="panel-link"
+                >
+                    Xem Pipeline →
+                </a>
+
+            </header>
+
+
+            <div
+                id="funnelContainer"
+                class="funnel-container"
+            ></div>
+
+
+            <div
+                id="funnelEmpty"
+                class="dashboard-empty"
+            >
+                Chưa có cơ hội để hiển thị.
+            </div>
+
+        </article>
+
+
+        <!-- FORECAST -->
+
+        <article class="crm-card dashboard-panel">
+
+            <header class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Dự báo doanh số
+                    </h2>
+
+                    <p>
+                        Giá trị cơ hội × xác suất thắng.
+                    </p>
+
+                </div>
+
+            </header>
+
+
+            <div class="forecast-total">
+
+                <span>
+                    Dự báo hiện tại
+                </span>
+
+                <strong id="forecastTotal">
+                    0 ₫
+                </strong>
+
+            </div>
+
+
+            <div
+                id="forecastBars"
+                class="forecast-bars"
+            ></div>
+
+
+            <div
+                id="forecastEmpty"
+                class="dashboard-empty"
+            >
+                Chưa có dữ liệu dự báo.
+            </div>
+
+        </article>
+
+
+        <!-- ACTIVITIES -->
+
+        <article class="crm-card dashboard-panel">
+
+            <header class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Hoạt động gần đây
+                    </h2>
+
+                    <p>
+                        Các tương tác mới nhất.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="activities.html"
+                    class="panel-link"
+                >
+                    Xem tất cả →
+                </a>
+
+            </header>
+
+
+            <div
+                id="recentActivities"
+                class="recent-activities"
+            ></div>
+
+
+            <div
+                id="recentActivitiesEmpty"
+                class="dashboard-empty small"
+            >
+                Chưa có hoạt động.
+            </div>
+
+        </article>
+
+
+        <!-- TODO -->
+
+        <article class="crm-card dashboard-panel">
+
+            <header class="panel-head">
+
+                <div>
+
+                    <h2>
+                        Công việc cần chú ý
+                    </h2>
+
+                    <p>
+                        Task chưa hoàn thành.
+                    </p>
+
+                </div>
+
+
+                <a
+                    href="tasks.html"
+                    class="panel-link"
+                >
+                    Xem công việc →
+                </a>
+
+            </header>
+
+
+            <div
+                id="dashboardTasks"
+                class="dashboard-tasks"
+            ></div>
+
+
+            <div
+                id="dashboardTasksEmpty"
+                class="dashboard-empty small"
+            >
+                Không có công việc đang mở.
+            </div>
+
+        </article>
+
+
+    </section>
+
+
+    <!-- SYSTEM SUMMARY -->
+
+    <section class="dashboard-system-grid">
+
+
+        <a
+            href="customers.html"
+            class="crm-card system-tile"
+        >
+
+            <span>
+                Khách hàng
+            </span>
+
+            <strong id="systemCustomers">
+                —
+            </strong>
+
+        </a>
+
+
+        <a
+            href="users.html"
+            class="crm-card system-tile"
+        >
+
+            <span>
+                Người dùng
+            </span>
+
+            <strong id="systemUsers">
+                0
+            </strong>
+
+        </a>
+
+
+        <a
+            href="products.html"
+            class="crm-card system-tile"
+        >
+
+            <span>
+                Sản phẩm
+            </span>
+
+            <strong id="systemProducts">
+                0
+            </strong>
+
+        </a>
+
+
+        <a
+            href="quotations.html"
+            class="crm-card system-tile"
+        >
+
+            <span>
+                Báo giá
+            </span>
+
+            <strong id="systemQuotes">
+                0
+            </strong>
+
+        </a>
+
+
+        <a
+            href="calendar.html"
+            class="crm-card system-tile"
+        >
+
+            <span>
+                Hoạt động có lịch
+            </span>
+
+            <strong id="systemScheduled">
+                0
+            </strong>
+
+        </a>
+
+
+    </section>
+
+
+</main>
+
+
+<!-- ======================================================
+     MOBILE DRAWER
+====================================================== -->
+
+<div
+    id="drawerOverlay"
+    class="crm-drawer-overlay"
+></div>
+
+
+<aside
+    id="mobileDrawer"
+    class="crm-mobile-drawer"
+>
+
+    <div class="crm-drawer-header">
+
+        <div class="crm-avatar">
+            U
+        </div>
+
+        <div class="crm-drawer-user">
+
+            <strong>
+                Người dùng
+            </strong>
+
+            <span>
+                Vai trò
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <nav class="crm-nav">
+
+        <a
+            href="dashboard.html"
+            class="crm-nav-item active"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a
+            href="customers.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a
+            href="pipeline.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a
+            href="activities.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m7 12 3 3 7-7"/></svg></span>
+            <span class="crm-nav-label">Hoạt động</span>
+        </a>
+
+        <a
+            href="tasks.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
+            <span class="crm-nav-label">Công việc</span>
+        </a>
+
+        <a
+            href="calendar.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <a
+            href="quotations.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon">▤</span>
+            <span class="crm-nav-label">Báo giá</span>
+        </a>
+
+        <a
+            href="products.html"
+            class="crm-nav-item"
+        >
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<!-- ======================================================
+     MOBILE BOTTOM NAV
+====================================================== -->
+
+<nav class="crm-bottom-nav">
+
+    <a
+        href="dashboard.html"
+        class="crm-bottom-item active"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+        </span>
+
+        <span>Tổng quan</span>
+    </a>
+
+
+    <a
+        href="customers.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+        </span>
+
+        <span>Khách hàng</span>
+    </a>
+
+
+    <a
+        href="pipeline.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="m12 3 8 9-8 9-8-9 8-9Z"/>
+            </svg>
+        </span>
+
+        <span>Cơ hội</span>
+    </a>
+
+
+    <a
+        href="calendar.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M8 3v4m8-4v4M3 10h18"/>
+            </svg>
+        </span>
+
+        <span>Lịch</span>
+    </a>
+
+</nav>
+
+
+
+
+
+<script src="js/pages/dashboard.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>Tạo Hợp đồng</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/contract-create.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="quotations.html" class="crm-nav-item active">
+            <span class="crm-nav-icon">▤</span>
+            <span class="crm-nav-label">Báo giá</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Tìm kiếm..."
+        >
+
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main contract-page">
+
+    <section class="contract-head">
+
+        <div>
+
+            <a
+                href="quotations.html"
+                class="back-link"
+            >
+                ← Báo giá
+            </a>
+
+            <h1>
+                Tạo Hợp đồng từ Báo giá
+            </h1>
+
+            <p>
+                Dữ liệu báo giá được kế thừa và khóa chỉnh sửa.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section
+        id="contractBlocked"
+        class="crm-card contract-blocked"
+        hidden
+    >
+        Báo giá này chưa ở trạng thái
+        <strong>Đã duyệt</strong>,
+        nên chưa thể tạo hợp đồng.
+    </section>
+
+
+    <form
+        id="contractForm"
+        class="contract-grid"
+    >
+
+        <section class="crm-card contract-main">
+
+            <h2>
+                Thông tin Hợp đồng
+            </h2>
+
+
+            <div class="contract-form-grid">
+
+                <label>
+                    Số hợp đồng
+                    <em>*</em>
+
+                    <input
+                        id="contractNumber"
+                        class="crm-input"
+                        type="text"
+                    >
+                </label>
+
+
+                <label>
+                    Ngày ký
+                    <em>*</em>
+
+                    <input
+                        id="signedDate"
+                        class="crm-input"
+                        type="date"
+                    >
+                </label>
+
+
+                <label>
+                    Ngày hiệu lực
+                    <em>*</em>
+
+                    <input
+                        id="effectiveDate"
+                        class="crm-input"
+                        type="date"
+                    >
+                </label>
+
+
+                <label>
+                    Ngày hết hạn
+
+                    <input
+                        id="expiryDate"
+                        class="crm-input"
+                        type="date"
+                    >
+                </label>
+
+            </div>
+
+
+            <label class="full-field">
+                Điều khoản thanh toán
+
+                <textarea
+                    id="contractPaymentTerms"
+                    rows="4"
+                ></textarea>
+            </label>
+
+
+            <h2 class="inherit-title">
+                Dữ liệu kế thừa từ Báo giá
+            </h2>
+
+
+            <div class="inherited-data">
+
+                <div>
+                    <span>Mã báo giá</span>
+                    <strong id="contractQuoteCode">—</strong>
+                </div>
+
+                <div>
+                    <span>Khách hàng</span>
+                    <strong id="contractCustomer">—</strong>
+                </div>
+
+                <div>
+                    <span>Cơ hội</span>
+                    <strong id="contractOpportunity">—</strong>
+                </div>
+
+                <div>
+                    <span>Giá trị hợp đồng</span>
+                    <strong id="contractTotal">0 ₫</strong>
+                </div>
+
+            </div>
+
+
+            <div class="inherited-lines">
+
+                <table>
+
+                    <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>SL</th>
+                        <th>Đơn giá</th>
+                        <th>Giảm</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="contractLines"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <aside class="crm-card contract-summary">
+
+            <h2>
+                Xác nhận
+            </h2>
+
+            <p>
+                Khi kết nối backend, thao tác này sẽ tạo hợp đồng và cập nhật cơ hội tương ứng.
+            </p>
+
+
+            <div
+                id="contractValidation"
+                class="contract-validation"
+            ></div>
+
+
+            <button
+                id="createContractButton"
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Tạo Hợp đồng
+            </button>
+
+        </aside>
+
+    </form>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<div
+    id="contractSuccess"
+    class="contract-success-overlay"
+>
+
+    <div class="contract-success-box">
+
+        <div class="success-check">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+        </div>
+
+        <h2>
+            Hợp đồng đã được tạo trên giao diện
+        </h2>
+
+        <p>
+            Chưa gửi dữ liệu lên backend.
+        </p>
+
+        <a
+            href="quotations.html"
+            class="crm-btn crm-btn-primary"
+            style="text-decoration:none"
+        >
+            Quay lại Báo giá
+        </a>
+
+    </div>
+
+</div>
+
+
+
+
+
+<script src="js/pages/contract-create.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

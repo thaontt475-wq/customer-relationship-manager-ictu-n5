@@ -1,0 +1,780 @@
+.users-head {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 24px;
+}
+
+.users-kicker {
+    margin: 0 0 6px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.users-head h1 {
+    margin: 0;
+
+    font-size: 27px;
+}
+
+.users-head p:last-child {
+    margin: 7px 0 0;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+.users-filter {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0,1fr)
+        190px
+        160px;
+
+    gap: 10px;
+
+    padding: 12px;
+
+    margin-bottom: 16px;
+}
+
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.users-table {
+    width: 100%;
+
+    min-width: 820px;
+
+    border-collapse: collapse;
+
+    font-size: 12px;
+}
+
+.users-table th {
+    height: 46px;
+
+    padding: 0 13px;
+
+    text-align: left;
+
+    background: #f8fafc;
+
+    color: var(--crm-muted);
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+}
+
+.users-table td {
+    padding: 12px 13px;
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+
+    vertical-align: middle;
+}
+
+
+.user-cell {
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+}
+
+.table-avatar {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: #dbeafe;
+
+    color: #1d4ed8;
+
+    font-weight: 700;
+}
+
+.user-cell strong {
+    font-size: 12px;
+}
+
+.user-cell span {
+    display: block;
+
+    margin-top: 3px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+.role-list {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 4px;
+}
+
+.role-pill {
+    display: inline-flex;
+
+    min-height: 23px;
+
+    align-items: center;
+
+    padding: 0 7px;
+
+    border-radius: 999px;
+
+    background: #eff6ff;
+
+    color: #1d4ed8;
+
+    font-size: 11px;
+
+    font-weight: 650;
+}
+
+
+.user-status {
+    display: inline-flex;
+
+    align-items: center;
+
+    min-height: 25px;
+
+    padding: 0 9px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+.user-status.active {
+    color: #047857;
+    background: #d1fae5;
+}
+
+.user-status.locked {
+    color: #b91c1c;
+    background: #fee2e2;
+}
+
+
+.user-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 5px;
+}
+
+.user-action {
+    min-height: 31px;
+
+    padding: 0 9px;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 7px;
+
+    background: #fff;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+}
+
+.user-action:hover {
+    background: #f8fafc;
+}
+
+.user-action.lock {
+    color: #b91c1c;
+}
+
+.user-action.unlock {
+    color: #047857;
+}
+
+
+.users-empty {
+    min-height: 260px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.empty-user-icon {
+    width: 48px;
+    height: 48px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 13px;
+
+    background: var(--crm-primary-soft);
+
+    color: var(--crm-primary);
+
+    font-size: 22px;
+}
+
+
+.users-pagination {
+    min-height: 54px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 13px;
+
+    border-top:
+        1px solid
+        var(--crm-border);
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.users-pagination > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.users-pagination button {
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 7px;
+
+    background: #fff;
+}
+
+
+/* DRAWER */
+
+.users-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 2000;
+
+    background: rgba(15,23,42,.35);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.users-overlay.open {
+    opacity: 1;
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.user-drawer {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 2100;
+
+    width: min(440px,100%);
+
+    display: flex;
+
+    flex-direction: column;
+
+    background: #fff;
+
+    box-shadow:
+        -18px 0 45px
+        rgba(15,23,42,.16);
+
+    transform:
+        translateX(102%);
+
+    transition: transform 240ms var(--crm-ease), visibility 0s linear 240ms;
+    visibility: hidden;
+}
+
+.user-drawer.open {
+    transform: translateX(0);
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.drawer-head {
+    min-height: 70px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 15px 18px;
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+}
+
+.drawer-head strong {
+    display: block;
+
+    font-size: 15px;
+}
+
+.drawer-head span {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.drawer-head button {
+    width: 35px;
+    height: 35px;
+
+    border: 0;
+
+    background: transparent;
+
+    font-size: 23px;
+}
+
+
+.user-form {
+    flex: 1;
+
+    overflow-y: auto;
+
+    padding:
+        18px 18px 95px;
+}
+
+.user-form > label {
+    display: block;
+
+    margin-bottom: 16px;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 650;
+}
+
+.user-form > label input {
+    margin-top: 6px;
+}
+
+.user-form em {
+    color: var(--crm-danger);
+
+    font-style: normal;
+}
+
+.user-form small {
+    display: block;
+
+    min-height: 14px;
+
+    margin-top: 4px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+
+.roles-fieldset {
+    margin:
+        2px 0 16px;
+
+    padding: 12px;
+
+    border:
+        1px solid
+        var(--crm-border);
+
+    border-radius: 9px;
+}
+
+.roles-fieldset legend {
+    padding: 0 6px;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 650;
+}
+
+.role-check {
+    min-height: 34px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 12px;
+
+    color: var(--crm-text-2);
+}
+
+
+.self-admin-check {
+    display: flex !important;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 10px;
+
+    border-radius: 8px;
+
+    background: #fffbeb;
+}
+
+
+.user-form-error {
+    min-height: 18px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+
+.drawer-footer {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    min-height: 70px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    padding: 12px 18px;
+
+    background: #fff;
+
+    border-top:
+        1px solid
+        var(--crm-border);
+}
+
+
+/* LOCK MODAL */
+
+.lock-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 3000;
+
+    background: rgba(15,23,42,.35);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.lock-overlay.open {
+    opacity: 1;
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.lock-modal {
+    position: fixed;
+
+    top: 50%;
+    left: 50%;
+
+    z-index: 3100;
+
+    width:
+        min(440px,calc(100% - 30px));
+
+    transform: translate(-50%, calc(-50% + 6px)) scale(.97);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, transform 180ms var(--crm-ease), visibility 0s linear 180ms;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+
+    border-radius: var(--crm-radius-md);
+}
+
+.lock-modal.open {
+    transform: translate(-50%, -50%) scale(1);
+
+    opacity: 1;
+
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.lock-modal > header {
+    min-height: 70px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 13px 16px;
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+}
+
+.lock-modal > header > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.lock-modal header p {
+    margin: 3px 0 0;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.lock-modal header button {
+    width: 35px;
+    height: 35px;
+
+    border: 0;
+
+    background: transparent;
+
+    font-size: 22px;
+}
+
+.danger-symbol {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: #fee2e2;
+
+    color: #dc2626;
+
+    font-weight: 800;
+}
+
+
+.lock-modal form {
+    padding: 16px;
+}
+
+.lock-user-box {
+    padding: 11px;
+
+    margin-bottom: 16px;
+
+    border-radius: 8px;
+
+    background: #f8fafc;
+}
+
+.lock-user-box span {
+    display: block;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.lock-user-box strong {
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 13px;
+}
+
+
+.lock-modal form > label {
+    display: block;
+
+    margin-bottom: 16px;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 650;
+}
+
+.lock-modal form > label select,
+.lock-modal form > label textarea {
+    margin-top: 6px;
+}
+
+.lock-modal textarea {
+    width: 100%;
+
+    padding: 10px;
+
+    resize: vertical;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 8px;
+
+    outline: 0;
+
+    font: inherit;
+}
+
+
+.lock-error {
+    min-height: 17px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+
+.lock-modal form footer {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-top: 12px;
+}
+
+.danger-button {
+    background: #dc2626;
+
+    color: #fff;
+}
+
+.danger-button:hover {
+    background: #b91c1c;
+}
+
+
+@media (max-width:850px) {
+
+    .users-filter {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width:768px) {
+
+    .users-head {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .users-head .crm-btn {
+        width: 100%;
+    }
+
+    .users-table {
+        min-width: 750px;
+    }
+
+    .user-drawer {
+        width: 100%;
+        visibility: hidden;
+}
+}
+@media (hover: hover) and (pointer: fine) {
+    .users-table tbody tr:hover { background: #f8fafc; }
+}

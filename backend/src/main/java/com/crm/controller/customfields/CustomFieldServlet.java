@@ -1,360 +1,869 @@
 package com.crm.controller.customfields;
 
-import com.crm.model.CustomField;
-import com.crm.model.Role;
-import com.crm.model.User;
-import com.crm.service.customfields.CustomFieldService;
-import com.crm.service.customfields.CustomFieldService.DeleteOutcome;
-import com.crm.service.customfields.CustomFieldService.NotFoundException;
-import com.crm.util.SessionKey;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import jakarta.servlet.ServletException;
+import com.crm.config.DatabaseConfig;
+import com.crm.dto.common.ApiResponse;
+import com.crm.service.permissions.PermissionService;
+import com.crm.util.JsonUtil;
+import com.crm.util.ResponseUtil;
+
+import com.google.gson.*;
+
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.sql.*;
+import java.util.*;
 
-/** REST API for CRM-46 definitions and per-record values. */
-@WebServlet({"/api/custom-fields", "/api/custom-fields/*"})
+@WebServlet({
+        "/api/custom-fields",
+        "/api/custom-fields/*"
+})
 public class CustomFieldServlet extends HttpServlet {
-    private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = Logger.getLogger(CustomFieldServlet.class.getName());
-    private static final Gson GSON = new GsonBuilder().serializeNulls().create();
-    private static final Set<String> DEFINITION_ROLES =
-            Set.of("ADMIN", "ADMINISTRATOR", "SYSTEM_ADMIN", "DIRECTOR",
-                    "GIÁM ĐỐC", "GIAM DOC", "QUẢN TRỊ VIÊN", "QUAN TRI VIEN");
 
-    private final CustomFieldService service;
+    private static final Set<String> ENTITY_TYPES =
+            Set.of(
+                    "CUSTOMER",
+                    "OPPORTUNITY"
+            );
 
-    public CustomFieldServlet() { this(new CustomFieldService()); }
-    public CustomFieldServlet(CustomFieldService service) { this.service = service; }
+    private static final Set<String> FIELD_TYPES =
+            Set.of(
+                    "TEXT",
+                    "NUMBER",
+                    "DATE",
+                    "SELECT"
+            );
+
+    private final PermissionService permissions =
+            new PermissionService();
+
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        prepare(request);
-        if (!isAuthenticated(request)) {
-            writeJson(response, 401, false, "Yêu cầu đăng nhập", null);
+    protected void doGet(
+            HttpServletRequest req,
+            HttpServletResponse res
+    ) throws IOException {
+
+        try {
+
+            require(req, "customfield.read");
+
+            String entityType =
+                    req.getParameter("entityType");
+
+            validateEntity(entityType);
+
+            Boolean active =
+                    parseBooleanNullable(
+                            req.getParameter("active")
+                    );
+
+            StringBuilder sql =
+                    new StringBuilder("""
+                            SELECT
+                                id,
+                                entity_type,
+                                field_key,
+                                label,
+                                field_type,
+                                options_json,
+                                required_field,
+                                active
+                            FROM custom_fields
+                            WHERE entity_type = ?
+                            """);
+
+            if (active != null) {
+
+                sql.append(
+                        " AND active = ? "
+                );
+            }
+
+            sql.append(
+                    " ORDER BY id ASC "
+            );
+
+            List<Map<String,Object>> fields =
+                    new ArrayList<>();
+
+            try (
+                    Connection connection =
+                            DatabaseConfig.getConnection();
+
+                    PreparedStatement statement =
+                            connection.prepareStatement(
+                                    sql.toString()
+                            )
+            ) {
+
+                statement.setString(
+                        1,
+                        entityType.toUpperCase()
+                );
+
+                if (active != null) {
+
+                    statement.setBoolean(
+                            2,
+                            active
+                    );
+                }
+
+                try (
+                        ResultSet rs =
+                                statement.executeQuery()
+                ) {
+
+                    while (rs.next()) {
+
+                        fields.add(
+                                map(rs)
+                        );
+                    }
+                }
+            }
+
+            ResponseUtil.json(
+                    res,
+                    200,
+                    ApiResponse.success(
+                            "Lấy custom field thành công",
+                            fields
+                    )
+            );
+
+        } catch (SecurityException e) {
+
+            forbidden(res);
+
+        } catch (IllegalArgumentException e) {
+
+            bad(
+                    res,
+                    e.getMessage()
+            );
+
+        } catch (Exception e) {
+
+            error(
+                    res,
+                    e
+            );
+        }
+    }
+
+
+    @Override
+    protected void doPost(
+            HttpServletRequest req,
+            HttpServletResponse res
+    ) throws IOException {
+
+        save(req, res, null);
+    }
+
+
+    @Override
+    protected void doPut(
+            HttpServletRequest req,
+            HttpServletResponse res
+    ) throws IOException {
+
+        Long id;
+
+        try {
+
+            String path =
+                    req.getPathInfo();
+
+            if (
+                    path == null
+                    ||
+                    path.length() <= 1
+            ) {
+
+                throw new Exception();
+            }
+
+            id =
+                    Long.parseLong(
+                            path.substring(1)
+                    );
+
+        } catch (Exception e) {
+
+            bad(
+                    res,
+                    "ID không hợp lệ"
+            );
+
             return;
         }
-        try {
-            if (isValuesPath(request.getPathInfo())) {
-                String entity = firstNonBlank(request.getParameter("entity"), request.getParameter("entityType"));
-                long recordId = parsePositiveLong(request.getParameter("recordId"), "recordId");
-                writeJson(response, 200, true, "Lấy giá trị custom field thành công",
-                        service.getValues(entity, recordId));
-                return;
-            }
-            if (!requireDefinitionAdmin(request, response)) return;
-            Long id = parsePathId(request.getPathInfo());
-            if (id != null) {
-                CustomField field = service.getDefinition(id);
-                if (field == null) throw new NotFoundException("Không tìm thấy trường tùy chỉnh");
-                writeJson(response, 200, true, "Lấy trường tùy chỉnh thành công", field);
-                return;
-            }
-            String entity = firstNonBlank(request.getParameter("entity"), request.getParameter("entityType"));
-            writeJson(response, 200, true, "Lấy danh sách trường tùy chỉnh thành công",
-                    service.getDefinitions(entity));
-        } catch (Exception e) {
-            handleException(response, "tải custom field", e);
-        }
+
+        save(req, res, id);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        prepare(request);
-        if (!requireDefinitionAdmin(request, response)) return;
-        try {
-            JsonObject json = readObject(request);
-            CustomField field = buildDefinition(json, null, true);
-            writeJson(response, 201, true, "Tạo trường tùy chỉnh thành công",
-                    service.createDefinition(field));
-        } catch (Exception e) {
-            handleException(response, "tạo custom field", e);
-        }
-    }
 
-    @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        prepare(request);
+    private void save(
+            HttpServletRequest req,
+            HttpServletResponse res,
+            Long id
+    ) throws IOException {
+
         try {
-            if (isValuesPath(request.getPathInfo())) {
-                if (!isAuthenticated(request)) {
-                    writeJson(response, 401, false, "Yêu cầu đăng nhập", null);
-                    return;
+
+            require(
+                    req,
+                    "customfield.manage"
+            );
+
+            JsonObject body =
+                    JsonUtil.getGson()
+                            .fromJson(
+                                    req.getReader(),
+                                    JsonObject.class
+                            );
+
+            if (body == null) {
+
+                throw new IllegalArgumentException(
+                        "Dữ liệu không hợp lệ"
+                );
+            }
+
+            String entity =
+                    requiredString(
+                            body,
+                            "entityType",
+                            "Đối tượng là bắt buộc"
+                    )
+                    .toUpperCase();
+
+            String key =
+                    requiredString(
+                            body,
+                            "key",
+                            "Mã trường là bắt buộc"
+                    );
+
+            String label =
+                    requiredString(
+                            body,
+                            "label",
+                            "Nhãn hiển thị là bắt buộc"
+                    );
+
+            String fieldType =
+                    requiredString(
+                            body,
+                            "fieldType",
+                            "Kiểu dữ liệu là bắt buộc"
+                    )
+                    .toUpperCase();
+
+            validateEntity(entity);
+
+            if (
+                    !FIELD_TYPES.contains(
+                            fieldType
+                    )
+            ) {
+
+                throw new IllegalArgumentException(
+                        "Kiểu dữ liệu không hợp lệ"
+                );
+            }
+
+            boolean required =
+                    body.has("required")
+                    &&
+                    !body.get("required").isJsonNull()
+                    &&
+                    body.get("required").getAsBoolean();
+
+            boolean active =
+                    !body.has("active")
+                    ||
+                    body.get("active").isJsonNull()
+                    ||
+                    body.get("active").getAsBoolean();
+
+
+            List<String> options =
+                    parseOptions(body);
+
+            if (
+                    "SELECT".equals(fieldType)
+                    &&
+                    options.isEmpty()
+            ) {
+
+                throw new IllegalArgumentException(
+                        "Trường Select phải có ít nhất một lựa chọn"
+                );
+            }
+
+            if (
+                    !"SELECT".equals(fieldType)
+            ) {
+
+                options =
+                        new ArrayList<>();
+            }
+
+            String optionsJson =
+                    options.isEmpty()
+                    ?
+                    null
+                    :
+                    JsonUtil.getGson()
+                            .toJson(options);
+
+
+            long savedId;
+
+            try (
+                    Connection connection =
+                            DatabaseConfig.getConnection()
+            ) {
+
+                if (id == null) {
+
+                    try (
+                            PreparedStatement statement =
+                                    connection.prepareStatement(
+                                            """
+                                            INSERT INTO custom_fields(
+                                                entity_type,
+                                                field_key,
+                                                label,
+                                                field_type,
+                                                options_json,
+                                                required_field,
+                                                active
+                                            )
+                                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                                            """,
+                                            Statement.RETURN_GENERATED_KEYS
+                                    )
+                    ) {
+
+                        statement.setString(1, entity);
+                        statement.setString(2, key);
+                        statement.setString(3, label);
+                        statement.setString(4, fieldType);
+                        statement.setString(5, optionsJson);
+                        statement.setBoolean(6, required);
+                        statement.setBoolean(7, active);
+
+                        statement.executeUpdate();
+
+                        try (
+                                ResultSet keys =
+                                        statement.getGeneratedKeys()
+                        ) {
+
+                            if (!keys.next()) {
+
+                                throw new SQLException(
+                                        "Không lấy được ID custom field"
+                                );
+                            }
+
+                            savedId =
+                                    keys.getLong(1);
+                        }
+                    }
+
+                } else {
+
+                    if (
+                            findById(
+                                    connection,
+                                    id
+                            )
+                            == null
+                    ) {
+
+                        ResponseUtil.json(
+                                res,
+                                404,
+                                ApiResponse.error(
+                                        "Custom field không tồn tại",
+                                        null
+                                )
+                        );
+
+                        return;
+                    }
+
+                    try (
+                            PreparedStatement statement =
+                                    connection.prepareStatement(
+                                            """
+                                            UPDATE custom_fields
+                                            SET
+                                                entity_type = ?,
+                                                field_key = ?,
+                                                label = ?,
+                                                field_type = ?,
+                                                options_json = ?,
+                                                required_field = ?,
+                                                active = ?
+                                            WHERE id = ?
+                                            """
+                                    )
+                    ) {
+
+                        statement.setString(1, entity);
+                        statement.setString(2, key);
+                        statement.setString(3, label);
+                        statement.setString(4, fieldType);
+                        statement.setString(5, optionsJson);
+                        statement.setBoolean(6, required);
+                        statement.setBoolean(7, active);
+                        statement.setLong(8, id);
+
+                        statement.executeUpdate();
+                    }
+
+                    savedId = id;
                 }
-                JsonObject json = readObject(request);
-                String entity = getString(json, "entityType");
-                if (entity == null) entity = getString(json, "entity");
-                long recordId = getPositiveLong(json, "recordId");
-                Map<String, String> values = readValues(json);
-                writeJson(response, 200, true, "Lưu giá trị custom field thành công",
-                        service.saveValues(entity, recordId, values));
-                return;
+
+                Map<String,Object> result =
+                        findById(
+                                connection,
+                                savedId
+                        );
+
+                ResponseUtil.json(
+                        res,
+                        id == null ? 201 : 200,
+                        ApiResponse.success(
+                                id == null
+                                ?
+                                "Tạo custom field thành công"
+                                :
+                                "Cập nhật custom field thành công",
+                                result
+                        )
+                );
             }
-            if (!requireDefinitionAdmin(request, response)) return;
-            Long id = parsePathId(request.getPathInfo());
-            if (id == null) throw new IllegalArgumentException("Thiếu ID trường tùy chỉnh cần cập nhật");
-            CustomField existing = service.getDefinition(id);
-            if (existing == null) throw new NotFoundException("Không tìm thấy trường tùy chỉnh");
-            CustomField merged = buildDefinition(readObject(request), existing, false);
-            writeJson(response, 200, true, "Cập nhật trường tùy chỉnh thành công",
-                    service.updateDefinition(id, merged));
+
+        } catch (
+                SQLIntegrityConstraintViolationException e
+        ) {
+
+            ResponseUtil.json(
+                    res,
+                    409,
+                    ApiResponse.error(
+                            "Mã trường đã tồn tại trong đối tượng này",
+                            null
+                    )
+            );
+
+        } catch (SecurityException e) {
+
+            forbidden(res);
+
+        } catch (IllegalArgumentException e) {
+
+            bad(
+                    res,
+                    e.getMessage()
+            );
+
         } catch (Exception e) {
-            handleException(response, "cập nhật custom field", e);
+
+            error(
+                    res,
+                    e
+            );
         }
     }
 
-    @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        prepare(request);
-        if (!requireDefinitionAdmin(request, response)) return;
-        try {
-            Long id = parsePathId(request.getPathInfo());
-            if (id == null) throw new IllegalArgumentException("Thiếu ID trường tùy chỉnh cần xóa");
-            DeleteOutcome result = service.deleteDefinition(id);
-            String message = result == DeleteOutcome.DEACTIVATED
-                    ? "Trường đang có dữ liệu nên đã được chuyển sang ngừng kích hoạt"
-                    : "Xóa trường tùy chỉnh thành công";
-            writeJson(response, 200, true, message, Map.of("outcome", result.name()));
-        } catch (Exception e) {
-            handleException(response, "xóa custom field", e);
+
+    private Map<String,Object> findById(
+            Connection connection,
+            long id
+    ) throws SQLException {
+
+        try (
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                """
+                                SELECT
+                                    id,
+                                    entity_type,
+                                    field_key,
+                                    label,
+                                    field_type,
+                                    options_json,
+                                    required_field,
+                                    active
+                                FROM custom_fields
+                                WHERE id = ?
+                                """
+                        )
+        ) {
+
+            statement.setLong(
+                    1,
+                    id
+            );
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                return rs.next()
+                        ?
+                        map(rs)
+                        :
+                        null;
+            }
         }
     }
 
-    private CustomField buildDefinition(JsonObject json, CustomField existing, boolean creating) {
-        CustomField field = existing == null ? new CustomField() : copy(existing);
-        if (has(json, "entityType")) field.setEntityType(getString(json, "entityType"));
-        if (has(json, "fieldName")) field.setFieldName(getString(json, "fieldName"));
-        if (has(json, "fieldLabel")) field.setFieldLabel(getString(json, "fieldLabel"));
-        if (has(json, "fieldType")) field.setFieldType(getString(json, "fieldType"));
-        if (has(json, "isRequired")) field.setRequired(getBoolean(json, "isRequired"));
-        if (has(json, "required")) field.setRequired(getBoolean(json, "required"));
-        if (has(json, "options")) field.setOptions(getStringList(json, "options"));
-        if (has(json, "sortOrder")) field.setSortOrder(getInt(json, "sortOrder"));
-        if (has(json, "active")) field.setActive(getBoolean(json, "active"));
-        if (has(json, "inForm")) field.setInForm(getBoolean(json, "inForm"));
-        if (has(json, "showOnForm")) field.setInForm(getBoolean(json, "showOnForm"));
-        if (has(json, "inFilter")) field.setInFilter(getBoolean(json, "inFilter"));
-        if (has(json, "usableInFilter")) field.setInFilter(getBoolean(json, "usableInFilter"));
-        if (has(json, "inExport")) field.setInExport(getBoolean(json, "inExport"));
-        if (has(json, "exportable")) field.setInExport(getBoolean(json, "exportable"));
-        if (creating && (field.getEntityType() == null || field.getFieldName() == null
-                || field.getFieldLabel() == null || field.getFieldType() == null)) {
-            throw new IllegalArgumentException("Thiếu entityType, fieldName, fieldLabel hoặc fieldType");
+
+    private Map<String,Object> map(
+            ResultSet rs
+    ) throws SQLException {
+
+        Map<String,Object> field =
+                new LinkedHashMap<>();
+
+        field.put(
+                "id",
+                rs.getLong("id")
+        );
+
+        field.put(
+                "entityType",
+                rs.getString(
+                        "entity_type"
+                )
+        );
+
+        field.put(
+                "key",
+                rs.getString(
+                        "field_key"
+                )
+        );
+
+        field.put(
+                "label",
+                rs.getString(
+                        "label"
+                )
+        );
+
+        field.put(
+                "fieldType",
+                rs.getString(
+                        "field_type"
+                )
+        );
+
+        String optionsJson =
+                rs.getString(
+                        "options_json"
+                );
+
+        List<String> options =
+                new ArrayList<>();
+
+        if (
+                optionsJson != null
+                &&
+                !optionsJson.isBlank()
+        ) {
+
+            try {
+
+                JsonArray array =
+                        JsonParser
+                                .parseString(
+                                        optionsJson
+                                )
+                                .getAsJsonArray();
+
+                for (
+                        JsonElement item
+                        :
+                        array
+                ) {
+
+                    options.add(
+                            item.getAsString()
+                    );
+                }
+
+            } catch (Exception ignored) {
+            }
         }
+
+        field.put(
+                "options",
+                options
+        );
+
+        field.put(
+                "required",
+                rs.getBoolean(
+                        "required_field"
+                )
+        );
+
+        field.put(
+                "active",
+                rs.getBoolean(
+                        "active"
+                )
+        );
+
         return field;
     }
 
-    private CustomField copy(CustomField source) {
-        CustomField copy = new CustomField();
-        copy.setId(source.getId());
-        copy.setEntityType(source.getEntityType());
-        copy.setFieldName(source.getFieldName());
-        copy.setFieldLabel(source.getFieldLabel());
-        copy.setFieldType(source.getFieldType());
-        copy.setRequired(source.isRequired());
-        copy.setOptions(source.getOptions());
-        copy.setSortOrder(source.getSortOrder());
-        copy.setActive(source.isActive());
-        copy.setInForm(source.isInForm());
-        copy.setInFilter(source.isInFilter());
-        copy.setInExport(source.isInExport());
-        copy.setUsageCount(source.getUsageCount());
-        return copy;
+
+    private List<String> parseOptions(
+            JsonObject body
+    ) {
+
+        List<String> result =
+                new ArrayList<>();
+
+        if (
+                !body.has("options")
+                ||
+                body.get("options").isJsonNull()
+        ) {
+
+            return result;
+        }
+
+        JsonElement element =
+                body.get("options");
+
+        if (element.isJsonArray()) {
+
+            for (
+                    JsonElement item
+                    :
+                    element.getAsJsonArray()
+            ) {
+
+                String value =
+                        item.getAsString()
+                                .trim();
+
+                if (!value.isBlank()) {
+
+                    result.add(value);
+                }
+            }
+
+        } else {
+
+            String raw =
+                    element.getAsString();
+
+            for (
+                    String item
+                    :
+                    raw.split("[,\\n]")
+            ) {
+
+                String value =
+                        item.trim();
+
+                if (!value.isBlank()) {
+
+                    result.add(value);
+                }
+            }
+        }
+
+        return result;
     }
 
-    private Map<String, String> readValues(JsonObject json) {
-        if (!json.has("values") || !json.get("values").isJsonObject()) {
-            throw new IllegalArgumentException("values phải là một JSON object");
+
+    private void validateEntity(
+            String entity
+    ) {
+
+        if (
+                entity == null
+                ||
+                !ENTITY_TYPES.contains(
+                        entity.toUpperCase()
+                )
+        ) {
+
+            throw new IllegalArgumentException(
+                    "Đối tượng không hợp lệ"
+            );
         }
-        Map<String, String> values = new LinkedHashMap<>();
-        for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject("values").entrySet()) {
-            JsonElement value = entry.getValue();
-            if (value == null || value.isJsonNull()) values.put(entry.getKey(), null);
-            else if (value.isJsonPrimitive()) values.put(entry.getKey(), value.getAsString());
-            else throw new IllegalArgumentException("Giá trị custom field phải là kiểu đơn giản hoặc null");
-        }
-        return values;
     }
 
-    private boolean requireDefinitionAdmin(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        if (!isAuthenticated(request)) {
-            writeJson(response, 401, false, "Yêu cầu đăng nhập", null);
+
+    private String requiredString(
+            JsonObject body,
+            String field,
+            String message
+    ) {
+
+        if (
+                !body.has(field)
+                ||
+                body.get(field)
+                        .isJsonNull()
+        ) {
+
+            throw new IllegalArgumentException(
+                    message
+            );
+        }
+
+        String value =
+                body.get(field)
+                        .getAsString()
+                        .trim();
+
+        if (value.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    message
+            );
+        }
+
+        return value;
+    }
+
+
+    private Boolean parseBooleanNullable(
+            String value
+    ) {
+
+        if (
+                value == null
+                ||
+                value.isBlank()
+        ) {
+
+            return null;
+        }
+
+        if (
+                "true".equalsIgnoreCase(value)
+                ||
+                "1".equals(value)
+        ) {
+
+            return true;
+        }
+
+        if (
+                "false".equalsIgnoreCase(value)
+                ||
+                "0".equals(value)
+        ) {
+
             return false;
         }
-        if (!hasDefinitionRole(request.getSession(false))) {
-            writeJson(response, 403, false, "Chỉ quản trị viên được cấu hình custom field", null);
-            return false;
-        }
-        return true;
+
+        throw new IllegalArgumentException(
+                "active không hợp lệ"
+        );
     }
 
-    private boolean isAuthenticated(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null) return false;
-        Object userId = session.getAttribute("userId");
-        if (userId instanceof Number number && number.longValue() > 0) return true;
-        if (userId instanceof String text) {
-            try { if (Long.parseLong(text) > 0) return true; } catch (NumberFormatException ignored) { }
-        }
-        Object current = session.getAttribute(SessionKey.CURRENT_USER);
-        if (current instanceof User user) return user.getId() > 0;
-        if (current instanceof Map<?, ?> map) {
-            Object id = map.get("id");
-            return id instanceof Number number && number.longValue() > 0;
-        }
-        return false;
-    }
 
-    private boolean hasDefinitionRole(HttpSession session) {
-        if (session == null) return false;
-        List<String> roles = new ArrayList<>();
-        collectRoles(session.getAttribute(SessionKey.ROLES), roles);
-        Object current = session.getAttribute(SessionKey.CURRENT_USER);
-        if (current instanceof User user) {
-            collectRoles(user.getRoles(), roles);
-            collectRoles(user.getRole(), roles);
-        } else if (current instanceof Map<?, ?> map) {
-            collectRoles(map.get("roles"), roles);
-            collectRoles(map.get("role"), roles);
-        }
-        return roles.stream().map(this::normalizeRole).anyMatch(DEFINITION_ROLES::contains);
-    }
+    private void require(
+            HttpServletRequest req,
+            String permission
+    ) throws Exception {
 
-    private void collectRoles(Object value, List<String> result) {
-        if (value == null) return;
-        if (value instanceof Collection<?> collection) {
-            collection.forEach(item -> collectRoles(item, result));
-        } else if (value instanceof Role role) {
-            result.add(role.getName());
-        } else if (value instanceof Map<?, ?> map && map.get("name") != null) {
-            result.add(String.valueOf(map.get("name")));
-        } else {
-            result.add(String.valueOf(value));
+        HttpSession session =
+                req.getSession(false);
+
+        if (
+                session == null
+                ||
+                session.getAttribute(
+                        "userId"
+                ) == null
+        ) {
+
+            throw new SecurityException();
+        }
+
+        long userId =
+                (Long) session.getAttribute(
+                        "userId"
+                );
+
+        if (
+                !permissions.hasPermission(
+                        userId,
+                        permission
+                )
+        ) {
+
+            throw new SecurityException();
         }
     }
 
-    private String normalizeRole(String role) {
-        String result = role == null ? "" : role.trim().toUpperCase(Locale.ROOT);
-        return result.startsWith("ROLE_") ? result.substring(5) : result;
+
+    private void forbidden(
+            HttpServletResponse res
+    ) throws IOException {
+
+        ResponseUtil.json(
+                res,
+                403,
+                ApiResponse.error(
+                        "Không có quyền",
+                        null
+                )
+        );
     }
 
-    private void handleException(HttpServletResponse response, String operation, Exception error)
-            throws IOException {
-        if (error instanceof NotFoundException) {
-            writeJson(response, 404, false, error.getMessage(), null);
-        } else if (error instanceof IllegalStateException) {
-            writeJson(response, 409, false, error.getMessage(), null);
-        } else if (error instanceof IllegalArgumentException || error instanceof JsonParseException) {
-            writeJson(response, 400, false, error.getMessage(), null);
-        } else if (error instanceof SQLException) {
-            LOGGER.log(Level.SEVERE, "CRM-46 database error while " + operation, error);
-            writeJson(response, 500, false, "Lỗi hệ thống khi " + operation, null);
-        } else {
-            LOGGER.log(Level.SEVERE, "CRM-46 unexpected error while " + operation, error);
-            writeJson(response, 500, false, "Lỗi hệ thống khi " + operation, null);
-        }
+
+    private void bad(
+            HttpServletResponse res,
+            String message
+    ) throws IOException {
+
+        ResponseUtil.json(
+                res,
+                400,
+                ApiResponse.error(
+                        message,
+                        null
+                )
+        );
     }
 
-    private JsonObject readObject(HttpServletRequest request) throws IOException {
-        JsonElement element = GSON.fromJson(request.getReader(), JsonElement.class);
-        if (element == null || !element.isJsonObject()) {
-            throw new IllegalArgumentException("Body phải là JSON object");
-        }
-        return element.getAsJsonObject();
+
+    private void error(
+            HttpServletResponse res,
+            Exception e
+    ) throws IOException {
+
+        e.printStackTrace();
+
+        ResponseUtil.json(
+                res,
+                500,
+                ApiResponse.error(
+                        "Lỗi hệ thống",
+                        null
+                )
+        );
     }
-
-    private void prepare(HttpServletRequest request) throws IOException {
-        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
-    }
-
-    private boolean isValuesPath(String path) { return "/values".equals(path) || "/values/".equals(path); }
-
-    private Long parsePathId(String path) {
-        if (path == null || path.isBlank() || "/".equals(path) || isValuesPath(path)) return null;
-        String value = path.startsWith("/") ? path.substring(1) : path;
-        int slash = value.indexOf('/');
-        if (slash >= 0) value = value.substring(0, slash);
-        try {
-            long id = Long.parseLong(value);
-            if (id <= 0) throw new NumberFormatException();
-            return id;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("ID trường tùy chỉnh không hợp lệ");
-        }
-    }
-
-    private long parsePositiveLong(String value, String name) {
-        try {
-            long parsed = Long.parseLong(value);
-            if (parsed <= 0) throw new NumberFormatException();
-            return parsed;
-        } catch (Exception e) {
-            throw new IllegalArgumentException(name + " không hợp lệ");
-        }
-    }
-
-    private long getPositiveLong(JsonObject object, String name) {
-        if (!has(object, name)) throw new IllegalArgumentException("Thiếu " + name);
-        return parsePositiveLong(object.get(name).getAsString(), name);
-    }
-
-    private boolean has(JsonObject object, String name) {
-        return object.has(name) && !object.get(name).isJsonNull();
-    }
-
-    private String getString(JsonObject object, String name) {
-        return has(object, name) ? object.get(name).getAsString() : null;
-    }
-
-    private boolean getBoolean(JsonObject object, String name) {
-        return object.get(name).getAsBoolean();
-    }
-
-    private int getInt(JsonObject object, String name) { return object.get(name).getAsInt(); }
-
-    private List<String> getStringList(JsonObject object, String name) {
-        if (!object.get(name).isJsonArray()) throw new IllegalArgumentException(name + " phải là mảng");
-        List<String> values = new ArrayList<>();
-        object.getAsJsonArray(name).forEach(element -> values.add(element.getAsString()));
-        return values;
-    }
-
-    private String firstNonBlank(String first, String second) {
-        return first != null && !first.isBlank() ? first : second;
-    }
-
-    private void writeJson(HttpServletResponse response, int status, boolean success,
-                           String message, Object data) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json; charset=UTF-8");
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        GSON.toJson(new ApiResponse(success, message, data), response.getWriter());
-    }
-
-    private record ApiResponse(boolean success, String message, Object data) { }
 }

@@ -1,239 +1,438 @@
 package com.crm.dao.organization;
 
-import com.crm.model.Organization;
+import com.crm.config.DatabaseConfig;
+import com.crm.dto.organization.OrganizationUnitRequest;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.*;
+import java.util.*;
 
 public class OrganizationDAO {
 
-    private static final String UNIT_COLUMNS = "SELECT t.id, t.name, t.parent_id, "
-            + "t.leader_user_id, t.region, t.active, "
-            + "COALESCE(NULLIF(leader.display_name, ''), NULLIF(leader.full_name, ''), "
-            + "leader.username) AS manager_name, "
-            + "(SELECT GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ', ') "
-            + " FROM user_roles ur JOIN roles r ON r.id = ur.role_id "
-            + " WHERE ur.user_id = t.leader_user_id) AS manager_role "
-            + "FROM teams t LEFT JOIN users leader ON leader.id = t.leader_user_id ";
+    public List<Map<String, Object>> findAll(
+            Long parentId,
+            Boolean active
+    ) throws SQLException {
 
-    public List<Organization> findAll(Connection conn) throws SQLException {
-        String sql = UNIT_COLUMNS + "ORDER BY t.name, t.id";
-        Map<Long, Organization> unitsById = new LinkedHashMap<>();
+        StringBuilder sql = new StringBuilder("""
+                SELECT
+                    ou.id,
+                    ou.code,
+                    ou.name,
+                    ou.type,
+                    ou.parent_id,
+                    ou.manager_id,
+                    u.full_name AS manager_name,
+                    ou.description,
+                    ou.active
+                FROM organization_units ou
+                LEFT JOIN users u
+                    ON u.id = ou.manager_id
+                WHERE 1 = 1
+                """);
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                Organization unit = mapUnit(rs);
-                unitsById.put(unit.getId(), unit);
+        List<Object> params = new ArrayList<>();
+
+        if (parentId != null) {
+            sql.append(" AND ou.parent_id = ?");
+            params.add(parentId);
+        }
+
+        if (active != null) {
+            sql.append(" AND ou.active = ?");
+            params.add(active);
+        }
+
+        sql.append(" ORDER BY ou.id");
+
+        List<Map<String, Object>> items =
+                new ArrayList<>();
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                sql.toString()
+                        )
+        ) {
+
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(
+                        i + 1,
+                        params.get(i)
+                );
             }
-        }
 
-        if (!unitsById.isEmpty()) {
-            loadMembers(conn, unitsById, null);
-        }
-        return new ArrayList<>(unitsById.values());
-    }
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
 
-    public Organization findById(Connection conn, long unitId) throws SQLException {
-        String sql = UNIT_COLUMNS + "WHERE t.id = ?";
-        Organization unit;
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, unitId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (!rs.next()) {
-                    return null;
+                while (rs.next()) {
+                    items.add(map(rs));
                 }
-                unit = mapUnit(rs);
             }
         }
 
-        Map<Long, Organization> unitsById = new LinkedHashMap<>();
-        unitsById.put(unit.getId(), unit);
-        loadMembers(conn, unitsById, unitId);
-        return unit;
+        return items;
     }
 
-    public Organization findByIdForUpdate(Connection conn, long unitId) throws SQLException {
-        String sql = "SELECT id, name, parent_id, leader_user_id, region, active, "
-                + "NULL AS manager_name, NULL AS manager_role "
-                + "FROM teams WHERE id = ? FOR UPDATE";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, unitId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? mapUnit(rs) : null;
+    public Map<String, Object> findById(
+            long id
+    ) throws SQLException {
+
+        String sql = """
+                SELECT
+                    ou.id,
+                    ou.code,
+                    ou.name,
+                    ou.type,
+                    ou.parent_id,
+                    ou.manager_id,
+                    u.full_name AS manager_name,
+                    ou.description,
+                    ou.active
+                FROM organization_units ou
+                LEFT JOIN users u
+                    ON u.id = ou.manager_id
+                WHERE ou.id = ?
+                """;
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                return rs.next()
+                        ? map(rs)
+                        : null;
             }
         }
     }
 
-    public boolean existsByNameExcluding(Connection conn, String name, Long excludedId)
-            throws SQLException {
-        String sql = "SELECT 1 FROM teams WHERE LOWER(name) = LOWER(?)"
-                + (excludedId == null ? "" : " AND id <> ?")
-                + " LIMIT 1";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, name.trim());
-            if (excludedId != null) {
-                stmt.setLong(2, excludedId);
+    public long create(
+            OrganizationUnitRequest request
+    ) throws SQLException {
+
+        String sql = """
+                INSERT INTO organization_units(
+                    code,
+                    name,
+                    type,
+                    parent_id,
+                    manager_id,
+                    description,
+                    active
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                sql,
+                                Statement.RETURN_GENERATED_KEYS
+                        )
+        ) {
+
+            statement.setString(
+                    1,
+                    request.getCode()
+            );
+
+            statement.setString(
+                    2,
+                    request.getName()
+            );
+
+            statement.setString(
+                    3,
+                    request.getType()
+            );
+
+            setNullableLong(
+                    statement,
+                    4,
+                    request.getParentId()
+            );
+
+            setNullableLong(
+                    statement,
+                    5,
+                    request.getManagerId()
+            );
+
+            statement.setString(
+                    6,
+                    request.getDescription()
+            );
+
+            statement.setBoolean(
+                    7,
+                    request.getActive() == null
+                            || request.getActive()
+            );
+
+            statement.executeUpdate();
+
+            try (
+                    ResultSet keys =
+                            statement.getGeneratedKeys()
+            ) {
+                keys.next();
+                return keys.getLong(1);
             }
-            try (ResultSet rs = stmt.executeQuery()) {
+        }
+    }
+
+
+    public void update(
+            long id,
+            OrganizationUnitRequest request
+    ) throws SQLException {
+
+        String sql = """
+                UPDATE organization_units
+                SET
+                    code = ?,
+                    name = ?,
+                    type = ?,
+                    parent_id = ?,
+                    manager_id = ?,
+                    description = ?,
+                    active = ?
+                WHERE id = ?
+                """;
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    request.getCode()
+            );
+
+            statement.setString(
+                    2,
+                    request.getName()
+            );
+
+            statement.setString(
+                    3,
+                    request.getType()
+            );
+
+            setNullableLong(
+                    statement,
+                    4,
+                    request.getParentId()
+            );
+
+            setNullableLong(
+                    statement,
+                    5,
+                    request.getManagerId()
+            );
+
+            statement.setString(
+                    6,
+                    request.getDescription()
+            );
+
+            statement.setBoolean(
+                    7,
+                    request.getActive() == null
+                            || request.getActive()
+            );
+
+            statement.setLong(
+                    8,
+                    id
+            );
+
+            statement.executeUpdate();
+        }
+    }
+
+
+    public boolean existsCode(
+            String code,
+            Long excludeId
+    ) throws SQLException {
+
+        String sql = excludeId == null
+                ? """
+                  SELECT 1
+                  FROM organization_units
+                  WHERE LOWER(code) = LOWER(?)
+                  LIMIT 1
+                  """
+                : """
+                  SELECT 1
+                  FROM organization_units
+                  WHERE LOWER(code) = LOWER(?)
+                  AND id <> ?
+                  LIMIT 1
+                  """;
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    code
+            );
+
+            if (excludeId != null) {
+                statement.setLong(
+                        2,
+                        excludeId
+                );
+            }
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
                 return rs.next();
             }
         }
     }
 
-    public Long findUnitIdByLeader(Connection conn, long leaderUserId) throws SQLException {
-        String sql = "SELECT id FROM teams WHERE leader_user_id = ? FOR UPDATE";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, leaderUserId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? rs.getLong("id") : null;
+    public boolean userExists(
+            long userId
+    ) throws SQLException {
+
+        String sql = """
+                SELECT 1
+                FROM users
+                WHERE id = ?
+                AND status <> 'DELETED'
+                LIMIT 1
+                """;
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(
+                    1,
+                    userId
+            );
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+                return rs.next();
             }
         }
     }
 
-    public long insert(Connection conn, String name, Long parentId, long leaderUserId,
-                       String region, boolean active) throws SQLException {
-        String sql = "INSERT INTO teams (name, parent_id, leader_user_id, region, active) "
-                + "VALUES (?, ?, ?, ?, ?)";
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setString(1, name.trim());
-            setNullableLong(stmt, 2, parentId);
-            stmt.setLong(3, leaderUserId);
-            stmt.setString(4, region);
-            stmt.setBoolean(5, active);
+    private void setNullableLong(
+            PreparedStatement statement,
+            int index,
+            Long value
+    ) throws SQLException {
 
-            if (stmt.executeUpdate() > 0) {
-                try (ResultSet keys = stmt.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        return keys.getLong(1);
-                    }
-                }
-            }
-        }
-        return 0;
-    }
-
-    public int update(Connection conn, long unitId, String name, Long parentId,
-                      long leaderUserId, String region, boolean active) throws SQLException {
-        String sql = "UPDATE teams SET name = ?, parent_id = ?, leader_user_id = ?, "
-                + "region = ?, active = ? WHERE id = ?";
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, name.trim());
-            setNullableLong(stmt, 2, parentId);
-            stmt.setLong(3, leaderUserId);
-            stmt.setString(4, region);
-            stmt.setBoolean(5, active);
-            stmt.setLong(6, unitId);
-            return stmt.executeUpdate();
-        }
-    }
-
-    public int countActiveChildren(Connection conn, long parentId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM teams WHERE parent_id = ? AND active = TRUE";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, parentId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
-        }
-    }
-
-    public int softDelete(Connection conn, long unitId) throws SQLException {
-        String sql = "UPDATE teams SET active = FALSE WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, unitId);
-            return stmt.executeUpdate();
-        }
-    }
-
-    private void loadMembers(Connection conn, Map<Long, Organization> unitsById, Long unitId)
-            throws SQLException {
-        String sql = "SELECT u.id, u.team_id, "
-                + "COALESCE(NULLIF(u.display_name, ''), NULLIF(u.full_name, ''), u.username) "
-                + "AS member_name, u.email, "
-                + "(SELECT GROUP_CONCAT(DISTINCT r.name ORDER BY r.name SEPARATOR ', ') "
-                + " FROM user_roles ur JOIN roles r ON r.id = ur.role_id "
-                + " WHERE ur.user_id = u.id) AS role_name, "
-                + "DATE_FORMAT(u.created_at, '%Y-%m-%d') AS joined_date "
-                + "FROM users u WHERE u.team_id IS NOT NULL"
-                + (unitId == null ? "" : " AND u.team_id = ?")
-                + " ORDER BY member_name, u.id";
-
-        Map<Long, List<Organization.Member>> membersByUnitId = new LinkedHashMap<>();
-        for (Long id : unitsById.keySet()) {
-            membersByUnitId.put(id, new ArrayList<>());
-        }
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            if (unitId != null) {
-                stmt.setLong(1, unitId);
-            }
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    List<Organization.Member> members = membersByUnitId.get(rs.getLong("team_id"));
-                    if (members != null) {
-                        members.add(mapMember(rs));
-                    }
-                }
-            }
-        }
-
-        for (Map.Entry<Long, Organization> entry : unitsById.entrySet()) {
-            List<Organization.Member> members = membersByUnitId.get(entry.getKey());
-            entry.getValue().setMembers(members);
-            entry.getValue().setMemberCount(members.size());
-        }
-    }
-
-    private Organization mapUnit(ResultSet rs) throws SQLException {
-        Organization unit = new Organization();
-        unit.setId(rs.getLong("id"));
-        unit.setName(rs.getString("name"));
-
-        long parentId = rs.getLong("parent_id");
-        unit.setParentId(rs.wasNull() ? null : parentId);
-
-        long managerId = rs.getLong("leader_user_id");
-        unit.setManagerId(rs.wasNull() ? null : managerId);
-        unit.setManagerName(rs.getString("manager_name"));
-        unit.setManagerRole(rs.getString("manager_role"));
-        unit.setRegion(rs.getString("region"));
-        unit.setActive(rs.getBoolean("active"));
-        unit.setMembers(new ArrayList<>());
-        unit.setMemberCount(0);
-        return unit;
-    }
-
-    private Organization.Member mapMember(ResultSet rs) throws SQLException {
-        Organization.Member member = new Organization.Member();
-        member.setId(rs.getLong("id"));
-        member.setName(rs.getString("member_name"));
-        member.setEmail(rs.getString("email"));
-        member.setRole(rs.getString("role_name"));
-        member.setJoinedDate(rs.getString("joined_date"));
-        return member;
-    }
-
-    private void setNullableLong(PreparedStatement stmt, int index, Long value)
-            throws SQLException {
         if (value == null) {
-            stmt.setNull(index, Types.BIGINT);
+            statement.setNull(
+                    index,
+                    Types.BIGINT
+            );
         } else {
-            stmt.setLong(index, value);
+            statement.setLong(
+                    index,
+                    value
+            );
         }
+    }
+
+
+    private Map<String, Object> map(
+            ResultSet rs
+    ) throws SQLException {
+
+        Map<String, Object> item =
+                new LinkedHashMap<>();
+
+        item.put(
+                "id",
+                rs.getLong("id")
+        );
+
+        item.put(
+                "code",
+                rs.getString("code")
+        );
+
+        item.put(
+                "name",
+                rs.getString("name")
+        );
+
+        item.put(
+                "type",
+                rs.getString("type")
+        );
+
+        item.put(
+                "parentId",
+                rs.getObject("parent_id")
+        );
+
+        item.put(
+                "managerId",
+                rs.getObject("manager_id")
+        );
+
+        item.put(
+                "manager",
+                rs.getString("manager_name")
+        );
+
+        item.put(
+                "description",
+                rs.getString("description")
+        );
+
+        item.put(
+                "active",
+                rs.getBoolean("active")
+        );
+
+        return item;
     }
 }
