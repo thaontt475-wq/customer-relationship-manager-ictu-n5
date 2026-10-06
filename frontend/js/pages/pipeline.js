@@ -1,1906 +1,812 @@
 "use strict";
 
-let opportunities = loadPipelineOpportunities();
+const API_BASE = "http://localhost:8080/crm";
 
-const stages = {
-    approach: {
-        label: "Tiếp cận",
-        probability: 10
-    },
-    quote: {
-        label: "Báo giá",
-        probability: 60
-    },
-    negotiation: {
-        label: "Đàm phán",
-        probability: 80
-    },
-    closing: {
-        label: "Chốt",
-        probability: 100
+let stages = [];
+let opportunities = [];
+let customers = [];
+let winReasons = [];
+let lossReasons = [];
+let competitors = [];
+
+let draggedOppId = null;
+let closingOppId = null;
+let editingOppId = null;
+
+const pipelineBoard = document.getElementById("pipelineBoard");
+const opportunityDrawer = document.getElementById("opportunityDrawer");
+const opportunityOverlay = document.getElementById("opportunityOverlay");
+const opportunityForm = document.getElementById("opportunityForm");
+const searchInput = document.getElementById("pipelineSearch");
+const ownerFilter = document.getElementById("ownerFilter");
+
+const dealModal = document.getElementById("closeDealModal");
+const dealOverlay = document.getElementById("closeDealOverlay");
+
+/* =========================================================
+   API HELPER
+========================================================= */
+async function api(path, options = {}) {
+    const config = {
+        credentials: "include",
+        headers: {
+            "Accept": "application/json",
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(options.headers || {})
+        },
+        ...options
+    };
+
+    const response = await fetch(API_BASE + path, config);
+    let result = null;
+    try {
+        result = await response.json();
+    } catch (_) {
+        result = null;
     }
-};
 
-const stageOrder = [
-    "approach",
-    "quote",
-    "negotiation",
-    "closing"
-];
+    if (response.status === 401) {
+        localStorage.removeItem("crm_ui_session");
+        window.location.href = "login.html";
+        throw new Error("Phiên đăng nhập đã hết hạn.");
+    }
 
-let draggedIndex = null;
-let closingIndex = null;
+    if (!response.ok || !result?.success) {
+        const error = new Error(result?.message || `HTTP ${response.status}`);
+        error.status = response.status;
+        error.data = result?.data;
+        throw error;
+    }
 
-const opportunityDrawer =
-    document.getElementById("opportunityDrawer");
+    return result.data;
+}
 
-const opportunityOverlay =
-    document.getElementById("opportunityOverlay");
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+async function initPipeline() {
+    try {
+        await Promise.all([
+            loadStages(),
+            loadWinLossAndCompetitors(),
+            loadCustomers(),
+            loadOpportunities()
+        ]);
+    } catch (err) {
+        console.error("Initialization error:", err);
+    }
+}
 
-const opportunityForm =
-    document.getElementById("opportunityForm");
-
-const searchInput =
-    document.getElementById("pipelineSearch");
-
-const ownerFilter =
-    document.getElementById("ownerFilter");
-
-
-document
-    .getElementById("addOpportunityButton")
-    .addEventListener("click", () => {
-        openOpportunityDrawer();
-    });
-
-
-document
-    .getElementById("closeOpportunityDrawer")
-    .addEventListener("click", closeOpportunityDrawer);
-
-
-document
-    .getElementById("cancelOpportunity")
-    .addEventListener("click", closeOpportunityDrawer);
-
-
-opportunityOverlay.addEventListener(
-    "click",
-    closeOpportunityDrawer
-);
-
-
-document
-    .getElementById("opportunityStage")
-    .addEventListener("change", event => {
-
-        const selectedStage =
-            stages[event.target.value];
-
-        document
-            .getElementById("opportunityProbability")
-            .value =
-                selectedStage.probability;
-    });
-
-
-opportunityForm.addEventListener(
-    "submit",
-    event => {
-
-        event.preventDefault();
-
-        const name =
-            fieldValue("opportunityName");
-
-        const error =
-            document.getElementById(
-                "opportunityNameError"
-            );
-
-        if (!name) {
-            error.textContent =
-                "Vui lòng nhập tên cơ hội.";
-            return;
+async function loadStages() {
+    try {
+        const data = await api("/api/pipeline-stages?pipelineId=1");
+        if (Array.isArray(data) && data.length > 0) {
+            stages = data.map(s => ({
+                id: s.id,
+                name: s.name,
+                orderNo: s.orderNo || s.stageOrder || 0,
+                probability: s.probability !== undefined ? s.probability : (s.winProbability || 0),
+                isWon: !!s.isWon,
+                isLost: !!s.isLost
+            })).sort((a, b) => a.orderNo - b.orderNo);
         }
+    } catch (err) {
+        console.warn("Could not load stages from API, using default stages:", err);
+    }
 
-        error.textContent = "";
+    if (!stages || stages.length === 0) {
+        stages = [
+            { id: 1, name: "Khảo sát nhu cầu", orderNo: 1, probability: 10 },
+            { id: 2, name: "Đánh giá & Xác định nhu cầu", orderNo: 2, probability: 25 },
+            { id: 3, name: "Gửi đề xuất & Báo giá", orderNo: 3, probability: 50 },
+            { id: 4, name: "Thương lượng & Đàm phán", orderNo: 4, probability: 75 },
+            { id: 5, name: "Chốt thành công (Won)", orderNo: 5, probability: 100, isWon: true },
+            { id: 6, name: "Đóng Thua (Lost)", orderNo: 6, probability: 0, isLost: true }
+        ];
+    }
 
-        const probability =
-            clamp(
-                Number(
-                    document
-                        .getElementById(
-                            "opportunityProbability"
-                        )
-                        .value
-                ),
-                0,
-                100
-            );
+    populateStageSelect();
+}
 
-        const record = {
-            name,
-            customer:
-                fieldValue(
-                    "opportunityCustomer"
-                ),
-            value:
-                Math.max(
-                    0,
-                    Number(
-                        document
-                            .getElementById(
-                                "opportunityValue"
-                            )
-                            .value
-                    ) || 0
-                ),
-            closeDate:
-                fieldValue(
-                    "opportunityCloseDate"
-                ),
-            stage:
-                fieldValue(
-                    "opportunityStage"
-                ),
-            probability,
-            owner:
-                fieldValue(
-                    "opportunityOwner"
-                )
-        };
+async function loadWinLossAndCompetitors() {
+    try {
+        const reasons = await api("/api/win-loss-reasons");
+        if (Array.isArray(reasons)) {
+            winReasons = reasons.filter(r => (r.type || r.reasonType || "").toUpperCase() === "WIN" && (r.active !== false));
+            lossReasons = reasons.filter(r => (r.type || r.reasonType || "").toUpperCase() === "LOSS" && (r.active !== false));
+        }
+    } catch (err) {
+        console.warn("Could not load win/loss reasons:", err);
+    }
 
-        const editIndex =
-            document
-                .getElementById(
-                    "opportunityEditIndex"
-                )
-                .value;
+    try {
+        const comps = await api("/api/competitors");
+        if (Array.isArray(comps)) {
+            competitors = comps.filter(c => c.active !== false);
+        }
+    } catch (err) {
+        console.warn("Could not load competitors:", err);
+    }
 
-        if (editIndex === "") {
-            opportunities.push(record);
+    populateWinLossSelects();
+}
+
+async function loadCustomers() {
+    try {
+        const list = await api("/api/customers");
+        if (Array.isArray(list)) {
+            customers = list;
+        }
+    } catch (err) {
+        console.warn("Could not load customers:", err);
+    }
+    populateCustomerSelect();
+}
+
+async function loadOpportunities() {
+    try {
+        const list = await api("/api/opportunities");
+        if (Array.isArray(list)) {
+            opportunities = list;
+            // Sync with localStorage for offline / dashboard view
+            try {
+                localStorage.setItem("crm_ui_opportunities", JSON.stringify(opportunities.map(o => ({
+                    id: o.id,
+                    name: o.name,
+                    customer: o.customerName || "",
+                    value: o.amount || 0,
+                    stage: String(o.stageId),
+                    probability: o.probability || 0,
+                    closeDate: o.expectedCloseDate || "",
+                    owner: o.ownerName || "Tôi",
+                    status: o.status
+                }))));
+            } catch (_) {}
+        }
+    } catch (err) {
+        console.warn("Could not load opportunities from backend, checking cache:", err);
+        try {
+            const cached = JSON.parse(localStorage.getItem("crm_ui_opportunities"));
+            if (Array.isArray(cached)) opportunities = cached;
+        } catch (_) {}
+    }
+
+    render();
+}
+
+/* =========================================================
+   POPULATE DROPDOWNS
+========================================================= */
+function populateStageSelect() {
+    const stageSelect = document.getElementById("opportunityStage");
+    if (!stageSelect) return;
+    stageSelect.innerHTML = "";
+    stages.forEach(st => {
+        const opt = document.createElement("option");
+        opt.value = st.id;
+        opt.textContent = `${st.name} (${st.probability}%)`;
+        stageSelect.appendChild(opt);
+    });
+}
+
+function populateCustomerSelect() {
+    const custSelect = document.getElementById("opportunityCustomer");
+    if (!custSelect) return;
+    custSelect.innerHTML = '<option value="">-- Chọn khách hàng --</option>';
+    customers.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = `${c.name} (${c.code || c.phone || ""})`;
+        custSelect.appendChild(opt);
+    });
+}
+
+function populateWinLossSelects() {
+    const winSelect = document.getElementById("winReason");
+    if (winSelect) {
+        winSelect.innerHTML = '<option value="">-- Chọn lý do Thắng --</option>';
+        winReasons.forEach(r => {
+            const opt = document.createElement("option");
+            opt.value = r.id;
+            opt.textContent = r.name || r.reasonText;
+            winSelect.appendChild(opt);
+        });
+    }
+
+    const lossSelect = document.getElementById("lossReason");
+    if (lossSelect) {
+        lossSelect.innerHTML = '<option value="">-- Chọn lý do Thua --</option>';
+        lossReasons.forEach(r => {
+            const opt = document.createElement("option");
+            opt.value = r.id;
+            opt.textContent = r.name || r.reasonText;
+            lossSelect.appendChild(opt);
+        });
+    }
+
+    const compSelect = document.getElementById("lossCompetitor");
+    if (compSelect) {
+        compSelect.innerHTML = '<option value="">-- Chọn đối thủ thắng thầu --</option>';
+        competitors.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c.id;
+            opt.textContent = c.name;
+            compSelect.appendChild(opt);
+        });
+    }
+}
+
+/* =========================================================
+   EVENT LISTENERS
+========================================================= */
+document.getElementById("addOpportunityButton")?.addEventListener("click", () => {
+    openOpportunityDrawer();
+});
+
+document.getElementById("closeOpportunityDrawer")?.addEventListener("click", closeOpportunityDrawer);
+document.getElementById("cancelOpportunity")?.addEventListener("click", closeOpportunityDrawer);
+opportunityOverlay?.addEventListener("click", closeOpportunityDrawer);
+
+document.getElementById("opportunityStage")?.addEventListener("change", event => {
+    const stageId = Number(event.target.value);
+    const selected = stages.find(s => s.id === stageId);
+    if (selected) {
+        document.getElementById("opportunityProbability").value = selected.probability;
+    }
+});
+
+searchInput?.addEventListener("input", render);
+ownerFilter?.addEventListener("change", render);
+
+document.getElementById("resetPipelineFilter")?.addEventListener("click", () => {
+    if (searchInput) searchInput.value = "";
+    if (ownerFilter) ownerFilter.value = "";
+    render();
+});
+
+/* Drawer form submit */
+opportunityForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const name = fieldValue("opportunityName");
+    const nameError = document.getElementById("opportunityNameError");
+    if (!name) {
+        if (nameError) nameError.textContent = "Vui lòng nhập tên cơ hội.";
+        return;
+    }
+    if (nameError) nameError.textContent = "";
+
+    const customerIdVal = document.getElementById("opportunityCustomer")?.value;
+    const custError = document.getElementById("opportunityCustomerError");
+    if (!customerIdVal) {
+        if (custError) custError.textContent = "Vui lòng chọn khách hàng.";
+        return;
+    }
+    if (custError) custError.textContent = "";
+
+    const customerId = Number(customerIdVal);
+    const stageId = Number(document.getElementById("opportunityStage").value) || stages[0]?.id;
+    const probability = clamp(Number(document.getElementById("opportunityProbability").value) || 0, 0, 100);
+    const amount = Math.max(0, Number(document.getElementById("opportunityValue").value) || 0);
+    const expectedCloseDate = fieldValue("opportunityCloseDate") || null;
+
+    const payload = {
+        name,
+        customerId,
+        stageId,
+        probability,
+        amount,
+        expectedCloseDate
+    };
+
+    try {
+        if (editingOppId) {
+            await api(`/api/opportunities/${editingOppId}`, {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            });
         } else {
-            opportunities[
-                Number(editIndex)
-            ] = record;
+            await api("/api/opportunities", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
         }
 
         closeOpportunityDrawer();
-        render();
+        await loadOpportunities();
+    } catch (err) {
+        alert("Lỗi khi lưu cơ hội: " + err.message);
     }
-);
+});
 
-
-searchInput.addEventListener(
-    "input",
-    render
-);
-
-
-ownerFilter.addEventListener(
-    "change",
-    render
-);
-
-
-document
-    .getElementById(
-        "resetPipelineFilter"
-    )
-    .addEventListener(
-        "click",
-        () => {
-
-            searchInput.value = "";
-            ownerFilter.value = "";
-
-            render();
-        }
-    );
-
-
-/* =========================================
-   DRAG & DROP
-========================================= */
-
-document
-    .querySelectorAll(
-        "[data-drop-zone]"
-    )
-    .forEach(zone => {
-
-        zone.addEventListener(
-            "dragover",
-            event => {
-
-                event.preventDefault();
-
-                zone.classList.add(
-                    "drag-over"
-                );
-            }
-        );
-
-        zone.addEventListener(
-            "dragenter",
-            event => {
-
-                event.preventDefault();
-
-                zone.classList.add(
-                    "drag-over"
-                );
-            }
-        );
-
-        zone.addEventListener(
-            "dragleave",
-            event => {
-
-                if (
-                    !zone.contains(
-                        event.relatedTarget
-                    )
-                ) {
-                    zone.classList.remove(
-                        "drag-over"
-                    );
-                }
-            }
-        );
-
-        zone.addEventListener(
-            "drop",
-            event => {
-
-                event.preventDefault();
-
-                zone.classList.remove(
-                    "drag-over"
-                );
-
-                const droppedIndex =
-                    draggedIndex !== null
-                        ? draggedIndex
-                        : Number(
-                            event.dataTransfer
-                                .getData(
-                                    "text/plain"
-                                )
-                        );
-
-                const nextStage =
-                    zone.dataset.dropZone;
-
-                if (
-                    droppedIndex === null
-                    ||
-                    !opportunities[
-                        droppedIndex
-                    ]
-                ) {
-                    return;
-                }
-
-                opportunities[
-                    droppedIndex
-                ].stage =
-                    nextStage;
-
-                opportunities[
-                    droppedIndex
-                ].probability =
-                    stages[
-                        nextStage
-                    ].probability;
-
-                draggedIndex = null;
-
-                render();
-            }
-        );
-
+/* =========================================================
+   WIN / LOSS MODAL HANDLERS
+========================================================= */
+document.querySelectorAll(".deal-mode").forEach(button => {
+    button.addEventListener("click", () => {
+        setDealMode(button.dataset.dealMode);
     });
+});
 
+document.querySelectorAll("[data-close-deal]").forEach(button => {
+    button.addEventListener("click", closeDeal);
+});
 
-/* =========================================
-   MENU ACTIONS
-========================================= */
+document.getElementById("closeDealX")?.addEventListener("click", closeDeal);
+dealOverlay?.addEventListener("click", closeDeal);
 
-document.addEventListener(
-    "click",
-    event => {
+document.getElementById("wonForm")?.addEventListener("submit", async event => {
+    event.preventDefault();
 
-        const menuButton =
-            event.target.closest(
-                "[data-card-menu]"
-            );
+    const value = Number(document.getElementById("wonValue").value);
+    const date = document.getElementById("wonDate").value;
+    const winReasonIdVal = document.getElementById("winReason")?.value;
+    const error = document.getElementById("wonError");
 
-        if (menuButton) {
-
-            event.stopPropagation();
-
-            const index =
-                menuButton.dataset.cardMenu;
-
-            document
-                .querySelectorAll(
-                    ".card-menu"
-                )
-                .forEach(menu => {
-
-                    if (
-                        menu.dataset.menu
-                        !== index
-                    ) {
-                        menu.classList.remove(
-                            "open"
-                        );
-                    }
-                });
-
-            document
-                .querySelector(
-                    `[data-menu="${index}"]`
-                )
-                ?.classList
-                .toggle("open");
-
-            return;
-        }
-
-
-        const editButton =
-            event.target.closest(
-                "[data-edit-opportunity]"
-            );
-
-        if (editButton) {
-
-            openOpportunityDrawer(
-                Number(
-                    editButton
-                        .dataset
-                        .editOpportunity
-                )
-            );
-
-            return;
-        }
-
-
-        const nextButton =
-            event.target.closest(
-                "[data-next-stage]"
-            );
-
-        if (nextButton) {
-
-            moveNextStage(
-                Number(
-                    nextButton
-                        .dataset
-                        .nextStage
-                )
-            );
-
-            return;
-        }
-
-
-        const prevButton =
-            event.target.closest(
-                "[data-prev-stage]"
-            );
-
-        if (prevButton) {
-
-            movePrevStage(
-                Number(
-                    prevButton
-                        .dataset
-                        .prevStage
-                )
-            );
-
-            return;
-        }
-
-
-        const wonButton =
-            event.target.closest(
-                "[data-close-won]"
-            );
-
-        if (wonButton) {
-
-            openCloseDeal(
-                Number(
-                    wonButton
-                        .dataset
-                        .closeWon
-                ),
-                "won"
-            );
-
-            return;
-        }
-
-
-        const lostButton =
-            event.target.closest(
-                "[data-close-lost]"
-            );
-
-        if (lostButton) {
-
-            openCloseDeal(
-                Number(
-                    lostButton
-                        .dataset
-                        .closeLost
-                ),
-                "lost"
-            );
-
-            return;
-        }
-
-
-        if (
-            !event.target.closest(
-                ".opportunity-card"
-            )
-        ) {
-            document
-                .querySelectorAll(
-                    ".card-menu"
-                )
-                .forEach(menu => {
-                    menu.classList.remove(
-                        "open"
-                    );
-                });
-        }
-
+    if (!value || value <= 0 || !date) {
+        if (error) error.textContent = "Vui lòng nhập giá trị chốt và ngày ký.";
+        return;
     }
-);
+    if (!winReasonIdVal) {
+        if (error) error.textContent = "Vui lòng chọn Lý do Thắng.";
+        return;
+    }
+    if (error) error.textContent = "";
 
-
-/* =========================================
-   WIN / LOSS
-========================================= */
-
-const dealModal =
-    document.getElementById(
-        "closeDealModal"
-    );
-
-const dealOverlay =
-    document.getElementById(
-        "closeDealOverlay"
-    );
-
-
-document
-    .querySelectorAll(
-        ".deal-mode"
-    )
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                setDealMode(
-                    button.dataset.dealMode
-                );
-            }
-        );
-    });
-
-
-document
-    .querySelectorAll(
-        "[data-close-deal]"
-    )
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            closeDeal
-        );
-    });
-
-
-document
-    .getElementById("closeDealX")
-    .addEventListener(
-        "click",
-        closeDeal
-    );
-
-
-dealOverlay.addEventListener(
-    "click",
-    closeDeal
-);
-
-
-document
-    .getElementById("wonForm")
-    .addEventListener(
-        "submit",
-        event => {
-
-            event.preventDefault();
-
-            const value =
-                Number(
-                    document
-                        .getElementById(
-                            "wonValue"
-                        )
-                        .value
-                );
-
-            const date =
-                document
-                    .getElementById(
-                        "wonDate"
-                    )
-                    .value;
-
-            const error =
-                document
-                    .getElementById(
-                        "wonError"
-                    );
-
-            if (
-                !value
-                ||
-                value <= 0
-                ||
-                !date
-            ) {
-
-                error.textContent =
-                    "Vui lòng nhập giá trị chốt và ngày ký.";
-
-                return;
-            }
-
-            error.textContent = "";
-
-            if (
-                closingIndex !== null
-                &&
-                opportunities[
-                    closingIndex
-                ]
-            ) {
-                opportunities.splice(
-                    closingIndex,
-                    1
-                );
-            }
-
-            closeDeal();
-            render();
-        }
-    );
-
-
-document
-    .getElementById("lostForm")
-    .addEventListener(
-        "submit",
-        event => {
-
-            event.preventDefault();
-
-            const reason =
-                document
-                    .getElementById(
-                        "lossReason"
-                    )
-                    .value;
-
-            const error =
-                document
-                    .getElementById(
-                        "lostError"
-                    );
-
-            if (!reason) {
-
-                error.textContent =
-                    "Vui lòng chọn lý do thua.";
-
-                return;
-            }
-
-            error.textContent = "";
-
-            if (
-                closingIndex !== null
-                &&
-                opportunities[
-                    closingIndex
-                ]
-            ) {
-                opportunities.splice(
-                    closingIndex,
-                    1
-                );
-            }
-
-            closeDeal();
-            render();
-        }
-    );
-
-
-/* =========================================
-   RENDER
-========================================= */
-
-function render() {
-
-    savePipelineOpportunities(); /* PIPELINE_SYNC */
-
-    document
-        .querySelectorAll(
-            "[data-drop-zone]"
-        )
-        .forEach(zone => {
-            zone.innerHTML = "";
+    try {
+        await api(`/api/opportunities/${closingOppId}/close`, {
+            method: "POST",
+            body: JSON.stringify({
+                status: "WON",
+                winReasonId: Number(winReasonIdVal),
+                amount: value
+            })
         });
 
+        closeDeal();
+        await loadOpportunities();
+    } catch (err) {
+        if (error) error.textContent = err.message;
+        else alert("Lỗi đóng cơ hội Thắng: " + err.message);
+    }
+});
 
-    const query =
-        searchInput
-            .value
-            .trim()
-            .toLowerCase();
+document.getElementById("lostForm")?.addEventListener("submit", async event => {
+    event.preventDefault();
 
-    const owner =
-        ownerFilter.value;
+    const reasonIdVal = document.getElementById("lossReason").value;
+    const compIdVal = document.getElementById("lossCompetitor")?.value;
+    const error = document.getElementById("lostError");
 
+    if (!reasonIdVal) {
+        if (error) error.textContent = "Vui lòng chọn lý do thua.";
+        return;
+    }
+    if (!compIdVal) {
+        if (error) error.textContent = "Vui lòng chọn đối thủ cạnh tranh thắng thầu.";
+        return;
+    }
+    if (error) error.textContent = "";
 
-    const filtered =
-        opportunities
-            .map(
-                (item,index) => ({
-                    item,
-                    index
-                })
-            )
-            .filter(entry => {
+    try {
+        await api(`/api/opportunities/${closingOppId}/close`, {
+            method: "POST",
+            body: JSON.stringify({
+                status: "LOST",
+                lossReasonId: Number(reasonIdVal),
+                competitorId: Number(compIdVal)
+            })
+        });
 
-                const text =
-                    (
-                        entry.item.name
-                        + " "
-                        + entry.item.customer
-                    )
-                    .toLowerCase();
+        closeDeal();
+        await loadOpportunities();
+    } catch (err) {
+        if (error) error.textContent = err.message;
+        else alert("Lỗi đóng cơ hội Thua: " + err.message);
+    }
+});
 
-                const searchOk =
-                    !query
-                    ||
-                    text.includes(query);
-
-                const ownerOk =
-                    !owner
-                    ||
-                    entry.item.owner
-                        .includes(owner);
-
-                return (
-                    searchOk
-                    &&
-                    ownerOk
-                );
-            });
-
-
-    for (const entry of filtered) {
-
-        const zone =
-            document
-                .querySelector(
-                    `[data-drop-zone="${entry.item.stage}"]`
-                );
-
-        if (!zone) continue;
-
-        zone.appendChild(
-            createCard(
-                entry.item,
-                entry.index
-            )
-        );
+/* =========================================================
+   CARD MENU AND ACTION DISPATCHER
+========================================================= */
+document.addEventListener("click", async event => {
+    const menuButton = event.target.closest("[data-card-menu]");
+    if (menuButton) {
+        event.stopPropagation();
+        const id = menuButton.dataset.cardMenu;
+        document.querySelectorAll(".card-menu").forEach(menu => {
+            if (menu.dataset.menu !== id) menu.classList.remove("open");
+        });
+        document.querySelector(`[data-menu="${id}"]`)?.classList.toggle("open");
+        return;
     }
 
-    updateColumnSummaries();
+    const editBtn = event.target.closest("[data-edit-opportunity]");
+    if (editBtn) {
+        openOpportunityDrawer(Number(editBtn.dataset.editOpportunity));
+        return;
+    }
+
+    const deleteBtn = event.target.closest("[data-delete-opportunity]");
+    if (deleteBtn) {
+        const id = Number(deleteBtn.dataset.deleteOpportunity);
+        if (confirm("Bạn có chắc chắn muốn xóa cơ hội bán hàng này không?")) {
+            try {
+                await api(`/api/opportunities/${id}`, { method: "DELETE" });
+                await loadOpportunities();
+            } catch (err) {
+                alert("Lỗi khi xóa cơ hội: " + err.message);
+            }
+        }
+        return;
+    }
+
+    const nextBtn = event.target.closest("[data-next-stage]");
+    if (nextBtn) {
+        const id = Number(nextBtn.dataset.nextStage);
+        await moveStageRelatively(id, 1);
+        return;
+    }
+
+    const prevBtn = event.target.closest("[data-prev-stage]");
+    if (prevBtn) {
+        const id = Number(prevBtn.dataset.prevStage);
+        await moveStageRelatively(id, -1);
+        return;
+    }
+
+    const wonBtn = event.target.closest("[data-close-won]");
+    if (wonBtn) {
+        openCloseDeal(Number(wonBtn.dataset.closeWon), "won");
+        return;
+    }
+
+    const lostBtn = event.target.closest("[data-close-lost]");
+    if (lostBtn) {
+        openCloseDeal(Number(lostBtn.dataset.closeLost), "lost");
+        return;
+    }
+
+    if (!event.target.closest(".opportunity-card")) {
+        document.querySelectorAll(".card-menu").forEach(menu => menu.classList.remove("open"));
+    }
+});
+
+/* =========================================================
+   STAGE ADVANCEMENT & TRANSITION
+========================================================= */
+async function moveStageRelatively(oppId, direction) {
+    const opp = opportunities.find(o => o.id === oppId);
+    if (!opp) return;
+
+    const currentStageIndex = stages.findIndex(s => s.id === opp.stageId);
+    if (currentStageIndex < 0) return;
+
+    const nextStageIndex = currentStageIndex + direction;
+    if (nextStageIndex < 0 || nextStageIndex >= stages.length) return;
+
+    const targetStage = stages[nextStageIndex];
+
+    if (targetStage.isWon) {
+        openCloseDeal(oppId, "won");
+        return;
+    }
+    if (targetStage.isLost) {
+        openCloseDeal(oppId, "lost");
+        return;
+    }
+
+    try {
+        await api(`/api/opportunities/${oppId}/stage`, {
+            method: "POST",
+            body: JSON.stringify({ stageId: targetStage.id })
+        });
+        await loadOpportunities();
+    } catch (err) {
+        alert("Không thể chuyển giai đoạn: " + err.message);
+    }
 }
 
+async function moveStageTo(oppId, targetStageId) {
+    const opp = opportunities.find(o => o.id === oppId);
+    if (!opp || opp.stageId === targetStageId) return;
 
-function createCard(
-    record,
-    index
-) {
+    const targetStage = stages.find(s => s.id === targetStageId);
+    if (!targetStage) return;
 
-    const card =
-        document.createElement(
-            "article"
-        );
+    if (targetStage.isWon) {
+        openCloseDeal(oppId, "won");
+        return;
+    }
+    if (targetStage.isLost) {
+        openCloseDeal(oppId, "lost");
+        return;
+    }
 
-    card.className =
-        "opportunity-card";
+    try {
+        await api(`/api/opportunities/${oppId}/stage`, {
+            method: "POST",
+            body: JSON.stringify({ stageId: targetStageId })
+        });
+        await loadOpportunities();
+    } catch (err) {
+        alert("Không thể chuyển giai đoạn: " + err.message);
+        render(); // Rollback UI
+    }
+}
 
-    card.draggable =
-        window.innerWidth > 768;
+/* =========================================================
+   RENDER BOARD & CARDS
+========================================================= */
+const STAGE_THEME_COLORS = ["#14b8a6", "#3b82f6", "#f59e0b", "#8b5cf6", "#10b981", "#ef4444"];
 
-    card.dataset.index =
-        String(index);
+function render() {
+    if (!pipelineBoard) return;
+    pipelineBoard.innerHTML = "";
 
+    const query = (searchInput?.value || "").trim().toLowerCase();
+    const owner = (ownerFilter?.value || "").trim();
 
-    const currentStageIndex =
-        stageOrder.indexOf(
-            record.stage
-        );
+    const filtered = opportunities.filter(opp => {
+        const text = `${opp.name || ""} ${opp.customerName || ""}`.toLowerCase();
+        const searchOk = !query || text.includes(query);
+        const ownerOk = !owner || (opp.ownerName || "").includes(owner) || (owner === "Tôi");
+        return searchOk && ownerOk;
+    });
 
-    const canPrev =
-        currentStageIndex > 0;
+    stages.forEach((st, idx) => {
+        const themeColor = STAGE_THEME_COLORS[idx % STAGE_THEME_COLORS.length];
 
-    const canNext =
-        currentStageIndex
-        <
-        stageOrder.length - 1;
+        const col = document.createElement("article");
+        col.className = "pipeline-column";
+        col.dataset.stage = String(st.id);
 
+        const stageOpps = filtered.filter(o => o.stageId === st.id);
+        const stageTotal = stageOpps.reduce((sum, o) => sum + Number(o.amount || 0), 0);
+
+        col.innerHTML = `
+            <header class="column-head" style="border-top-color: ${themeColor}">
+                <div>
+                    <strong>${escapeHtml(st.name)}</strong>
+                    <span class="column-count">${stageOpps.length} cơ hội</span>
+                </div>
+                <b class="column-total">${formatMoney(stageTotal)}</b>
+            </header>
+            <div class="column-body" data-drop-zone="${st.id}"></div>
+        `;
+
+        const body = col.querySelector(".column-body");
+        stageOpps.forEach(opp => {
+            body.appendChild(createCard(opp));
+        });
+
+        setupDropZone(body, st.id);
+        pipelineBoard.appendChild(col);
+    });
+}
+
+function createCard(record) {
+    const card = document.createElement("article");
+    card.className = "opportunity-card";
+    card.draggable = window.innerWidth > 768;
+    card.dataset.id = String(record.id);
+
+    const currentStageIndex = stages.findIndex(s => s.id === record.stageId);
+    const canPrev = currentStageIndex > 0;
+    const canNext = currentStageIndex < stages.length - 1;
 
     card.innerHTML = `
-        <button
-            class="card-menu-btn"
-            type="button"
-            data-card-menu="${index}"
-        >
-            ⋮
-        </button>
+        <button class="card-menu-btn" type="button" data-card-menu="${record.id}">⋮</button>
 
-        <div
-            class="card-menu"
-            data-menu="${index}"
-        >
-
-            <button
-                type="button"
-                data-edit-opportunity="${index}"
-            >
-                Sửa
-            </button>
-
-            ${
-                canPrev
-                ? `
-                <button
-                    type="button"
-                    data-prev-stage="${index}"
-                >
-                    ← Giai đoạn trước
-                </button>
-                `
-                : ""
-            }
-
-            ${
-                canNext
-                ? `
-                <button
-                    type="button"
-                    data-next-stage="${index}"
-                >
-                    Giai đoạn tiếp →
-                </button>
-                `
-                : ""
-            }
-
-            <button
-                type="button"
-                class="won"
-                data-close-won="${index}"
-            >
-                ✓ Đóng Thắng
-            </button>
-
-            <button
-                type="button"
-                class="lost"
-                data-close-lost="${index}"
-            >
-                ✕ Đóng Thua
-            </button>
-
+        <div class="card-menu" data-menu="${record.id}">
+            <button type="button" data-edit-opportunity="${record.id}">Sửa</button>
+            ${canPrev ? `<button type="button" data-prev-stage="${record.id}">← Giai đoạn trước</button>` : ""}
+            ${canNext ? `<button type="button" data-next-stage="${record.id}">Giai đoạn tiếp →</button>` : ""}
+            <button type="button" class="won" data-close-won="${record.id}">✓ Đóng Thắng</button>
+            <button type="button" class="lost" data-close-lost="${record.id}">✕ Đóng Thua</button>
+            <button type="button" style="color:#ef4444;" data-delete-opportunity="${record.id}">🗑 Xóa</button>
         </div>
 
-        <h3>
-            ${escapeHtml(record.name)}
-        </h3>
+        <h3>${escapeHtml(record.name)}</h3>
 
         <div class="opportunity-customer">
-            ${escapeHtml(
-                record.customer
-                ||
-                "Chưa chọn khách hàng"
-            )}
+            ${escapeHtml(record.customerName || "Chưa chọn khách hàng")}
         </div>
 
         <strong class="opportunity-value">
-            ${formatMoney(record.value)}
+            ${formatMoney(record.amount || 0)}
         </strong>
 
         <div class="opportunity-meta">
-
-            <span>
-                ${record.probability}% xác suất
-            </span>
-
-            <span>
-                ${escapeHtml(
-                    record.closeDate
-                    ||
-                    "—"
-                )}
-            </span>
-
+            <span>${record.probability ?? 0}% xác suất</span>
+            <span>${escapeHtml(record.expectedCloseDate || "—")}</span>
         </div>
 
-        <div
-            style="
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-                margin-top:10px;
-            "
-        >
-
-            <small
-                style="
-                    color:#64748b;
-                    font-size:10px;
-                "
-            >
-                ${escapeHtml(
-                    stages[
-                        record.stage
-                    ].label
-                )}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;">
+            <small style="color:#64748b;font-size:10px;">
+                ${escapeHtml(record.stageName || "")}
             </small>
-
-            <div class="card-avatar">
-                ${initials(
-                    record.owner
-                    ||
-                    "U"
-                )}
+            <div class="card-avatar" title="${escapeHtml(record.ownerName || 'Chưa phân công')}">
+                ${initials(record.ownerName || "U")}
             </div>
-
         </div>
     `;
 
+    card.addEventListener("dragstart", event => {
+        draggedOppId = record.id;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", String(record.id));
+        requestAnimationFrame(() => card.classList.add("dragging"));
+    });
 
-    card.addEventListener(
-        "dragstart",
-        event => {
-
-            draggedIndex = index;
-
-            event.dataTransfer
-                .effectAllowed =
-                    "move";
-
-            event.dataTransfer
-                .setData(
-                    "text/plain",
-                    String(index)
-                );
-
-            requestAnimationFrame(
-                () => {
-                    card.classList.add(
-                        "dragging"
-                    );
-                }
-            );
-        }
-    );
-
-
-    card.addEventListener(
-        "dragend",
-        () => {
-
-            draggedIndex = null;
-
-            card.classList.remove(
-                "dragging"
-            );
-
-            document
-                .querySelectorAll(
-                    ".column-body"
-                )
-                .forEach(zone => {
-                    zone.classList.remove(
-                        "drag-over"
-                    );
-                });
-        }
-    );
-
+    card.addEventListener("dragend", () => {
+        draggedOppId = null;
+        card.classList.remove("dragging");
+        document.querySelectorAll(".column-body").forEach(zone => zone.classList.remove("drag-over"));
+    });
 
     return card;
 }
 
-
-function moveNextStage(index) {
-
-    const record =
-        opportunities[index];
-
-    if (!record) return;
-
-    const currentIndex =
-        stageOrder.indexOf(
-            record.stage
-        );
-
-    if (
-        currentIndex
-        <
-        stageOrder.length - 1
-    ) {
-
-        const nextStage =
-            stageOrder[
-                currentIndex + 1
-            ];
-
-        record.stage =
-            nextStage;
-
-        record.probability =
-            stages[
-                nextStage
-            ].probability;
-
-        render();
-    }
+function setupDropZone(zone, stageId) {
+    zone.addEventListener("dragover", event => {
+        event.preventDefault();
+        zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragenter", event => {
+        event.preventDefault();
+        zone.classList.add("drag-over");
+    });
+    zone.addEventListener("dragleave", event => {
+        if (!zone.contains(event.relatedTarget)) {
+            zone.classList.remove("drag-over");
+        }
+    });
+    zone.addEventListener("drop", async event => {
+        event.preventDefault();
+        zone.classList.remove("drag-over");
+        const idVal = draggedOppId || Number(event.dataTransfer.getData("text/plain"));
+        if (!idVal) return;
+        draggedOppId = null;
+        await moveStageTo(Number(idVal), stageId);
+    });
 }
 
+/* =========================================================
+   DRAWER OPEN / CLOSE
+========================================================= */
+function openOpportunityDrawer(id = null) {
+    editingOppId = id;
+    const titleEl = document.getElementById("opportunityDrawerTitle");
+    const nameErr = document.getElementById("opportunityNameError");
+    const custErr = document.getElementById("opportunityCustomerError");
+    if (nameErr) nameErr.textContent = "";
+    if (custErr) custErr.textContent = "";
 
-function movePrevStage(index) {
-
-    const record =
-        opportunities[index];
-
-    if (!record) return;
-
-    const currentIndex =
-        stageOrder.indexOf(
-            record.stage
-        );
-
-    if (currentIndex > 0) {
-
-        const prevStage =
-            stageOrder[
-                currentIndex - 1
-            ];
-
-        record.stage =
-            prevStage;
-
-        record.probability =
-            stages[
-                prevStage
-            ].probability;
-
-        render();
-    }
-}
-
-
-function updateColumnSummaries() {
-
-    document
-        .querySelectorAll(
-            ".pipeline-column"
-        )
-        .forEach(column => {
-
-            const stage =
-                column.dataset.stage;
-
-            const items =
-                opportunities.filter(
-                    item =>
-                        item.stage
-                        === stage
-                );
-
-            const total =
-                items.reduce(
-                    (
-                        sum,
-                        item
-                    ) =>
-                        sum
-                        +
-                        item.value,
-                    0
-                );
-
-            column
-                .querySelector(
-                    ".column-count"
-                )
-                .textContent =
-                    `${items.length} cơ hội`;
-
-            column
-                .querySelector(
-                    ".column-total"
-                )
-                .textContent =
-                    formatMoney(total);
-        });
-}
-
-
-/* =========================================
-   DRAWER
-========================================= */
-
-function openOpportunityDrawer(
-    index = null
-) {
-
-    opportunityForm.reset();
-
-    document
-        .getElementById(
-            "opportunityEditIndex"
-        )
-        .value = "";
-
-    document
-        .getElementById(
-            "opportunityNameError"
-        )
-        .textContent = "";
-
-    document
-        .getElementById(
-            "opportunityDrawerTitle"
-        )
-        .textContent =
-            "Thêm cơ hội";
-
-    document
-        .getElementById(
-            "opportunityProbability"
-        )
-        .value = 10;
-
-
-    if (
-        index !== null
-        &&
-        opportunities[index]
-    ) {
-
-        const record =
-            opportunities[index];
-
-        document
-            .getElementById(
-                "opportunityDrawerTitle"
-            )
-            .textContent =
-                "Sửa cơ hội";
-
-        document
-            .getElementById(
-                "opportunityEditIndex"
-            )
-            .value =
-                String(index);
-
-        setField(
-            "opportunityName",
-            record.name
-        );
-
-        setField(
-            "opportunityCustomer",
-            record.customer
-        );
-
-        setField(
-            "opportunityValue",
-            record.value
-        );
-
-        setField(
-            "opportunityCloseDate",
-            record.closeDate
-        );
-
-        setField(
-            "opportunityStage",
-            record.stage
-        );
-
-        setField(
-            "opportunityProbability",
-            record.probability
-        );
-
-        setField(
-            "opportunityOwner",
-            record.owner
-        );
+    if (id !== null) {
+        const opp = opportunities.find(o => o.id === id);
+        if (opp) {
+            if (titleEl) titleEl.textContent = "Sửa cơ hội";
+            setField("opportunityName", opp.name);
+            setField("opportunityCustomer", opp.customerId);
+            setField("opportunityValue", opp.amount);
+            setField("opportunityCloseDate", opp.expectedCloseDate);
+            setField("opportunityStage", opp.stageId);
+            setField("opportunityProbability", opp.probability);
+            setField("opportunityOwner", opp.ownerName);
+        }
+    } else {
+        if (titleEl) titleEl.textContent = "Thêm cơ hội";
+        opportunityForm.reset();
+        if (stages.length > 0) {
+            setField("opportunityStage", stages[0].id);
+            setField("opportunityProbability", stages[0].probability);
+        }
     }
 
-    opportunityDrawer
-        .classList
-        .add("open");
-
-    opportunityOverlay
-        .classList
-        .add("open");
+    opportunityDrawer?.classList.add("open");
+    opportunityOverlay?.classList.add("open");
 }
-
 
 function closeOpportunityDrawer() {
-
-    opportunityDrawer
-        .classList
-        .remove("open");
-
-    opportunityOverlay
-        .classList
-        .remove("open");
+    opportunityDrawer?.classList.remove("open");
+    opportunityOverlay?.classList.remove("open");
+    editingOppId = null;
 }
 
+/* =========================================================
+   CLOSE DEAL MODAL
+========================================================= */
+function openCloseDeal(oppId, mode) {
+    closingOppId = oppId;
+    const opp = opportunities.find(o => o.id === oppId);
 
-/* =========================================
-   CLOSE DEAL
-========================================= */
+    document.getElementById("wonForm")?.reset();
+    document.getElementById("lostForm")?.reset();
 
-function openCloseDeal(
-    index,
-    mode
-) {
+    if (opp && mode === "won") {
+        setField("wonValue", opp.amount || 0);
+        setField("wonDate", todayString());
+    }
 
-    closingIndex = index;
-
-    document
-        .getElementById(
-            "wonForm"
-        )
-        .reset();
-
-    document
-        .getElementById(
-            "lostForm"
-        )
-        .reset();
-
-    document
-        .getElementById(
-            "wonError"
-        )
-        .textContent = "";
-
-    document
-        .getElementById(
-            "lostError"
-        )
-        .textContent = "";
+    const wonErr = document.getElementById("wonError");
+    const lostErr = document.getElementById("lostError");
+    if (wonErr) wonErr.textContent = "";
+    if (lostErr) lostErr.textContent = "";
 
     setDealMode(mode);
-
-    dealModal
-        .classList
-        .add("open");
-
-    dealOverlay
-        .classList
-        .add("open");
+    dealModal?.classList.add("open");
+    dealOverlay?.classList.add("open");
 }
-
 
 function closeDeal() {
-
-    dealModal
-        .classList
-        .remove("open");
-
-    dealOverlay
-        .classList
-        .remove("open");
-
-    closingIndex = null;
+    dealModal?.classList.remove("open");
+    dealOverlay?.classList.remove("open");
+    closingOppId = null;
 }
-
 
 function setDealMode(mode) {
+    const won = mode === "won";
+    document.querySelectorAll(".deal-mode").forEach(button => {
+        button.classList.toggle("active", button.dataset.dealMode === mode);
+    });
 
-    const won =
-        mode === "won";
+    const wonForm = document.getElementById("wonForm");
+    const lostForm = document.getElementById("lostForm");
+    if (wonForm) wonForm.hidden = !won;
+    if (lostForm) lostForm.hidden = won;
 
-    document
-        .querySelectorAll(
-            ".deal-mode"
-        )
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.dealMode
-                    === mode
-            );
-        });
-
-    document
-        .getElementById(
-            "wonForm"
-        )
-        .hidden =
-            !won;
-
-    document
-        .getElementById(
-            "lostForm"
-        )
-        .hidden =
-            won;
-
-    document
-        .getElementById(
-            "closeDealEmoji"
-        )
-        .textContent =
-            won
-                ? "🎉"
-                : "☹️";
-
-    document
-        .getElementById(
-            "closeDealTitle"
-        )
-        .textContent =
-            won
-                ? "Đóng Thắng Cơ Hội"
-                : "Đóng Thua Cơ Hội";
+    const emojiEl = document.getElementById("closeDealEmoji");
+    const titleEl = document.getElementById("closeDealTitle");
+    if (emojiEl) emojiEl.textContent = won ? "🎉" : "☹️";
+    if (titleEl) titleEl.textContent = won ? "Đóng Thắng Cơ Hội" : "Đóng Thua Cơ Hội";
 }
 
-
-/* =========================================
-   HELPERS
-========================================= */
-
+/* =========================================================
+   UTILITIES
+========================================================= */
 function fieldValue(id) {
-
-    return document
-        .getElementById(id)
-        .value
-        .trim();
+    return (document.getElementById(id)?.value || "").trim();
 }
 
-
-function setField(
-    id,
-    value
-) {
-
-    document
-        .getElementById(id)
-        .value =
-            value ?? "";
+function setField(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val ?? "";
 }
 
-
-function formatMoney(value) {
-
-    return new Intl.NumberFormat(
-        "vi-VN",
-        {
-            style: "currency",
-            currency: "VND",
-            maximumFractionDigits: 0
-        }
-    ).format(
-        Number(value) || 0
-    );
+function formatMoney(val) {
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0
+    }).format(Number(val) || 0);
 }
 
-
-function initials(value) {
-
-    const parts =
-        String(value)
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean);
-
-    if (!parts.length) {
-        return "U";
-    }
-
-    if (parts.length === 1) {
-        return parts[0]
-            .slice(0,2)
-            .toUpperCase();
-    }
-
-    return (
-        parts[0][0]
-        +
-        parts[
-            parts.length - 1
-        ][0]
-    )
-        .toUpperCase();
+function initials(name) {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "U";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-
-function clamp(
-    value,
-    min,
-    max
-) {
-
-    if (!Number.isFinite(value)) {
-        return min;
-    }
-
-    return Math.min(
-        max,
-        Math.max(
-            min,
-            value
-        )
-    );
+function clamp(val, min, max) {
+    if (!Number.isFinite(val)) return min;
+    return Math.min(max, Math.max(min, val));
 }
 
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
-
-render();
-
-/* =========================================================
-   POINTER DRAG PATCH
-   Kéo card: Tiếp cận -> Báo giá -> Đàm phán -> Chốt
-========================================================= */
-
-let pointerDrag = {
-    active: false,
-    index: null,
-    card: null,
-    ghost: null,
-    startX: 0,
-    startY: 0,
-    offsetX: 0,
-    offsetY: 0,
-    moved: false
-};
-
-
-document.addEventListener(
-    "pointerdown",
-    event => {
-
-        const card =
-            event.target.closest(
-                ".opportunity-card"
-            );
-
-        if (!card) {
-            return;
-        }
-
-        /* Không drag khi bấm menu / button */
-        if (
-            event.target.closest(
-                "button, a, input, select"
-            )
-        ) {
-            return;
-        }
-
-
-        const index =
-            Number(
-                card.dataset.index
-            );
-
-        if (
-            !Number.isInteger(index)
-            ||
-            !opportunities[index]
-        ) {
-            return;
-        }
-
-
-        /*
-         * Tắt native HTML5 drag,
-         * dùng pointer drag của mình.
-         */
-        card.draggable = false;
-
-
-        const rect =
-            card.getBoundingClientRect();
-
-
-        pointerDrag.active = true;
-        pointerDrag.index = index;
-        pointerDrag.card = card;
-
-        pointerDrag.startX =
-            event.clientX;
-
-        pointerDrag.startY =
-            event.clientY;
-
-        pointerDrag.offsetX =
-            event.clientX
-            - rect.left;
-
-        pointerDrag.offsetY =
-            event.clientY
-            - rect.top;
-
-        pointerDrag.moved = false;
-
-
-        card.setPointerCapture?.(
-            event.pointerId
-        );
-
-    }
-);
-
-
-document.addEventListener(
-    "pointermove",
-    event => {
-
-        if (
-            !pointerDrag.active
-            ||
-            !pointerDrag.card
-        ) {
-            return;
-        }
-
-
-        const dx =
-            Math.abs(
-                event.clientX
-                - pointerDrag.startX
-            );
-
-        const dy =
-            Math.abs(
-                event.clientY
-                - pointerDrag.startY
-            );
-
-
-        /*
-         * Chưa di chuyển đủ 5px
-         * thì chưa coi là drag.
-         */
-        if (
-            !pointerDrag.moved
-            &&
-            dx < 5
-            &&
-            dy < 5
-        ) {
-            return;
-        }
-
-
-        if (!pointerDrag.moved) {
-
-            pointerDrag.moved = true;
-
-            createDragGhost();
-
-            pointerDrag.card
-                .classList
-                .add(
-                    "pointer-drag-source"
-                );
-        }
-
-
-        event.preventDefault();
-
-
-        moveDragGhost(
-            event.clientX,
-            event.clientY
-        );
-
-
-        highlightDropZone(
-            event.clientX,
-            event.clientY
-        );
-
-    },
-    {
-        passive: false
-    }
-);
-
-
-document.addEventListener(
-    "pointerup",
-    event => {
-
-        if (!pointerDrag.active) {
-            return;
-        }
-
-
-        if (pointerDrag.moved) {
-
-            const dropZone =
-                getDropZoneAtPoint(
-                    event.clientX,
-                    event.clientY
-                );
-
-
-            if (
-                dropZone
-                &&
-                pointerDrag.index !== null
-                &&
-                opportunities[
-                    pointerDrag.index
-                ]
-            ) {
-
-                const nextStage =
-                    dropZone
-                        .dataset
-                        .dropZone;
-
-
-                /*
-                 * Đổi stage.
-                 */
-                opportunities[
-                    pointerDrag.index
-                ].stage =
-                    nextStage;
-
-
-                /*
-                 * Đổi xác suất theo stage.
-                 */
-                opportunities[
-                    pointerDrag.index
-                ].probability =
-                    stages[
-                        nextStage
-                    ].probability;
-
-
-                /*
-                 * Render lại board.
-                 */
-                render();
-            }
-        }
-
-
-        cleanupPointerDrag();
-
-    }
-);
-
-
-document.addEventListener(
-    "pointercancel",
-    cleanupPointerDrag
-);
-
-
-function createDragGhost() {
-
-    const source =
-        pointerDrag.card;
-
-    if (!source) {
-        return;
-    }
-
-
-    const rect =
-        source
-            .getBoundingClientRect();
-
-
-    const ghost =
-        source
-            .cloneNode(true);
-
-
-    ghost.classList.add(
-        "pipeline-drag-ghost"
-    );
-
-
-    ghost
-        .querySelectorAll(
-            ".card-menu"
-        )
-        .forEach(menu => {
-            menu.remove();
-        });
-
-
-    ghost.style.width =
-        rect.width + "px";
-
-
-    document.body
-        .appendChild(
-            ghost
-        );
-
-
-    pointerDrag.ghost =
-        ghost;
-
+function todayString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-
-function moveDragGhost(
-    clientX,
-    clientY
-) {
-
-    const ghost =
-        pointerDrag.ghost;
-
-    if (!ghost) {
-        return;
-    }
-
-
-    ghost.style.left =
-        (
-            clientX
-            - pointerDrag.offsetX
-        )
-        + "px";
-
-
-    ghost.style.top =
-        (
-            clientY
-            - pointerDrag.offsetY
-        )
-        + "px";
-
-}
-
-
-function getDropZoneAtPoint(
-    x,
-    y
-) {
-
-    /*
-     * Ghost có pointer-events:none
-     * nên elementsFromPoint thấy được
-     * cột phía dưới.
-     */
-    const elements =
-        document.elementsFromPoint(
-            x,
-            y
-        );
-
-
-    for (
-        const element
-        of elements
-    ) {
-
-        const zone =
-            element.closest?.(
-                "[data-drop-zone]"
-            );
-
-
-        if (zone) {
-            return zone;
-        }
-
-
-        const column =
-            element.closest?.(
-                ".pipeline-column"
-            );
-
-
-        if (column) {
-
-            return column.querySelector(
-                "[data-drop-zone]"
-            );
-
-        }
-    }
-
-
-    return null;
-
-}
-
-
-function highlightDropZone(
-    x,
-    y
-) {
-
-    document
-        .querySelectorAll(
-            "[data-drop-zone]"
-        )
-        .forEach(zone => {
-            zone.classList.remove(
-                "pointer-drop-active"
-            );
-        });
-
-
-    const zone =
-        getDropZoneAtPoint(
-            x,
-            y
-        );
-
-
-    if (zone) {
-
-        zone.classList.add(
-            "pointer-drop-active"
-        );
-
-    }
-
-}
-
-
-function cleanupPointerDrag() {
-
-    if (
-        pointerDrag.card
-    ) {
-
-        pointerDrag.card
-            .classList
-            .remove(
-                "pointer-drag-source"
-            );
-
-    }
-
-
-    if (
-        pointerDrag.ghost
-    ) {
-
-        pointerDrag.ghost
-            .remove();
-
-    }
-
-
-    document
-        .querySelectorAll(
-            "[data-drop-zone]"
-        )
-        .forEach(zone => {
-
-            zone.classList.remove(
-                "pointer-drop-active"
-            );
-
-            zone.classList.remove(
-                "drag-over"
-            );
-
-        });
-
-
-    pointerDrag = {
-        active: false,
-        index: null,
-        card: null,
-        ghost: null,
-        startX: 0,
-        startY: 0,
-        offsetX: 0,
-        offsetY: 0,
-        moved: false
-    };
-
-}
-
-/* =========================================================
-   PIPELINE LOCAL STORAGE
-   FE prototype only - chưa kết nối Backend
-========================================================= */
-
-function loadPipelineOpportunities() {
-
-    try {
-
-        const value =
-            JSON.parse(
-                localStorage.getItem(
-                    "crm_ui_opportunities"
-                )
-            );
-
-        return Array.isArray(value)
-            ? value
-            : [];
-
-    } catch {
-
-        return [];
-
-    }
-
-}
-
-
-function savePipelineOpportunities() {
-
-    localStorage.setItem(
-        "crm_ui_opportunities",
-        JSON.stringify(
-            opportunities
-        )
-    );
-
-}
+// Start
+initPipeline();

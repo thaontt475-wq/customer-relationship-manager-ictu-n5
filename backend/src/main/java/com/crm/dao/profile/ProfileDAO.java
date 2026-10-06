@@ -14,16 +14,22 @@ public class ProfileDAO {
 
         String sql = """
                 SELECT
-                    id,
-                    full_name,
-                    email,
-                    phone,
-                    email_signature,
-                    avatar_url,
-                    avatar_thumbnail_url,
-                    status
-                FROM users
-                WHERE id = ?
+                    u.id,
+                    COALESCE(u.full_name, u.display_name, '') AS full_name,
+                    u.email,
+                    u.phone,
+                    COALESCE(u.email_signature, u.signature, '') AS email_signature,
+                    u.avatar_url,
+                    u.avatar_thumbnail_url,
+                    u.status,
+                    t.name AS team_name,
+                    GROUP_CONCAT(r.name SEPARATOR ', ') AS role_names
+                FROM users u
+                LEFT JOIN teams t ON t.id = u.team_id
+                LEFT JOIN user_roles ur ON ur.user_id = u.id
+                LEFT JOIN roles r ON r.id = ur.role_id
+                WHERE u.id = ?
+                GROUP BY u.id, u.full_name, u.display_name, u.email, u.phone, u.email_signature, u.signature, u.avatar_url, u.avatar_thumbnail_url, u.status, t.name
                 """;
 
         try (
@@ -93,6 +99,16 @@ public class ProfileDAO {
                         rs.getString("status")
                 );
 
+                profile.put(
+                        "teamName",
+                        rs.getString("team_name")
+                );
+
+                profile.put(
+                        "roleNames",
+                        rs.getString("role_names")
+                );
+
                 return profile;
             }
         }
@@ -110,8 +126,10 @@ public class ProfileDAO {
                 UPDATE users
                 SET
                     full_name = ?,
+                    display_name = ?,
                     phone = ?,
-                    email_signature = ?
+                    email_signature = ?,
+                    signature = ?
                 WHERE id = ?
                 """;
 
@@ -130,16 +148,26 @@ public class ProfileDAO {
 
             statement.setString(
                     2,
-                    phone
+                    fullName
             );
 
             statement.setString(
                     3,
+                    phone
+            );
+
+            statement.setString(
+                    4,
+                    emailSignature
+            );
+
+            statement.setString(
+                    5,
                     emailSignature
             );
 
             statement.setLong(
-                    4,
+                    6,
                     userId
             );
 

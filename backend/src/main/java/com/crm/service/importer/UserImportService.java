@@ -20,17 +20,72 @@ public class UserImportService {
     private final UserManagementDAO dao = new UserManagementDAO();
 
     public void writeTemplate(OutputStream output) throws Exception {
+        writeTemplate(output, "valid");
+    }
+
+    public void writeTemplate(OutputStream output, String type) throws Exception {
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet sheet = workbook.createSheet("Users");
+
+            // Header Style
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+
             Row header = sheet.createRow(0);
-            for (int i = 0; i < COLUMNS.size(); i++) header.createCell(i).setCellValue(COLUMNS.get(i));
-            Row example = sheet.createRow(1);
-            example.createCell(0).setCellValue("Nguyen Van A");
-            example.createCell(1).setCellValue("user@example.com");
-            // The user supplies an individual password; the template never provides a shared credential.
-            example.createCell(2).setCellValue("");
-            example.createCell(3).setCellValue("ACTIVE");
-            for (int i = 0; i < COLUMNS.size(); i++) sheet.autoSizeColumn(i);
+            for (int i = 0; i < COLUMNS.size(); i++) {
+                Cell cell = header.createCell(i);
+                cell.setCellValue(COLUMNS.get(i));
+                cell.setCellStyle(headerStyle);
+            }
+
+            if ("invalid".equalsIgnoreCase(type) || "error".equalsIgnoreCase(type)) {
+                // Template with intentional validation errors for testing
+                Object[][] testRows = {
+                    {"Nguyễn Văn Hợp Lệ", "user.hople@company.com", "User@123456", "ACTIVE"},
+                    {"", "thieuten@company.com", "User@123456", "ACTIVE"}, // Lỗi: Thiếu fullName
+                    {"Trần Văn Sai Email", "email_khong_hop_le", "User@123456", "ACTIVE"}, // Lỗi: Email sai định dạng
+                    {"Lê Trùng Lặp 1", "duplicate.email@company.com", "User@123456", "ACTIVE"},
+                    {"Lê Trùng Lặp 2", "duplicate.email@company.com", "User@123456", "ACTIVE"}, // Lỗi: Email bị trùng trong file
+                    {"Tài Khoản Đã Tồn Tại", "admin@company.com", "Admin@123456", "ACTIVE"}, // Lỗi: Email đã tồn tại trong DB
+                    {"Hoàng Mật Khẩu Yếu", "matkhauyeu@company.com", "123456", "ACTIVE"}, // Lỗi: Mật khẩu không đạt chính sách bảo mật
+                    {"Vũ Trạng Thái Sai", "trangthaisai@company.com", "User@123456", "PENDING"} // Lỗi: Status không hợp lệ
+                };
+
+                for (int r = 0; r < testRows.length; r++) {
+                    Row row = sheet.createRow(r + 1);
+                    for (int c = 0; c < COLUMNS.size(); c++) {
+                        row.createCell(c).setCellValue(String.valueOf(testRows[r][c]));
+                    }
+                }
+            } else {
+                // Template with 100% valid records
+                Object[][] validRows = {
+                    {"Nguyễn Văn An", "nguyenvanan.sales@company.com", "User@123456", "ACTIVE"},
+                    {"Trần Thị Bích", "tranthibich.sales@company.com", "User@123456", "ACTIVE"},
+                    {"Lê Hoàng Cường", "lehoangcuong.tech@company.com", "User@123456", "ACTIVE"},
+                    {"Phạm Thu Dung", "phamthudung.crm@company.com", "User@123456", "ACTIVE"},
+                    {"Vũ Minh Đức", "vuminhduc.leads@company.com", "User@123456", "INACTIVE"}
+                };
+
+                for (int r = 0; r < validRows.length; r++) {
+                    Row row = sheet.createRow(r + 1);
+                    for (int c = 0; c < COLUMNS.size(); c++) {
+                        row.createCell(c).setCellValue(String.valueOf(validRows[r][c]));
+                    }
+                }
+            }
+
+            for (int i = 0; i < COLUMNS.size(); i++) {
+                sheet.autoSizeColumn(i);
+                sheet.setColumnWidth(i, Math.max(sheet.getColumnWidth(i), 6000));
+            }
+
             workbook.write(output);
         }
     }

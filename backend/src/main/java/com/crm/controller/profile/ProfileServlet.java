@@ -41,7 +41,8 @@ public class ProfileServlet extends HttpServlet {
 
         } catch (Exception e) {
 
-            serverError(response);
+            e.printStackTrace();
+            serverError(response, e.getMessage());
         }
     }
 
@@ -109,7 +110,8 @@ public class ProfileServlet extends HttpServlet {
 
         } catch (Exception e) {
 
-            serverError(response);
+            e.printStackTrace();
+            serverError(response, e.getMessage());
         }
     }
 
@@ -126,14 +128,15 @@ public class ProfileServlet extends HttpServlet {
 
 
     private void serverError(
-            HttpServletResponse response
+            HttpServletResponse response,
+            String details
     ) throws IOException {
 
         ResponseUtil.json(
                 response,
                 500,
                 ApiResponse.error(
-                        "Lỗi hệ thống",
+                        details != null && !details.isBlank() ? "Lỗi hệ thống: " + details : "Lỗi hệ thống",
                         null
                 )
         );
