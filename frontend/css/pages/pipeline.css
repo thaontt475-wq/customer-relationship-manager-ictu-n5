@@ -1,0 +1,957 @@
+.pipeline-page {
+    min-width: 0;
+}
+
+.pipeline-head {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-bottom: 24px;
+}
+
+.pipeline-kicker {
+    margin: 0 0 6px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.pipeline-head h1 {
+    margin: 0;
+
+    font-size: 27px;
+
+    letter-spacing: -.025em;
+}
+
+.pipeline-head p:last-child {
+    margin: 7px 0 0;
+
+    color: var(--crm-muted);
+
+    font-size: 13px;
+}
+
+
+.pipeline-filter {
+    display: grid;
+
+    grid-template-columns:
+        minmax(240px,1fr)
+        200px
+        auto;
+
+    gap: 10px;
+
+    padding: 12px;
+
+    margin-bottom: 16px;
+}
+
+
+.pipeline-board {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4,minmax(0,1fr));
+
+    gap: 16px;
+
+    overflow-x: auto;
+
+    padding-bottom: 12px;
+}
+
+.pipeline-column {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 12px;
+
+    background: #eef3f8;
+
+    overflow: hidden;
+}
+
+.column-head {
+    min-height: 79px;
+
+    display: flex;
+
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    border-top: 4px solid transparent;
+
+    background: #f8fafc;
+}
+
+.column-head.approach {
+    border-color: #14b8a6;
+}
+
+.column-head.quote {
+    border-color: #3b82f6;
+}
+
+.column-head.negotiation {
+    border-color: var(--crm-warning);
+}
+
+.column-head.closing {
+    border-color: #8b5cf6;
+}
+
+.column-head strong {
+    display: block;
+
+    font-size: 14px;
+}
+
+.column-count {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.column-total {
+    white-space: nowrap;
+
+    font-size: 13px;
+}
+
+
+.column-body {
+    flex: 1;
+
+    min-height: 360px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 9px;
+
+    padding: 9px;
+
+    transition: .15s ease;
+}
+
+.column-body.drag-over {
+    background: #dbeafe;
+}
+
+
+.opportunity-card {
+    position: relative;
+
+    padding: 12px;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 12px;
+
+    background: #fff;
+
+    box-shadow: var(--crm-shadow-sm);
+
+    cursor: grab;
+
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--crm-ease);
+}
+
+.opportunity-card:active {
+    cursor: grabbing;
+}
+
+.opportunity-card.dragging {
+    opacity: .85;
+
+    transform: rotate(1deg) scale(1.02);
+}
+
+.opportunity-card h3 {
+    max-width: calc(100% - 30px);
+
+    margin: 0;
+
+    font-size: 13px;
+
+    line-height: 1.4;
+}
+
+.opportunity-customer {
+    margin-top: 3px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.opportunity-value {
+    display: block;
+
+    margin-top: 9px;
+
+    font-size: 15px;
+
+    font-weight: 750;
+}
+
+.opportunity-meta {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 8px;
+
+    margin-top: 10px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.card-avatar {
+    width: 26px;
+    height: 26px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: #dbeafe;
+
+    color: var(--crm-primary-dark);
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.card-menu-btn {
+    position: absolute;
+
+    top: 7px;
+    right: 6px;
+
+    width: 27px;
+    height: 27px;
+
+    border: 0;
+
+    border-radius: 7px;
+
+    background: transparent;
+
+    font-size: 17px;
+}
+
+.card-menu-btn:hover {
+    background: #f1f5f9;
+}
+
+
+.card-menu {
+    position: absolute;
+
+    top: 34px;
+    right: 7px;
+
+    z-index: 15;
+
+    width: 160px;
+
+    display: none;
+
+    padding: 5px;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 9px;
+
+    background: #fff;
+
+    box-shadow: var(--crm-shadow);
+}
+
+.card-menu.open {
+    display: block;
+}
+
+.card-menu button {
+    width: 100%;
+
+    min-height: 34px;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0 9px;
+
+    border: 0;
+
+    border-radius: 6px;
+
+    background: transparent;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    text-align: left;
+}
+
+.card-menu button:hover {
+    background: #f8fafc;
+}
+
+.card-menu .won {
+    color: #047857;
+}
+
+.card-menu .lost {
+    color: #b91c1c;
+}
+
+
+/* =========================================================
+   OPPORTUNITY DRAWER
+========================================================= */
+
+.pipeline-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 2000;
+
+    background: rgba(15,23,42,.35);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.pipeline-overlay.open {
+    opacity: 1;
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.opportunity-drawer {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 2100;
+
+    width: min(430px,100%);
+
+    display: flex;
+
+    flex-direction: column;
+
+    background: #fff;
+
+    box-shadow: -18px 0 45px rgba(15,23,42,.16);
+
+    transform: translateX(102%);
+
+    transition: transform 240ms var(--crm-ease), visibility 0s linear 240ms;
+    visibility: hidden;
+}
+
+.opportunity-drawer.open {
+    transform: translateX(0);
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.drawer-head {
+    min-height: 70px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 15px 18px;
+
+    border-bottom: 1px solid var(--crm-border);
+}
+
+.drawer-head strong {
+    display: block;
+
+    font-size: 15px;
+}
+
+.drawer-head span {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.drawer-head button {
+    width: 35px;
+    height: 35px;
+
+    border: 0;
+
+    background: transparent;
+
+    font-size: 23px;
+}
+
+
+.opportunity-form {
+    flex: 1;
+
+    overflow-y: auto;
+
+    padding: 18px 18px 95px;
+}
+
+.opportunity-form > label,
+.opportunity-form .form-grid label {
+    display: block;
+
+    margin-bottom: 15px;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+.opportunity-form em {
+    color: var(--crm-danger);
+
+    font-style: normal;
+}
+
+.opportunity-form input,
+.opportunity-form select {
+    margin-top: 6px;
+}
+
+.opportunity-form small {
+    display: block;
+
+    min-height: 14px;
+
+    margin-top: 4px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 12px;
+}
+
+.drawer-footer {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    min-height: 72px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    padding: 12px 18px;
+
+    border-top: 1px solid var(--crm-border);
+
+    background: #fff;
+}
+
+
+/* =========================================================
+   WIN LOSS MODAL
+========================================================= */
+
+.close-deal-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 3000;
+
+    background: rgba(15,23,42,.35);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.close-deal-overlay.open {
+    opacity: 1;
+
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.close-deal-modal {
+    position: fixed;
+
+    top: 50%;
+    left: 50%;
+
+    z-index: 3100;
+
+    width: min(430px,calc(100% - 32px));
+
+    transform: translate(-50%, calc(-50% + 6px)) scale(.97);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, transform 180ms var(--crm-ease), visibility 0s linear 180ms;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+
+    border-radius: var(--crm-radius-md);
+}
+
+.close-deal-modal.open {
+    transform: translate(-50%, -50%) scale(1);
+
+    opacity: 1;
+
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+
+.close-deal-head {
+    min-height: 68px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 17px;
+
+    border-bottom: 1px solid var(--crm-border);
+}
+
+.close-deal-head > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+}
+
+.close-deal-head strong {
+    font-size: 17px;
+}
+
+.deal-emoji {
+    font-size: 25px;
+}
+
+.close-deal-head button {
+    width: 34px;
+    height: 34px;
+
+    border: 0;
+
+    background: transparent;
+
+    font-size: 22px;
+}
+
+
+.deal-mode-switch {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    padding: 12px 16px 0;
+
+    gap: 8px;
+}
+
+.deal-mode {
+    min-height: 36px;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 8px;
+
+    background: #fff;
+
+    color: var(--crm-muted);
+
+    font-weight: 600;
+}
+
+.deal-mode.active {
+    border-color: var(--crm-primary);
+
+    background: var(--crm-primary-soft);
+
+    color: var(--crm-primary-dark);
+}
+
+
+.deal-form {
+    padding: 16px;
+}
+
+.deal-form > label {
+    display: block;
+
+    margin-bottom: 15px;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 600;
+}
+
+.deal-form em {
+    color: var(--crm-danger);
+
+    font-style: normal;
+}
+
+.optional {
+    color: var(--crm-muted);
+
+    font-weight: 400;
+}
+
+.deal-form input,
+.deal-form select {
+    margin-top: 6px;
+}
+
+
+.money-field {
+    height: 40px;
+
+    display: flex;
+
+    align-items: center;
+
+    margin-top: 6px;
+
+    border: 1px solid var(--crm-border-strong);
+
+    border-radius: 8px;
+
+    overflow: hidden;
+}
+
+.money-field span {
+    height: 100%;
+
+    display: grid;
+    place-items: center;
+
+    padding: 0 12px;
+
+    background: #f8fafc;
+
+    color: var(--crm-muted);
+
+    border-right: 1px solid var(--crm-border);
+}
+
+.money-field input {
+    flex: 1;
+
+    min-width: 0;
+
+    height: 100%;
+
+    margin: 0;
+
+    padding: 0 10px;
+
+    border: 0;
+
+    outline: 0;
+}
+
+
+.deal-error {
+    min-height: 17px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+
+.deal-footer {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-top: 12px;
+}
+
+.won-button {
+    background: #059669;
+}
+
+.won-button:hover {
+    background: #047857;
+}
+
+.lost-button {
+    background: #dc2626;
+}
+
+.lost-button:hover {
+    background: #b91c1c;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width:768px) {
+
+    .pipeline-head {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .pipeline-head .crm-btn {
+        width: 100%;
+    }
+
+    .pipeline-filter {
+        grid-template-columns:
+            1fr;
+    }
+
+    .pipeline-board {
+        grid-template-columns: repeat(4, minmax(280px, 1fr));
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+    }
+
+    .pipeline-column {
+        min-width: 0;
+
+        margin-bottom: 0;
+    }
+
+    .column-body {
+        min-height: 280px;
+    }
+
+    .opportunity-card {
+        cursor: default;
+    }
+
+    .opportunity-drawer {
+        width: 100%;
+        visibility: hidden;
+}
+}
+
+
+@media (max-width:480px) {
+
+    .form-grid {
+        grid-template-columns:
+            1fr;
+    }
+}
+
+/* =========================================================
+   POINTER KANBAN DRAG
+========================================================= */
+
+.opportunity-card {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.opportunity-card:hover {
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 8px 20px
+        rgba(15,23,42,.08);
+}
+
+.opportunity-card::after {
+    content: "";
+    width: 14px;
+    height: 14px;
+    background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='1.8'%3E%3Cpath d='M8 5h1m6 0h1M8 12h1m6 0h1M8 19h1m6 0h1'/%3E%3C/svg%3E");
+
+    position: absolute;
+
+    left: 50%;
+    bottom: 3px;
+
+    transform:
+        translateX(-50%)
+        rotate(90deg);
+
+    color:
+        #cbd5e1;
+
+    font-size: 11px;
+
+    pointer-events:
+        none;
+}
+
+.pointer-drag-source {
+    opacity: .28 !important;
+
+    border:
+        1px dashed
+        #2563eb !important;
+}
+
+.pipeline-drag-ghost {
+    position: fixed !important;
+
+    z-index: 99999 !important;
+
+    margin: 0 !important;
+
+    opacity: .85 !important;
+
+    pointer-events: none !important;
+
+    transform: rotate(1deg) scale(1.02);
+
+    box-shadow:
+        0 20px 45px
+        rgba(15,23,42,.23)
+        !important;
+
+    border:
+        1px solid
+        #93c5fd
+        !important;
+
+    cursor:
+        grabbing !important;
+}
+
+.column-body.pointer-drop-active {
+    background: #eff6ff !important;
+
+    outline:
+        2px dashed
+        #3b82f6;
+
+    outline-offset:
+        -5px;
+}
+
+.pipeline-column:has(
+    .column-body.pointer-drop-active
+) {
+    border-color:
+        #60a5fa;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(37,99,235,.08);
+}
+
+
+@media (min-width:769px) {
+
+    .opportunity-card {
+        cursor:
+            grab;
+    }
+
+    .opportunity-card:active {
+        cursor:
+            grabbing;
+    }
+
+}
+
+
+@media (max-width:768px) {
+
+    /*
+     * Mobile vẫn ưu tiên nút chuyển stage
+     * để không làm hỏng thao tác scroll.
+     */
+
+    .opportunity-card {
+        touch-action:
+            pan-y;
+    }
+
+}

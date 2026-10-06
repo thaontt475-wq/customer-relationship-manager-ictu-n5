@@ -1,0 +1,921 @@
+"use strict";
+
+let sourceImage = null;
+
+let cropState = {
+    zoom: 1,
+    offsetX: 0,
+    offsetY: 0,
+    dragging: false,
+    startX: 0,
+    startY: 0,
+    originalX: 0,
+    originalY: 0
+};
+
+const fileInput =
+    document.getElementById("avatarFile");
+
+const canvas =
+    document.getElementById("cropCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const zoomInput =
+    document.getElementById("cropZoom");
+
+
+document
+    .getElementById("selectAvatar")
+    .addEventListener(
+        "click",
+        () => fileInput.click()
+    );
+
+
+fileInput.addEventListener(
+    "change",
+    () => {
+
+        const file =
+            fileInput.files[0];
+
+        const error =
+            document.getElementById(
+                "avatarError"
+            );
+
+        error.textContent = "";
+
+        if (!file) {
+            return;
+        }
+
+
+        if (
+            ![
+                "image/jpeg",
+                "image/png"
+            ].includes(file.type)
+        ) {
+
+            error.textContent =
+                "Định dạng ảnh không được hỗ trợ. Vui lòng chọn JPG hoặc PNG.";
+
+            fileInput.value = "";
+
+            return;
+        }
+
+
+        if (
+            file.size
+            >
+            2 * 1024 * 1024
+        ) {
+
+            error.textContent =
+                "Ảnh vượt quá 2MB. Vui lòng chọn ảnh có dung lượng nhỏ hơn.";
+
+            fileInput.value = "";
+
+            return;
+        }
+
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload =
+            event => {
+
+                const image =
+                    new Image();
+
+
+                image.onload =
+                    () => {
+
+                        sourceImage =
+                            image;
+
+                        cropState = {
+                            zoom: 1,
+                            offsetX: 0,
+                            offsetY: 0,
+                            dragging: false,
+                            startX: 0,
+                            startY: 0,
+                            originalX: 0,
+                            originalY: 0
+                        };
+
+                        zoomInput.value =
+                            "1";
+
+                        document
+                            .getElementById(
+                                "cropArea"
+                            )
+                            .hidden =
+                                false;
+
+                        drawCrop();
+
+                    };
+
+
+                image.src =
+                    event.target.result;
+
+            };
+
+
+        reader.readAsDataURL(
+            file
+        );
+
+    }
+);
+
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+zoomInput.addEventListener(
+    "input",
+    () => {
+
+        cropState.zoom =
+            Number(
+                zoomInput.value
+            );
+
+        drawCrop();
+
+    }
+);
+
+
+/* =========================================================
+   FACEBOOK-LIKE DRAG
+========================================================= */
+
+canvas.addEventListener(
+    "pointerdown",
+    event => {
+
+        if (!sourceImage) {
+            return;
+        }
+
+        cropState.dragging =
+            true;
+
+        cropState.startX =
+            event.clientX;
+
+        cropState.startY =
+            event.clientY;
+
+        cropState.originalX =
+            cropState.offsetX;
+
+        cropState.originalY =
+            cropState.offsetY;
+
+        canvas.setPointerCapture?.(
+            event.pointerId
+        );
+
+        canvas.classList.add(
+            "dragging"
+        );
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointermove",
+    event => {
+
+        if (
+            !sourceImage
+            ||
+            !cropState.dragging
+        ) {
+            return;
+        }
+
+
+        const rect =
+            canvas.getBoundingClientRect();
+
+
+        const scaleX =
+            canvas.width
+            /
+            rect.width;
+
+        const scaleY =
+            canvas.height
+            /
+            rect.height;
+
+
+        cropState.offsetX =
+            cropState.originalX
+            +
+            (
+                event.clientX
+                -
+                cropState.startX
+            )
+            *
+            scaleX;
+
+
+        cropState.offsetY =
+            cropState.originalY
+            +
+            (
+                event.clientY
+                -
+                cropState.startY
+            )
+            *
+            scaleY;
+
+
+        constrainOffset();
+
+        drawCrop();
+
+    }
+);
+
+
+canvas.addEventListener(
+    "pointerup",
+    stopDragging
+);
+
+
+canvas.addEventListener(
+    "pointercancel",
+    stopDragging
+);
+
+
+function stopDragging() {
+
+    cropState.dragging =
+        false;
+
+    canvas.classList.remove(
+        "dragging"
+    );
+
+}
+
+
+/* =========================================================
+   DRAW CROP PREVIEW
+========================================================= */
+
+function drawCrop() {
+
+    if (!sourceImage) {
+        return;
+    }
+
+
+    const size =
+        canvas.width;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        size,
+        size
+    );
+
+
+    const transform =
+        calculateTransform(
+            size
+        );
+
+
+    ctx.drawImage(
+        sourceImage,
+        transform.x,
+        transform.y,
+        transform.width,
+        transform.height
+    );
+
+
+    /*
+     * Facebook-style dark area outside circle
+     */
+    ctx.save();
+
+    ctx.fillStyle =
+        "rgba(15, 23, 42, .58)";
+
+    ctx.beginPath();
+
+    ctx.rect(
+        0,
+        0,
+        size,
+        size
+    );
+
+    ctx.arc(
+        size / 2,
+        size / 2,
+        size * .405,
+        0,
+        Math.PI * 2,
+        true
+    );
+
+    ctx.fill(
+        "evenodd"
+    );
+
+
+    /*
+     * White crop border
+     */
+    ctx.beginPath();
+
+    ctx.arc(
+        size / 2,
+        size / 2,
+        size * .405,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,.95)";
+
+    ctx.lineWidth =
+        3;
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   CREATE REAL SQUARE CROP
+========================================================= */
+
+document
+    .getElementById(
+        "applyAvatar"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            if (!sourceImage) {
+                return;
+            }
+
+
+            const outputSize =
+                512;
+
+
+            const output =
+                document.createElement(
+                    "canvas"
+                );
+
+
+            output.width =
+                outputSize;
+
+            output.height =
+                outputSize;
+
+
+            const outputContext =
+                output.getContext(
+                    "2d"
+                );
+
+
+            const cropRadius =
+                canvas.width
+                *
+                .405;
+
+
+            const cropDiameter =
+                cropRadius
+                *
+                2;
+
+
+            /*
+             * We export exactly the area inside
+             * the circle as a square image.
+             */
+            const previewTransform =
+                calculateTransform(
+                    canvas.width
+                );
+
+
+            const scale =
+                outputSize
+                /
+                cropDiameter;
+
+
+            outputContext.drawImage(
+                sourceImage,
+
+                (
+                    previewTransform.x
+                    -
+                    (
+                        canvas.width
+                        -
+                        cropDiameter
+                    )
+                    /
+                    2
+                )
+                *
+                scale,
+
+                (
+                    previewTransform.y
+                    -
+                    (
+                        canvas.height
+                        -
+                        cropDiameter
+                    )
+                    /
+                    2
+                )
+                *
+                scale,
+
+                previewTransform.width
+                *
+                scale,
+
+                previewTransform.height
+                *
+                scale
+            );
+
+
+            const avatarData =
+                output.toDataURL(
+                    "image/jpeg",
+                    .9
+                );
+
+
+            const profileAvatar =
+                document.getElementById(
+                    "profileAvatarImage"
+                );
+
+
+            profileAvatar.src =
+                avatarData;
+
+            profileAvatar.hidden =
+                false;
+
+
+            document
+                .getElementById(
+                    "profileAvatarEmpty"
+                )
+                .hidden =
+                    true;
+
+
+            const thumbnail =
+                document.getElementById(
+                    "avatarThumbnail"
+                );
+
+
+            thumbnail.src =
+                avatarData;
+
+
+            document
+                .getElementById(
+                    "thumbnailSection"
+                )
+                .hidden =
+                    false;
+
+
+            localStorage.setItem(
+                "crm_ui_profile_avatar",
+                avatarData
+            );
+
+            window.crmUpdateGlobalAvatar?.();
+
+        }
+    );
+
+
+function calculateTransform(
+    size
+) {
+
+    const baseScale =
+        Math.max(
+            size
+            /
+            sourceImage.width,
+
+            size
+            /
+            sourceImage.height
+        );
+
+
+    const scale =
+        baseScale
+        *
+        cropState.zoom;
+
+
+    const width =
+        sourceImage.width
+        *
+        scale;
+
+
+    const height =
+        sourceImage.height
+        *
+        scale;
+
+
+    return {
+        width,
+        height,
+
+        x:
+            (
+                size
+                -
+                width
+            )
+            /
+            2
+            +
+            cropState.offsetX,
+
+        y:
+            (
+                size
+                -
+                height
+            )
+            /
+            2
+            +
+            cropState.offsetY
+    };
+
+}
+
+
+function constrainOffset() {
+
+    if (!sourceImage) {
+        return;
+    }
+
+
+    const transform =
+        calculateTransform(
+            canvas.width
+        );
+
+
+    const radius =
+        canvas.width
+        *
+        .405;
+
+
+    const minVisible =
+        radius
+        *
+        2;
+
+
+    const maxX =
+        Math.max(
+            0,
+            (
+                transform.width
+                -
+                minVisible
+            )
+            /
+            2
+        );
+
+
+    const maxY =
+        Math.max(
+            0,
+            (
+                transform.height
+                -
+                minVisible
+            )
+            /
+            2
+        );
+
+
+    cropState.offsetX =
+        Math.max(
+            -maxX,
+            Math.min(
+                maxX,
+                cropState.offsetX
+            )
+        );
+
+
+    cropState.offsetY =
+        Math.max(
+            -maxY,
+            Math.min(
+                maxY,
+                cropState.offsetY
+            )
+        );
+
+}
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+document
+    .getElementById(
+        "profileForm"
+    )
+    .addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const phone =
+                value(
+                    "profilePhone"
+                );
+
+
+            const error =
+                document.getElementById(
+                    "phoneError"
+                );
+
+
+            error.textContent = "";
+
+
+            if (
+                phone
+                &&
+                !isVietnamPhone(
+                    phone
+                )
+            ) {
+
+                error.textContent =
+                    "Số điện thoại không hợp lệ. Ví dụ: 0912345678 hoặc +84912345678.";
+
+                return;
+            }
+
+
+            const profile = {
+
+                name:
+                    value(
+                        "profileName"
+                    ),
+
+                phone,
+
+                signature:
+                    value(
+                        "profileSignature"
+                    )
+
+            };
+
+
+            localStorage.setItem(
+                "crm_ui_profile",
+                JSON.stringify(
+                    profile
+                )
+            );
+
+
+            document
+                .getElementById(
+                    "profileMessage"
+                )
+                .textContent =
+                    "Đã lưu thay đổi.";
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "resetProfile"
+    )
+    .addEventListener(
+        "click",
+        loadProfile
+    );
+
+
+function isVietnamPhone(
+    input
+) {
+
+    /*
+     * Cho phép người dùng gõ:
+     * 0912345678
+     * +84912345678
+     * 0912 345 678
+     * 0912-345-678
+     */
+
+    const phone =
+        String(input)
+            .replace(
+                /[\s.\-()]/g,
+                ""
+            );
+
+
+    return (
+        /^0(3|5|7|8|9)\d{8}$/
+            .test(phone)
+
+        ||
+
+        /^\+84(3|5|7|8|9)\d{8}$/
+            .test(phone)
+    );
+
+}
+
+
+function loadProfile() {
+
+    try {
+
+        const profile =
+            JSON.parse(
+                localStorage.getItem(
+                    "crm_ui_profile"
+                )
+            )
+            ||
+            {};
+
+
+        setValue(
+            "profileName",
+            profile.name
+        );
+
+
+        setValue(
+            "profilePhone",
+            profile.phone
+        );
+
+
+        setValue(
+            "profileSignature",
+            profile.signature
+        );
+
+    } catch {}
+
+
+    const avatar =
+        localStorage.getItem(
+            "crm_ui_profile_avatar"
+        );
+
+
+    if (avatar) {
+
+        const image =
+            document.getElementById(
+                "profileAvatarImage"
+            );
+
+
+        image.src =
+            avatar;
+
+        image.hidden =
+            false;
+
+
+        document
+            .getElementById(
+                "profileAvatarEmpty"
+            )
+            .hidden =
+                true;
+
+
+        document
+            .getElementById(
+                "avatarThumbnail"
+            )
+            .src =
+                avatar;
+
+
+        document
+            .getElementById(
+                "thumbnailSection"
+            )
+            .hidden =
+                false;
+
+    }
+
+
+    document
+        .getElementById(
+            "profileMessage"
+        )
+        .textContent = "";
+
+}
+
+
+function value(id) {
+
+    return document
+        .getElementById(id)
+        .value
+        .trim();
+
+}
+
+
+function setValue(
+    id,
+    value
+) {
+
+    document
+        .getElementById(id)
+        .value =
+            value || "";
+
+}
+
+
+loadProfile();

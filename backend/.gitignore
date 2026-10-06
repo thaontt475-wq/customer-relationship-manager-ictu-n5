@@ -1,9 +1,0 @@
-# Build output relative to backend/.gitignore
-/target/
-
-# Local files within backend/
-*.class
-*.war
-.env
-.idea/
-.vscode/

@@ -1,68 +1,125 @@
 package com.crm.dao.teams;
 
-import com.crm.model.Team;
+import com.crm.config.DatabaseConfig;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.*;
+import java.util.*;
 
 public class TeamDAO {
 
-    public List<Team> findAll(Connection conn) throws SQLException {
-        String sql = "SELECT id, name FROM teams WHERE active = TRUE ORDER BY name";
-        List<Team> teams = new ArrayList<>();
+    public List<Map<String, Object>> findAll(
+            String keyword,
+            Boolean active
+    ) throws SQLException {
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        StringBuilder sql =
+                new StringBuilder("""
+                SELECT id, name, active
+                FROM teams
+                WHERE 1 = 1
+                """);
 
-            while (rs.next()) {
-                teams.add(new Team(
-                        rs.getLong("id"),
-                        rs.getString("name")
-                ));
-            }
+        List<Object> params =
+                new ArrayList<>();
+
+        if (
+                keyword != null &&
+                !keyword.isBlank()
+        ) {
+            sql.append(
+                    " AND LOWER(name) LIKE ?"
+            );
+
+            params.add(
+                    "%" +
+                    keyword.trim().toLowerCase() +
+                    "%"
+            );
         }
 
-        return teams;
-    }
+        if (active != null) {
+            sql.append(
+                    " AND active = ?"
+            );
+            params.add(active);
+        }
 
-    public Team findById(Connection conn, long teamId) throws SQLException {
-        String sql = "SELECT id, name FROM teams WHERE id = ? AND active = TRUE";
+        sql.append(" ORDER BY name");
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, teamId);
+        List<Map<String, Object>> result =
+                new ArrayList<>();
 
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Team(
-                            rs.getLong("id"),
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                sql.toString()
+                        )
+        ) {
+
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(
+                        i + 1,
+                        params.get(i)
+                );
+            }
+
+            try (ResultSet rs = statement.executeQuery()) {
+
+                while (rs.next()) {
+
+                    Map<String, Object> team =
+                            new LinkedHashMap<>();
+
+                    team.put(
+                            "id",
+                            rs.getLong("id")
+                    );
+
+                    team.put(
+                            "name",
                             rs.getString("name")
                     );
+
+                    team.put(
+                            "active",
+                            rs.getBoolean("active")
+                    );
+
+                    result.add(team);
                 }
             }
         }
 
-        return null;
+        return result;
     }
 
-    public int assignUserToTeam(
-            Connection conn,
-            long userId,
-            long teamId) throws SQLException {
+    public boolean existsActive(
+            long id
+    ) throws SQLException {
 
-        String sql = "UPDATE users u "
-                + "LEFT JOIN teams managed ON managed.leader_user_id = u.id "
-                + "SET u.team_id = ? "
-                + "WHERE u.id = ? AND (managed.id IS NULL OR managed.id = ?)";
+        String sql = """
+                SELECT 1
+                FROM teams
+                WHERE id = ?
+                  AND active = TRUE
+                """;
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setLong(1, teamId);
-            stmt.setLong(2, userId);
-            stmt.setLong(3, teamId);
-            return stmt.executeUpdate();
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setLong(1, id);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                return rs.next();
+            }
         }
     }
 }

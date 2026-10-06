@@ -2,29 +2,39 @@ package com.crm.util;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-public class PasswordUtil {
-    private static final int COST = 12;
+public final class PasswordUtil {
 
-    public static String hashPassword(String password) {
-        return BCrypt.hashpw(password, BCrypt.gensalt(COST));
+    private PasswordUtil() {
     }
 
-    public static boolean verifyPassword(String plain, String hash) {
-        if (hash == null || hash.isEmpty()) return false;
-        return BCrypt.checkpw(plain, hash);
+    public static String hash(
+            String password
+    ) {
+        return BCrypt.hashpw(
+                password,
+                BCrypt.gensalt(12)
+        );
     }
 
-    /**
-     * Validate password policy:
-     * - 8 to 72 characters
-     * - at least one letter
-     * - at least one digit
-     */
-    public static boolean isValidPassword(String password) {
-        if (password == null) return false;
-        if (password.length() < 8 || password.length() > 72) return false;
-        boolean hasLetter = password.matches(".*[A-Za-z].*");
-        boolean hasDigit = password.matches(".*\\d.*");
-        return hasLetter && hasDigit;
+    public static boolean matches(
+            String password,
+            String passwordHash
+    ) {
+
+        if (
+                password == null ||
+                passwordHash == null
+        ) {
+            return false;
+        }
+
+        try {
+            return BCrypt.checkpw(
+                    password,
+                    passwordHash
+            );
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

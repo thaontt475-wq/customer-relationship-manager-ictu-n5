@@ -1,0 +1,599 @@
+"use strict";
+
+let parsedRows = [];
+
+
+const fileInput =
+    document.getElementById(
+        "importFile"
+    );
+
+const dropArea =
+    document.getElementById(
+        "dropArea"
+    );
+
+
+document
+    .getElementById(
+        "downloadTemplate"
+    )
+    .addEventListener(
+        "click",
+        downloadTemplate
+    );
+
+
+document
+    .getElementById(
+        "chooseImportFile"
+    )
+    .addEventListener(
+        "click",
+        () => fileInput.click()
+    );
+
+
+fileInput.addEventListener(
+    "change",
+    () => {
+
+        const file =
+            fileInput.files[0];
+
+        if (file) {
+            handleFile(file);
+        }
+
+    }
+);
+
+
+[
+    "dragenter",
+    "dragover"
+]
+.forEach(
+    type => {
+
+        dropArea.addEventListener(
+            type,
+            event => {
+
+                event.preventDefault();
+
+                dropArea.classList.add(
+                    "drag"
+                );
+            }
+        );
+
+    }
+);
+
+
+[
+    "dragleave",
+    "drop"
+]
+.forEach(
+    type => {
+
+        dropArea.addEventListener(
+            type,
+            event => {
+
+                event.preventDefault();
+
+                dropArea.classList.remove(
+                    "drag"
+                );
+            }
+        );
+
+    }
+);
+
+
+dropArea.addEventListener(
+    "drop",
+    event => {
+
+        const file =
+            event.dataTransfer
+                .files[0];
+
+        if (file) {
+            handleFile(file);
+        }
+
+    }
+);
+
+
+document
+    .getElementById(
+        "confirmImport"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const valid =
+                parsedRows.filter(
+                    row => row.valid
+                );
+
+
+            const invalid =
+                parsedRows.length
+                -
+                valid.length;
+
+
+            document
+                .getElementById(
+                    "importResult"
+                )
+                .textContent =
+                    `Hoàn tất mô phỏng FE: ${valid.length} dòng hợp lệ, ${invalid} dòng lỗi bị bỏ qua.`;
+
+        }
+    );
+
+
+function downloadTemplate() {
+
+    /*
+     * HTML table dạng .xls:
+     * Excel có thể mở trực tiếp.
+     */
+    const content = `
+        <html>
+        <head>
+            <meta charset="UTF-8">
+        </head>
+        <body>
+        <table>
+            <tr>
+                <th>HoTen</th>
+                <th>Email</th>
+                <th>VaiTro</th>
+                <th>Nhom</th>
+            </tr>
+        </table>
+        </body>
+        </html>
+    `;
+
+
+    const blob =
+        new Blob(
+            [content],
+            {
+                type:
+                    "application/vnd.ms-excel;charset=utf-8"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const link =
+        document.createElement(
+            "a"
+        );
+
+
+    link.href =
+        url;
+
+    link.download =
+        "CRM_Mau_Nhap_Nguoi_Dung.xls";
+
+
+    link.click();
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+}
+
+
+function handleFile(file) {
+
+    const info =
+        document.getElementById(
+            "selectedFileInfo"
+        );
+
+
+    info.hidden = false;
+
+    info.textContent =
+        `${file.name} · ${(file.size / 1024).toFixed(1)} KB`;
+
+
+    const extension =
+        file.name
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+
+    if (
+        extension === "xlsx"
+    ) {
+
+        /*
+         * Không dùng thư viện ngoài trong phase UI.
+         */
+        parsedRows = [];
+
+        showPreview([]);
+
+        document.getElementById(
+            "importResult"
+        ).textContent =
+            "Đã nhận file XLSX. Việc đọc nội dung XLSX sẽ được nối ở phase tích hợp; file .xls mẫu hoặc CSV có thể preview trực tiếp ngay trên FE.";
+
+        return;
+    }
+
+
+    const reader =
+        new FileReader();
+
+
+    reader.onload =
+        event => {
+
+            const text =
+                event.target.result;
+
+
+            if (
+                extension === "csv"
+            ) {
+
+                parseCsv(text);
+
+            } else {
+
+                parseExcelHtml(
+                    text
+                );
+            }
+
+        };
+
+
+    reader.readAsText(
+        file,
+        "UTF-8"
+    );
+
+}
+
+
+function parseCsv(text) {
+
+    const rows =
+        text
+            .split(/\r?\n/)
+            .filter(
+                line =>
+                    line.trim()
+            );
+
+
+    if (
+        rows.length < 2
+    ) {
+
+        parsedRows = [];
+
+        showPreview([]);
+
+        return;
+    }
+
+
+    parsedRows =
+        rows
+            .slice(1)
+            .map(
+                (
+                    line,
+                    index
+                ) => {
+
+                    const cells =
+                        line
+                            .split(",")
+                            .map(
+                                item =>
+                                    item.trim()
+                            );
+
+
+                    return validateRow(
+                        {
+                            name:
+                                cells[0]
+                                || "",
+
+                            email:
+                                cells[1]
+                                || "",
+
+                            role:
+                                cells[2]
+                                || "",
+
+                            team:
+                                cells[3]
+                                || ""
+                        },
+
+                        index + 2
+                    );
+                }
+            );
+
+
+    showPreview(
+        parsedRows
+    );
+
+}
+
+
+function parseExcelHtml(text) {
+
+    const doc =
+        new DOMParser()
+            .parseFromString(
+                text,
+                "text/html"
+            );
+
+
+    const tableRows =
+        Array.from(
+            doc.querySelectorAll(
+                "table tr"
+            )
+        );
+
+
+    parsedRows =
+        tableRows
+            .slice(1)
+            .map(
+                (
+                    row,
+                    index
+                ) => {
+
+                    const cells =
+                        Array.from(
+                            row.querySelectorAll(
+                                "td,th"
+                            )
+                        )
+                        .map(
+                            cell =>
+                                cell.textContent
+                                    .trim()
+                        );
+
+
+                    return validateRow(
+                        {
+                            name:
+                                cells[0]
+                                || "",
+
+                            email:
+                                cells[1]
+                                || "",
+
+                            role:
+                                cells[2]
+                                || "",
+
+                            team:
+                                cells[3]
+                                || ""
+                        },
+
+                        index + 2
+                    );
+                }
+            );
+
+
+    showPreview(
+        parsedRows
+    );
+
+}
+
+
+function validateRow(
+    row,
+    line
+) {
+
+    const errors = [];
+
+
+    if (!row.name) {
+        errors.push(
+            "Thiếu họ tên"
+        );
+    }
+
+
+    if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            .test(
+                row.email
+            )
+    ) {
+
+        errors.push(
+            "Email không hợp lệ"
+        );
+    }
+
+
+    if (!row.role) {
+        errors.push(
+            "Thiếu vai trò"
+        );
+    }
+
+
+    if (
+        row.role
+            .toLowerCase()
+            .includes(
+                "trưởng nhóm"
+            )
+        &&
+        !row.team
+    ) {
+
+        errors.push(
+            "Trưởng nhóm thiếu nhóm"
+        );
+    }
+
+
+    return {
+        ...row,
+        line,
+        valid:
+            errors.length === 0,
+        errors
+    };
+
+}
+
+
+function showPreview(rows) {
+
+    const section =
+        document.getElementById(
+            "previewSection"
+        );
+
+
+    const body =
+        document.getElementById(
+            "previewBody"
+        );
+
+
+    section.hidden =
+        false;
+
+
+    body.innerHTML = "";
+
+
+    let validCount = 0;
+
+
+    for (const row of rows) {
+
+        if (
+            row.valid
+        ) {
+            validCount++;
+        }
+
+
+        const tr =
+            document.createElement(
+                "tr"
+            );
+
+
+        tr.innerHTML = `
+            <td>
+                ${row.line}
+            </td>
+
+            <td>
+                ${escapeHtml(row.name)}
+            </td>
+
+            <td>
+                ${escapeHtml(row.email)}
+            </td>
+
+            <td>
+                ${escapeHtml(row.role)}
+            </td>
+
+            <td>
+                ${escapeHtml(row.team)}
+            </td>
+
+            <td>
+
+                ${
+                    row.valid
+                    ?
+                    `
+                    <span class="import-valid">
+                        Hợp lệ
+                    </span>
+                    `
+                    :
+                    `
+                    <span class="import-invalid">
+                        ${escapeHtml(row.errors.join(", "))}
+                    </span>
+                    `
+                }
+
+            </td>
+        `;
+
+
+        body.appendChild(
+            tr
+        );
+    }
+
+
+    document
+        .getElementById(
+            "previewSummary"
+        )
+        .textContent =
+            `${rows.length} dòng · ${validCount} hợp lệ · ${rows.length - validCount} lỗi`;
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}

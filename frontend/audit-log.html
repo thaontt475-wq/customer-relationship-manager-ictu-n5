@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Audit Log</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/audit-log.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Quản trị
+        </div>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="import-users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg></span>
+            <span class="crm-nav-label">Nhập Excel</span>
+        </a>
+
+        <a href="audit-log.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg></span>
+            <span class="crm-nav-label">Audit Log</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main audit-page">
+
+    <section class="audit-head">
+
+        <p>
+            Quản trị / Audit Log
+        </p>
+
+        <h1>
+            Nhật ký thay đổi
+        </h1>
+
+        <span>
+            Theo dõi thay đổi trên dữ liệu nhạy cảm.
+        </span>
+
+    </section>
+
+
+    <section class="crm-card audit-filter">
+
+        <input
+            id="auditUser"
+            class="crm-input"
+            type="search"
+            placeholder="Người thực hiện"
+        >
+
+
+        <select
+            id="auditObject"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả loại đối tượng
+            </option>
+
+            <option>
+                Chiết khấu
+            </option>
+
+            <option>
+                Chỉ tiêu
+            </option>
+
+            <option>
+                Quyền sở hữu
+            </option>
+
+            <option>
+                Vai trò người dùng
+            </option>
+        </select>
+
+
+        <input
+            id="auditFrom"
+            class="crm-input"
+            type="date"
+        >
+
+
+        <input
+            id="auditTo"
+            class="crm-input"
+            type="date"
+        >
+
+
+        <button
+            id="clearAudit"
+            class="crm-btn crm-btn-secondary"
+            type="button"
+        >
+            Đặt lại
+        </button>
+
+    </section>
+
+
+    <section class="crm-card audit-table-card">
+
+        <div class="audit-table-scroll">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Thời điểm</th>
+                    <th>Người thực hiện</th>
+                    <th>Đối tượng</th>
+                    <th>Trường thay đổi</th>
+                    <th>Giá trị trước</th>
+                    <th>Giá trị sau</th>
+                </tr>
+                </thead>
+
+                <tbody id="auditBody"></tbody>
+
+            </table>
+
+        </div>
+
+
+        <div
+            id="auditEmpty"
+            class="audit-empty"
+        >
+
+            <div>
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg>
+            </div>
+
+            <strong>
+                Chưa có dữ liệu Audit
+            </strong>
+
+            <span>
+                Log thật sẽ xuất hiện khi nối backend.
+            </span>
+
+        </div>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+
+
+
+<script src="js/pages/audit-log.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>
