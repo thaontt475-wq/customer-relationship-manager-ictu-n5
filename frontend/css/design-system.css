@@ -1,0 +1,199 @@
+:root {
+    --crm-primary: #2563eb;
+    --crm-primary-dark: #1d4ed8;
+    --crm-primary-soft: #eff6ff;
+    --crm-primary-active: #1e40af;
+    --crm-purple: #7c3aed;
+    --crm-cyan: #0891b2;
+    --crm-ease: cubic-bezier(.2,.8,.2,1);
+
+    --crm-bg: #f6f8fc;
+    --crm-surface: #ffffff;
+    --crm-surface-soft: #f8fafc;
+
+    --crm-border: #e2e8f0;
+    --crm-border-strong: #cbd5e1;
+
+    --crm-text: #0f172a;
+    --crm-text-2: #475569;
+    --crm-muted: #64748b;
+    --crm-muted-2: #94a3b8;
+
+    --crm-success: #16a34a;
+    --crm-warning: #d97706;
+    --crm-danger: #dc2626;
+
+    --crm-sidebar: 250px;
+
+    --crm-header: 64px;
+    --crm-mobile-header: 56px;
+    --crm-bottom-nav: 64px;
+
+    --crm-radius-sm: 8px;
+    --crm-radius-md: 12px;
+    --crm-radius-lg: 16px;
+
+    --crm-shadow-sm:
+        0 4px 14px rgba(15,23,42,.04);
+
+    --crm-shadow:
+        0 10px 28px rgba(15,23,42,.08);
+
+    --crm-transition: 220ms ease;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    color: var(--crm-text);
+    background: var(--crm-bg);
+
+    -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+a {
+    color: inherit;
+}
+
+.crm-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow-sm);
+
+    min-width: 0;
+}
+
+.crm-btn {
+    min-height: 38px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 0 14px;
+
+    border-radius: var(--crm-radius-sm);
+    border: 1px solid transparent;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 150ms var(--crm-ease);
+
+    text-decoration: none;
+
+    flex-shrink: 0;
+}
+
+.crm-btn-primary {
+    background: var(--crm-primary);
+    color: #fff;
+}
+
+
+
+.crm-btn-secondary {
+    background: #fff;
+    color: var(--crm-text-2);
+    border-color: var(--crm-border);
+}
+
+
+
+.crm-input {
+    width: 100%;
+    min-height: 40px;
+
+    padding: 0 12px;
+
+    border: 1px solid var(--crm-border-strong);
+    border-radius: var(--crm-radius-sm);
+
+    outline: none;
+
+    background: #fff;
+    color: var(--crm-text);
+
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+
+    min-width: 0;
+
+    font-size: 14px;
+}
+
+.crm-input:focus {
+    border-color: var(--crm-primary);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+/* Intrinsic sizing keeps grids and forms inside their available content region. */
+
+
+
+button:focus-visible, a:focus-visible { outline: 2px solid var(--crm-primary); outline-offset: 3px; }
+
+.crm-btn:active:not(:disabled) { transform: scale(.97); }
+.crm-btn-primary:active:not(:disabled) { background: var(--crm-primary-active); }
+.crm-btn:disabled, button:disabled { cursor: not-allowed; opacity: .55; }
+.crm-btn-primary:focus-visible { outline-offset: 3px; }
+textarea:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--crm-primary); outline-offset: 2px; }
+input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color: var(--crm-primary); }
+@media (hover: hover) and (pointer: fine) {
+    .crm-btn-primary:hover:not(:active):not(:disabled) { background: var(--crm-primary-dark); box-shadow: 0 6px 16px rgba(37,99,235,.20); transform: translateY(-1px); }
+    .crm-btn-secondary:hover:not(:active):not(:disabled) { background: var(--crm-surface-soft); border-color: #bfdbfe; transform: translateY(-1px); }
+    .crm-input:hover:not(:focus):not(:disabled), textarea:hover:not(:focus):not(:disabled) { border-color: #94a3b8; }
+}
+
+.crm-toast-region { position: fixed; top: calc(var(--crm-header) + 16px); right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; width: min(360px, calc(100vw - 32px)); pointer-events: none; }
+.crm-toast { --crm-toast-color: var(--crm-primary); position: relative; display: flex; align-items: center; gap: 12px; padding: 12px; overflow: hidden; border: 1px solid var(--crm-border); border-radius: 12px; background: var(--crm-surface); color: var(--crm-text); box-shadow: var(--crm-shadow); pointer-events: auto; }
+.crm-toast-success { --crm-toast-color: var(--crm-success); }
+.crm-toast-error { --crm-toast-color: var(--crm-danger); }
+.crm-toast-warning { --crm-toast-color: var(--crm-warning); }
+.crm-toast-icon { flex: 0 0 20px; color: var(--crm-toast-color); }
+.crm-toast-copy { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 13px; }
+.crm-toast-icon svg, .crm-toast-close svg { display: block; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.crm-toast-close { flex: 0 0 40px; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--crm-muted); }
+.crm-toast-close:hover { background: var(--crm-surface-soft); }
+.crm-toast-progress { position: absolute; inset: auto 0 0; height: 2px; background: var(--crm-toast-color); opacity: .5; transform-origin: left; }
+@media (max-width: 768px) {
+    .crm-btn { min-height: 40px; }
+    button[aria-label]:not(.crm-btn) { position: relative; }
+    button[aria-label]:not(.crm-btn)::before { content: ""; position: absolute; inset: 50% auto auto 50%; width: max(100%, 40px); height: max(100%, 40px); transform: translate(-50%, -50%); }
+    .crm-toast-region { top: calc(var(--crm-mobile-header) + 12px); right: 16px; }
+}
+
+.crm-inline-icon { display: inline-block; width: 20px; height: 20px; flex-shrink: 0; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.crm-nav-icon .crm-inline-icon, .crm-bottom-item .crm-inline-icon { display: block; }
+.crm-user-arrow .crm-inline-icon { width: 16px; height: 16px; }

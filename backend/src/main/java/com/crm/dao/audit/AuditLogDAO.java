@@ -1,153 +1,380 @@
 package com.crm.dao.audit;
 
-import com.crm.model.AuditLog;
-import com.crm.model.AuditLogFilter;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonParser;
+import com.crm.config.DatabaseConfig;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.*;
+import java.util.*;
 
-/**
- * JDBC data access for immutable CRM-37 audit log records.
- */
 public class AuditLogDAO {
 
-    public long insert(Connection conn, AuditLog auditLog) throws SQLException {
-        String sql = "INSERT INTO audit_logs "
-                + "(actor_user_id, action, object_type, object_id, before_value, after_value) "
-                + "VALUES (?, ?, ?, ?, ?, ?)";
+    public void insert(
+            Long userId,
+            String entity,
+            String entityId,
+            String action,
+            String description
+    ) throws SQLException {
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setLong(1, auditLog.getActorUserId());
-            stmt.setString(2, auditLog.getAction());
-            stmt.setString(3, auditLog.getObjectType());
-            stmt.setLong(4, auditLog.getObjectId());
-            stmt.setString(5, toJson(auditLog.getBeforeValue()));
-            stmt.setString(6, toJson(auditLog.getAfterValue()));
-
-            int affected = stmt.executeUpdate();
-            if (affected != 1) {
-                throw new SQLException("Audit log insert affected " + affected + " rows");
-            }
-            try (ResultSet keys = stmt.getGeneratedKeys()) {
-                if (keys.next()) {
-                    long id = keys.getLong(1);
-                    auditLog.setId(id);
-                    return id;
-                }
-            }
-        }
-        throw new SQLException("Audit log insert did not return a generated ID");
-    }
-
-    public List<AuditLog> find(Connection conn, AuditLogFilter filter) throws SQLException {
-        StringBuilder sql = new StringBuilder(
-                "SELECT id, actor_user_id, action, object_type, object_id, "
-                        + "before_value, after_value, created_at FROM audit_logs WHERE 1 = 1"
+        insert(
+                userId,
+                entity,
+                entityId,
+                action,
+                description,
+                null,
+                null
         );
-        List<Object> parameters = new ArrayList<>();
-        appendConditions(sql, parameters, filter);
-
-        sql.append(" ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?");
-        parameters.add(filter.getLimit());
-        parameters.add(filter.getOffset());
-
-        List<AuditLog> results = new ArrayList<>();
-        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-            bind(stmt, parameters);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    results.add(mapRow(rs));
-                }
-            }
-        }
-        return results;
     }
 
-    public int count(Connection conn, AuditLogFilter filter) throws SQLException {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM audit_logs WHERE 1 = 1");
-        List<Object> parameters = new ArrayList<>();
-        appendConditions(sql, parameters, filter);
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-            bind(stmt, parameters);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
-            }
-        }
-        return 0;
-    }
+    public void insert(
+            Long userId,
+            String entity,
+            String entityId,
+            String action,
+            String description,
+            String beforeValue,
+            String afterValue
+    ) throws SQLException {
 
-    private void appendConditions(StringBuilder sql, List<Object> parameters, AuditLogFilter filter) {
-        if (filter.getUserId() != null) {
-            sql.append(" AND actor_user_id = ?");
-            parameters.add(filter.getUserId());
-        }
-        if (filter.getAction() != null) {
-            sql.append(" AND action = ?");
-            parameters.add(filter.getAction());
-        }
-        if (filter.getObjectType() != null) {
-            sql.append(" AND object_type = ?");
-            parameters.add(filter.getObjectType());
-        }
-        if (filter.getObjectId() != null) {
-            sql.append(" AND object_id = ?");
-            parameters.add(filter.getObjectId());
-        }
-        if (filter.getFrom() != null) {
-            sql.append(" AND created_at >= ?");
-            parameters.add(filter.getFrom());
-        }
-        if (filter.getTo() != null) {
-            sql.append(" AND created_at <= ?");
-            parameters.add(filter.getTo());
-        }
-    }
+        String sql = """
+                INSERT INTO audit_logs(
+                    user_id,
+                    entity_type,
+                    entity_id,
+                    action,
+                    description,
+                    before_value,
+                    after_value
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
 
-    private void bind(PreparedStatement stmt, List<Object> parameters) throws SQLException {
-        for (int i = 0; i < parameters.size(); i++) {
-            Object value = parameters.get(i);
-            int index = i + 1;
-            if (value instanceof Long number) {
-                stmt.setLong(index, number);
-            } else if (value instanceof Integer number) {
-                stmt.setInt(index, number);
-            } else if (value instanceof Timestamp timestamp) {
-                stmt.setTimestamp(index, timestamp);
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            if (userId == null) {
+                statement.setNull(
+                        1,
+                        Types.BIGINT
+                );
             } else {
-                stmt.setString(index, String.valueOf(value));
+                statement.setLong(
+                        1,
+                        userId
+                );
+            }
+
+            statement.setString(2, entity);
+            statement.setString(3, entityId);
+            statement.setString(4, action);
+            statement.setString(5, description);
+            statement.setString(6, beforeValue);
+            statement.setString(7, afterValue);
+
+            statement.executeUpdate();
+        }
+    }
+
+
+    public List<Map<String, Object>> search(
+            String entity,
+            String action,
+            Long userId,
+            String from,
+            String to,
+            int page,
+            int size
+    ) throws SQLException {
+
+        StringBuilder sql =
+                new StringBuilder("""
+                SELECT
+                    a.id,
+                    a.user_id,
+                    u.full_name AS user_name,
+                    a.entity_type,
+                    a.entity_id,
+                    a.action,
+                    a.description,
+                    a.before_value,
+                    a.after_value,
+                    a.created_at
+                FROM audit_logs a
+                LEFT JOIN users u
+                    ON u.id = a.user_id
+                WHERE 1 = 1
+                """);
+
+        List<Object> params =
+                new ArrayList<>();
+
+        appendFilters(
+                sql,
+                params,
+                entity,
+                action,
+                userId,
+                from,
+                to
+        );
+
+        sql.append(
+                " ORDER BY a.id DESC LIMIT ? OFFSET ?"
+        );
+
+        params.add(size);
+        params.add(
+                (page - 1) * size
+        );
+
+
+        List<Map<String, Object>> result =
+                new ArrayList<>();
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                sql.toString()
+                        )
+        ) {
+
+            for (
+                    int i = 0;
+                    i < params.size();
+                    i++
+            ) {
+
+                statement.setObject(
+                        i + 1,
+                        params.get(i)
+                );
+            }
+
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                while (rs.next()) {
+
+                    Map<String, Object> item =
+                            new LinkedHashMap<>();
+
+                    item.put(
+                            "id",
+                            rs.getLong("id")
+                    );
+
+                    item.put(
+                            "userId",
+                            rs.getObject("user_id")
+                    );
+
+                    item.put(
+                            "userName",
+                            rs.getString("user_name")
+                    );
+
+                    item.put(
+                            "entity",
+                            rs.getString("entity_type")
+                    );
+
+                    item.put(
+                            "entityId",
+                            rs.getString("entity_id")
+                    );
+
+                    item.put(
+                            "action",
+                            rs.getString("action")
+                    );
+
+                    item.put(
+                            "description",
+                            rs.getString("description")
+                    );
+
+                    item.put(
+                            "beforeValue",
+                            rs.getString("before_value")
+                    );
+
+                    item.put(
+                            "afterValue",
+                            rs.getString("after_value")
+                    );
+
+                    item.put(
+                            "createdAt",
+                            rs.getTimestamp(
+                                    "created_at"
+                            ).toString()
+                    );
+
+                    result.add(item);
+                }
+            }
+        }
+
+        return result;
+    }
+
+
+    public long count(
+            String entity,
+            String action,
+            Long userId,
+            String from,
+            String to
+    ) throws SQLException {
+
+        StringBuilder sql =
+                new StringBuilder("""
+                SELECT COUNT(*)
+                FROM audit_logs a
+                WHERE 1 = 1
+                """);
+
+        List<Object> params =
+                new ArrayList<>();
+
+        appendFilters(
+                sql,
+                params,
+                entity,
+                action,
+                userId,
+                from,
+                to
+        );
+
+
+        try (
+                Connection connection =
+                        DatabaseConfig.getConnection();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                sql.toString()
+                        )
+        ) {
+
+            for (
+                    int i = 0;
+                    i < params.size();
+                    i++
+            ) {
+
+                statement.setObject(
+                        i + 1,
+                        params.get(i)
+                );
+            }
+
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                rs.next();
+
+                return rs.getLong(1);
             }
         }
     }
 
-    private AuditLog mapRow(ResultSet rs) throws SQLException {
-        AuditLog auditLog = new AuditLog();
-        auditLog.setId(rs.getLong("id"));
-        auditLog.setActorUserId(rs.getLong("actor_user_id"));
-        auditLog.setAction(rs.getString("action"));
-        auditLog.setObjectType(rs.getString("object_type"));
-        auditLog.setObjectId(rs.getLong("object_id"));
-        auditLog.setBeforeValue(parseJson(rs.getString("before_value")));
-        auditLog.setAfterValue(parseJson(rs.getString("after_value")));
-        auditLog.setCreatedAt(rs.getTimestamp("created_at"));
-        return auditLog;
-    }
 
-    private com.google.gson.JsonElement parseJson(String value) {
-        return value == null ? JsonNull.INSTANCE : JsonParser.parseString(value);
-    }
+    private void appendFilters(
+            StringBuilder sql,
+            List<Object> params,
+            String entity,
+            String action,
+            Long userId,
+            String from,
+            String to
+    ) {
 
-    private String toJson(com.google.gson.JsonElement value) {
-        return value == null ? "null" : value.toString();
+        if (
+                entity != null &&
+                !entity.isBlank()
+        ) {
+
+            sql.append(
+                    " AND a.entity_type = ?"
+            );
+
+            params.add(entity);
+        }
+
+
+        if (
+                action != null &&
+                !action.isBlank()
+        ) {
+
+            sql.append(
+                    " AND a.action = ?"
+            );
+
+            params.add(action);
+        }
+
+
+        if (userId != null) {
+
+            sql.append(
+                    " AND a.user_id = ?"
+            );
+
+            params.add(userId);
+        }
+
+
+        if (
+                from != null &&
+                !from.isBlank()
+        ) {
+
+            sql.append(
+                    " AND a.created_at >= ?"
+            );
+
+            params.add(
+                    Timestamp.valueOf(
+                            from +
+                            " 00:00:00"
+                    )
+            );
+        }
+
+
+        if (
+                to != null &&
+                !to.isBlank()
+        ) {
+
+            sql.append(
+                    " AND a.created_at <= ?"
+            );
+
+            params.add(
+                    Timestamp.valueOf(
+                            to +
+                            " 23:59:59"
+                    )
+            );
+        }
     }
 }

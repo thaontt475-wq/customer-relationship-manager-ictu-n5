@@ -1,0 +1,344 @@
+warning: in the working copy of 'backend/pom.xml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/audit/AuditLogServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/auth/ChangePasswordServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/auth/ForgotPasswordServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/auth/LoginServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/auth/LogoutServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/auth/ResetPasswordServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/auth/SessionServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/customfields/CustomFieldServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/organization/OrganizationServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/permissions/MenuServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/permissions/PermissionServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/products/ProductServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/teams/TeamServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/controller/users/UserServlet.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/dao/audit/AuditLogDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/dao/organization/OrganizationDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/dao/permissions/PermissionDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/dao/products/ProductDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/dao/teams/TeamDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/dao/users/UserDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/dao/winloss/WinLossDAO.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/filter/AuthenticationFilter.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/service/audit/AuditLogService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/service/auth/AuthService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/service/organization/OrganizationService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/service/permissions/MenuService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/service/permissions/PermissionService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/service/teams/TeamService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/service/winloss/WinLossService.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/java/com/crm/util/PasswordUtil.java', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/resources/db.properties', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'backend/src/main/webapp/WEB-INF/web.xml', LF will be replaced by CRLF the next time Git touches it
+D	backend/.gitignore
+D	backend/database/data.sql
+D	backend/database/migrations/CRM-21-login.sql
+D	backend/database/migrations/CRM-25-role-data-scope.sql
+D	backend/database/migrations/CRM-25-scoped-domain-records.sql
+D	backend/database/migrations/CRM-29-team-assignment.sql
+D	backend/database/migrations/CRM-29-team-lead-role.sql
+D	backend/database/migrations/CRM-35-user-signature.sql
+D	backend/database/migrations/CRM-36-avatar.sql
+D	backend/database/migrations/CRM-37-audit-logs.sql
+D	backend/database/migrations/CRM-39-products.sql
+D	backend/database/migrations/CRM-42-organization-structure.sql
+D	backend/database/migrations/CRM-44-master-data.sql
+D	backend/database/migrations/CRM-46-custom-fields.sql
+D	backend/database/migrations/CRM-47-pipeline.sql
+D	backend/database/migrations/CRM-48-win-loss-competitors.sql
+D	backend/database/migrations/CRM-49-reconcile-sprint2-mysql.sql
+D	backend/database/migrations/CRM-50-audit-business-mutations.sql
+D	backend/database/migrations/CRM-51-quote-product-pricing.sql
+D	backend/database/schema.sql
+D	backend/docs/CRM-21.md
+D	backend/docs/CRM-36.md
+D	backend/docs/api-contract.md
+D	backend/docs/api-gap-analysis.md
+D	backend/docs/crm-audit-20261001.md
+D	backend/docs/e2e-test-matrix.md
+D	backend/docs/fe-be-mapping.md
+D	backend/docs/route-inventory.md
+D	backend/docs/staging-environment-plan.md
+D	backend/docs/staging-migration-audit.md
+M	backend/pom.xml
+D	backend/src/main/java/com/crm/controller/ServerForms.java
+M	backend/src/main/java/com/crm/controller/audit/AuditLogServlet.java
+D	backend/src/main/java/com/crm/controller/audit/AuditPageServlet.java
+D	backend/src/main/java/com/crm/controller/audit/BusinessChangeServlet.java
+M	backend/src/main/java/com/crm/controller/auth/ChangePasswordServlet.java
+M	backend/src/main/java/com/crm/controller/auth/ForgotPasswordServlet.java
+M	backend/src/main/java/com/crm/controller/auth/LoginServlet.java
+D	backend/src/main/java/com/crm/controller/auth/LogoutPageServlet.java
+M	backend/src/main/java/com/crm/controller/auth/LogoutServlet.java
+M	backend/src/main/java/com/crm/controller/auth/ResetPasswordServlet.java
+M	backend/src/main/java/com/crm/controller/auth/SessionServlet.java
+D	backend/src/main/java/com/crm/controller/categories/CategoryPageServlet.java
+D	backend/src/main/java/com/crm/controller/categories/CategoryServlet.java
+D	backend/src/main/java/com/crm/controller/customfields/CustomFieldPageServlet.java
+M	backend/src/main/java/com/crm/controller/customfields/CustomFieldServlet.java
+D	backend/src/main/java/com/crm/controller/dashboard/DashboardServlet.java
+D	backend/src/main/java/com/crm/controller/errors/ErrorPageServlet.java
+D	backend/src/main/java/com/crm/controller/excel/UserImportServlet.java
+D	backend/src/main/java/com/crm/controller/organization/OrganizationPageServlet.java
+M	backend/src/main/java/com/crm/controller/organization/OrganizationServlet.java
+M	backend/src/main/java/com/crm/controller/permissions/MenuServlet.java
+D	backend/src/main/java/com/crm/controller/permissions/NavigationServlet.java
+D	backend/src/main/java/com/crm/controller/permissions/PermissionApiServlet.java
+M	backend/src/main/java/com/crm/controller/permissions/PermissionServlet.java
+D	backend/src/main/java/com/crm/controller/permissions/UserRoleServlet.java
+D	backend/src/main/java/com/crm/controller/pipeline/PipelinePageServlet.java
+D	backend/src/main/java/com/crm/controller/pipeline/PipelineServlet.java
+D	backend/src/main/java/com/crm/controller/products/ProductPageServlet.java
+M	backend/src/main/java/com/crm/controller/products/ProductServlet.java
+D	backend/src/main/java/com/crm/controller/products/QuotePricingServlet.java
+D	backend/src/main/java/com/crm/controller/scope/ScopedEntityPageServlet.java
+D	backend/src/main/java/com/crm/controller/scope/ScopedEntityServlet.java
+D	backend/src/main/java/com/crm/controller/search/GlobalSearchServlet.java
+M	backend/src/main/java/com/crm/controller/teams/TeamServlet.java
+D	backend/src/main/java/com/crm/controller/users/AvatarServlet.java
+D	backend/src/main/java/com/crm/controller/users/ProfileServlet.java
+M	backend/src/main/java/com/crm/controller/users/UserServlet.java
+D	backend/src/main/java/com/crm/controller/winloss/WinLossPageServlet.java
+D	backend/src/main/java/com/crm/controller/winloss/WinLossServlet.java
+M	backend/src/main/java/com/crm/dao/audit/AuditLogDAO.java
+D	backend/src/main/java/com/crm/dao/audit/BusinessChangeDAO.java
+D	backend/src/main/java/com/crm/dao/auth/PasswordResetTokenDAO.java
+D	backend/src/main/java/com/crm/dao/categories/CategoryDAO.java
+D	backend/src/main/java/com/crm/dao/customfields/CustomFieldDAO.java
+D	backend/src/main/java/com/crm/dao/excel/UserImportDAO.java
+M	backend/src/main/java/com/crm/dao/organization/OrganizationDAO.java
+D	backend/src/main/java/com/crm/dao/permissions/MenuDAO.java
+M	backend/src/main/java/com/crm/dao/permissions/PermissionDAO.java
+D	backend/src/main/java/com/crm/dao/permissions/UserRoleDAO.java
+D	backend/src/main/java/com/crm/dao/pipeline/PipelineDAO.java
+M	backend/src/main/java/com/crm/dao/products/ProductDAO.java
+D	backend/src/main/java/com/crm/dao/products/QuotePricingDAO.java
+D	backend/src/main/java/com/crm/dao/scope/DataScopeHelper.java
+D	backend/src/main/java/com/crm/dao/scope/ScopedEntityDAO.java
+M	backend/src/main/java/com/crm/dao/teams/TeamDAO.java
+D	backend/src/main/java/com/crm/dao/teams/UserTeamDAO.java
+D	backend/src/main/java/com/crm/dao/users/AvatarDAO.java
+M	backend/src/main/java/com/crm/dao/users/UserDAO.java
+D	backend/src/main/java/com/crm/dao/users/UserLockHandoverDAO.java
+M	backend/src/main/java/com/crm/dao/winloss/WinLossDAO.java
+D	backend/src/main/java/com/crm/dto/audit/.gitkeep
+D	backend/src/main/java/com/crm/dto/auth/.gitkeep
+D	backend/src/main/java/com/crm/dto/customfields/.gitkeep
+D	backend/src/main/java/com/crm/dto/excel/ImportErrorDetail.java
+D	backend/src/main/java/com/crm/dto/excel/ImportReportResult.java
+D	backend/src/main/java/com/crm/dto/excel/ImportRowData.java
+D	backend/src/main/java/com/crm/dto/organization/.gitkeep
+D	backend/src/main/java/com/crm/dto/permissions/.gitkeep
+D	backend/src/main/java/com/crm/dto/permissions/MenuItem.java
+D	backend/src/main/java/com/crm/dto/permissions/UserNavigationProfile.java
+D	backend/src/main/java/com/crm/dto/pipeline/.gitkeep
+D	backend/src/main/java/com/crm/dto/products/.gitkeep
+D	backend/src/main/java/com/crm/dto/users/.gitkeep
+D	backend/src/main/java/com/crm/dto/winloss/.gitkeep
+M	backend/src/main/java/com/crm/filter/AuthenticationFilter.java
+D	backend/src/main/java/com/crm/filter/AuthorizationFilter.java
+D	backend/src/main/java/com/crm/filter/AvatarAuthenticationFilter.java
+D	backend/src/main/java/com/crm/filter/CsrfFilter.java
+D	backend/src/main/java/com/crm/filter/EncodingFilter.java
+D	backend/src/main/java/com/crm/filter/MenuNavigationFilter.java
+D	backend/src/main/java/com/crm/filter/NoStoreFilter.java
+D	backend/src/main/java/com/crm/filter/SprintNavigationFilter.java
+D	backend/src/main/java/com/crm/filter/ViewAccessFilter.java
+D	backend/src/main/java/com/crm/listener/SessionLifecycleListener.java
+D	backend/src/main/java/com/crm/model/AuditLog.java
+D	backend/src/main/java/com/crm/model/AuditLogFilter.java
+D	backend/src/main/java/com/crm/model/Category.java
+D	backend/src/main/java/com/crm/model/CategoryType.java
+D	backend/src/main/java/com/crm/model/Competitor.java
+D	backend/src/main/java/com/crm/model/CustomField.java
+D	backend/src/main/java/com/crm/model/CustomFieldValues.java
+D	backend/src/main/java/com/crm/model/Organization.java
+D	backend/src/main/java/com/crm/model/PasswordResetToken.java
+D	backend/src/main/java/com/crm/model/Permission.java
+D	backend/src/main/java/com/crm/model/PipelineStage.java
+D	backend/src/main/java/com/crm/model/Product.java
+D	backend/src/main/java/com/crm/model/QuoteItem.java
+D	backend/src/main/java/com/crm/model/Role.java
+D	backend/src/main/java/com/crm/model/Team.java
+D	backend/src/main/java/com/crm/model/User.java
+D	backend/src/main/java/com/crm/model/UserAvatar.java
+D	backend/src/main/java/com/crm/model/UserLockHandover.java
+D	backend/src/main/java/com/crm/model/WinLossReason.java
+M	backend/src/main/java/com/crm/service/audit/AuditLogService.java
+D	backend/src/main/java/com/crm/service/audit/BusinessChangeService.java
+M	backend/src/main/java/com/crm/service/auth/AuthService.java
+D	backend/src/main/java/com/crm/service/auth/LoginAttemptGuard.java
+D	backend/src/main/java/com/crm/service/categories/CategoryInUseException.java
+D	backend/src/main/java/com/crm/service/categories/CategoryService.java
+D	backend/src/main/java/com/crm/service/customfields/CustomFieldService.java
+D	backend/src/main/java/com/crm/service/email/EmailService.java
+D	backend/src/main/java/com/crm/service/excel/ExcelService.java
+M	backend/src/main/java/com/crm/service/organization/OrganizationService.java
+M	backend/src/main/java/com/crm/service/permissions/MenuService.java
+M	backend/src/main/java/com/crm/service/permissions/PermissionService.java
+D	backend/src/main/java/com/crm/service/permissions/UserRoleService.java
+D	backend/src/main/java/com/crm/service/pipeline/PipelineService.java
+D	backend/src/main/java/com/crm/service/pipeline/StageInUseException.java
+D	backend/src/main/java/com/crm/service/pipeline/StageTransitionException.java
+D	backend/src/main/java/com/crm/service/products/ProductInUseException.java
+D	backend/src/main/java/com/crm/service/products/ProductService.java
+D	backend/src/main/java/com/crm/service/products/QuotePricingService.java
+D	backend/src/main/java/com/crm/service/scope/DataScopeService.java
+D	backend/src/main/java/com/crm/service/scope/ScopeAccessPolicy.java
+D	backend/src/main/java/com/crm/service/scope/ScopeContext.java
+D	backend/src/main/java/com/crm/service/scope/ScopeEntityType.java
+D	backend/src/main/java/com/crm/service/scope/ScopeRecord.java
+M	backend/src/main/java/com/crm/service/teams/TeamService.java
+D	backend/src/main/java/com/crm/service/users/AvatarException.java
+D	backend/src/main/java/com/crm/service/users/AvatarImageProcessor.java
+D	backend/src/main/java/com/crm/service/users/AvatarService.java
+D	backend/src/main/java/com/crm/service/users/OwnershipTransferService.java
+D	backend/src/main/java/com/crm/service/users/ProfileService.java
+D	backend/src/main/java/com/crm/service/users/UserService.java
+M	backend/src/main/java/com/crm/service/winloss/WinLossService.java
+D	backend/src/main/java/com/crm/util/DBConnection.java
+D	backend/src/main/java/com/crm/util/Html.java
+M	backend/src/main/java/com/crm/util/PasswordUtil.java
+D	backend/src/main/java/com/crm/util/ResetTokenUtil.java
+D	backend/src/main/java/com/crm/util/SessionKey.java
+D	backend/src/main/java/com/crm/util/SessionRegistry.java
+D	backend/src/main/java/com/crm/util/ValidationUtil.java
+M	backend/src/main/resources/db.properties
+M	backend/src/main/webapp/WEB-INF/web.xml
+D	backend/src/test/java/com/crm/controller/audit/AuditLogServletTest.java
+D	backend/src/test/java/com/crm/controller/audit/AuditServletTest.java
+D	backend/src/test/java/com/crm/controller/audit/BusinessChangeServletTest.java
+D	backend/src/test/java/com/crm/controller/auth/ForgotPasswordAcceptanceIntegrationTest.java
+D	backend/src/test/java/com/crm/controller/auth/LoginServletTest.java
+D	backend/src/test/java/com/crm/controller/auth/LogoutPageServletTest.java
+D	backend/src/test/java/com/crm/controller/customfields/CustomFieldPageServletTest.java
+D	backend/src/test/java/com/crm/controller/customfields/CustomFieldServletTest.java
+D	backend/src/test/java/com/crm/controller/dashboard/DashboardServletTest.java
+D	backend/src/test/java/com/crm/controller/organization/OrganizationServletTest.java
+D	backend/src/test/java/com/crm/controller/permissions/MenuServletTest.java
+D	backend/src/test/java/com/crm/controller/products/ProductPageServletTest.java
+D	backend/src/test/java/com/crm/controller/products/ProductServletAuthorizationTest.java
+D	backend/src/test/java/com/crm/controller/products/QuotePricingServletTest.java
+D	backend/src/test/java/com/crm/controller/scope/ScopedEntityServletTest.java
+D	backend/src/test/java/com/crm/controller/users/AvatarServletTest.java
+D	backend/src/test/java/com/crm/controller/users/ProfileServletTest.java
+D	backend/src/test/java/com/crm/controller/users/UserExportAuthorizationTest.java
+D	backend/src/test/java/com/crm/controller/winloss/WinLossServletTest.java
+D	backend/src/test/java/com/crm/dao/audit/AuditLogDAOTest.java
+D	backend/src/test/java/com/crm/dao/users/UserSearchClauseTest.java
+D	backend/src/test/java/com/crm/filter/CsrfFilterTest.java
+D	backend/src/test/java/com/crm/filter/MenuNavigationFilterTest.java
+D	backend/src/test/java/com/crm/service/audit/AuditLogServiceTest.java
+D	backend/src/test/java/com/crm/service/audit/BusinessChangeServiceTest.java
+D	backend/src/test/java/com/crm/service/auth/LoginAttemptGuardTest.java
+D	backend/src/test/java/com/crm/service/categories/CategoryServiceTest.java
+D	backend/src/test/java/com/crm/service/customfields/CustomFieldFormIntegrationTest.java
+D	backend/src/test/java/com/crm/service/customfields/CustomFieldServiceTest.java
+D	backend/src/test/java/com/crm/service/email/EmailServiceTest.java
+D	backend/src/test/java/com/crm/service/excel/ExcelServiceTest.java
+D	backend/src/test/java/com/crm/service/organization/OrganizationServiceTest.java
+D	backend/src/test/java/com/crm/service/permissions/MenuServiceTest.java
+D	backend/src/test/java/com/crm/service/permissions/UserRoleServiceTest.java
+D	backend/src/test/java/com/crm/service/pipeline/PipelineServiceTest.java
+D	backend/src/test/java/com/crm/service/products/ProductServiceTest.java
+D	backend/src/test/java/com/crm/service/products/QuotePricingPolicyTest.java
+D	backend/src/test/java/com/crm/service/scope/DataScopeServiceTest.java
+D	backend/src/test/java/com/crm/service/scope/ScopeAccessPolicyTest.java
+D	backend/src/test/java/com/crm/service/scope/ScopeEntityTypeTest.java
+D	backend/src/test/java/com/crm/service/users/AvatarImageProcessorTest.java
+D	backend/src/test/java/com/crm/service/users/AvatarServiceTest.java
+D	backend/src/test/java/com/crm/service/users/ProfileServiceTest.java
+D	backend/src/test/java/com/crm/service/winloss/WinLossServiceTest.java
+D	backend/src/test/java/com/crm/util/PasswordUtilTest.java
+D	backend/src/test/java/com/crm/util/ResetTokenUtilTest.java
+D	backend/src/test/java/com/crm/util/SessionRegistryTest.java
+D	backend/tests/CRM21LoginCheck.java
+D	backend/tests/CRM36AvatarHttpCheck.java
+D	backend/tests/CRM39ProductHttpCheck.java
+D	backend/tests/CrmHttpCheck.java
+D	frontend/components/footer.html
+D	frontend/components/header.html
+D	frontend/components/navbar.html
+D	frontend/components/sidebar.html
+D	frontend/css/global.css
+D	frontend/css/layout.css
+D	frontend/css/modules/activities.css
+D	frontend/css/modules/auth.css
+D	frontend/css/modules/contacts.css
+D	frontend/css/modules/contracts.css
+D	frontend/css/modules/customers.css
+D	frontend/css/modules/dashboard.css
+D	frontend/css/modules/leads.css
+D	frontend/css/modules/opportunities.css
+D	frontend/css/modules/products.css
+D	frontend/css/modules/quotes.css
+D	frontend/css/modules/reports.css
+D	frontend/css/modules/users.css
+D	frontend/css/responsive.css
+D	frontend/index.html
+D	frontend/js/core/api.js
+D	frontend/js/core/auth.js
+D	frontend/js/core/config.js
+D	frontend/js/core/utils.js
+D	frontend/js/core/validation.js
+D	frontend/js/modules/activities/activity-form.js
+D	frontend/js/modules/activities/activity-list.js
+D	frontend/js/modules/auth/login.js
+D	frontend/js/modules/automation/automation-list.js
+D	frontend/js/modules/configuration/configuration.js
+D	frontend/js/modules/contacts/contact-form.js
+D	frontend/js/modules/contacts/contact-list.js
+D	frontend/js/modules/contracts/contract-list.js
+D	frontend/js/modules/customers/customer-detail.js
+D	frontend/js/modules/customers/customer-form.js
+D	frontend/js/modules/customers/customer-list.js
+D	frontend/js/modules/dashboard/dashboard.js
+D	frontend/js/modules/leads/lead-form.js
+D	frontend/js/modules/leads/lead-list.js
+D	frontend/js/modules/notifications/notification-list.js
+D	frontend/js/modules/opportunities/opportunity-form.js
+D	frontend/js/modules/opportunities/opportunity-list.js
+D	frontend/js/modules/products/product-form.js
+D	frontend/js/modules/products/product-list.js
+D	frontend/js/modules/quotes/quote-form.js
+D	frontend/js/modules/quotes/quote-list.js
+D	frontend/js/modules/reports/report-list.js
+D	frontend/js/modules/targets/target-list.js
+D	frontend/js/modules/users/user-form.js
+D	frontend/js/modules/users/user-list.js
+D	frontend/pages/activities/activity-form.html
+D	frontend/pages/activities/activity-list.html
+D	frontend/pages/auth/change-password.html
+D	frontend/pages/auth/forgot-password.html
+D	frontend/pages/auth/login.html
+D	frontend/pages/auth/reset-password.html
+D	frontend/pages/automation/automation-list.html
+D	frontend/pages/configuration/configuration.html
+D	frontend/pages/contacts/contact-form.html
+D	frontend/pages/contacts/contact-list.html
+D	frontend/pages/contracts/contract-detail.html
+D	frontend/pages/contracts/contract-list.html
+D	frontend/pages/customers/customer-detail.html
+D	frontend/pages/customers/customer-form.html
+D	frontend/pages/customers/customer-list.html
+D	frontend/pages/dashboard/dashboard.html
+D	frontend/pages/leads/lead-detail.html
+D	frontend/pages/leads/lead-form.html
+D	frontend/pages/leads/lead-list.html
+D	frontend/pages/notifications/notification-list.html
+D	frontend/pages/opportunities/opportunity-detail.html
+D	frontend/pages/opportunities/opportunity-form.html
+D	frontend/pages/opportunities/opportunity-list.html
+D	frontend/pages/organization/organization.html
+D	frontend/pages/permissions/role-permission.html
+D	frontend/pages/products/product-form.html
+D	frontend/pages/products/product-list.html
+D	frontend/pages/quotes/quote-detail.html
+D	frontend/pages/quotes/quote-form.html
+D	frontend/pages/quotes/quote-list.html
+D	frontend/pages/reports/report-list.html
+D	frontend/pages/targets/target-list.html
+D	frontend/pages/users/profile.html
+D	frontend/pages/users/user-form.html
+D	frontend/pages/users/user-list.html

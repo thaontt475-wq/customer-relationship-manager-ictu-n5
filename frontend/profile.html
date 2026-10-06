@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hồ sơ cá nhân</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/profile.css">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Tài khoản
+        </div>
+
+        <a href="profile.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="crm-nav-label">Hồ sơ cá nhân</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+    <div class="crm-top-actions">
+
+        <div class="crm-user">
+
+            <button id="userButton" class="crm-user-button" type="button">
+
+                <div id="topAvatar" class="crm-avatar">
+                    U
+                </div>
+
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Người dùng</span>
+                    <span class="crm-user-role">Vai trò</span>
+                </div>
+
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="#">Đổi mật khẩu</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main profile-page">
+
+    <section class="profile-head">
+
+        <p>CRM / Tài khoản</p>
+
+        <h1>
+            Hồ sơ cá nhân
+        </h1>
+
+        <span>
+            Quản lý thông tin cá nhân và ảnh đại diện.
+        </span>
+
+    </section>
+
+
+    <section class="profile-grid">
+
+        <aside class="crm-card avatar-card">
+
+            <h2>
+                Ảnh đại diện
+            </h2>
+
+            <div class="avatar-preview-wrap">
+
+                <div
+                    id="profileAvatarEmpty"
+                    class="profile-avatar-empty"
+                >
+                    U
+                </div>
+
+                <img
+                    id="profileAvatarImage"
+                    class="profile-avatar-image"
+                    alt="Avatar"
+                    hidden
+                >
+
+            </div>
+
+
+            <input
+                id="avatarFile"
+                type="file"
+                accept="image/jpeg,image/png"
+                hidden
+            >
+
+
+            <button
+                id="selectAvatar"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Chọn ảnh
+            </button>
+
+
+            <p class="avatar-help">
+                JPG/PNG · tối đa 2MB · ảnh sẽ được cắt vuông.
+            </p>
+
+
+            <div
+                id="avatarError"
+                class="avatar-error"
+            ></div>
+
+
+            <div
+                id="cropArea"
+                class="crop-area"
+                hidden
+            >
+
+                <canvas
+                    id="cropCanvas"
+                    width="300"
+                    height="300"
+                ></canvas>
+
+                <div class="crop-controls">
+
+                    <label>
+                        Thu phóng
+
+                        <input
+                            id="cropZoom"
+                            type="range"
+                            min="1"
+                            max="3"
+                            step=".05"
+                            value="1"
+                        >
+                    </label>
+
+                </div>
+
+
+                <button
+                    id="applyAvatar"
+                    class="crm-btn crm-btn-primary"
+                    type="button"
+                >
+                    Cắt & sử dụng
+                </button>
+
+            </div>
+
+
+            <div
+                id="thumbnailSection"
+                class="thumbnail-section"
+                hidden
+            >
+
+                <span>
+                    Thumbnail
+                </span>
+
+                <img
+                    id="avatarThumbnail"
+                    alt="Thumbnail"
+                >
+
+            </div>
+
+        </aside>
+
+
+        <section class="crm-card profile-form-card">
+
+            <h2>
+                Thông tin cá nhân
+            </h2>
+
+
+            <form id="profileForm">
+
+                <div class="profile-two-cols">
+
+                    <label>
+                        Họ và tên
+
+                        <input
+                            id="profileName"
+                            class="crm-input"
+                            type="text"
+                        >
+                    </label>
+
+
+                    <label>
+                        Số điện thoại
+
+                        <input
+                            id="profilePhone"
+                            class="crm-input"
+                            type="tel"
+                            placeholder="09xxxxxxxx"
+                        >
+
+                        <small id="phoneError"></small>
+                    </label>
+
+                </div>
+
+
+                <div class="profile-two-cols readonly-area">
+
+                    <label>
+                        Email
+
+                        <input
+                            class="crm-input"
+                            type="email"
+                            value=""
+                            placeholder="Được cấp bởi hệ thống"
+                            disabled
+                        >
+
+                        <small>Không thể tự thay đổi.</small>
+                    </label>
+
+
+                    <label>
+                        Nhóm kinh doanh
+
+                        <input
+                            class="crm-input"
+                            value=""
+                            placeholder="Do quản trị viên quản lý"
+                            disabled
+                        >
+
+                        <small>Không thể tự thay đổi.</small>
+                    </label>
+
+                </div>
+
+
+                <label class="full-label">
+                    Vai trò
+
+                    <input
+                        class="crm-input"
+                        value=""
+                        placeholder="Do quản trị viên quản lý"
+                        disabled
+                    >
+                </label>
+
+
+                <label class="full-label">
+                    Chữ ký email
+
+                    <textarea
+                        id="profileSignature"
+                        rows="7"
+                        placeholder="Nhập chữ ký email..."
+                    ></textarea>
+                </label>
+
+
+                <footer>
+
+                    <button
+                        id="resetProfile"
+                        class="crm-btn crm-btn-secondary"
+                        type="button"
+                    >
+                        Đặt lại
+                    </button>
+
+                    <button
+                        class="crm-btn crm-btn-primary"
+                        type="submit"
+                    >
+                        Lưu thay đổi
+                    </button>
+
+                </footer>
+
+
+                <div
+                    id="profileMessage"
+                    class="profile-message"
+                ></div>
+
+            </form>
+
+        </section>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+
+
+
+<script src="js/pages/profile.js"></script>
+<script src="js/profile-avatar-fix.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

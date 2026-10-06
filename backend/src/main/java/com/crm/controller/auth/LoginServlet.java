@@ -1,354 +1,172 @@
 package com.crm.controller.auth;
 
+import com.crm.dto.auth.LoginRequest;
+import com.crm.dto.common.ApiResponse;
+import com.crm.model.users.User;
 import com.crm.service.auth.AuthService;
-import com.crm.util.SessionKey;
-import com.crm.util.SessionRegistry;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import jakarta.servlet.ServletException;
+import com.crm.service.auth.LoginResult;
+import com.crm.util.JsonUtil;
+import com.crm.util.ResponseUtil;
+
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
-import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@WebServlet({"/login", "/api/auth/login"})
+@WebServlet("/api/auth/login")
 public class LoginServlet extends HttpServlet {
 
-    private static final long serialVersionUID = 1L;
-    private static final Gson GSON =
-            new GsonBuilder().serializeNulls().create();
-
-    private final AuthService authService = new AuthService();
+    private final AuthService authService =
+            new AuthService();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        if (!"/login".equals(request.getServletPath())) {
-            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-            return;
-        }
-
-        if ("1".equals(request.getParameter("expired"))) {
-            request.setAttribute(
-                    "error",
-                    "Phiên đăng nhập đã hết hạn do không có hoạt động trong 5 phút."
-            );
-        }
-
-        request.getRequestDispatcher("/jsp/auth/login.jsp")
-                .forward(request, response);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
-
-        if ("/api/auth/login".equals(request.getServletPath())) {
-            handleApiLogin(request, response);
-            return;
-        }
-
-        handleViewLogin(request, response);
-    }
-
-    /**
-     * View adapter cho form JSP.
-     * Thành công redirect về trang hiện có.
-     */
-    private void handleViewLogin(
+    protected void doPost(
             HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
-
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-
-        if (isMissing(email) || isMissing(password)) {
-            request.setAttribute("email", email);
-            request.setAttribute(
-                    "error",
-                    "Vui lòng nhập email và mật khẩu"
-            );
-            forwardLogin(request, response);
-            return;
-        }
-
-        AuthService.LoginResult result;
+            HttpServletResponse response
+    ) throws IOException {
 
         try {
-            result = authService.login(email, password);
-        } catch (SQLException e) {
-            getServletContext().log(
-                    "Login failed due to database error",
-                    e
-            );
 
-            response.setStatus(
-                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR
-            );
+            LoginRequest loginRequest =
+                    JsonUtil.getGson().fromJson(
+                            request.getReader(),
+                            LoginRequest.class
+                    );
 
-            request.setAttribute(
-                    "error",
-                    "Không thể đăng nhập lúc này. Vui lòng thử lại sau."
-            );
-
-            forwardLogin(request, response);
-            return;
-        }
-
-        if (result == null) {
-            request.setAttribute("email", email);
-            request.setAttribute(
-                    "error",
-                    "Email hoặc mật khẩu không đúng"
-            );
-            forwardLogin(request, response);
-            return;
-        }
-
-        HttpSession session = createAuthenticatedSession(request, result);
-        if (session == null) {
-            request.setAttribute("email", email);
-            request.setAttribute("error", "Tài khoản không còn hoạt động");
-            forwardLogin(request, response);
-            return;
-        }
-
-        response.sendRedirect(
-                request.getContextPath() + "/dashboard"
-        );
-    }
-
-    /**
-     * Official API theo CRM API Contract:
-     * POST /api/auth/login
-     *
-     * request:
-     * - email
-     * - password
-     *
-     * response data:
-     * - user
-     * - roles
-     * - session
-     */
-    private void handleApiLogin(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws IOException {
-
-        prepareJson(response);
-
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-
-        if (isMissing(email) || isMissing(password)) {
-            writeJson(
-                    response,
-                    HttpServletResponse.SC_BAD_REQUEST,
-                    false,
-                    "Vui lòng nhập email và mật khẩu",
-                    null
-            );
-            return;
-        }
-
-        AuthService.LoginResult result;
-
-        try {
-            result = authService.login(email, password);
-        } catch (SQLException e) {
-            getServletContext().log(
-                    "Login API failed due to database error",
-                    e
-            );
-
-            writeJson(
-                    response,
-                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    false,
-                    "Lỗi hệ thống",
-                    null
-            );
-            return;
-        }
-
-        if (result == null) {
-            writeJson(
-                    response,
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    false,
-                    "Email hoặc mật khẩu không đúng",
-                    null
-            );
-            return;
-        }
-
-        HttpSession session =
-                createAuthenticatedSession(request, result);
-        if (session == null) {
-            writeJson(response, HttpServletResponse.SC_UNAUTHORIZED, false,
-                    "Tài khoản không còn hoạt động", null);
-            return;
-        }
-
-        Map<String, Object> safeUser = createSafeUser(result);
-
-        Map<String, Object> sessionInfo =
-                new LinkedHashMap<>();
-
-        sessionInfo.put(
-                "expiresAt",
-                resolveExpiresAt(session)
-        );
-
-        Map<String, Object> data =
-                new LinkedHashMap<>();
-
-        data.put("user", safeUser);
-        data.put("roles", result.roles());
-        data.put("session", sessionInfo);
-
-        writeJson(
-                response,
-                HttpServletResponse.SC_OK,
-                true,
-                "Đăng nhập thành công",
-                data
-        );
-    }
-
-    private HttpSession createAuthenticatedSession(
-            HttpServletRequest request,
-            AuthService.LoginResult result) {
-
-        HttpSession oldSession =
-                request.getSession(false);
-
-        if (oldSession != null) {
-            try {
-                oldSession.invalidate();
-            } catch (IllegalStateException ignored) {
-                // Session đã bị invalidate trước đó.
+            if (loginRequest == null) {
+                ResponseUtil.json(
+                        response,
+                        400,
+                        ApiResponse.error(
+                                "Dữ liệu không hợp lệ",
+                                null
+                        )
+                );
+                return;
             }
-        }
 
-        HttpSession session =
-                request.getSession(true);
+            LoginResult result =
+                    authService.login(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    );
 
-        session.setAttribute(
-                "userId",
-                Long.valueOf(result.userId())
-        );
+            if (
+                    result.getStatus() ==
+                    LoginResult.Status.INVALID
+            ) {
 
-        session.setAttribute(
-                SessionKey.ROLES,
-                result.roles()
-        );
+                Map<String, Object> data =
+                        new LinkedHashMap<>();
 
-        session.setAttribute(
-                SessionKey.CURRENT_USER,
-                createSafeUser(result)
-        );
+                data.put(
+                        "remainingAttempts",
+                        result.getRemainingAttempts()
+                );
 
-        if (result.displayName() != null) {
+                ResponseUtil.json(
+                        response,
+                        401,
+                        ApiResponse.error(
+                                "Sai email hoặc mật khẩu",
+                                data
+                        )
+                );
+
+                return;
+            }
+
+            if (
+                    result.getStatus() ==
+                    LoginResult.Status.LOCKED
+            ) {
+
+                Map<String, Object> data =
+                        new LinkedHashMap<>();
+
+                data.put(
+                        "lockedUntil",
+                        result.getLockedUntil().atZone(java.time.ZoneId.systemDefault()).toOffsetDateTime().toString()
+                );
+
+                ResponseUtil.json(
+                        response,
+                        423,
+                        ApiResponse.error(
+                                "Tài khoản tạm khóa trong 15 phút",
+                                data
+                        )
+                );
+
+                return;
+            }
+
+            User user =
+                    result.getUser();
+
+            HttpSession session =
+                    request.getSession(true);
+
+            request.changeSessionId();
+            session.setAttribute("sessionVersion", user.getSessionVersion());
+
+            session.setMaxInactiveInterval(
+                    30 * 60
+            );
+
             session.setAttribute(
-                    "displayName",
-                    result.displayName()
+                    "userId",
+                    user.getId()
+            );
+
+            session.setAttribute(
+                    "roles",
+                    user.getRoles()
+            );
+
+            Map<String, Object> data =
+                    new LinkedHashMap<>();
+
+            data.put("id", user.getId());
+            data.put(
+                    "fullName",
+                    user.getFullName()
+            );
+            data.put(
+                    "email",
+                    user.getEmail()
+            );
+            data.put(
+                    "roles",
+                    user.getRoles()
+            );
+
+            ResponseUtil.json(
+                    response,
+                    200,
+                    ApiResponse.success(
+                            "Đăng nhập thành công",
+                            data
+                    )
+            );
+
+        } catch (com.google.gson.JsonParseException e) {
+            ResponseUtil.json(response, 400, ApiResponse.error("JSON không hợp lệ", null));
+        } catch (Exception e) {
+
+            System.err.println("Authentication request failed: " + e.getClass().getSimpleName());
+
+            ResponseUtil.json(
+                    response,
+                    500,
+                    ApiResponse.error(
+                            "Lỗi hệ thống",
+                            null
+                    )
             );
         }
-
-        return SessionRegistry.register(result.userId(), session) ? session : null;
-    }
-
-    private Map<String, Object> createSafeUser(
-            AuthService.LoginResult result) {
-
-        Map<String, Object> user =
-                new LinkedHashMap<>();
-
-        user.put("id", result.userId());
-        user.put("displayName", result.displayName());
-
-        return user;
-    }
-
-    private String resolveExpiresAt(
-            HttpSession session) {
-
-        int maxInactive =
-                session.getMaxInactiveInterval();
-
-        if (maxInactive <= 0) {
-            return null;
-        }
-
-        long expiresAt =
-                session.getLastAccessedTime()
-                        + ((long) maxInactive * 1000L);
-
-        return Instant.ofEpochMilli(expiresAt)
-                .toString();
-    }
-
-    private void forwardLogin(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
-
-        request.getRequestDispatcher(
-                "/jsp/auth/login.jsp"
-        ).forward(request, response);
-    }
-
-    private boolean isMissing(String value) {
-        return value == null || value.isBlank();
-    }
-
-    private void prepareJson(
-            HttpServletResponse response) {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
-    }
-
-    private void writeJson(
-            HttpServletResponse response,
-            int status,
-            boolean success,
-            String message,
-            Object data)
-            throws IOException {
-
-        prepareJson(response);
-        response.setStatus(status);
-
-        GSON.toJson(
-                new ApiResponse(
-                        success,
-                        message,
-                        data
-                ),
-                response.getWriter()
-        );
-    }
-
-    private record ApiResponse(
-            boolean success,
-            String message,
-            Object data) {
     }
 }
+

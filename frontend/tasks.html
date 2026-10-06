@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Công việc</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/tasks.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="activities.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m7 12 3 3 7-7"/></svg></span>
+            <span class="crm-nav-label">Hoạt động</span>
+        </a>
+
+        <a href="tasks.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></span>
+            <span class="crm-nav-label">Công việc</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+    <div class="crm-top-actions">
+        <div class="crm-avatar">U</div>
+    </div>
+
+</header>
+
+
+<main class="crm-main tasks-page">
+
+    <section class="tasks-head">
+
+        <div>
+
+            <p>
+                CRM / Công việc
+            </p>
+
+            <h1>
+                Công việc cần làm
+            </h1>
+
+            <span>
+                Theo dõi task được tạo trong hệ thống.
+            </span>
+
+        </div>
+
+
+        <button
+            id="newTask"
+            class="crm-btn crm-btn-primary"
+            type="button"
+        >
+            + Tạo công việc
+        </button>
+
+    </section>
+
+
+    <section class="crm-card tasks-filter">
+
+        <input
+            id="taskSearch"
+            class="crm-input"
+            type="search"
+            placeholder="Tìm công việc..."
+        >
+
+
+        <select
+            id="taskState"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả trạng thái
+            </option>
+
+            <option value="open">
+                Đang mở
+            </option>
+
+            <option value="done">
+                Hoàn thành
+            </option>
+
+            <option value="late">
+                Quá hạn
+            </option>
+        </select>
+
+
+        <select
+            id="taskPriorityFilter"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả ưu tiên
+            </option>
+
+            <option value="high">
+                Cao
+            </option>
+
+            <option value="medium">
+                Trung bình
+            </option>
+
+            <option value="low">
+                Thấp
+            </option>
+        </select>
+
+    </section>
+
+
+    <section class="crm-card tasks-card">
+
+        <div
+            id="tasksList"
+            class="tasks-list"
+        ></div>
+
+
+        <div
+            id="tasksEmpty"
+            class="tasks-empty"
+        >
+            Chưa có công việc.
+        </div>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<!-- TASK MODAL -->
+
+<div
+    id="taskOverlay"
+    class="task-overlay"
+></div>
+
+
+<section
+    id="taskModal"
+    class="task-modal crm-card"
+>
+
+    <header>
+
+        <strong id="taskModalTitle">
+            Tạo công việc
+        </strong>
+
+        <button
+            id="closeTaskModal"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form id="taskForm">
+
+        <input
+            id="editingTaskId"
+            type="hidden"
+        >
+
+
+        <label>
+            Tiêu đề
+            <em>*</em>
+
+            <input
+                id="taskTitle"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Khách hàng / Cơ hội
+
+            <input
+                id="taskRelation"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <div class="task-two-cols">
+
+            <label>
+                Hạn hoàn thành
+
+                <input
+                    id="taskDate"
+                    class="crm-input"
+                    type="date"
+                >
+            </label>
+
+
+            <label>
+                Ưu tiên
+
+                <select
+                    id="taskPriority"
+                    class="crm-input"
+                >
+                    <option value="medium">
+                        Trung bình
+                    </option>
+
+                    <option value="high">
+                        Cao
+                    </option>
+
+                    <option value="low">
+                        Thấp
+                    </option>
+                </select>
+            </label>
+
+        </div>
+
+
+        <label>
+            Người phụ trách
+
+            <input
+                id="taskOwner"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Mô tả
+
+            <textarea
+                id="taskDescription"
+                rows="4"
+            ></textarea>
+        </label>
+
+
+        <div
+            id="taskError"
+            class="task-error"
+        ></div>
+
+
+        <footer>
+
+            <button
+                id="cancelTask"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Lưu
+            </button>
+
+        </footer>
+
+    </form>
+
+</section>
+
+
+
+
+
+<script src="js/pages/tasks.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

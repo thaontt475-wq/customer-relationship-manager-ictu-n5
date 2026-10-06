@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>Khách hàng 360</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/customer-360.css">
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <div class="crm-nav-section">
+            Không gian làm việc
+        </div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Tìm kiếm..."
+        >
+
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+    <div class="crm-top-actions">
+
+        <button
+            class="crm-icon-btn"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+        </button>
+
+        <div class="crm-user">
+
+            <button
+                id="userButton"
+                class="crm-user-button"
+                type="button"
+            >
+                <div class="crm-avatar">U</div>
+
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Người dùng</span>
+                    <span class="crm-user-role">Vai trò</span>
+                </div>
+
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+            </button>
+
+            <div
+                id="userDropdown"
+                class="crm-user-dropdown"
+            >
+                <a href="#">Hồ sơ cá nhân</a>
+                <a href="#">Đổi mật khẩu</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main customer360">
+
+    <section class="customer360-head">
+
+        <div>
+
+            <a
+                href="customers.html"
+                class="back-link"
+            >
+                ← Danh sách khách hàng
+            </a>
+
+            <h1>
+                Khách hàng 360
+            </h1>
+
+        </div>
+
+
+        <div class="quick-actions">
+
+            <button
+                type="button"
+                class="quick-btn call"
+                data-quick="call"
+            >
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h4l2 5-3 2c2 3 3 4 6 6l2-3 5 2v4c0 2-2 3-4 2C9 19 5 15 3 7 2 5 3 3 5 3Z"/></svg>
+                <span>Gọi ngay</span>
+            </button>
+
+            <button
+                type="button"
+                class="quick-btn email"
+                data-quick="email"
+            >
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>
+                <span>Gửi Email</span>
+            </button>
+
+            <button
+                type="button"
+                class="quick-btn note"
+                data-quick="note"
+            >
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6L16 3ZM14 5l5 5"/></svg>
+                <span>Ghi chú</span>
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <section class="customer360-grid">
+
+        <!-- COMPANY -->
+
+        <aside class="crm-card company-panel">
+
+            <div class="panel-header">
+
+                <h2>
+                    Company
+                </h2>
+
+                <button
+                    id="editCompanyButton"
+                    type="button"
+                    class="edit-icon"
+                >
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6L16 3ZM14 5l5 5"/></svg>
+                </button>
+
+            </div>
+
+
+            <dl class="company-info">
+
+                <div>
+                    <dt>Tên công ty</dt>
+                    <dd id="company360Name">—</dd>
+                </div>
+
+                <div>
+                    <dt>Mã số thuế</dt>
+                    <dd id="company360Tax">—</dd>
+                </div>
+
+                <div>
+                    <dt>Ngành nghề</dt>
+                    <dd id="company360Industry">—</dd>
+                </div>
+
+                <div>
+                    <dt>Số điện thoại</dt>
+                    <dd id="company360Phone">—</dd>
+                </div>
+
+                <div>
+                    <dt>Website</dt>
+                    <dd id="company360Website">—</dd>
+                </div>
+
+            </dl>
+
+        </aside>
+
+
+        <!-- TIMELINE -->
+
+        <section class="crm-card timeline-panel">
+
+            <div class="panel-header">
+
+                <h2>
+                    Activity Timeline
+                </h2>
+
+            </div>
+
+
+            <form
+                id="activityComposer"
+                class="activity-composer"
+            >
+
+                <textarea
+                    id="activityNote"
+                    placeholder="Ghi chú / Log cuộc gọi"
+                ></textarea>
+
+                <div class="composer-actions">
+
+                    <select
+                        id="activityType"
+                        class="crm-input"
+                    >
+                        <option value="note">
+                            Ghi chú
+                        </option>
+
+                        <option value="call">
+                            Cuộc gọi
+                        </option>
+
+                        <option value="email">
+                            Email
+                        </option>
+
+                        <option value="meeting">
+                            Cuộc gặp
+                        </option>
+                    </select>
+
+                    <button
+                        class="crm-btn crm-btn-primary"
+                        type="submit"
+                    >
+                        Thêm
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <div
+                id="timelineList"
+                class="timeline-list"
+            >
+
+                <div
+                    id="timelineEmpty"
+                    class="timeline-empty"
+                >
+                    Chưa có hoạt động.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- RIGHT -->
+
+        <aside class="right-column">
+
+            <section class="crm-card compact-panel">
+
+                <div class="right-tabs">
+
+                    <button
+                        type="button"
+                        class="right-tab active"
+                        data-tab="contacts"
+                    >
+                        Người liên hệ
+                    </button>
+
+                    <button
+                        type="button"
+                        class="right-tab"
+                        data-tab="opportunities"
+                    >
+                        Cơ hội
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="contactsPanel"
+                    class="right-content"
+                >
+
+                    <div class="empty-small">
+                        Chưa có người liên hệ.
+                    </div>
+
+                    <button
+                        id="addContact"
+                        class="crm-btn crm-btn-secondary full-button"
+                        type="button"
+                    >
+                        + Thêm người liên hệ
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="opportunitiesPanel"
+                    class="right-content"
+                    hidden
+                >
+
+                    <div class="empty-small">
+                        Chưa có cơ hội.
+                    </div>
+
+                    <button
+                        class="crm-btn crm-btn-secondary full-button"
+                        type="button"
+                    >
+                        + Thêm cơ hội
+                    </button>
+
+                </div>
+
+            </section>
+
+        </aside>
+
+    </section>
+
+</main>
+
+
+<!-- COMPANY MODAL -->
+
+<div
+    id="companyModalOverlay"
+    class="modal-overlay"
+></div>
+
+<section
+    id="companyModal"
+    class="company-modal crm-card"
+>
+
+    <header class="modal-head">
+
+        <strong>
+            Chỉnh sửa thông tin công ty
+        </strong>
+
+        <button
+            id="closeCompanyModal"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form id="company360Form">
+
+        <label>
+            Tên công ty
+            <input
+                id="edit360Name"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+        <label>
+            Mã số thuế
+            <input
+                id="edit360Tax"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+        <label>
+            Ngành nghề
+            <input
+                id="edit360Industry"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+        <label>
+            Số điện thoại
+            <input
+                id="edit360Phone"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+        <label>
+            Website
+            <input
+                id="edit360Website"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <footer class="modal-footer">
+
+            <button
+                id="cancelCompanyEdit"
+                type="button"
+                class="crm-btn crm-btn-secondary"
+            >
+                Hủy
+            </button>
+
+            <button
+                type="submit"
+                class="crm-btn crm-btn-primary"
+            >
+                Lưu
+            </button>
+
+        </footer>
+
+    </form>
+
+</section>
+
+
+<!-- MOBILE SHELL -->
+
+<header class="crm-mobile-header">
+
+    <button
+        id="mobileMenuButton"
+        class="crm-mobile-menu"
+        type="button"
+    >
+        <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <div class="crm-avatar">
+        U
+    </div>
+
+</header>
+
+
+<div
+    id="drawerOverlay"
+    class="crm-drawer-overlay"
+></div>
+
+
+<aside
+    id="mobileDrawer"
+    class="crm-mobile-drawer"
+>
+
+    <div class="crm-drawer-header">
+
+        <div class="crm-avatar">
+            U
+        </div>
+
+        <div class="crm-drawer-user">
+            <strong>Người dùng</strong>
+            <span>Vai trò</span>
+        </div>
+
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<nav class="crm-bottom-nav">
+
+    <a
+        href="dashboard.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+        </span>
+
+        <span>Tổng quan</span>
+    </a>
+
+
+    <a
+        href="customers.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+        </span>
+
+        <span>Khách hàng</span>
+    </a>
+
+
+    <a
+        href="pipeline.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="m12 3 8 9-8 9-8-9 8-9Z"/>
+            </svg>
+        </span>
+
+        <span>Cơ hội</span>
+    </a>
+
+
+    <a
+        href="calendar.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M8 3v4m8-4v4M3 10h18"/>
+            </svg>
+        </span>
+
+        <span>Lịch</span>
+    </a>
+
+</nav>
+
+
+<script src="js/pages/customer-360.js"></script>
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/page-transition.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

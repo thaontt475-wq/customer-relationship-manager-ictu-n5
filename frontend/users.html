@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Quản lý người dùng</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/users.css">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<!-- SIDEBAR -->
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <div class="crm-nav-section">
+            Không gian làm việc
+        </div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="quotations.html" class="crm-nav-item">
+            <span class="crm-nav-icon">▤</span>
+            <span class="crm-nav-label">Báo giá</span>
+        </a>
+
+
+        <div class="crm-nav-section">
+            Quản trị
+        </div>
+
+        <a href="users.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="pipeline-settings.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3 6 0 1 4 4 1 1 6-4 2-1 4-6 1-2-4-4-1-1-6 4-2 1-4Z"/></svg></span>
+            <span class="crm-nav-label">Cấu hình Pipeline</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<!-- TOPBAR -->
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Tìm kiếm..."
+        >
+
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+
+    <div class="crm-top-actions">
+
+        <button
+            class="crm-icon-btn"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+
+        <div class="crm-user">
+
+            <button
+                id="userButton"
+                class="crm-user-button"
+                type="button"
+            >
+
+                <div class="crm-avatar">
+                    A
+                </div>
+
+                <div class="crm-user-copy">
+
+                    <span class="crm-user-name">
+                        Administrator
+                    </span>
+
+                    <span class="crm-user-role">
+                        Quản trị
+                    </span>
+
+                </div>
+
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+
+            </button>
+
+
+            <div
+                id="userDropdown"
+                class="crm-user-dropdown"
+            >
+                <a href="#">Hồ sơ cá nhân</a>
+                <a href="#">Đổi mật khẩu</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- MAIN -->
+
+<main class="crm-main users-page">
+
+    <section class="users-head">
+
+        <div>
+
+            <p class="users-kicker">
+                Quản trị / Người dùng
+            </p>
+
+            <h1>
+                Quản lý Người dùng
+            </h1>
+
+            <p>
+                Quản lý tài khoản, vai trò, nhóm và trạng thái nhân viên.
+            </p>
+
+        </div>
+
+
+        <button
+            id="createUserButton"
+            class="crm-btn crm-btn-primary"
+            type="button"
+        >
+            + Tạo người dùng
+        </button>
+
+    </section>
+
+
+    <!-- FILTER -->
+
+    <section class="users-filter crm-card">
+
+        <input
+            id="userSearch"
+            class="crm-input"
+            type="search"
+            placeholder="Tìm theo tên, email hoặc nhóm..."
+        >
+
+
+        <select
+            id="roleFilter"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả vai trò
+            </option>
+
+            <option value="Quản trị">
+                Quản trị
+            </option>
+
+            <option value="Giám đốc kinh doanh">
+                Giám đốc kinh doanh
+            </option>
+
+            <option value="Trưởng nhóm">
+                Trưởng nhóm
+            </option>
+
+            <option value="Nhân viên kinh doanh">
+                Nhân viên kinh doanh
+            </option>
+
+            <option value="Marketing">
+                Marketing
+            </option>
+
+            <option value="Kế toán">
+                Kế toán
+            </option>
+
+            <option value="CSKH">
+                CSKH
+            </option>
+        </select>
+
+
+        <select
+            id="statusFilter"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả trạng thái
+            </option>
+
+            <option value="active">
+                Đang hoạt động
+            </option>
+
+            <option value="locked">
+                Đã khóa
+            </option>
+        </select>
+
+    </section>
+
+
+    <!-- TABLE -->
+
+    <section class="crm-card users-table-card">
+
+        <div class="table-scroll">
+
+            <table class="users-table">
+
+                <thead>
+
+                <tr>
+                    <th>Người dùng</th>
+                    <th>Email</th>
+                    <th>Vai trò</th>
+                    <th>Nhóm</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+
+                </thead>
+
+
+                <tbody id="usersTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+
+        <div
+            id="usersEmpty"
+            class="users-empty"
+        >
+
+            <div class="empty-user-icon">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+
+            <strong>
+                Chưa có tài khoản
+            </strong>
+
+            <span>
+                Bấm “Tạo người dùng” để bắt đầu.
+            </span>
+
+        </div>
+
+
+        <footer class="users-pagination">
+
+            <span id="paginationInfo">
+                0 bản ghi
+            </span>
+
+            <div>
+
+                <button
+                    id="prevPage"
+                    type="button"
+                    disabled
+                >
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+                </button>
+
+                <span id="pageNumber">
+                    1
+                </span>
+
+                <button
+                    id="nextPage"
+                    type="button"
+                    disabled
+                >
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+                </button>
+
+            </div>
+
+        </footer>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<!-- =========================================================
+     USER DRAWER
+========================================================= -->
+
+<div
+    id="userDrawerOverlay"
+    class="users-overlay"
+></div>
+
+
+<aside
+    id="userDrawer"
+    class="user-drawer"
+>
+
+    <header class="drawer-head">
+
+        <div>
+
+            <strong id="userDrawerTitle">
+                Tạo người dùng
+            </strong>
+
+            <span>
+                Thông tin tài khoản và phân quyền
+            </span>
+
+        </div>
+
+
+        <button
+            id="closeUserDrawer"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form
+        id="userForm"
+        class="user-form"
+        novalidate
+    >
+
+        <input
+            id="editingUserIndex"
+            type="hidden"
+        >
+
+
+        <label>
+            Họ và tên
+            <em>*</em>
+
+            <input
+                id="fullName"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Email công ty
+            <em>*</em>
+
+            <input
+                id="userEmail"
+                class="crm-input"
+                type="email"
+            >
+
+            <small id="emailError"></small>
+        </label>
+
+
+        <label>
+            Nhóm kinh doanh
+
+            <input
+                id="userTeam"
+                class="crm-input"
+                type="text"
+                placeholder="VD: Sales Hà Nội"
+            >
+
+            <small id="teamError"></small>
+        </label>
+
+
+        <fieldset class="roles-fieldset">
+
+            <legend>
+                Vai trò
+            </legend>
+
+
+            <label class="role-check">
+
+                <input
+                    type="checkbox"
+                    value="Quản trị"
+                    name="roles"
+                >
+
+                Quản trị
+
+            </label>
+
+
+            <label class="role-check">
+
+                <input
+                    type="checkbox"
+                    value="Giám đốc kinh doanh"
+                    name="roles"
+                >
+
+                Giám đốc kinh doanh
+
+            </label>
+
+
+            <label class="role-check">
+
+                <input
+                    type="checkbox"
+                    value="Trưởng nhóm"
+                    name="roles"
+                >
+
+                Trưởng nhóm
+
+            </label>
+
+
+            <label class="role-check">
+
+                <input
+                    type="checkbox"
+                    value="Nhân viên kinh doanh"
+                    name="roles"
+                >
+
+                Nhân viên kinh doanh
+
+            </label>
+
+
+            <label class="role-check">
+
+                <input
+                    type="checkbox"
+                    value="Marketing"
+                    name="roles"
+                >
+
+                Marketing
+
+            </label>
+
+
+            <label class="role-check">
+
+                <input
+                    type="checkbox"
+                    value="Kế toán"
+                    name="roles"
+                >
+
+                Kế toán
+
+            </label>
+
+
+            <label class="role-check">
+
+                <input
+                    type="checkbox"
+                    value="CSKH"
+                    name="roles"
+                >
+
+                CSKH
+
+            </label>
+
+        </fieldset>
+
+
+        <label class="self-admin-check">
+
+            <input
+                id="isCurrentAccount"
+                type="checkbox"
+            >
+
+            Đây là tài khoản quản trị hiện tại
+        </label>
+
+
+        <div
+            id="userFormError"
+            class="user-form-error"
+        ></div>
+
+
+        <footer class="drawer-footer">
+
+            <button
+                id="cancelUserForm"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Lưu
+            </button>
+
+        </footer>
+
+    </form>
+
+</aside>
+
+
+<!-- =========================================================
+     LOCK + TRANSFER MODAL
+========================================================= -->
+
+<div
+    id="lockOverlay"
+    class="lock-overlay"
+></div>
+
+
+<section
+    id="lockModal"
+    class="lock-modal crm-card"
+>
+
+    <header>
+
+        <div>
+            <span class="danger-symbol">
+                !
+            </span>
+
+            <div>
+                <strong>
+                    Khóa tài khoản
+                </strong>
+
+                <p>
+                    Chọn người nhận bàn giao trước khi khóa.
+                </p>
+            </div>
+        </div>
+
+
+        <button
+            id="closeLockModal"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form id="lockForm">
+
+        <input
+            id="lockUserIndex"
+            type="hidden"
+        >
+
+
+        <div class="lock-user-box">
+
+            <span>
+                Tài khoản sẽ bị khóa
+            </span>
+
+            <strong id="lockUserName">
+                —
+            </strong>
+
+        </div>
+
+
+        <label>
+            Người nhận bàn giao
+            <em>*</em>
+
+            <select
+                id="transferUser"
+                class="crm-input"
+            >
+                <option value="">
+                    Chọn người nhận
+                </option>
+            </select>
+        </label>
+
+
+        <label>
+            Lý do bàn giao
+
+            <textarea
+                id="transferReason"
+                rows="3"
+            ></textarea>
+        </label>
+
+
+        <div
+            id="lockError"
+            class="lock-error"
+        ></div>
+
+
+        <footer>
+
+            <button
+                id="cancelLock"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn danger-button"
+                type="submit"
+            >
+                Bàn giao & Khóa
+            </button>
+
+        </footer>
+
+    </form>
+
+</section>
+
+
+
+
+
+<script src="js/pages/users.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
+
+<title>Nhập người dùng Excel</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/import-users.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Quản trị
+        </div>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="import-users.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg></span>
+            <span class="crm-nav-label">Nhập Excel</span>
+        </a>
+
+        <a href="audit-log.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg></span>
+            <span class="crm-nav-label">Audit Log</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main import-page">
+
+    <section class="import-head">
+
+        <div>
+
+            <p>
+                Quản trị / Nhập người dùng
+            </p>
+
+            <h1>
+                Nhập người dùng từ Excel
+            </h1>
+
+            <span>
+                Tải file mẫu, nhập dữ liệu và kiểm tra lỗi trước khi nhập.
+            </span>
+
+        </div>
+
+
+        <button
+            id="downloadTemplate"
+            class="crm-btn crm-btn-secondary"
+            type="button"
+        >
+            ↓ Tải file mẫu Excel
+        </button>
+
+    </section>
+
+
+    <section class="crm-card upload-card">
+
+        <input
+            id="importFile"
+            type="file"
+            accept=".xls,.xlsx,.csv"
+            hidden
+        >
+
+
+        <div
+            id="dropArea"
+            class="drop-area"
+        >
+
+            <div class="upload-icon">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5"/></svg>
+            </div>
+
+            <strong>
+                Kéo file vào đây
+            </strong>
+
+            <span>
+                hoặc
+            </span>
+
+            <button
+                id="chooseImportFile"
+                class="crm-btn crm-btn-primary"
+                type="button"
+            >
+                Chọn file
+            </button>
+
+            <small>
+                XLS / XLSX / CSV
+            </small>
+
+        </div>
+
+
+        <div
+            id="selectedFileInfo"
+            class="selected-file"
+            hidden
+        ></div>
+
+    </section>
+
+
+    <section
+        id="previewSection"
+        class="crm-card preview-card"
+        hidden
+    >
+
+        <header>
+
+            <div>
+
+                <h2>
+                    Xem trước dữ liệu
+                </h2>
+
+                <p id="previewSummary">
+                    —
+                </p>
+
+            </div>
+
+
+            <button
+                id="confirmImport"
+                class="crm-btn crm-btn-primary"
+                type="button"
+            >
+                Nhập các dòng hợp lệ
+            </button>
+
+        </header>
+
+
+        <div class="preview-table-scroll">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Dòng</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Vai trò</th>
+                    <th>Nhóm</th>
+                    <th>Trạng thái kiểm tra</th>
+                </tr>
+                </thead>
+
+                <tbody id="previewBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <div
+        id="importResult"
+        class="import-result"
+    ></div>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+
+
+
+<script src="js/pages/import-users.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Cơ cấu tổ chức</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/organization.css">
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Cấu hình
+        </div>
+
+        <a href="organization.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/></svg></span>
+            <span class="crm-nav-label">Cơ cấu tổ chức</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+
+        <a href="custom-fields.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg></span>
+            <span class="crm-nav-label">Trường tùy chỉnh</span>
+        </a>
+
+        <a href="win-loss-settings.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
+            <span class="crm-nav-label">Win / Loss</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+    <div class="crm-top-actions">
+
+        <div class="crm-user">
+
+            <button id="userButton" class="crm-user-button" type="button">
+
+                <div class="crm-avatar">U</div>
+
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Người dùng</span>
+                    <span class="crm-user-role">Vai trò</span>
+                </div>
+
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main organization-page">
+
+    <section class="page-heading">
+
+        <div>
+
+            <p>
+                Cấu hình / Tổ chức
+            </p>
+
+            <h1>
+                Cơ cấu tổ chức
+            </h1>
+
+            <span>
+                Quản lý phòng ban, nhóm kinh doanh và cấp quản lý.
+            </span>
+
+        </div>
+
+        <button
+            id="addRootOrg"
+            class="crm-btn crm-btn-primary"
+            type="button"
+        >
+            + Thêm đơn vị
+        </button>
+
+    </section>
+
+
+    <section class="organization-grid">
+
+        <article class="crm-card organization-tree-card">
+
+            <header class="section-header">
+
+                <div>
+                    <h2>
+                        Cây tổ chức
+                    </h2>
+
+                    <p>
+                        Bấm vào một đơn vị để xem hoặc chỉnh sửa.
+                    </p>
+                </div>
+
+            </header>
+
+
+            <div
+                id="organizationTree"
+                class="organization-tree"
+            ></div>
+
+
+            <div
+                id="organizationEmpty"
+                class="organization-empty"
+            >
+                Chưa có đơn vị tổ chức.
+            </div>
+
+        </article>
+
+
+        <aside class="crm-card organization-detail">
+
+            <div
+                id="orgDetailEmpty"
+                class="detail-empty"
+            >
+                Chọn một đơn vị ở cây tổ chức.
+            </div>
+
+
+            <div
+                id="orgDetail"
+                hidden
+            >
+
+                <header class="detail-head">
+
+                    <div>
+                        <small>Đơn vị đang chọn</small>
+                        <h2 id="detailName">—</h2>
+                    </div>
+
+                    <span
+                        id="detailType"
+                        class="org-type-badge"
+                    >
+                        —
+                    </span>
+
+                </header>
+
+
+                <dl class="detail-list">
+
+                    <div>
+                        <dt>Mã đơn vị</dt>
+                        <dd id="detailCode">—</dd>
+                    </div>
+
+                    <div>
+                        <dt>Đơn vị cha</dt>
+                        <dd id="detailParent">—</dd>
+                    </div>
+
+                    <div>
+                        <dt>Người quản lý</dt>
+                        <dd id="detailManager">—</dd>
+                    </div>
+
+                    <div>
+                        <dt>Mô tả</dt>
+                        <dd id="detailDescription">—</dd>
+                    </div>
+
+                </dl>
+
+
+                <div class="detail-actions">
+
+                    <button
+                        id="addChildOrg"
+                        class="crm-btn crm-btn-secondary"
+                        type="button"
+                    >
+                        + Thêm đơn vị con
+                    </button>
+
+                    <button
+                        id="editOrg"
+                        class="crm-btn crm-btn-secondary"
+                        type="button"
+                    >
+                        Sửa
+                    </button>
+
+                    <button
+                        id="deleteOrg"
+                        class="crm-btn org-danger"
+                        type="button"
+                    >
+                        Xóa
+                    </button>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<!-- ORGANIZATION DRAWER -->
+
+<div
+    id="orgOverlay"
+    class="org-overlay"
+></div>
+
+
+<aside
+    id="orgDrawer"
+    class="org-drawer"
+>
+
+    <header>
+
+        <div>
+            <strong id="orgDrawerTitle">
+                Thêm đơn vị
+            </strong>
+
+            <span>
+                Cấu hình phòng ban / nhóm
+            </span>
+        </div>
+
+        <button
+            id="closeOrgDrawer"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form
+        id="orgForm"
+        novalidate
+    >
+
+        <input
+            id="editingOrgId"
+            type="hidden"
+        >
+
+        <input
+            id="parentOrgId"
+            type="hidden"
+        >
+
+
+        <label>
+            Mã đơn vị
+            <em>*</em>
+
+            <input
+                id="orgCode"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Tên đơn vị
+            <em>*</em>
+
+            <input
+                id="orgName"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Loại đơn vị
+
+            <select
+                id="orgType"
+                class="crm-input"
+            >
+                <option value="department">
+                    Phòng ban
+                </option>
+
+                <option value="sales-team">
+                    Nhóm kinh doanh
+                </option>
+
+                <option value="division">
+                    Khối / Bộ phận
+                </option>
+            </select>
+        </label>
+
+
+        <label>
+            Người quản lý
+
+            <input
+                id="orgManager"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Mô tả
+
+            <textarea
+                id="orgDescription"
+                rows="4"
+            ></textarea>
+        </label>
+
+
+        <div
+            id="orgFormError"
+            class="form-error"
+        ></div>
+
+
+        <footer>
+
+            <button
+                id="cancelOrg"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Lưu
+            </button>
+
+        </footer>
+
+    </form>
+
+</aside>
+
+
+
+
+
+<script src="js/pages/organization.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+.contract-head {
+    margin-bottom: 24px;
+}
+
+.back-link {
+    display: inline-block;
+
+    margin-bottom: 7px;
+
+    color: var(--crm-muted);
+
+    text-decoration: none;
+
+    font-size: 12px;
+}
+
+.contract-head h1 {
+    margin: 0;
+
+    font-size: 27px;
+}
+
+.contract-head p {
+    margin: 7px 0 0;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+.contract-blocked {
+    padding: 14px;
+
+    margin-bottom: 16px;
+
+    border-color: #fde68a;
+
+    background: #fffbeb;
+
+    color: #92400e;
+
+    font-size: 12px;
+}
+
+
+.contract-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 310px;
+
+    gap: 16px;
+
+    align-items: start;
+}
+
+.contract-main,
+.contract-summary {
+    padding: 20px;
+}
+
+.contract-main h2,
+.contract-summary h2 {
+    margin: 0;
+
+    font-size: 15px;
+}
+
+
+.contract-form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr));
+
+    gap: 12px;
+
+    margin-top: 16px;
+}
+
+.contract-form-grid label,
+.full-field {
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 650;
+}
+
+.contract-form-grid em {
+    color: var(--crm-danger);
+
+    font-style: normal;
+}
+
+.contract-form-grid input {
+    margin-top: 6px;
+}
+
+
+.full-field {
+    display: block;
+
+    margin-top: 14px;
+}
+
+.full-field textarea {
+    width: 100%;
+
+    margin-top: 6px;
+
+    padding: 10px;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 8px;
+
+    resize: vertical;
+
+    font: inherit;
+
+    outline: 0;
+}
+
+
+.inherit-title {
+    margin-top: 24px !important;
+}
+
+
+.inherited-data {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4,1fr);
+
+    gap: 10px;
+
+    margin-top: 14px;
+}
+
+.inherited-data > div {
+    padding: 12px;
+
+    border: 1px solid var(--crm-border);
+
+    border-radius: 9px;
+
+    background: #f8fafc;
+}
+
+.inherited-data span {
+    display: block;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.inherited-data strong {
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 12px;
+}
+
+
+.inherited-lines {
+    overflow-x: auto;
+
+    margin-top: 14px;
+}
+
+.inherited-lines table {
+    width: 100%;
+
+    min-width: 650px;
+
+    border-collapse: collapse;
+}
+
+.inherited-lines th {
+    padding: 9px;
+
+    text-align: left;
+
+    background: #f8fafc;
+
+    color: var(--crm-muted);
+
+    border-bottom: 1px solid var(--crm-border);
+
+    font-size: 12px;
+}
+
+.inherited-lines td {
+    padding: 10px 9px;
+
+    border-bottom: 1px solid var(--crm-border);
+
+    font-size: 12px;
+}
+
+
+.contract-summary p {
+    margin: 10px 0 18px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+.contract-summary .crm-btn {
+    width: 100%;
+}
+
+.contract-validation {
+    min-height: 18px;
+
+    margin-bottom: 9px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+
+.contract-success-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 5000;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(15,23,42,.48);
+}
+
+.contract-success-overlay.open {
+    display: flex;
+}
+
+.contract-success-box {
+    width: min(400px,100%);
+
+    padding: 28px;
+
+    text-align: center;
+
+    border-radius: 14px;
+
+    background: #fff;
+
+    box-shadow: var(--crm-shadow);
+}
+
+.success-check {
+    width: 58px;
+    height: 58px;
+
+    display: grid;
+    place-items: center;
+
+    margin: 0 auto 15px;
+
+    border-radius: 50%;
+
+    background: var(--crm-success);
+
+    color: #fff;
+
+    font-size: 30px;
+}
+
+.contract-success-box h2 {
+    margin: 0;
+
+    font-size: 18px;
+}
+
+.contract-success-box p {
+    margin: 9px 0 20px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+@media (max-width:1000px) {
+
+    .contract-grid {
+        grid-template-columns:
+            1fr;
+    }
+
+    .inherited-data {
+        grid-template-columns:
+            repeat(2,minmax(0,1fr));
+    }
+}
+
+
+@media (max-width:600px) {
+
+    .contract-form-grid,
+    .inherited-data {
+        grid-template-columns:
+            1fr;
+    }
+}
+@media (hover: hover) and (pointer: fine) {
+    .inherited-lines table tbody tr:hover { background: #f8fafc; }
+}
