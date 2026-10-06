@@ -40,6 +40,9 @@ class DataScopeIntegrationTest {
     void tearDown() throws Exception {
         try (Connection c = DatabaseConfig.getConnection()) {
             for (Long id : users) {
+                try (PreparedStatement s = c.prepareStatement("DELETE FROM customers WHERE owner_user_id = ?")) {
+                    s.setLong(1, id); s.executeUpdate();
+                }
                 try (PreparedStatement s = c.prepareStatement("DELETE FROM users WHERE id = ?")) {
                     s.setLong(1, id); s.executeUpdate();
                 }
@@ -74,6 +77,29 @@ class DataScopeIntegrationTest {
         assertEquals(ScopeType.ALL, service.resolve(director, "customer", "read").scopeType());
         assertEquals(ScopeType.ALL, service.resolve(admin, "customer", "read").scopeType());
         assertFalse(new PermissionService().hasPermission(salesA, "user.read"));
+    }
+
+    @Test
+    void salesRepCannotReadCustomerOfOtherSalesRep() throws Exception {
+        com.crm.service.customers.CustomerService customerService = new com.crm.service.customers.CustomerService();
+        com.crm.dto.customers.CustomerWriteRequest reqB = new com.crm.dto.customers.CustomerWriteRequest();
+        reqB.setName("Khách hàng riêng của Sales B");
+        reqB.setStatus("TIEM_NANG");
+        var customerOfB = customerService.create(salesB, reqB);
+        long customerBId = (Long) customerOfB.get("id");
+
+        // Sales B reads his own customer -> SUCCESS
+        assertNotNull(customerService.getById(salesB, customerBId));
+
+        // Sales A attempts to read Customer of Sales B -> SecurityException 403
+        SecurityException ex = assertThrows(SecurityException.class, () -> customerService.getById(salesA, customerBId));
+        assertEquals("Bạn không có quyền truy cập dữ liệu này do giới hạn phạm vi sở hữu.", ex.getMessage());
+
+        // Sales A searches customers -> Customer of B is not present in list
+        var listForA = customerService.search(salesA, null, null, 1, 50);
+        List<Map<String, Object>> itemsA = (List<Map<String, Object>>) listForA.get("items");
+        boolean containsB = itemsA.stream().anyMatch(c -> Objects.equals(c.get("id"), customerBId));
+        assertFalse(containsB, "Sales A must not see customer of Sales B in list");
     }
 
     @Test

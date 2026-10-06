@@ -1,413 +1,279 @@
 "use strict";
 
-let activities =
-    loadActivities();
+const API_BASE = "http://localhost:8080/crm";
 
+let activities = [];
 
-const drawer =
-    document.getElementById(
-        "activityDrawer"
-    );
+const drawer = document.getElementById("activityDrawer");
+const overlay = document.getElementById("activityOverlay");
+const activityForm = document.getElementById("activityForm");
 
-const overlay =
-    document.getElementById(
-        "activityOverlay"
-    );
+/* =========================================================
+   API CLIENT
+========================================================= */
+async function api(path, options = {}) {
+    const config = {
+        credentials: "include",
+        headers: {
+            "Accept": "application/json",
+            ...(options.body ? { "Content-Type": "application/json" } : {}),
+            ...(options.headers || {})
+        },
+        ...options
+    };
 
-
-document
-    .getElementById(
-        "createActivity"
-    )
-    .addEventListener(
-        "click",
-        () => openDrawer()
-    );
-
-
-document
-    .getElementById(
-        "closeActivityDrawer"
-    )
-    .addEventListener(
-        "click",
-        closeDrawer
-    );
-
-
-document
-    .getElementById(
-        "cancelActivity"
-    )
-    .addEventListener(
-        "click",
-        closeDrawer
-    );
-
-
-overlay.addEventListener(
-    "click",
-    closeDrawer
-);
-
-
-[
-    "activitySearch",
-    "activityTypeFilter",
-    "activityStatusFilter"
-]
-.forEach(
-    id => {
-
-        document
-            .getElementById(id)
-            .addEventListener(
-                id === "activitySearch"
-                    ?
-                    "input"
-                    :
-                    "change",
-                render
-            );
-
+    const response = await fetch(API_BASE + path, config);
+    let result = null;
+    try {
+        result = await response.json();
+    } catch (_) {
+        result = null;
     }
-);
 
+    if (response.status === 401) {
+        localStorage.removeItem("crm_ui_session");
+        window.location.href = "login.html";
+        throw new Error("Phiên đăng nhập đã hết hạn.");
+    }
 
-document
-    .getElementById(
-        "activityForm"
-    )
-    .addEventListener(
-        "submit",
-        event => {
+    if (!response.ok || !result?.success) {
+        const error = new Error(result?.message || `HTTP ${response.status}`);
+        error.status = response.status;
+        error.data = result?.data;
+        throw error;
+    }
 
-            event.preventDefault();
+    return result.data;
+}
 
-            saveActivity();
-
-        }
-    );
-
-
-document.addEventListener(
-    "click",
-    event => {
-
-        const edit =
-            event.target.closest(
-                "[data-edit-activity]"
-            );
-
-
-        if (edit) {
-
-            openDrawer(
-                edit.dataset.editActivity
-            );
-
+/* =========================================================
+   INITIALIZATION & DATA LOADING
+========================================================= */
+async function loadActivities() {
+    try {
+        const data = await api("/api/activities");
+        if (Array.isArray(data)) {
+            activities = data.map(item => normalizeActivityFromBackend(item));
+            saveActivitiesCache();
+            render();
             return;
         }
-
-
-        const complete =
-            event.target.closest(
-                "[data-complete-activity]"
-            );
-
-
-        if (complete) {
-
-            const item =
-                activities.find(
-                    row =>
-                        row.id
-                        ===
-                        complete.dataset.completeActivity
-                );
-
-
-            if (item) {
-
-                item.status =
-                    item.status === "done"
-                    ?
-                    "open"
-                    :
-                    "done";
-
-
-                saveActivities();
-
-                render();
-            }
-
-        }
-
+    } catch (err) {
+        console.warn("Could not load activities from backend, falling back to cache:", err);
     }
-);
 
+    try {
+        const cached = JSON.parse(localStorage.getItem("crm_ui_activities"));
+        activities = Array.isArray(cached) ? cached : [];
+    } catch {
+        activities = [];
+    }
+    render();
+}
 
-function saveActivity() {
+function normalizeActivityFromBackend(item) {
+    let dateStr = "";
+    let timeStr = "";
+    if (item.dueDate) {
+        const dt = new Date(item.dueDate);
+        if (!isNaN(dt.getTime())) {
+            dateStr = dt.toISOString().split("T")[0];
+            timeStr = dt.toTimeString().slice(0, 5);
+        }
+    }
 
-    const title =
-        value(
-            "activityTitle"
-        );
+    const rel = item.customerName || item.opportunityName || item.relation || "";
+    const st = (item.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open";
 
+    return {
+        id: item.id,
+        type: (item.type || "task").toLowerCase(),
+        title: item.subject || item.title || "Hoạt động",
+        relation: rel,
+        date: dateStr,
+        time: timeStr,
+        owner: item.ownerName || "Tôi",
+        description: item.description || "",
+        reminder: !!item.reminder,
+        status: st,
+        customerId: item.customerId,
+        opportunityId: item.opportunityId,
+        createdAt: item.createdAt || new Date().toISOString()
+    };
+}
 
-    const error =
-        document.getElementById(
-            "activityError"
-        );
+function saveActivitiesCache() {
+    try {
+        localStorage.setItem("crm_ui_activities", JSON.stringify(activities));
+    } catch (_) {}
+}
 
+/* =========================================================
+   EVENT LISTENERS
+========================================================= */
+document.getElementById("createActivity")?.addEventListener("click", () => openDrawer());
+document.getElementById("closeActivityDrawer")?.addEventListener("click", closeDrawer);
+document.getElementById("cancelActivity")?.addEventListener("click", closeDrawer);
+overlay?.addEventListener("click", closeDrawer);
 
-    error.textContent = "";
+["activitySearch", "activityTypeFilter", "activityStatusFilter"].forEach(id => {
+    document.getElementById(id)?.addEventListener("input", render);
+    document.getElementById(id)?.addEventListener("change", render);
+});
 
+activityForm?.addEventListener("submit", event => {
+    event.preventDefault();
+    saveActivity();
+});
 
-    if (!title) {
-
-        error.textContent =
-            "Vui lòng nhập tiêu đề hoạt động.";
-
+document.addEventListener("click", async event => {
+    const editBtn = event.target.closest("[data-edit-activity]");
+    if (editBtn) {
+        const id = editBtn.dataset.editActivity;
+        const item = activities.find(row => String(row.id) === String(id));
+        if (item) openDrawer(item);
         return;
     }
 
-
-    const editingId =
-        value(
-            "editingActivityId"
-        );
-
-
-    const existing =
-        activities.find(
-            item =>
-                item.id
-                === editingId
-        );
-
-
-    const record = {
-
-        id:
-            editingId
-            ||
-            "act_"
-            +
-            Date.now(),
-
-        type:
-            value(
-                "activityType"
-            ),
-
-        title,
-
-        relation:
-            value(
-                "activityRelation"
-            ),
-
-        date:
-            value(
-                "activityDate"
-            ),
-
-        time:
-            value(
-                "activityTime"
-            ),
-
-        owner:
-            value(
-                "activityOwner"
-            ),
-
-        description:
-            value(
-                "activityDescription"
-            ),
-
-        reminder:
-            document
-                .getElementById(
-                    "activityReminder"
-                )
-                .checked,
-
-        status:
-            existing
-            ?
-            existing.status
-            :
-            "open",
-
-        createdAt:
-            existing
-            ?
-            existing.createdAt
-            :
-            new Date()
-                .toISOString()
-    };
-
-
-    if (editingId) {
-
-        const index =
-            activities.findIndex(
-                item =>
-                    item.id
-                    === editingId
-            );
-
-
-        if (
-            index >= 0
-        ) {
-
-            activities[index] =
-                record;
+    const completeBtn = event.target.closest("[data-complete-activity]");
+    if (completeBtn) {
+        const id = completeBtn.dataset.completeActivity;
+        const item = activities.find(row => String(row.id) === String(id));
+        if (item) {
+            const newStatus = item.status === "done" ? "OPEN" : "COMPLETED";
+            try {
+                if (typeof item.id === "number") {
+                    await api(`/api/activities/${item.id}`, {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            subject: item.title,
+                            type: item.type,
+                            description: item.description,
+                            status: newStatus,
+                            dueDate: item.date ? `${item.date} ${item.time || "09:00"}:00` : null
+                        })
+                    });
+                }
+                item.status = newStatus === "COMPLETED" ? "done" : "open";
+                saveActivitiesCache();
+                render();
+            } catch (err) {
+                alert("Lỗi khi cập nhật trạng thái hoạt động: " + err.message);
+            }
         }
-
-    } else {
-
-        activities.unshift(
-            record
-        );
+        return;
     }
 
+    const deleteBtn = event.target.closest("[data-delete-activity]");
+    if (deleteBtn) {
+        const id = deleteBtn.dataset.deleteActivity;
+        if (confirm("Bạn có chắc chắn muốn xóa hoạt động này không?")) {
+            try {
+                if (typeof Number(id) === "number" && !isNaN(Number(id))) {
+                    await api(`/api/activities/${id}`, { method: "DELETE" });
+                }
+                activities = activities.filter(a => String(a.id) !== String(id));
+                saveActivitiesCache();
+                render();
+            } catch (err) {
+                alert("Lỗi khi xóa hoạt động: " + err.message);
+            }
+        }
+    }
+});
 
-    saveActivities();
+/* =========================================================
+   SAVE / EDIT ACTIVITY
+========================================================= */
+async function saveActivity() {
+    const title = value("activityTitle");
+    const error = document.getElementById("activityError");
+    if (error) error.textContent = "";
 
-    closeDrawer();
+    if (!title) {
+        if (error) error.textContent = "Vui lòng nhập tiêu đề hoạt động.";
+        return;
+    }
 
-    render();
+    const editingId = value("editingActivityId");
+    const type = value("activityType") || "task";
+    const relation = value("activityRelation");
+    const date = value("activityDate");
+    const time = value("activityTime");
+    const owner = value("activityOwner");
+    const description = value("activityDescription");
+    const reminder = document.getElementById("activityReminder")?.checked;
 
+    const dueDateStr = date ? `${date} ${time || "09:00"}:00` : null;
+
+    try {
+        if (editingId && !isNaN(Number(editingId))) {
+            const updated = await api(`/api/activities/${editingId}`, {
+                method: "PUT",
+                body: JSON.stringify({
+                    subject: title,
+                    type: type.toUpperCase(),
+                    description: description,
+                    status: "OPEN",
+                    dueDate: dueDateStr
+                })
+            });
+            await loadActivities();
+        } else {
+            const created = await api("/api/activities", {
+                method: "POST",
+                body: JSON.stringify({
+                    subject: title,
+                    type: type.toUpperCase(),
+                    description: description,
+                    status: "OPEN",
+                    dueDate: dueDateStr
+                })
+            });
+            await loadActivities();
+        }
+
+        closeDrawer();
+    } catch (err) {
+        if (error) error.textContent = "Lỗi: " + err.message;
+        else alert("Lỗi khi lưu hoạt động: " + err.message);
+    }
 }
 
-
+/* =========================================================
+   RENDER
+========================================================= */
 function render() {
+    const query = value("activitySearch").toLowerCase();
+    const type = value("activityTypeFilter");
+    const status = value("activityStatusFilter");
 
-    const query =
-        value(
-            "activitySearch"
-        )
-        .toLowerCase();
+    const filtered = activities.filter(item => {
+        const text = `${item.title} ${item.relation} ${item.description}`.toLowerCase();
+        const searchOk = !query || text.includes(query);
+        const typeOk = !type || item.type === type;
+        const statusOk = !status || item.status === status;
+        return searchOk && typeOk && statusOk;
+    });
 
-
-    const type =
-        value(
-            "activityTypeFilter"
-        );
-
-
-    const status =
-        value(
-            "activityStatusFilter"
-        );
-
-
-    const filtered =
-        activities.filter(
-            item => {
-
-                const text =
-                    (
-                        item.title
-                        +
-                        " "
-                        +
-                        item.relation
-                        +
-                        " "
-                        +
-                        item.description
-                    )
-                    .toLowerCase();
-
-
-                return (
-                    (
-                        !query
-                        ||
-                        text.includes(
-                            query
-                        )
-                    )
-                    &&
-                    (
-                        !type
-                        ||
-                        item.type
-                        === type
-                    )
-                    &&
-                    (
-                        !status
-                        ||
-                        item.status
-                        === status
-                    )
-                );
-
-            }
-        );
-
-
-    const list =
-        document.getElementById(
-            "activityList"
-        );
-
-
+    const list = document.getElementById("activityList");
+    if (!list) return;
     list.innerHTML = "";
 
+    const empty = document.getElementById("activityEmpty");
+    if (empty) empty.style.display = filtered.length ? "none" : "flex";
 
-    document
-        .getElementById(
-            "activityEmpty"
-        )
-        .style
-        .display =
-            filtered.length
-            ?
-            "none"
-            :
-            "flex";
-
-
-    for (
-        const item
-        of filtered
-    ) {
-
-        const article =
-            document.createElement(
-                "article"
-            );
-
-
-        article.className =
-            "activity-row";
-
-
+    filtered.forEach(item => {
+        const article = document.createElement("article");
+        article.className = "activity-row";
         article.innerHTML = `
             <div class="activity-icon ${item.type}">
                 ${typeIcon(item.type)}
             </div>
 
             <div class="activity-main">
-
-                <strong>
-                    ${escapeHtml(item.title)}
-                </strong>
-
-                <p>
-                    ${escapeHtml(item.description || "Không có ghi chú")}
-                </p>
-
+                <strong>${escapeHtml(item.title)}</strong>
+                <p>${escapeHtml(item.description || "Không có ghi chú")}</p>
             </div>
 
             <div class="activity-relation">
@@ -419,449 +285,136 @@ function render() {
             </div>
 
             <div>
-
                 <span class="activity-status ${statusClass(item)}">
                     ${statusLabel(item)}
                 </span>
 
                 <div class="activity-actions">
-
-                    <button
-                        type="button"
-                        data-edit-activity="${item.id}"
-                    >
-                        Sửa
+                    <button type="button" data-edit-activity="${item.id}">Sửa</button>
+                    <button type="button" data-complete-activity="${item.id}">
+                        ${item.status === "done" ? "Mở lại" : "Hoàn thành"}
                     </button>
-
-                    <button
-                        type="button"
-                        data-complete-activity="${item.id}"
-                    >
-                        ${
-                            item.status === "done"
-                            ?
-                            "Mở lại"
-                            :
-                            "Hoàn thành"
-                        }
-                    </button>
-
+                    <button type="button" style="color:#ef4444;" data-delete-activity="${item.id}">Xóa</button>
                 </div>
-
             </div>
         `;
-
-
-        list.appendChild(
-            article
-        );
-
-    }
-
+        list.appendChild(article);
+    });
 
     updateSummary();
-
 }
-
 
 function updateSummary() {
+    const now = todayString();
+    const open = activities.filter(item => item.status === "open");
+    const done = activities.filter(item => item.status === "done");
+    const late = activities.filter(item => item.status === "open" && item.date && item.date < now);
+    const today = activities.filter(item => item.date === now);
 
-    const now =
-        todayString();
-
-
-    const open =
-        activities.filter(
-            item =>
-                item.status
-                === "open"
-        );
-
-
-    const done =
-        activities.filter(
-            item =>
-                item.status
-                === "done"
-        );
-
-
-    const late =
-        activities.filter(
-            item =>
-                item.status
-                === "open"
-                &&
-                item.date
-                &&
-                item.date
-                <
-                now
-        );
-
-
-    text(
-        "totalActivity",
-        activities.length
-    );
-
-    text(
-        "openActivity",
-        open.length
-    );
-
-    text(
-        "doneActivity",
-        done.length
-    );
-
-    text(
-        "lateActivity",
-        late.length
-    );
-
+    text("summaryTotal", activities.length);
+    text("summaryPending", open.length);
+    text("summaryDone", done.length);
+    text("summaryLate", late.length);
 }
 
+/* =========================================================
+   DRAWER
+========================================================= */
+function openDrawer(item = null) {
+    const err = document.getElementById("activityError");
+    if (err) err.textContent = "";
 
-function openDrawer(
-    id = null
-) {
-
-    document
-        .getElementById(
-            "activityForm"
-        )
-        .reset();
-
-
-    setValue(
-        "editingActivityId",
-        ""
-    );
-
-
-    document
-        .getElementById(
-            "activityError"
-        )
-        .textContent = "";
-
-
-    document
-        .getElementById(
-            "activityDrawerTitle"
-        )
-        .textContent =
-            "Tạo hoạt động";
-
-
-    if (id) {
-
-        const item =
-            activities.find(
-                row =>
-                    row.id
-                    === id
-            );
-
-
-        if (item) {
-
-            setValue(
-                "editingActivityId",
-                item.id
-            );
-
-            setValue(
-                "activityType",
-                item.type
-            );
-
-            setValue(
-                "activityTitle",
-                item.title
-            );
-
-            setValue(
-                "activityRelation",
-                item.relation
-            );
-
-            setValue(
-                "activityDate",
-                item.date
-            );
-
-            setValue(
-                "activityTime",
-                item.time
-            );
-
-            setValue(
-                "activityOwner",
-                item.owner
-            );
-
-            setValue(
-                "activityDescription",
-                item.description
-            );
-
-
-            document
-                .getElementById(
-                    "activityReminder"
-                )
-                .checked =
-                    Boolean(
-                        item.reminder
-                    );
-
-
-            document
-                .getElementById(
-                    "activityDrawerTitle"
-                )
-                .textContent =
-                    "Sửa hoạt động";
-
-        }
-
+    if (item) {
+        text("activityDrawerTitle", "Sửa hoạt động");
+        setValue("editingActivityId", item.id);
+        setValue("activityType", item.type);
+        setValue("activityTitle", item.title);
+        setValue("activityRelation", item.relation);
+        setValue("activityDate", item.date);
+        setValue("activityTime", item.time);
+        setValue("activityOwner", item.owner);
+        setValue("activityDescription", item.description);
+        const rem = document.getElementById("activityReminder");
+        if (rem) rem.checked = !!item.reminder;
+    } else {
+        text("activityDrawerTitle", "Tạo hoạt động");
+        activityForm?.reset();
+        setValue("editingActivityId", "");
+        setValue("activityType", "task");
+        setValue("activityDate", todayString());
+        setValue("activityTime", "09:00");
     }
 
-
-    drawer.classList.add(
-        "open"
-    );
-
-    overlay.classList.add(
-        "open"
-    );
-
+    drawer?.classList.add("open");
+    overlay?.classList.add("open");
 }
-
 
 function closeDrawer() {
-
-    drawer.classList.remove(
-        "open"
-    );
-
-    overlay.classList.remove(
-        "open"
-    );
-
+    drawer?.classList.remove("open");
+    overlay?.classList.remove("open");
 }
 
+/* =========================================================
+   UI HELPERS
+========================================================= */
+function typeIcon(type) {
+    switch (type) {
+        case "call":
+            return `<svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`;
+        case "email":
+            return `<svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`;
+        case "meeting":
+            return `<svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+        case "note":
+            return `<svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+        default:
+            return `<svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>`;
+    }
+}
 
 function statusClass(item) {
-
-    if (
-        item.status
-        === "done"
-    ) {
-        return "done";
-    }
-
-
-    if (
-        item.date
-        &&
-        item.date
-        <
-        todayString()
-    ) {
-        return "late";
-    }
-
-
+    if (item.status === "done") return "done";
+    if (item.date && item.date < todayString()) return "late";
     return "open";
 }
 
-
 function statusLabel(item) {
-
-    if (
-        item.status
-        === "done"
-    ) {
-        return "Hoàn thành";
-    }
-
-
-    if (
-        item.date
-        &&
-        item.date
-        <
-        todayString()
-    ) {
-        return "Quá hạn";
-    }
-
-
-    return "Đang mở";
+    if (item.status === "done") return "Hoàn thành";
+    if (item.date && item.date < todayString()) return "Quá hạn";
+    return "Đang chờ";
 }
-
-
-function typeIcon(type) {
-
-    switch (type) {
-
-        case "call":
-            return "☎";
-
-        case "email":
-            return "✉";
-
-        case "meeting":
-            return "♙";
-
-        case "task":
-            return "✓";
-
-        default:
-            return "✎";
-    }
-
-}
-
 
 function formatSchedule(item) {
-
-    if (
-        !item.date
-    ) {
-        return "Chưa đặt lịch";
-    }
-
-
-    return item.date
-        +
-        (
-            item.time
-            ?
-            " · "
-            +
-            item.time
-            :
-            ""
-        );
+    return (item.date || "Chưa đặt ngày") + (item.time ? " · " + item.time : "");
 }
-
-
-function loadActivities() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem(
-                "crm_ui_activities"
-            )
-        )
-        ||
-        [];
-
-    } catch {
-
-        return [];
-    }
-
-}
-
-
-function saveActivities() {
-
-    localStorage.setItem(
-        "crm_ui_activities",
-        JSON.stringify(
-            activities
-        )
-    );
-
-}
-
 
 function todayString() {
-
-    const date =
-        new Date();
-
-
-    const year =
-        date.getFullYear();
-
-
-    const month =
-        String(
-            date.getMonth()
-            +
-            1
-        )
-        .padStart(
-            2,
-            "0"
-        );
-
-
-    const day =
-        String(
-            date.getDate()
-        )
-        .padStart(
-            2,
-            "0"
-        );
-
-
-    return `${year}-${month}-${day}`;
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
-
 
 function value(id) {
-
-    return document
-        .getElementById(id)
-        .value
-        .trim();
-
+    return (document.getElementById(id)?.value || "").trim();
 }
 
-
-function setValue(
-    id,
-    value
-) {
-
-    document
-        .getElementById(id)
-        .value =
-            value ?? "";
-
+function setValue(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val ?? "";
 }
 
-
-function text(
-    id,
-    value
-) {
-
-    document
-        .getElementById(id)
-        .textContent =
-            value;
+function text(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
 }
 
-
-function escapeHtml(value) {
-
-    return String(value ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
-
-render();
+// Start
+loadActivities();

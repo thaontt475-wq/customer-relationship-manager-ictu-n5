@@ -1257,9 +1257,68 @@ function escapeHtml(value) {
     .replace(/</g,"&lt;")
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
-
-}
-
-
 renderDashboard();
+
+(async function syncBackendData() {
+    try {
+        const [oppRes, quoteRes, actRes] = await Promise.all([
+            fetch("http://localhost:8080/crm/api/opportunities", { credentials: "include" }),
+            fetch("http://localhost:8080/crm/api/quotes", { credentials: "include" }),
+            fetch("http://localhost:8080/crm/api/activities", { credentials: "include" })
+        ]);
+
+        const [oppJson, quoteJson, actJson] = await Promise.all([
+            oppRes.json().catch(() => null),
+            quoteRes.json().catch(() => null),
+            actRes.json().catch(() => null)
+        ]);
+
+        let changed = false;
+
+        if (oppJson?.success && Array.isArray(oppJson.data)) {
+            const opps = oppJson.data.map(o => ({
+                id: o.id,
+                name: o.name,
+                customer: o.customerName || "",
+                value: Number(o.amount || 0),
+                stage: String(o.stageId),
+                stageName: o.stageName,
+                probability: o.probability || 0,
+                closeDate: o.expectedCloseDate || "",
+                owner: o.ownerName || "Tôi",
+                status: o.status
+            }));
+            localStorage.setItem("crm_ui_opportunities", JSON.stringify(opps));
+            changed = true;
+        }
+
+        if (quoteJson?.success && Array.isArray(quoteJson.data)) {
+            const qs = quoteJson.data.map(q => ({
+                id: q.id,
+                code: q.quoteNumber || `BG-${q.id}`,
+                customer: q.customerName || "",
+                total: Number(q.totalAmount || 0),
+                subtotal: Number(q.subtotal || 0),
+                discountPercent: Number(q.discountPercent || 0),
+                status: (q.status || "").toLowerCase()
+            }));
+            localStorage.setItem("crm_ui_quotes", JSON.stringify(qs));
+            changed = true;
+        }
+
+        if (actJson?.success && Array.isArray(actJson.data)) {
+            const acts = actJson.data.map(a => ({
+                id: a.id,
+                type: (a.type || "task").toLowerCase(),
+                title: a.subject || "Hoạt động",
+                status: (a.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open"
+            }));
+            localStorage.setItem("crm_ui_activities", JSON.stringify(acts));
+            changed = true;
+        }
+
+        if (changed) {
+            renderDashboard();
+        }
+    } catch (_) {}
+})();
