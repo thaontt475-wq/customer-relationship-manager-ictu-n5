@@ -31,9 +31,13 @@ public class UserImportServlet extends HttpServlet {
                 ResponseUtil.json(response, 404, ApiResponse.error("Không tìm thấy API", null));
                 return;
             }
+            String type = request.getParameter("type");
+            boolean isInvalid = "invalid".equalsIgnoreCase(type) || "error".equalsIgnoreCase(type);
+            String filename = isInvalid ? "mau_kiem_thu_nguoi_dung_co_loi.xlsx" : "mau_nguoi_dung_hop_le.xlsx";
+
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=user-import-template.xlsx");
-            service.writeTemplate(response.getOutputStream());
+            response.setHeader("Content-Disposition", "attachment; filename=" + filename);
+            service.writeTemplate(response.getOutputStream(), isInvalid ? "invalid" : "valid");
         } catch (SecurityException e) {
             forbidden(response);
         } catch (Exception e) {

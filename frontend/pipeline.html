@@ -413,13 +413,15 @@
 
 
         <label>
-            Khách hàng
+            Khách hàng <em>*</em>
 
-            <input
+            <select
                 id="opportunityCustomer"
                 class="crm-input"
-                type="text"
             >
+                <option value="">-- Chọn khách hàng --</option>
+            </select>
+            <small id="opportunityCustomerError"></small>
         </label>
 
 
@@ -631,6 +633,18 @@
             >
         </label>
 
+        <label>
+            Lý do Thắng
+            <em>*</em>
+
+            <select
+                id="winReason"
+                class="crm-input"
+            >
+                <option value="">-- Chọn lý do Thắng --</option>
+            </select>
+        </label>
+
 
         <div
             id="wonError"
@@ -669,7 +683,7 @@
     >
 
         <label>
-            Lý do thua
+            Lý do Thua
             <em>*</em>
 
             <select
@@ -677,39 +691,24 @@
                 class="crm-input"
             >
                 <option value="">
-                    Chọn lý do
-                </option>
-
-                <option value="Giá cao">
-                    Giá cao
-                </option>
-
-                <option value="Thiếu tính năng">
-                    Sản phẩm thiếu tính năng
-                </option>
-
-                <option value="Đối thủ mạnh">
-                    Đối thủ cạnh tranh mạnh
-                </option>
-
-                <option value="Khác">
-                    Khác
+                    -- Chọn lý do Thua --
                 </option>
             </select>
         </label>
 
 
         <label>
-            Đối thủ thắng thầu
-            <span class="optional">
-                (Không bắt buộc)
-            </span>
+            Đối thủ cạnh tranh
+            <em>*</em>
 
-            <input
+            <select
                 id="lossCompetitor"
                 class="crm-input"
-                type="text"
             >
+                <option value="">
+                    -- Chọn đối thủ thắng thầu --
+                </option>
+            </select>
         </label>
 
 

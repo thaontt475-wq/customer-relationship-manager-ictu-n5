@@ -292,10 +292,10 @@ public class ProductDAO {
     ) throws SQLException {
 
         String sql = """
-                SELECT EXISTS(
-                    SELECT 1
-                    FROM price_book_lines
-                    WHERE product_id = ?
+                SELECT (
+                    EXISTS(SELECT 1 FROM price_book_lines WHERE product_id = ?)
+                    OR
+                    EXISTS(SELECT 1 FROM quote_items WHERE product_id = ?)
                 )
                 """;
 
@@ -307,10 +307,8 @@ public class ProductDAO {
                         connection.prepareStatement(sql)
         ) {
 
-            statement.setLong(
-                    1,
-                    id
-            );
+            statement.setLong(1, id);
+            statement.setLong(2, id);
 
             try (
                     ResultSet rs =

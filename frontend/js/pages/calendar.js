@@ -548,11 +548,35 @@ function text(
     value
 ) {
 
-    document
-        .getElementById(id)
-        .textContent =
-            value;
-}
-
-
 render();
+
+(async function syncCalendarActivities() {
+    try {
+        const res = await fetch("http://localhost:8080/crm/api/activities", { credentials: "include" });
+        const json = await res.json();
+        if (json?.success && Array.isArray(json.data)) {
+            const list = json.data.map(item => {
+                let d = "";
+                let t = "";
+                if (item.dueDate) {
+                    const dt = new Date(item.dueDate);
+                    if (!isNaN(dt.getTime())) {
+                        d = dt.toISOString().split("T")[0];
+                        t = dt.toTimeString().slice(0, 5);
+                    }
+                }
+                return {
+                    id: item.id,
+                    type: (item.type || "meeting").toLowerCase(),
+                    title: item.subject || item.title || "Lịch hẹn",
+                    relation: item.customerName || item.opportunityName || item.relation || "",
+                    date: d,
+                    time: t,
+                    status: (item.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open"
+                };
+            });
+            localStorage.setItem("crm_ui_activities", JSON.stringify(list));
+            render();
+        }
+    } catch (_) {}
+})();
