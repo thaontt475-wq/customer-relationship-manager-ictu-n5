@@ -543,10 +543,10 @@ function toDateKey(date) {
 }
 
 
-function text(
-    id,
-    value
-) {
+function text(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? "";
+}
 
 render();
 
