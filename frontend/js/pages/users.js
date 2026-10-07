@@ -290,6 +290,7 @@ function prepareFormControls() {
 
     if (selfCheck) {
         selfCheck.hidden = true;
+        selfCheck.style.display = "none";
     }
 }
 
@@ -1138,6 +1139,8 @@ function openUserDrawer(
         if (passwordLabel) {
             passwordLabel.hidden =
                 false;
+            passwordLabel.style.display =
+                "";
         }
 
         if (password) {
@@ -1208,6 +1211,8 @@ function openUserDrawer(
         if (passwordLabel) {
             passwordLabel.hidden =
                 true;
+            passwordLabel.style.display =
+                "none";
         }
 
         if (password) {
@@ -1296,6 +1301,15 @@ async function saveUserForm(
     const userId =
         editValue
             ? Number(editValue)
+            : null;
+
+    const existing =
+        userId !== null
+            ? users.find(
+                item =>
+                    Number(item.id) ===
+                    userId
+            )
             : null;
 
 
@@ -1405,13 +1419,6 @@ async function saveUserForm(
 
         } else {
 
-            const existing =
-                users.find(
-                    item =>
-                        Number(item.id) ===
-                        userId
-                );
-
             savedUser =
                 await api(
                     `/api/users/${userId}`,
@@ -1480,6 +1487,48 @@ async function saveUserForm(
                     })
             }
         );
+
+        try {
+            if (existing) {
+                const oldRoles = (existing.roles || []).map(r => r.name).sort().join(", ");
+                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
+                if (oldRoles !== newRoleNames) {
+                    await recordAuditLog({
+                        entity: "USER_ROLE",
+                        entityId: String(savedId),
+                        action: "UPDATE_ROLE",
+                        description: `Cập nhật vai trò người dùng (${fullName})`,
+                        beforeValue: oldRoles || "Chưa có vai trò",
+                        afterValue: newRoleNames || "Chưa có vai trò"
+                    });
+                }
+
+                const scopeMap = { SELF: "Chỉ bản thân (SELF)", TEAM: "Dữ liệu nhóm (TEAM)", ALL: "Toàn bộ dữ liệu (ALL)" };
+                if (existing.dataScope !== dataScope) {
+                    await recordAuditLog({
+                        entity: "DATA_OWNERSHIP",
+                        entityId: String(savedId),
+                        action: "CHANGE_SCOPE",
+                        description: `Thay đổi phạm vi quyền sở hữu dữ liệu (${fullName})`,
+                        beforeValue: scopeMap[existing.dataScope] || existing.dataScope || "Chỉ bản thân (SELF)",
+                        afterValue: scopeMap[dataScope] || dataScope || "Chỉ bản thân (SELF)"
+                    });
+                }
+            } else {
+                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
+                const scopeMap = { SELF: "Chỉ bản thân (SELF)", TEAM: "Dữ liệu nhóm (TEAM)", ALL: "Toàn bộ dữ liệu (ALL)" };
+                await recordAuditLog({
+                    entity: "USER_ROLE",
+                    entityId: String(savedId),
+                    action: "CREATE_USER",
+                    description: `Tạo người dùng mới (${fullName})`,
+                    beforeValue: "Chưa có tài khoản",
+                    afterValue: `Vai trò: ${newRoleNames || "Chưa có"} | Phạm vi: ${scopeMap[dataScope] || dataScope}`
+                });
+            }
+        } catch (auditErr) {
+            console.warn("Audit logging warning:", auditErr);
+        }
 
 
         closeUserDrawer();
@@ -1742,6 +1791,39 @@ async function submitLock(
             }
         );
 
+        const fromUser =
+            users.find(
+                u =>
+                    Number(u.id) ===
+                    fromUserId
+            );
+
+        const toUser =
+            users.find(
+                u =>
+                    Number(u.id) ===
+                    toUserId
+            );
+
+        await recordAuditLog({
+            entity:
+                "DATA_OWNERSHIP",
+            entityId:
+                String(fromUserId),
+            action:
+                "TRANSFER_DATA",
+            description:
+                `Bàn giao quyền sở hữu dữ liệu từ ${fromUser?.fullName || fromUserId} sang ${toUser?.fullName || toUserId}`,
+            beforeValue:
+                fromUser
+                    ? `Chủ sở hữu: ${fromUser.fullName} (${fromUser.email})`
+                    : `User #${fromUserId}`,
+            afterValue:
+                toUser
+                    ? `Chủ sở hữu mới: ${toUser.fullName} (${toUser.email}) - Lý do: ${reason || "Bàn giao khi khóa tài khoản"}`
+                    : `User #${toUserId}`
+        });
+
 
         closeLockModal();
 
@@ -1791,6 +1873,16 @@ async function unlockUser(
                     "POST"
             }
         );
+
+        const target = users.find(u => Number(u.id) === Number(userId));
+        await recordAuditLog({
+            entity: "DATA_OWNERSHIP",
+            entityId: String(userId),
+            action: "UNLOCK",
+            description: `Mở khóa và khôi phục quyền truy cập dữ liệu (${target?.fullName || userId})`,
+            beforeValue: "Trạng thái: Đã khóa (LOCKED)",
+            afterValue: "Trạng thái: Đang hoạt động (ACTIVE)"
+        });
 
         await loadUsers();
 
@@ -1849,6 +1941,15 @@ async function deleteUser(
             }
         );
 
+        await recordAuditLog({
+            entity: "USER_ROLE",
+            entityId: String(userId),
+            action: "DELETE_USER",
+            description: `Xóa tài khoản người dùng (${user.fullName})`,
+            beforeValue: `${user.fullName} (${user.email}) - Vai trò: ${(user.roles || []).map(r => r.name).join(", ") || "Không có"}`,
+            afterValue: "Đã xóa khỏi hệ thống"
+        });
+
         await loadUsers();
 
     } catch (error) {
@@ -1863,6 +1964,112 @@ async function deleteUser(
             "Không thể xóa người dùng."
         );
     }
+}
+
+
+/* =========================================================
+   AUDIT LOG HELPER
+========================================================= */
+
+async function recordAuditLog(entry) {
+
+    const timestamp =
+        new Date().toISOString();
+
+    const actorName =
+        sessionUser?.fullName ||
+        "Quản trị viên";
+
+    const actorId =
+        sessionUser?.id ||
+        1;
+
+    const actorEmail =
+        sessionUser?.email ||
+        "admin@company.com";
+
+    try {
+        await fetch(
+            `${API_BASE}/api/audit-logs`,
+            {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                    "Accept":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify({
+                        entity:
+                            entry.entity,
+                        entityId:
+                            entry.entityId,
+                        action:
+                            entry.action,
+                        description:
+                            entry.description,
+                        beforeValue:
+                            entry.beforeValue,
+                        afterValue:
+                            entry.afterValue
+                    })
+            }
+        );
+    } catch (err) {
+        console.warn(
+            "Backend audit log record warning:",
+            err
+        );
+    }
+
+    try {
+        const raw =
+            localStorage.getItem(
+                "crm_audit_logs"
+            );
+
+        const list =
+            raw
+                ? JSON.parse(raw)
+                : [];
+
+        list.unshift({
+            id:
+                `local_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            createdAt:
+                timestamp,
+            userId:
+                actorId,
+            userName:
+                actorName,
+            userEmail:
+                actorEmail,
+            entity:
+                entry.entity,
+            entityId:
+                entry.entityId,
+            action:
+                entry.action,
+            description:
+                entry.description,
+            beforeValue:
+                entry.beforeValue,
+            afterValue:
+                entry.afterValue
+        });
+
+        if (list.length > 100) {
+            list.length = 100;
+        }
+
+        localStorage.setItem(
+            "crm_audit_logs",
+            JSON.stringify(list)
+        );
+
+    } catch (_) {}
 }
 
 

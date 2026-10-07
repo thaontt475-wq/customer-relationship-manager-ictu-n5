@@ -9,52 +9,47 @@ const quoteId =
     params.get("id");
 
 
-const quote =
-    getQuotes()
-        .find(
-            item =>
-                item.id === quoteId
-        );
+let quote = getQuotes().find(item => String(item.id) === String(quoteId));
 
+const blocked = document.getElementById("contractBlocked");
+const createButton = document.getElementById("createContractButton");
 
-const blocked =
-    document.getElementById(
-        "contractBlocked"
-    );
+async function initContractPage() {
+    if (!quote && quoteId) {
+        try {
+            const res = await fetch(`http://localhost:8080/crm/api/quotes/${quoteId}`, { credentials: "include" });
+            const json = await res.json();
+            if (json?.success && json.data) {
+                const q = json.data;
+                quote = {
+                    id: q.id,
+                    code: q.quoteNumber || `BG-${q.id}`,
+                    customer: q.customerName || "Khách hàng",
+                    total: Number(q.totalAmount || 0),
+                    status: (q.status || "").toLowerCase()
+                };
+            }
+        } catch (_) {}
+    }
 
-const createButton =
-    document.getElementById(
-        "createContractButton"
-    );
-
-
-if (!quote) {
-
-    blocked.hidden = false;
-
-    blocked.innerHTML =
-        "Không tìm thấy báo giá được chọn.";
-
-    createButton.disabled = true;
-
-} else {
-
-    renderQuoteData(
-        quote
-    );
-
-
-    if (
-        quote.status
-        !== "approved"
-    ) {
-
+    if (!quote) {
         blocked.hidden = false;
-
+        blocked.innerHTML = "Không tìm thấy báo giá được chọn.";
         createButton.disabled = true;
-
+    } else {
+        renderQuoteData(quote);
+        if (quote.status !== "approved") {
+            blocked.hidden = false;
+            blocked.innerHTML = "Báo giá chưa được phê duyệt nên không thể tạo hợp đồng.";
+            createButton.disabled = true;
+        } else {
+            blocked.hidden = true;
+            createButton.disabled = false;
+        }
     }
 }
+
+initContractPage();
 
 
 document

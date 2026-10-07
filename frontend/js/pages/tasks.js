@@ -757,13 +757,37 @@ function setValue(
 
 function escapeHtml(value) {
 
-    return String(value ?? "")
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
-}
-
-
 render();
+
+(async function syncBackendActivities() {
+    try {
+        const res = await fetch("http://localhost:8080/crm/api/activities", { credentials: "include" });
+        const json = await res.json();
+        if (json?.success && Array.isArray(json.data)) {
+            activities = json.data.map(item => {
+                let d = "";
+                let t = "";
+                if (item.dueDate) {
+                    const dt = new Date(item.dueDate);
+                    if (!isNaN(dt.getTime())) {
+                        d = dt.toISOString().split("T")[0];
+                        t = dt.toTimeString().slice(0, 5);
+                    }
+                }
+                return {
+                    id: item.id,
+                    type: (item.type || "task").toLowerCase(),
+                    title: item.subject || item.title || "Công việc",
+                    relation: item.customerName || item.opportunityName || item.relation || "",
+                    date: d,
+                    time: t,
+                    owner: item.ownerName || "Tôi",
+                    description: item.description || "",
+                    status: (item.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open"
+                };
+            });
+            saveActivities();
+            render();
+        }
+    } catch (_) {}
+})();

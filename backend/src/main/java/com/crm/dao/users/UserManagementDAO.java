@@ -262,12 +262,13 @@ public class UserManagementDAO {
 
         String sql = """
                 INSERT INTO users(
+                    username,
                     full_name,
                     email,
                     password_hash,
                     status
                 )
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?)
                 """;
 
         try (
@@ -281,13 +282,14 @@ public class UserManagementDAO {
                         )
         ) {
 
-            statement.setString(1, fullName);
-            statement.setString(2, email);
+            statement.setString(1, email);
+            statement.setString(2, fullName);
+            statement.setString(3, email);
             statement.setString(
-                    3,
+                    4,
                     PasswordUtil.hash(password)
             );
-            statement.setString(4, status);
+            statement.setString(5, status);
 
             statement.executeUpdate();
 
