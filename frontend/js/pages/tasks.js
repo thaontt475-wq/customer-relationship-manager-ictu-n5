@@ -101,32 +101,26 @@ document.addEventListener(
 
 
         if (complete) {
-
-            const task =
-                activities.find(
-                    item =>
-                        item.id
-                        ===
-                        complete.dataset.toggleTask
-                );
-
-
+            const task = activities.find(item => String(item.id) === String(complete.dataset.toggleTask));
             if (task) {
-
-                task.status =
-                    task.status === "done"
-                    ?
-                    "open"
-                    :
-                    "done";
-
-
+                task.status = task.status === "done" ? "open" : "done";
                 saveActivities();
-
                 render();
+                if (!String(task.id).startsWith("act_")) {
+                    fetch(`http://localhost:8080/crm/api/activities/${task.id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            subject: task.title,
+                            type: "TASK",
+                            description: task.description || "",
+                            status: task.status === "done" ? "COMPLETED" : "OPEN",
+                            dueDate: task.date ? (task.date + " 00:00:00") : null
+                        })
+                    }).catch(() => {});
+                }
             }
-
-
             return;
         }
 
@@ -249,39 +243,56 @@ function saveTask() {
 
 
     if (editingId) {
-
-        const index =
-            activities.findIndex(
-                item =>
-                    item.id
-                    === editingId
-            );
-
-
-        if (
-            index >= 0
-        ) {
-
-            activities[index] =
-                {
-                    ...activities[index],
-                    ...record
-                };
+        const index = activities.findIndex(item => String(item.id) === String(editingId));
+        if (index >= 0) {
+            activities[index] = { ...activities[index], ...record };
         }
-
     } else {
-
-        activities.unshift(
-            record
-        );
+        activities.unshift(record);
     }
 
-
     saveActivities();
-
     closeModal();
-
     render();
+
+    (async () => {
+        try {
+            const dueDate = record.date ? (record.date + " 00:00:00") : null;
+            if (editingId && !String(editingId).startsWith("act_")) {
+                await fetch(`http://localhost:8080/crm/api/activities/${editingId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        subject: record.title,
+                        type: "TASK",
+                        description: record.description || "",
+                        status: record.status === "done" ? "COMPLETED" : "OPEN",
+                        dueDate: dueDate
+                    })
+                });
+            } else {
+                const res = await fetch("http://localhost:8080/crm/api/activities", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        subject: record.title,
+                        type: "TASK",
+                        description: record.description || "",
+                        status: record.status === "done" ? "COMPLETED" : "OPEN",
+                        dueDate: dueDate
+                    })
+                });
+                const json = await res.json();
+                if (json?.success && json.data?.id) {
+                    record.id = json.data.id;
+                    saveActivities();
+                    render();
+                }
+            }
+        } catch (_) {}
+    })();
 
 }
 
@@ -557,13 +568,7 @@ function openModal(
 
 
     if (id) {
-
-        const task =
-            activities.find(
-                item =>
-                    item.id
-                    === id
-            );
+        const task = activities.find(item => String(item.id) === String(id));
 
 
         if (task) {
@@ -756,6 +761,13 @@ function setValue(
 
 
 function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 render();
 
@@ -783,6 +795,7 @@ render();
                     time: t,
                     owner: item.ownerName || "Tôi",
                     description: item.description || "",
+                    priority: item.priority || "medium",
                     status: (item.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open"
                 };
             });

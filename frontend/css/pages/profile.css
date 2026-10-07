@@ -85,6 +85,14 @@
     font-weight: 700;
 }
 
+.hero-avatar-empty[hidden],
+.hero-avatar-image[hidden],
+.profile-avatar-empty[hidden],
+.profile-avatar-image[hidden],
+[hidden] {
+    display: none !important;
+}
+
 .hero-status-pulse {
     position: absolute;
     bottom: 4px;

@@ -540,7 +540,6 @@
             ||
             "U";
 
-
         return name
             .trim()
             .charAt(0)
@@ -549,13 +548,17 @@
             "U";
     }
 
+    function absoluteAvatarUrl(url) {
+        if (!url) return "";
+        if (/^https?:\/\//i.test(url)) return url;
+        const origin = "http://localhost:8080";
+        return origin + (url.startsWith("/") ? url : "/" + url);
+    }
 
     function renderUser() {
-
         if (!currentSession) {
             return;
         }
-
 
         const fullName =
             currentSession.fullName
@@ -564,16 +567,13 @@
             ||
             "Người dùng";
 
-
         const role =
             roleText();
-
 
         const team =
             currentSession.teamName
             ||
             "Chưa thuộc nhóm";
-
 
         document
             .querySelectorAll(
@@ -581,12 +581,10 @@
             )
             .forEach(
                 element => {
-
                     element.textContent =
                         fullName;
                 }
             );
-
 
         document
             .querySelectorAll(
@@ -594,12 +592,10 @@
             )
             .forEach(
                 element => {
-
                     element.textContent =
                         role;
                 }
             );
-
 
         document
             .querySelectorAll(
@@ -607,25 +603,32 @@
             )
             .forEach(
                 element => {
-
                     element.textContent =
                         `Nhóm: ${team}`;
                 }
             );
-
 
         const teamElement =
             document.getElementById(
                 "shellUserTeam"
             );
 
-
         if (teamElement) {
-
             teamElement.textContent =
                 `Nhóm: ${team}`;
         }
 
+        const avatarUrl =
+            currentSession.avatarThumbnailUrl
+            ||
+            currentSession.avatarUrl
+            ||
+            localStorage.getItem(
+                "crm_ui_profile_avatar"
+            );
+
+        const fullAvatar =
+            avatarUrl ? absoluteAvatarUrl(avatarUrl) : "";
 
         document
             .querySelectorAll(
@@ -633,11 +636,21 @@
             )
             .forEach(
                 element => {
-
-                    if (
-                        !element.style.backgroundImage
-                    ) {
-
+                    if (fullAvatar) {
+                        element.textContent = "";
+                        element.style.backgroundImage =
+                            `url("${fullAvatar}")`;
+                        element.style.backgroundSize =
+                            "cover";
+                        element.style.backgroundPosition =
+                            "center";
+                        element.style.backgroundRepeat =
+                            "no-repeat";
+                        element.innerHTML =
+                            `<img src="${fullAvatar}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" onerror="this.remove();">`;
+                    } else {
+                        element.style.backgroundImage = "";
+                        element.innerHTML = "";
                         element.textContent =
                             userInitial();
                     }
@@ -666,6 +679,21 @@
 
             currentSession =
                 sessionResult.data;
+
+            if (
+                currentSession?.avatarThumbnailUrl ||
+                currentSession?.avatarUrl
+            ) {
+                const fullAvt =
+                    absoluteAvatarUrl(
+                        currentSession.avatarThumbnailUrl ||
+                        currentSession.avatarUrl
+                    );
+                localStorage.setItem(
+                    "crm_ui_profile_avatar",
+                    fullAvt
+                );
+            }
 
 
             currentMenu =
@@ -989,19 +1017,37 @@
        AVATAR
     ===================================================== */
 
-    function updateAvatar() {
+    function updateAvatar(newUrl) {
 
-        const avatar =
+        const raw =
+            newUrl ||
             localStorage.getItem(
                 "crm_ui_profile_avatar"
-            );
+            ) ||
+            currentSession?.avatarThumbnailUrl ||
+            currentSession?.avatarUrl;
 
 
-        if (!avatar) {
+        if (!raw) {
 
             renderUser();
 
             return;
+        }
+
+        const full =
+            absoluteAvatarUrl(raw);
+
+        localStorage.setItem(
+            "crm_ui_profile_avatar",
+            full
+        );
+
+        if (currentSession) {
+            currentSession.avatarThumbnailUrl =
+                full;
+            currentSession.avatarUrl =
+                full;
         }
 
 
@@ -1016,13 +1062,19 @@
                         "";
 
                     element.style.backgroundImage =
-                        `url("${avatar}")`;
+                        `url("${full}")`;
 
                     element.style.backgroundSize =
                         "cover";
 
                     element.style.backgroundPosition =
                         "center";
+
+                    element.style.backgroundRepeat =
+                        "no-repeat";
+
+                    element.innerHTML =
+                        `<img src="${full}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;" onerror="this.remove();">`;
                 }
             );
     }
@@ -1030,6 +1082,31 @@
 
     window.crmUpdateGlobalAvatar =
         updateAvatar;
+
+    window.addEventListener(
+        "crm:avatar-updated",
+        event => {
+            const url =
+                event.detail?.avatarThumbnailUrl ||
+                event.detail?.avatarUrl ||
+                (typeof event.detail === "string" ? event.detail : null);
+            if (url) {
+                updateAvatar(url);
+            }
+        }
+    );
+
+    window.addEventListener(
+        "storage",
+        event => {
+            if (
+                event.key === "crm_ui_profile_avatar" &&
+                event.newValue
+            ) {
+                updateAvatar(event.newValue);
+            }
+        }
+    );
 
 
     /* =====================================================
