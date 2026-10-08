@@ -39,6 +39,7 @@
 <link rel="stylesheet" href="css/app-shell.css">
 <link rel="stylesheet" href="css/pages/customer-360.css">
 <link rel="stylesheet" href="css/pages/support-tickets.css">
+<link rel="stylesheet" href="css/pages/contacts.css">
 
 <link rel="stylesheet" href="css/animations.css">
 </head>
@@ -67,6 +68,11 @@
         <a href="customers.html" class="crm-nav-item active">
             <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
             <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
         </a>
 
         <a href="support-tickets.html" class="crm-nav-item">
@@ -674,7 +680,202 @@
 </nav>
 
 
+<!-- ================= CONTACT MODALS (CRM-62) ================= -->
+<!-- Modal: Add/Edit Contact -->
+<div id="contactFormModal" class="contacts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalContactTitle">
+    <div class="contacts-modal modal-lg">
+        <header class="contacts-modal-head">
+            <h3 id="modalContactTitle">Thêm mới người liên hệ B2B</h3>
+            <button class="contacts-modal-close" data-close-modal type="button" aria-label="Đóng">✕</button>
+        </header>
+
+        <form id="contactForm" novalidate>
+            <div class="contacts-modal-body">
+                <div class="form-field-group">
+                    <label for="contactCustomerId">Doanh nghiệp trực thuộc <span class="req-star">*</span></label>
+                    <select id="contactCustomerId" class="crm-input" required></select>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="contactFullName">Họ và tên <span class="req-star">*</span></label>
+                        <input id="contactFullName" class="crm-input" type="text" placeholder="Ví dụ: Nguyễn Văn A" required>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="contactJobTitle">Chức danh / Vị trí <span class="req-star">*</span></label>
+                        <input id="contactJobTitle" class="crm-input" type="text" placeholder="Ví dụ: Giám đốc CNTT (CIO)" required>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="contactEmail">Email công việc <span class="req-star">*</span></label>
+                        <input id="contactEmail" class="crm-input" type="email" placeholder="name@company.com" required>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="contactPhone">Số điện thoại di động <span class="req-star">*</span></label>
+                        <input id="contactPhone" class="crm-input" type="tel" placeholder="0912 345 678" required>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="contactDepartment">Phòng ban / Đơn vị</label>
+                        <input id="contactDepartment" class="crm-input" type="text" placeholder="Ví dụ: Ban Điều hành, Khối Công nghệ">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="contactStatus">Trạng thái làm việc</label>
+                        <select id="contactStatus" class="crm-input">
+                            <option value="ACTIVE">Đang hoạt động (Active)</option>
+                            <option value="INACTIVE">Tạm dừng (Inactive)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-field-group">
+                    <label>Vai trò trong quyết định mua hàng (Decision-Making Role) <span class="req-star">*</span></label>
+                    <div class="role-radio-cards-grid">
+                        <div class="role-radio-card" data-role="DECISION_MAKER">
+                            <input type="radio" name="decisionRole" value="DECISION_MAKER" id="roleDM">
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleDM"><span>👑 Người quyết định</span></label>
+                                <div class="role-radio-desc">Có quyền duyệt ngân sách & ký hợp đồng (CEO, Chủ tịch, Giám đốc khối).</div>
+                            </div>
+                        </div>
+
+                        <div class="role-radio-card" data-role="INFLUENCER">
+                            <input type="radio" name="decisionRole" value="INFLUENCER" id="roleINF">
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleINF"><span>⚡ Người ảnh hưởng</span></label>
+                                <div class="role-radio-desc">Đánh giá tiêu chuẩn chuyên môn, đề xuất hoặc tác động mạnh đến lựa chọn.</div>
+                            </div>
+                        </div>
+
+                        <div class="role-radio-card" data-role="END_USER">
+                            <input type="radio" name="decisionRole" value="END_USER" id="roleEU" checked>
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleEU"><span>👤 Người dùng cuối</span></label>
+                                <div class="role-radio-desc">Vận hành trực tiếp sản phẩm hằng ngày, phản hồi trải nghiệm thực tế.</div>
+                            </div>
+                        </div>
+
+                        <div class="role-radio-card" data-role="BLOCKER">
+                            <input type="radio" name="decisionRole" value="BLOCKER" id="roleBLK">
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleBLK"><span style="color:var(--crm-danger);">⚠️ Người cản trở</span></label>
+                                <div class="role-radio-desc">Có thể phản đối, siết chặt chi phí, ưu tiên giải pháp nội bộ hoặc trì hoãn đàm phán.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-field-group" style="background:rgba(217,119,6,0.06); border:1px dashed rgba(217,119,6,0.3); border-radius:8px; padding:12px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input id="contactIsPrimary" type="checkbox" style="width:18px; height:18px;">
+                        <span style="font-weight:700; color:#b45309;">
+                            ⭐ Đặt làm Đầu mối liên hệ chính (Primary Contact) của doanh nghiệp này
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="contactNotes">Ghi chú chiến lược tiếp cận</label>
+                    <textarea id="contactNotes" class="crm-input" style="height:70px; padding:8px 12px; resize:vertical;"></textarea>
+                </div>
+            </div>
+
+            <footer class="contacts-modal-footer">
+                <button class="crm-btn crm-btn-secondary" data-close-modal type="button">Hủy bỏ</button>
+                <button id="btnSubmitContact" class="crm-btn crm-btn-primary" type="submit">Lưu người liên hệ</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Transfer Contact -->
+<div id="transferContactModal" class="contacts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle">
+    <div class="contacts-modal">
+        <header class="contacts-modal-head">
+            <h3 id="modalTransferTitle"><span>🔄 Điều chuyển công tác người liên hệ</span></h3>
+            <button class="contacts-modal-close" data-close-modal type="button" aria-label="Đóng">✕</button>
+        </header>
+
+        <form id="transferForm" novalidate>
+            <div class="contacts-modal-body">
+                <div class="transfer-source-box">
+                    <div class="transfer-source-row">Nhân sự điều chuyển: <strong id="transferContactName">—</strong></div>
+                    <div class="transfer-source-row">Doanh nghiệp hiện tại: <strong id="transferCurrentCompany">—</strong></div>
+                    <div class="transfer-source-row">Vị trí cũ: <strong id="transferCurrentJobTitle">—</strong></div>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="transferNewCustomerId">Doanh nghiệp chuyển đến <span class="req-star">*</span></label>
+                    <select id="transferNewCustomerId" class="crm-input" required></select>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="transferNewJobTitle">Chức danh tại công ty mới <span class="req-star">*</span></label>
+                        <input id="transferNewJobTitle" class="crm-input" type="text" placeholder="Chức danh mới..." required>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="transferNewDepartment">Phòng ban mới</label>
+                        <input id="transferNewDepartment" class="crm-input" type="text" placeholder="Phòng ban mới...">
+                    </div>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="transferDate">Ngày điều chuyển công tác <span class="req-star">*</span></label>
+                    <input id="transferDate" class="crm-input" type="date" required>
+                </div>
+
+                <div class="form-field-group" style="background:rgba(217,119,6,0.06); border:1px dashed rgba(217,119,6,0.3); border-radius:8px; padding:10px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input id="transferSetPrimary" type="checkbox" style="width:16px; height:16px;">
+                        <span style="font-weight:600; font-size:13px; color:#b45309;">
+                            ⭐ Đặt làm Đầu mối liên hệ chính tại công ty mới
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="transferReason">Lý do điều chuyển / Ghi chú lịch sử vết <span class="req-star">*</span></label>
+                    <textarea id="transferReason" class="crm-input" style="height:80px; padding:8px 12px; resize:vertical;" required></textarea>
+                </div>
+            </div>
+
+            <footer class="contacts-modal-footer">
+                <button class="crm-btn crm-btn-secondary" data-close-modal type="button">Hủy bỏ</button>
+                <button class="crm-btn crm-btn-primary" type="submit">Xác nhận điều chuyển</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: History Timeline -->
+<div id="contactHistoryModal" class="contacts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+    <div class="contacts-modal modal-lg">
+        <header class="contacts-modal-head">
+            <h3 id="historyModalTitle">📜 Lịch sử chuyển công tác</h3>
+            <button class="contacts-modal-close" data-close-modal type="button" aria-label="Đóng">✕</button>
+        </header>
+
+        <div class="contacts-modal-body">
+            <div id="historyTimelineContainer"></div>
+        </div>
+
+        <footer class="contacts-modal-footer">
+            <button class="crm-btn crm-btn-secondary" data-close-modal type="button">Đóng</button>
+        </footer>
+    </div>
+</div>
+
 <script src="js/pages/support-tickets.js"></script>
+<script src="js/pages/contacts.js"></script>
 <script src="js/pages/customer-360.js"></script>
 
 <script src="js/theme.js"></script>
