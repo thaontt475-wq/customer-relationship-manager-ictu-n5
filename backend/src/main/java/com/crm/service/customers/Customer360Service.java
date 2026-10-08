@@ -11,6 +11,7 @@ public class Customer360Service {
     private final CustomerService customers=new CustomerService();
     private final Customer360DAO dao=new Customer360DAO();
     private final DataScopeService scopes=new DataScopeService();
+    private final com.crm.service.support.SupportRequestService support=new com.crm.service.support.SupportRequestService();
 
     public Map<String,Object> getCustomer360(long userId,long customerId) throws Exception {
         if(customerId<=0) throw new IllegalArgumentException("Customer ID không hợp lệ");
@@ -38,6 +39,7 @@ public class Customer360Service {
         out.put("attachments",dao.attachments(customerId));
         out.put("totalContractValue",dao.signedValue(customerId));
         out.put("openOpportunityValue",openValue);
+        out.put("churnRisk",support.risk(userId,customerId));
         return out;
     }
 }
