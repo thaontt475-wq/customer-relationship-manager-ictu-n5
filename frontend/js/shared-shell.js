@@ -32,6 +32,9 @@
             customer:
                 `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,
 
+            support:
+                `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>`,
+
             opportunity:
                 `<svg viewBox="0 0 24 24"><path d="m12 3 7 7-7 7-7-7 7-7Z"/><path d="M12 17v4"/></svg>`,
 
@@ -704,6 +707,23 @@
                 menuResult.data.menuItems
                 :
                 [];
+
+            // CRM-68: Ensure Post-sale Support & Churn Risk item is in workspace menu
+            if (!currentMenu.some(m => m.path === "support-tickets.html" || m.name === "SUPPORT_TICKETS")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const supportItem = {
+                    name: "SUPPORT_TICKETS",
+                    label: "Chăm sóc & Hỗ trợ",
+                    path: "support-tickets.html",
+                    icon: "support",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, supportItem);
+                } else {
+                    currentMenu.push(supportItem);
+                }
+            }
 
 
             renderUser();
