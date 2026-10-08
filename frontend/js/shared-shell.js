@@ -32,6 +32,9 @@
             customer:
                 `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,
 
+            contact:
+                `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+
             support:
                 `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>`,
 
@@ -708,9 +711,26 @@
                 :
                 [];
 
+            // CRM-62: Ensure Contact Management (Decision Roles) item is in workspace menu
+            if (!currentMenu.some(m => m.path === "contacts.html" || m.name === "CONTACTS")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const contactItem = {
+                    name: "CONTACTS",
+                    label: "Người liên hệ (CRM-62)",
+                    path: "contacts.html",
+                    icon: "contact",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, contactItem);
+                } else {
+                    currentMenu.push(contactItem);
+                }
+            }
+
             // CRM-68: Ensure Post-sale Support & Churn Risk item is in workspace menu
             if (!currentMenu.some(m => m.path === "support-tickets.html" || m.name === "SUPPORT_TICKETS")) {
-                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const contactIndex = currentMenu.findIndex(m => m.path === "contacts.html");
                 const supportItem = {
                     name: "SUPPORT_TICKETS",
                     label: "Chăm sóc & Hỗ trợ",
@@ -718,8 +738,8 @@
                     icon: "support",
                     section: "workspace"
                 };
-                if (customerIndex !== -1) {
-                    currentMenu.splice(customerIndex + 1, 0, supportItem);
+                if (contactIndex !== -1) {
+                    currentMenu.splice(contactIndex + 1, 0, supportItem);
                 } else {
                     currentMenu.push(supportItem);
                 }
