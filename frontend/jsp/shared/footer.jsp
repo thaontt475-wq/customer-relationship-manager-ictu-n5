@@ -1,1 +1,0 @@
-<%-- Footer dùng chung của hệ thống --%>

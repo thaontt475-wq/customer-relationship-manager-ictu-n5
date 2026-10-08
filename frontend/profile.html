@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme = localStorage.getItem("crm_ui_theme");
+        document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+        document.documentElement.removeAttribute("data-crm-theme");
+    } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hồ sơ cá nhân | Corporate CRM</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/profile.css">
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <div class="crm-nav-section">Tài khoản</div>
+
+        <a href="profile.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="crm-nav-label">Hồ sơ cá nhân</span>
+        </a>
+    </nav>
+</aside>
+
+<header class="crm-topbar">
+    <div class="crm-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div id="topAvatar" class="crm-avatar">U</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Người dùng</span>
+                    <span class="crm-user-role">Vai trò</span>
+                </div>
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+            </button>
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="#">Đổi mật khẩu</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="crm-main profile-page">
+
+    <!-- HERO PROFILE HEADER BANNER -->
+    <section class="crm-card profile-hero-banner">
+        <div class="hero-left">
+            <div class="hero-avatar-wrap">
+                <div id="heroAvatarEmpty" class="hero-avatar-empty">U</div>
+                <img id="heroAvatarImage" class="hero-avatar-image" alt="Avatar" hidden>
+                <div class="hero-status-pulse" title="Tài khoản đang hoạt động"></div>
+            </div>
+            <div class="hero-info">
+                <div class="hero-title-row">
+                    <h1 id="heroFullName">Hồ sơ cá nhân</h1>
+                    <span id="heroStatusBadge" class="hero-badge hero-badge-success">🟢 Đang hoạt động</span>
+                </div>
+                <p class="hero-subtext">Quản lý định danh cá nhân, chữ ký giao dịch và ảnh đại diện hệ thống CRM.</p>
+                <div class="hero-tags">
+                    <span id="heroRoleTag" class="hero-tag role-tag">
+                        <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        <span id="heroRoleText">Vai trò</span>
+                    </span>
+                    <span id="heroTeamTag" class="hero-tag team-tag">
+                        <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span id="heroTeamText">Nhóm kinh doanh</span>
+                    </span>
+                    <span class="hero-tag id-tag">
+                        <svg class="crm-inline-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/></svg>
+                        ID: <b id="heroIdText">--</b>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-right">
+            <div class="hero-chip">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <span id="heroEmailChip">email@company.com</span>
+            </div>
+            <div class="hero-chip">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span id="heroPhoneChip">Chưa cập nhật SĐT</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN TWO-COLUMN GRID -->
+    <section class="profile-grid">
+
+        <!-- LEFT COLUMN: AVATAR STUDIO & SECURITY -->
+        <aside class="crm-card avatar-card">
+            <header class="card-section-head">
+                <div class="section-icon avatar-icon">
+                    <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                </div>
+                <div>
+                    <h2>Ảnh đại diện</h2>
+                    <span class="card-section-desc">Tải lên và cắt ảnh vuông đại diện</span>
+                </div>
+            </header>
+
+            <div class="avatar-preview-wrap">
+                <div id="profileAvatarEmpty" class="profile-avatar-empty">U</div>
+                <img id="profileAvatarImage" class="profile-avatar-image" alt="Avatar" hidden>
+                <div class="avatar-hover-trigger" id="avatarHoverTrigger" title="Nhấn để đổi ảnh">
+                    <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span>Đổi ảnh</span>
+                </div>
+            </div>
+
+            <input id="avatarFile" type="file" accept="image/jpeg,image/png" hidden>
+
+            <button id="selectAvatar" class="crm-btn crm-btn-secondary avatar-upload-btn" type="button">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Chọn ảnh từ máy
+            </button>
+
+            <p class="avatar-help">Hỗ trợ định dạng JPG, PNG · Tối đa 2MB · Hệ thống tự động cắt tỉ lệ 1:1.</p>
+
+            <div id="avatarError" class="avatar-error"></div>
+
+            <!-- CROP WORKSPACE -->
+            <div id="cropArea" class="crop-area" hidden>
+                <p class="crop-guide">Kéo thả để định vị khuôn mặt, dùng thanh trượt để thu phóng</p>
+                <canvas id="cropCanvas" width="300" height="300"></canvas>
+                <div class="crop-controls">
+                    <label>
+                        <span>Thu phóng ảnh</span>
+                        <input id="cropZoom" type="range" min="1" max="3" step=".05" value="1">
+                    </label>
+                </div>
+                <button id="applyAvatar" class="crm-btn crm-btn-primary" type="button">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                    Cắt & Sử dụng làm ảnh đại diện
+                </button>
+            </div>
+
+            <div id="thumbnailSection" class="thumbnail-section" hidden>
+                <span>Ảnh thu nhỏ (Thumbnail 48x48)</span>
+                <img id="avatarThumbnail" alt="Thumbnail">
+            </div>
+
+            <!-- SECURITY & SYSTEM INFO MINI-BOX -->
+            <div class="security-summary-box">
+                <div class="sec-item">
+                    <span class="sec-label">Trạng thái xác thực</span>
+                    <span class="sec-val sec-val-active">✓ Đã kích hoạt</span>
+                </div>
+                <div class="sec-item">
+                    <span class="sec-label">Phạm vi dữ liệu</span>
+                    <span class="sec-val" id="secDataScope">SELF (Cá nhân)</span>
+                </div>
+                <div class="sec-item">
+                    <span class="sec-label">Phiên đăng nhập</span>
+                    <span class="sec-val">Bảo mật SSL/Session</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT COLUMN: PROFILE DETAILS & FORM -->
+        <section class="crm-card profile-form-card">
+            <header class="card-section-head">
+                <div class="section-icon info-icon">
+                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <div>
+                    <h2>Thông tin cá nhân & Chữ ký</h2>
+                    <span class="card-section-desc">Cập nhật hồ sơ hiển thị và mẫu chữ ký thư điện tử</span>
+                </div>
+            </header>
+
+            <form id="profileForm" novalidate>
+
+                <!-- SECTION 1: EDITABLE PERSONAL INFO -->
+                <div class="form-subheading">
+                    <span class="subheading-num">1</span>
+                    <strong>Thông tin cơ bản (Có thể chỉnh sửa)</strong>
+                </div>
+
+                <div class="profile-two-cols">
+                    <label class="form-group">
+                        <span class="field-label">Họ và tên <b class="req-star">*</b></span>
+                        <div class="input-with-icon">
+                            <svg class="field-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <input id="profileName" class="crm-input" type="text" placeholder="Nhập họ và tên đầy đủ" required>
+                        </div>
+                        <small class="field-hint">Tối đa 150 ký tự, hiển thị trên các giao dịch và báo cáo.</small>
+                    </label>
+
+                    <label class="form-group">
+                        <span class="field-label">Số điện thoại liên hệ</span>
+                        <div class="input-with-icon">
+                            <svg class="field-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <input id="profilePhone" class="crm-input" type="tel" placeholder="Ví dụ: 0912345678 hoặc +84...">
+                        </div>
+                        <small id="phoneError" class="field-error"></small>
+                    </label>
+                </div>
+
+                <!-- SECTION 2: SYSTEM LOCKED DETAILS -->
+                <div class="form-subheading">
+                    <span class="subheading-num">2</span>
+                    <strong>Tổ chức & Phân quyền (Cố định bởi Quản trị viên)</strong>
+                </div>
+
+                <div class="readonly-area">
+                    <div class="profile-two-cols">
+                        <label class="form-group">
+                            <span class="field-label">Email tài khoản <span class="badge-locked">🔒 Cố định</span></span>
+                            <div class="input-with-icon">
+                                <svg class="field-icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                <input id="profileEmail" class="crm-input readonly-input" type="email" placeholder="Được cấp bởi hệ thống" readonly>
+                            </div>
+                            <small class="field-hint">Email sử dụng đăng nhập hệ thống, liên hệ Quản trị viên để đổi.</small>
+                        </label>
+
+                        <label class="form-group">
+                            <span class="field-label">Nhóm kinh doanh (Đội ngũ) <span class="badge-locked">🔒 Quản trị</span></span>
+                            <div class="input-with-icon">
+                                <svg class="field-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <input id="profileTeam" class="crm-input readonly-input" type="text" placeholder="Chưa phân nhóm" readonly>
+                            </div>
+                            <small class="field-hint">Phòng ban / Nhóm kinh doanh phụ trách.</small>
+                        </label>
+                    </div>
+
+                    <label class="form-group full-label">
+                        <span class="field-label">Vai trò & Quyền hạn hệ thống <span class="badge-locked">🔒 Bảo mật</span></span>
+                        <div class="input-with-icon">
+                            <svg class="field-icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                            <input id="profileRoles" class="crm-input readonly-input" type="text" placeholder="Chưa phân vai trò" readonly>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- SECTION 3: EMAIL SIGNATURE & LIVE PREVIEW -->
+                <div class="form-subheading">
+                    <span class="subheading-num">3</span>
+                    <div class="sig-head-flex">
+                        <strong>Chữ ký Email (Email Signature)</strong>
+                        <div class="sig-quick-actions">
+                            <button id="btnInsertTemplate" class="crm-btn crm-btn-xs crm-btn-secondary" type="button" title="Chèn mẫu chữ ký chuẩn doanh nghiệp">
+                                ✨ Chèn mẫu chuẩn
+                            </button>
+                            <button id="btnClearSignature" class="crm-btn crm-btn-xs crm-btn-danger-outline" type="button" title="Xóa trắng chữ ký">
+                                ✕ Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="signature-workspace">
+                    <div class="signature-editor-pane">
+                        <label class="form-group">
+                            <textarea id="profileSignature" rows="5" class="crm-textarea" placeholder="Nhập chữ ký email hoặc bấm 'Chèn mẫu chuẩn' ở trên..."></textarea>
+                            <small class="field-hint">Hỗ trợ tối đa 2000 ký tự. Tự động đính kèm vào email gửi khách hàng.</small>
+                        </label>
+                    </div>
+
+                    <!-- LIVE PREVIEW PANE -->
+                    <div class="signature-preview-card">
+                        <div class="preview-card-title">
+                            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <span>Xem trước hiển thị email</span>
+                        </div>
+                        <div class="preview-email-mockup">
+                            <div class="mockup-header">
+                                <span class="mockup-dot"></span>
+                                <span class="mockup-dot"></span>
+                                <span class="mockup-dot"></span>
+                                <span class="mockup-title">Thư gửi khách hàng</span>
+                            </div>
+                            <div class="mockup-body">
+                                <p class="mockup-placeholder-text">Kính gửi Quý đối tác, xin gửi tài liệu báo giá đính kèm...</p>
+                                <div class="mockup-divider"></div>
+                                <div id="liveSigContent" class="mockup-signature">
+                                    <strong id="mockupName" class="sig-name">Người dùng</strong>
+                                    <div id="mockupRole" class="sig-title">Chức vụ / Corporate CRM</div>
+                                    <div class="sig-meta">
+                                        <span id="mockupPhone">Hotline: --</span> · <span id="mockupEmail">Email: --</span>
+                                    </div>
+                                    <div id="mockupCustomText" class="sig-custom-text"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOTIFICATION ALERT BANNER -->
+                <div id="profileAlert" class="profile-alert" hidden>
+                    <div class="alert-icon" id="alertIcon"></div>
+                    <div class="alert-text" id="alertText"></div>
+                </div>
+
+                <!-- OLD PROFILE MESSAGE DIV FOR BACKWARD COMPATIBILITY -->
+                <div id="profileMessage" class="profile-message" hidden></div>
+
+                <!-- ACTION FOOTER -->
+                <footer class="profile-form-footer">
+                    <button id="resetProfile" class="crm-btn crm-btn-secondary" type="button">
+                        <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Đặt lại
+                    </button>
+                    <button id="saveProfileBtn" class="crm-btn crm-btn-primary" type="submit">
+                        <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        Lưu thay đổi
+                    </button>
+                </footer>
+
+            </form>
+        </section>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+<script src="js/pages/profile.js"></script>
+<script src="js/profile-avatar-fix.js"></script>
+<script src="js/page-transition.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

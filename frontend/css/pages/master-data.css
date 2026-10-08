@@ -1,0 +1,458 @@
+.master-head {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-bottom: 24px;
+}
+
+.master-head p {
+    margin: 0 0 6px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.master-head h1 {
+    margin: 0;
+
+    font-size: 27px;
+}
+
+.master-head span {
+    display: block;
+
+    margin-top: 7px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+.master-layout {
+    display: grid;
+
+    grid-template-columns:
+        200px minmax(0,1fr);
+
+    gap: 16px;
+
+    align-items: start;
+}
+
+.master-categories {
+    padding: 8px;
+}
+
+.category-button {
+    width: 100%;
+
+    min-height: 40px;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 0 10px;
+
+    border: 0;
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+}
+
+.category-button:hover {
+    background: #f8fafc;
+}
+
+.category-button.active {
+    background: var(--crm-primary-soft);
+
+    color: var(--crm-primary-dark);
+
+    font-weight: 700;
+}
+
+
+.master-values {
+    overflow: hidden;
+}
+
+.master-values > header {
+    padding: 20px;
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+}
+
+.master-values h2 {
+    margin: 0;
+
+    font-size: 15px;
+}
+
+.master-values header p {
+    margin: 5px 0 0;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+.master-list {
+    padding: 10px;
+}
+
+.master-item {
+    display: grid;
+
+    grid-template-columns:
+        50px
+        minmax(140px,.8fr)
+        minmax(200px,1fr)
+        120px
+        auto;
+
+    gap: 10px;
+
+    align-items: center;
+
+    min-height: 62px;
+
+    padding: 9px;
+
+    margin-bottom: 7px;
+
+    border:
+        1px solid
+        var(--crm-border);
+
+    border-radius: 9px;
+
+    background: #fff;
+}
+
+.master-order {
+    display: flex;
+
+    gap: 3px;
+}
+
+.master-order button {
+    width: 22px;
+    height: 27px;
+
+    border:
+        1px solid
+        var(--crm-border);
+
+    border-radius: 6px;
+
+    background: #fff;
+}
+
+.master-code {
+    color: var(--crm-primary-dark);
+
+    font-weight: 700;
+
+    font-size: 12px;
+}
+
+.master-name {
+    font-size: 12px;
+}
+
+.master-status {
+    display: inline-flex;
+
+    min-height: 24px;
+
+    align-items: center;
+
+    padding: 0 8px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+.master-status.active {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.master-status.inactive {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.master-actions {
+    display: flex;
+
+    gap: 5px;
+}
+
+.master-actions button {
+    min-height: 29px;
+
+    padding: 0 8px;
+
+    border:
+        1px solid
+        var(--crm-border);
+
+    border-radius: 6px;
+
+    background: #fff;
+
+    color: var(--crm-text-2);
+
+    font-size: 11px;
+}
+
+
+.master-empty {
+    min-height: 260px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+
+/* DRAWER */
+
+.master-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 2000;
+
+    background: rgba(15,23,42,.35);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.master-overlay.open {
+    opacity: 1;
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+.master-drawer {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 2100;
+
+    width: min(410px,100%);
+
+    display: flex;
+
+    flex-direction: column;
+
+    background: #fff;
+
+    transform:
+        translateX(102%);
+
+    transition: transform 240ms var(--crm-ease), visibility 0s linear 240ms;
+
+    box-shadow:
+        -18px 0 45px
+        rgba(15,23,42,.16);
+    visibility: hidden;
+}
+
+.master-drawer.open {
+    transform:
+        translateX(0);
+    visibility: visible;
+
+    transition-delay: 0s;
+}
+
+.master-drawer > header {
+    min-height: 70px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 15px 18px;
+
+    border-bottom:
+        1px solid
+        var(--crm-border);
+}
+
+.master-drawer header strong {
+    display: block;
+}
+
+.master-drawer header span {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--crm-muted);
+
+    font-size: 12px;
+}
+
+.master-drawer header button {
+    width: 35px;
+    height: 35px;
+
+    border: 0;
+
+    background: transparent;
+
+    font-size: 23px;
+}
+
+.master-drawer form {
+    overflow-y: auto;
+    flex: 1;
+
+    padding:
+        18px 18px 95px;
+}
+
+.master-drawer form > label {
+    display: block;
+
+    margin-bottom: 16px;
+
+    color: var(--crm-text-2);
+
+    font-size: 12px;
+
+    font-weight: 650;
+}
+
+.master-drawer input,
+.master-drawer select {
+    margin-top: 6px;
+}
+
+.master-drawer em {
+    color: var(--crm-danger);
+
+    font-style: normal;
+}
+
+.master-error {
+    min-height: 18px;
+
+    color: var(--crm-danger);
+
+    font-size: 12px;
+}
+
+.master-drawer footer {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    min-height: 70px;
+
+    display: flex;
+
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 12px 18px;
+
+    border-top:
+        1px solid
+        var(--crm-border);
+
+    background: #fff;
+}
+
+
+@media (max-width:1100px) {
+
+    .master-layout {
+        grid-template-columns:
+            1fr;
+    }
+
+    .master-categories {
+        display: flex;
+
+        overflow-x: auto;
+
+        gap: 4px;
+    }
+
+    .category-button {
+        width: auto;
+
+        white-space: nowrap;
+    }
+}
+
+
+@media (max-width:768px) {
+
+    .master-head {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .master-item {
+        grid-template-columns:
+            45px 1fr auto;
+    }
+
+    .master-name {
+        grid-column: 2;
+    }
+
+    .master-status {
+        grid-column: 2;
+        width: max-content;
+    }
+
+    .master-actions {
+        grid-column:
+            2 / -1;
+    }
+}
