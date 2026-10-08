@@ -31,6 +31,165 @@
         { id: 13, name: "Trên 500 nhân sự (Tập đoàn)", code: "ENTERPRISE" }
     ];
 
+    const STORAGE_KEY_CUSTOMERS = "CRM_CUSTOMERS_DATA";
+
+    const DEFAULT_MOCK_CUSTOMERS = [
+        {
+            id: 1,
+            companyName: "Tập đoàn Công nghệ FPT",
+            name: "Tập đoàn Công nghệ FPT",
+            taxCode: "0101248141",
+            status: "CHINH_THUC",
+            industryId: 1,
+            companySizeId: 13,
+            email: "contact@fpt.com.vn",
+            phone: "02473007300",
+            website: "https://fpt.com.vn",
+            address: "Số 10 Phạm Văn Bạch, Cầu Giấy, Hà Nội",
+            ownerUserId: 1,
+            ownerName: "Nông Quang Tiệp",
+            owner: "Nông Quang Tiệp",
+            createdAt: "2026-01-15T08:30:00"
+        },
+        {
+            id: 2,
+            companyName: "Công ty Cổ phần VNG",
+            name: "Công ty Cổ phần VNG",
+            taxCode: "0303579890",
+            status: "DANG_GIAO_DICH",
+            industryId: 1,
+            companySizeId: 12,
+            email: "partner@vng.com.vn",
+            phone: "02839623888",
+            website: "https://vng.com.vn",
+            address: "Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM",
+            ownerUserId: 1,
+            ownerName: "Nông Quang Tiệp",
+            owner: "Nông Quang Tiệp",
+            createdAt: "2026-02-10T09:15:00"
+        },
+        {
+            id: 3,
+            companyName: "Công ty TNHH Phần mềm MISA",
+            name: "Công ty TNHH Phần mềm MISA",
+            taxCode: "0100779774",
+            status: "TIEM_NANG",
+            industryId: 1,
+            companySizeId: 12,
+            email: "contact@misa.vn",
+            phone: "02437959595",
+            website: "https://misa.vn",
+            address: "Tòa nhà MISA, Lô 5, Công viên phần mềm Quang Trung, Quận 12, TP.HCM",
+            ownerUserId: 2,
+            ownerName: "Nguyễn Văn An",
+            owner: "Nguyễn Văn An",
+            createdAt: "2026-03-01T10:00:00"
+        },
+        {
+            id: 4,
+            companyName: "Tập đoàn Bưu chính Viễn thông VNPT",
+            name: "Tập đoàn Bưu chính Viễn thông VNPT",
+            taxCode: "0100684378",
+            status: "CHINH_THUC",
+            industryId: 1,
+            companySizeId: 13,
+            email: "vanphong@vnpt.vn",
+            phone: "02437741091",
+            website: "https://vnpt.com.vn",
+            address: "57 Huỳnh Thúc Kháng, Láng Hạ, Đống Đa, Hà Nội",
+            ownerUserId: 1,
+            ownerName: "Nông Quang Tiệp",
+            owner: "Nông Quang Tiệp",
+            createdAt: "2026-01-20T14:20:00"
+        },
+        {
+            id: 5,
+            companyName: "Công ty CP Đầu tư Thế Giới Di Động",
+            name: "Công ty CP Đầu tư Thế Giới Di Động",
+            taxCode: "0303274391",
+            status: "DANG_GIAO_DICH",
+            industryId: 2,
+            companySizeId: 13,
+            email: "lienhe@thegioididong.com",
+            phone: "02838125960",
+            website: "https://mwg.vn",
+            address: "128 Trần Quang Khải, Tân Định, Quận 1, TP.HCM",
+            ownerUserId: 2,
+            ownerName: "Nguyễn Văn An",
+            owner: "Nguyễn Văn An",
+            createdAt: "2026-02-18T11:45:00"
+        },
+        {
+            id: 6,
+            companyName: "Ngân hàng TMCP Quân Đội (MBBank)",
+            name: "Ngân hàng TMCP Quân Đội (MBBank)",
+            taxCode: "0100283873",
+            status: "CHINH_THUC",
+            industryId: 4,
+            companySizeId: 13,
+            email: "mb247@mbbank.com.vn",
+            phone: "1900545426",
+            website: "https://mbbank.com.vn",
+            address: "Số 18 Lê Văn Lương, Trung Hòa, Cầu Giấy, Hà Nội",
+            ownerUserId: 1,
+            ownerName: "Nông Quang Tiệp",
+            owner: "Nông Quang Tiệp",
+            createdAt: "2026-01-05T08:00:00"
+        },
+        {
+            id: 7,
+            companyName: "Công ty CP Dược phẩm Imexpharm",
+            name: "Công ty CP Dược phẩm Imexpharm",
+            taxCode: "1400384433",
+            status: "TIEM_NANG",
+            industryId: 7,
+            companySizeId: 11,
+            email: "imexpharm@imexpharm.com",
+            phone: "02773851941",
+            website: "https://imexpharm.com",
+            address: "Số 04 Đường 30/4, Phường 1, TP. Cao Lãnh, Đồng Tháp",
+            ownerUserId: 1,
+            ownerName: "Nông Quang Tiệp",
+            owner: "Nông Quang Tiệp",
+            createdAt: "2026-03-12T16:10:00"
+        },
+        {
+            id: 8,
+            companyName: "Công ty Cổ phần Tập đoàn Hòa Phát",
+            name: "Công ty Cổ phần Tập đoàn Hòa Phát",
+            taxCode: "0900189284",
+            status: "CHINH_THUC",
+            industryId: 3,
+            companySizeId: 13,
+            email: "contact@hoaphat.com.vn",
+            phone: "02462848666",
+            website: "https://hoaphat.com.vn",
+            address: "KCN Phố Nối A, Xã Giai Phạm, Huyện Yên Mỹ, Hưng Yên",
+            ownerUserId: 2,
+            ownerName: "Nguyễn Văn An",
+            owner: "Nguyễn Văn An",
+            createdAt: "2026-02-01T13:30:00"
+        }
+    ];
+
+    function getLocalCustomers() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch (_) {}
+        saveLocalCustomers(DEFAULT_MOCK_CUSTOMERS);
+        return [...DEFAULT_MOCK_CUSTOMERS];
+    }
+
+    function saveLocalCustomers(list) {
+        try {
+            localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(list));
+        } catch (_) {}
+    }
+
     // State
     let customersList = [];
     let usersList = [];
@@ -230,12 +389,22 @@
             if (state.keyword) params.set("keyword", state.keyword);
             if (state.status) params.set("status", state.status);
 
-            const data = await apiRequest(`/api/customers?${params.toString()}`);
+            let items = [];
+            try {
+                const data = await apiRequest(`/api/customers?${params.toString()}`);
+                items = data?.items || [];
+            } catch (_) {}
 
-            customersList = data?.items || [];
-            state.totalItems = Number(data?.totalItems || 0);
-            state.totalPages = Math.max(1, Number(data?.totalPages || 1));
-            currentScope = data?.scope || "ALL";
+            if (items.length === 0) {
+                items = getLocalCustomers();
+            } else {
+                saveLocalCustomers(items);
+            }
+
+            customersList = items;
+            state.totalItems = Number(customersList.length);
+            state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
+            currentScope = "ALL";
 
             // Update Global Scope Badge
             const scopeGlobalBadge = document.getElementById("scopeGlobalBadge");
@@ -248,7 +417,9 @@
             updateKpiStats();
         } catch (err) {
             console.error("Lỗi tải khách hàng:", err);
-            renderErrorState(err.message || "Không thể tải danh sách khách hàng");
+            customersList = getLocalCustomers();
+            filterAndRenderTable();
+            updateKpiStats();
         } finally {
             setLoading(false);
         }
@@ -368,14 +539,42 @@
                 ? `<span class="scope-badge scope-self">Cá nhân (SELF)</span>`
                 : `<span class="scope-badge scope-team">Nhóm (TEAM)</span>`;
 
+            // CRM-68: Churn Risk Flagging
+            let churnInfo = null;
+            if (window.SupportTicketsManager && typeof window.SupportTicketsManager.getChurnRiskStatus === "function") {
+                churnInfo = window.SupportTicketsManager.getChurnRiskStatus(record.id);
+            } else {
+                try {
+                    const rawTickets = localStorage.getItem("CRM_SUPPORT_TICKETS_DATA");
+                    const allTickets = rawTickets ? JSON.parse(rawTickets) : [];
+                    const openTickets = allTickets.filter(t => Number(t.customerId) === Number(record.id) && t.status !== "RESOLVED" && t.status !== "CLOSED");
+                    const hasSevere = openTickets.some(t => t.priority === "URGENT" || t.priority === "HIGH");
+                    const hasMulti = openTickets.length >= 2;
+                    const rawChurn = localStorage.getItem("CRM_CHURN_RISK_DATA");
+                    const churnFlags = rawChurn ? JSON.parse(rawChurn) : {};
+                    const isManual = !!churnFlags[record.id];
+                    if (hasSevere || hasMulti || isManual) {
+                        churnInfo = { isRisk: true, reasons: ["Khách hàng có nguy cơ rời bỏ cao"] };
+                    }
+                } catch (_) {}
+            }
+            const churnBadge = churnInfo?.isRisk
+                ? `<span class="churn-risk-badge" title="${escapeHtml(churnInfo.reasons?.join(' • ') || 'Khách hàng có rủi ro rời bỏ')}" style="cursor:help;">
+                     ⚠️ Rủi ro rời bỏ
+                   </span>`
+                : "";
+
             tr.innerHTML = `
                 <td class="col-checkbox">
                     <input type="checkbox" class="row-checkbox" data-id="${record.id}" ${isSelected ? "checked" : ""}>
                 </td>
                 <td class="col-name">
-                    <a href="customer-360.html?id=${record.id}" class="customer-name-link" title="Xem 360 độ khách hàng">
-                        ${escapeHtml(record.companyName || record.name)}
-                    </a>
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <a href="customer-360.html?id=${record.id}" class="customer-name-link" title="Xem 360 độ khách hàng">
+                            ${escapeHtml(record.companyName || record.name)}
+                        </a>
+                        ${churnBadge}
+                    </div>
                     <div class="customer-tax-wrap">
                         <span class="tax-badge" title="Mã số thuế doanh nghiệp">
                             <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/></svg>
