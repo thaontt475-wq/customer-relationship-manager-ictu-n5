@@ -1,0 +1,751 @@
+/* ===================================================================
+   CRM-68: CUSTOMER CARE & CHURN RISK MANAGEMENT STYLES
+   Enterprise B2B UI, Dark/Light mode tokens, Responsive down to 360px
+   =================================================================== */
+
+.support-tickets-page {
+    padding: 24px 32px 48px;
+    max-width: 1600px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .support-tickets-page {
+        padding: 16px 12px 64px;
+    }
+}
+
+/* Header & Breadcrumb */
+.support-page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.support-kicker {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--crm-primary);
+    margin: 0 0 4px;
+}
+
+.support-page-head h1 {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--crm-text);
+    margin: 0 0 6px;
+    letter-spacing: -0.5px;
+}
+
+.support-page-head p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--crm-muted);
+    max-width: 720px;
+    line-height: 1.5;
+}
+
+.support-head-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* KPI Cards Grid */
+.support-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+    .support-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 580px) {
+    .support-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.support-kpi-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--crm-shadow-sm);
+    transition: transform var(--crm-transition), box-shadow var(--crm-transition);
+}
+
+.support-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--crm-shadow);
+}
+
+.kpi-icon-wrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.kpi-icon-wrap svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.kpi-blue { background: #eff6ff; color: #2563eb; }
+.kpi-red { background: #fef2f2; color: #dc2626; }
+.kpi-amber { background: #fffbeb; color: #d97706; }
+.kpi-green { background: #f0fdf4; color: #16a34a; }
+
+[data-theme="dark"] .kpi-blue { background: rgba(37,99,235,0.18); color: #60a5fa; }
+[data-theme="dark"] .kpi-red { background: rgba(220,38,38,0.18); color: #f87171; }
+[data-theme="dark"] .kpi-amber { background: rgba(217,119,6,0.18); color: #fbbf24; }
+[data-theme="dark"] .kpi-green { background: rgba(22,163,74,0.18); color: #4ade80; }
+
+.kpi-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.kpi-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--crm-muted);
+    margin-bottom: 2px;
+}
+
+.kpi-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--crm-text);
+    line-height: 1.2;
+}
+
+.kpi-trend {
+    font-size: 11.5px;
+    color: var(--crm-muted);
+    margin-top: 3px;
+}
+
+.kpi-danger-text { color: var(--crm-danger); }
+.kpi-warning-text { color: var(--crm-warning); }
+.kpi-success-text { color: var(--crm-success); }
+
+/* Churn Risk Banner */
+.churn-banner-container {
+    margin-bottom: 24px;
+}
+
+.churn-alert-banner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px;
+    border-radius: var(--crm-radius-md);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(245, 158, 11, 0.08));
+    border: 1.5px solid rgba(239, 68, 68, 0.4);
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08);
+}
+
+[data-theme="dark"] .churn-alert-banner {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.12));
+    border-color: rgba(239, 68, 68, 0.6);
+}
+
+/* Sales Alert Box */
+.sales-alert-box {
+    background: var(--crm-surface);
+    border: 1.5px solid rgba(239, 68, 68, 0.35);
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Filter Tabs */
+.support-filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.support-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 30px;
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface);
+    color: var(--crm-muted);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--crm-transition);
+}
+
+.support-tab-btn:hover {
+    border-color: var(--crm-primary);
+    color: var(--crm-primary);
+}
+
+.support-tab-btn.active {
+    background: var(--crm-primary);
+    border-color: var(--crm-primary);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+}
+
+.support-tab-btn.tab-churn-warning.active {
+    background: #dc2626;
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220,38,38,0.25);
+}
+
+/* Toolbar */
+.support-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.search-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 260px;
+}
+
+.search-input-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 17px;
+    color: var(--crm-muted);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    pointer-events: none;
+}
+
+.search-input-wrap input {
+    padding-left: 38px;
+    width: 100%;
+}
+
+.filters-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filters-wrap select {
+    min-width: 140px;
+}
+
+/* Tickets Table */
+.tickets-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.tickets-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13.5px;
+}
+
+.tickets-table th {
+    background: var(--crm-surface-soft);
+    padding: 13px 16px;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--crm-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--crm-border);
+    white-space: nowrap;
+}
+
+.tickets-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--crm-border);
+    vertical-align: middle;
+}
+
+.tickets-table tbody tr {
+    transition: background 150ms ease;
+}
+
+.tickets-table tbody tr:hover {
+    background: rgba(37, 99, 235, 0.03);
+}
+
+/* Badges & Pills */
+.priority-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.priority-urgent {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    animation: urgentPulse 2s infinite ease-in-out;
+}
+
+.priority-high {
+    background: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fdba74;
+}
+
+.priority-medium {
+    background: #fef9c3;
+    color: #a16207;
+    border: 1px solid #fde047;
+}
+
+.priority-low {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+[data-theme="dark"] .priority-urgent { background: rgba(220,38,38,0.2); color: #fca5a5; border-color: rgba(220,38,38,0.4); }
+[data-theme="dark"] .priority-high { background: rgba(234,88,12,0.2); color: #fdba74; border-color: rgba(234,88,12,0.4); }
+[data-theme="dark"] .priority-medium { background: rgba(202,138,4,0.2); color: #fde047; border-color: rgba(202,138,4,0.4); }
+[data-theme="dark"] .priority-low { background: rgba(148,163,184,0.2); color: #cbd5e1; border-color: rgba(148,163,184,0.4); }
+
+@keyframes urgentPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 6.5px;
+    height: 6.5px;
+    border-radius: 50%;
+}
+
+.status-new { background: #eff6ff; color: #1d4ed8; }
+.status-new .status-dot { background: #2563eb; }
+
+.status-processing { background: #fef3c7; color: #b45309; }
+.status-processing .status-dot { background: #d97706; }
+
+.status-waiting { background: #f3e8ff; color: #7e22ce; }
+.status-waiting .status-dot { background: #9333ea; }
+
+.status-resolved { background: #dcfce7; color: #15803d; }
+.status-resolved .status-dot { background: #16a34a; }
+
+.status-closed { background: #f1f5f9; color: #64748b; }
+.status-closed .status-dot { background: #94a3b8; }
+
+[data-theme="dark"] .status-new { background: rgba(37,99,235,0.2); color: #93c5fd; }
+[data-theme="dark"] .status-processing { background: rgba(217,119,6,0.2); color: #fcd34d; }
+[data-theme="dark"] .status-waiting { background: rgba(147,51,234,0.2); color: #d8b4fe; }
+[data-theme="dark"] .status-resolved { background: rgba(22,163,74,0.2); color: #86efac; }
+[data-theme="dark"] .status-closed { background: rgba(100,116,139,0.2); color: #cbd5e1; }
+
+/* Churn Risk Badge on customer name */
+.churn-risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    letter-spacing: 0.2px;
+}
+
+[data-theme="dark"] .churn-risk-badge {
+    background: rgba(220, 38, 38, 0.25);
+    color: #fca5a5;
+    border-color: rgba(220, 38, 38, 0.45);
+}
+
+/* Empty State */
+.tickets-empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--crm-muted);
+}
+
+.tickets-empty-state svg {
+    width: 48px;
+    height: 48px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    margin-bottom: 12px;
+}
+
+.tickets-empty-state h3 {
+    margin: 0 0 6px;
+    color: var(--crm-text);
+    font-size: 17px;
+}
+
+/* Pagination bar */
+.tickets-pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border-top: 1px solid var(--crm-border);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: var(--crm-muted);
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 6px;
+}
+
+/* Slide-over Drawer */
+.ticket-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1050;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms ease;
+}
+
+.ticket-drawer-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ticket-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 620px;
+    max-width: 100vw;
+    background: var(--crm-surface);
+    box-shadow: -8px 0 28px rgba(15, 23, 42, 0.15);
+    z-index: 1060;
+    transform: translateX(100%);
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.ticket-drawer.open {
+    transform: translateX(0);
+}
+
+.ticket-drawer-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--crm-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.ticket-drawer-header h2 {
+    margin: 0 0 4px;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--crm-text);
+}
+
+.ticket-drawer-header p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--crm-muted);
+}
+
+.btn-close-drawer {
+    background: transparent;
+    border: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: var(--crm-muted);
+    cursor: pointer;
+    transition: background 150ms ease;
+}
+
+.btn-close-drawer:hover {
+    background: var(--crm-surface-soft);
+    color: var(--crm-text);
+}
+
+.btn-close-drawer svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.ticket-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 500px) {
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--crm-text);
+}
+
+.field-label.required::after {
+    content: " *";
+    color: var(--crm-danger);
+}
+
+.field-hint {
+    font-size: 11.5px;
+    color: var(--crm-muted);
+}
+
+.drawer-customer-card {
+    background: var(--crm-surface-soft);
+    border: 1px solid var(--crm-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+}
+
+.churn-manual-box {
+    background: rgba(220, 38, 38, 0.05);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+
+[data-theme="dark"] .churn-manual-box {
+    background: rgba(220, 38, 38, 0.12);
+    border-color: rgba(220, 38, 38, 0.4);
+}
+
+.churn-manual-header {
+    display: flex;
+    align-items: center;
+}
+
+.churn-manual-desc {
+    margin: 4px 0 0 24px;
+    font-size: 12px;
+    color: var(--crm-muted);
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-container input {
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+}
+
+/* Activity Timeline inside Drawer */
+.ticket-timeline-section {
+    border-top: 1px solid var(--crm-border);
+    padding-top: 18px;
+    margin-top: 6px;
+}
+
+.ticket-timeline-section h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--crm-text);
+}
+
+.timeline-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.timeline-item-entry {
+    background: var(--crm-surface-soft);
+    border: 1px solid var(--crm-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+}
+
+.timeline-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.timeline-item-header .author {
+    color: var(--crm-primary);
+}
+
+.timeline-item-header .time {
+    color: var(--crm-muted);
+    font-size: 11.5px;
+}
+
+.timeline-item-body {
+    color: var(--crm-text);
+    line-height: 1.4;
+}
+
+.ticket-drawer-footer {
+    padding: 18px 24px;
+    border-top: 1px solid var(--crm-border);
+    background: var(--crm-surface);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* Churn Risk Modal Dialog */
+.churn-risk-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 540px;
+    max-width: calc(100vw - 32px);
+    z-index: 1090;
+    padding: 24px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    border-radius: 14px;
+}
+
+.churn-risk-dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.churn-dialog-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #fee2e2;
+    color: #dc2626;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.churn-dialog-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.churn-reasons-list {
+    margin: 6px 0 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--crm-danger);
+}
+
+.churn-reasons-list li {
+    margin-bottom: 4px;
+}

@@ -64,41 +64,27 @@ async function initCustomer360() {
         const data = await api(`/api/customers/${customerId}`);
         if (data) {
             currentCustomer = data;
-            writeDisplay("company360Name", data.name || data.companyName);
-            writeDisplay("company360Tax", data.taxCode);
-            writeDisplay("company360Industry", data.industry);
-            writeDisplay("company360Phone", data.phone);
-            writeDisplay("company360Website", data.website);
         }
     } catch (err) {
-        console.warn("Could not load customer info from API, checking LocalStorage:", err);
+        console.warn("Could not load customer info from API, checking local storage:", err);
+    }
+
+    if (!currentCustomer) {
         try {
             const raw = localStorage.getItem("CRM_CUSTOMERS_DATA");
             if (raw) {
                 const list = JSON.parse(raw);
-                const found = list.find(c => Number(c.id) === Number(customerId));
-                if (found) {
-                    currentCustomer = found;
-                    writeDisplay("company360Name", found.companyName || found.name);
-                    writeDisplay("company360Tax", found.taxCode);
-                    writeDisplay("company360Industry", found.industry || "Công nghệ & Viễn thông");
-                    writeDisplay("company360Phone", found.phone);
-                    writeDisplay("company360Website", found.website);
-
-                    // Also load activities from record
-                    if (Array.isArray(found.activities)) {
-                        found.activities.forEach(a => {
-                            timeline.push({
-                                type: (a.type || "note").toLowerCase(),
-                                text: a.summary || a.description || "",
-                                time: a.date ? new Date(a.date) : new Date()
-                            });
-                        });
-                        renderTimeline();
-                    }
-                }
+                currentCustomer = list.find(c => Number(c.id) === Number(customerId)) || null;
             }
         } catch (_) {}
+    }
+
+    if (currentCustomer) {
+        writeDisplay("company360Name", currentCustomer.companyName || currentCustomer.name);
+        writeDisplay("company360Tax", currentCustomer.taxCode);
+        writeDisplay("company360Industry", currentCustomer.industry);
+        writeDisplay("company360Phone", currentCustomer.phone);
+        writeDisplay("company360Website", currentCustomer.website);
     }
 
     // Load activities for timeline
@@ -140,6 +126,176 @@ async function initCustomer360() {
     } catch (err) {
         console.warn("Could not load opportunities:", err);
     }
+
+    // CRM-68: Check & Render Churn Risk Banner with Sales Alert Box
+    renderCustomerChurnRisk360();
+
+    // CRM-68: Load and Render Customer Support Tickets
+    renderCustomerTickets360();
+}
+
+/* =========================================================
+   CRM-68: CHURN RISK & SALES ALERT IN CUSTOMER 360
+========================================================= */
+function getCustomerRecord(cId) {
+    if (currentCustomer && Number(currentCustomer.id) === Number(cId)) return currentCustomer;
+    try {
+        const raw = localStorage.getItem("CRM_CUSTOMERS_DATA");
+        if (raw) {
+            const list = JSON.parse(raw);
+            return list.find(c => Number(c.id) === Number(cId)) || null;
+        }
+    } catch (_) {}
+    return null;
+}
+
+function renderCustomerChurnRisk360() {
+    const bannerContainer = document.getElementById("customer360ChurnBanner");
+    if (!bannerContainer || !customerId) return;
+
+    // Get churn risk status from SupportTicketsManager if available, or compute from localStorage
+    let churnInfo = null;
+    if (window.SupportTicketsManager && typeof window.SupportTicketsManager.getChurnRiskStatus === "function") {
+        churnInfo = window.SupportTicketsManager.getChurnRiskStatus(Number(customerId));
+    } else {
+        try {
+            const rawChurn = localStorage.getItem("CRM_CHURN_RISK_DATA");
+            const churnFlags = rawChurn ? JSON.parse(rawChurn) : {};
+            const manualFlag = churnFlags[Number(customerId)];
+
+            const rawTickets = localStorage.getItem("CRM_SUPPORT_TICKETS_DATA");
+            const allTickets = rawTickets ? JSON.parse(rawTickets) : [];
+            const custTickets = allTickets.filter(t => Number(t.customerId) === Number(customerId) && t.status !== "CLOSED" && t.status !== "RESOLVED");
+
+            const isManual = !!manualFlag;
+            const hasOverdueUrgent = custTickets.some(t => t.priority === "URGENT" || t.priority === "HIGH");
+            const hasMultipleOpen = custTickets.length >= 2;
+            const isRisk = isManual || hasOverdueUrgent || hasMultipleOpen;
+
+            const reasons = [];
+            if (isManual) reasons.push(manualFlag.manualReason || "CSKH gắn cờ thủ công rủi ro rời bỏ.");
+            if (hasOverdueUrgent) reasons.push("Có yêu cầu mức độ Khẩn cấp/Cao chưa được giải quyết dứt điểm.");
+            if (hasMultipleOpen) reasons.push(`Có ${custTickets.length} phiếu khiếu nại/hỗ trợ đang tồn đọng mở.`);
+
+            churnInfo = { isRisk, reasons, riskLevel: (isManual || hasOverdueUrgent) ? "HIGH" : (hasMultipleOpen ? "MEDIUM" : "LOW") };
+        } catch (_) {
+            churnInfo = { isRisk: false, reasons: [], riskLevel: "LOW" };
+        }
+    }
+
+    if (!churnInfo || !churnInfo.isRisk) {
+        bannerContainer.innerHTML = "";
+        bannerContainer.style.display = "none";
+        return;
+    }
+
+    bannerContainer.style.display = "block";
+    const customer = getCustomerRecord(customerId);
+    const salesRepName = customer?.ownerName || customer?.owner || "Nông Quang Tiệp (Trưởng phòng KD)";
+    const salesRepEmail = customer?.ownerEmail || "tiep.nq@crm.vn";
+    const salesRepPhone = customer?.ownerPhone || "0912.888.999";
+
+    bannerContainer.innerHTML = `
+        <div class="churn-banner-container" style="margin-bottom:20px; animation:fadeIn 0.3s ease;">
+            <div class="churn-alert-banner" style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:16px; padding:18px 22px; border-radius:12px; background:linear-gradient(135deg, rgba(239,68,68,0.1), rgba(245,158,11,0.08)); border:1.5px solid var(--crm-danger); box-shadow:0 4px 16px rgba(239,68,68,0.12);">
+                <div style="display:flex; gap:14px; align-items:flex-start; flex:1; min-width:300px;">
+                    <div style="font-size:28px; line-height:1; flex-shrink:0;">⚠️</div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
+                            <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--crm-danger);">
+                                CẢNH BÁO RỦI RO RỜI BỎ (CHURN RISK DETECTED)
+                            </h3>
+                            <span class="churn-risk-badge" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11.5px; padding:2px 8px; border-radius:4px; font-weight:700;">
+                                ${churnInfo.riskLevel === 'CRITICAL' ? 'RẤT NGUY CẤP' : 'RỦI RO CAO'}
+                            </span>
+                        </div>
+                        <p style="margin:0 0 8px; font-size:13.5px; color:var(--crm-text);">
+                            Khách hàng có nhiều phản ánh tồn đọng hoặc khiếu nại kỹ thuật mức độ cao. Cần Sales & CSKH phối hợp can thiệp gấp!
+                        </p>
+                        <div style="font-size:12.5px; color:var(--crm-danger); font-weight:500;">
+                            <strong>Yếu tố rủi ro:</strong> ${escapeHtml(churnInfo.reasons.join(" • ") || "Nhiều phản ánh tồn đọng")}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SALES REP ALERT NOTIFICATION BOX (CRM-68) -->
+                <div class="sales-alert-box" style="background:var(--crm-surface); border:1.5px solid #fecaca; border-radius:10px; padding:14px 18px; min-width:260px; box-shadow:0 2px 8px rgba(0,0,0,0.06); flex-shrink:0;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; color:var(--crm-danger); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        Phụ trách kinh doanh (Sales Rep)
+                    </div>
+                    <div style="font-weight:700; font-size:14.5px; color:var(--crm-text); margin-bottom:4px;">
+                        ${escapeHtml(salesRepName)}
+                    </div>
+                    <div style="font-size:12px; color:var(--crm-muted); display:flex; flex-direction:column; gap:2px;">
+                        <span>📧 ${escapeHtml(salesRepEmail)}</span>
+                        <span>☎ ${escapeHtml(salesRepPhone)}</span>
+                    </div>
+                    <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--crm-border);">
+                        <a href="support-tickets.html" class="crm-btn crm-btn-secondary" style="font-size:11.5px; padding:4px 10px; width:100%; text-align:center; display:block; text-decoration:none;">
+                            Xem phiếu & Xử lý ngay →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderCustomerTickets360() {
+    const listEl = document.getElementById("customerTicketsList");
+    const countBadge = document.getElementById("ticketCountBadge");
+    if (!listEl || !customerId) return;
+
+    let tickets = [];
+    if (window.SupportTicketsManager && typeof window.SupportTicketsManager.getTicketsByCustomer === "function") {
+        tickets = window.SupportTicketsManager.getTicketsByCustomer(Number(customerId));
+    } else {
+        try {
+            const raw = localStorage.getItem("CRM_SUPPORT_TICKETS_DATA");
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                tickets = parsed.filter(t => Number(t.customerId) === Number(customerId));
+            }
+        } catch (_) {}
+    }
+
+    if (countBadge) countBadge.textContent = String(tickets.length);
+
+    if (tickets.length === 0) {
+        listEl.innerHTML = '<div class="empty-small" style="padding:16px; text-align:center; color:var(--crm-muted);">Chưa có phiếu hỗ trợ nào cho khách hàng này.</div>';
+        return;
+    }
+
+    listEl.innerHTML = tickets.map(t => {
+        const priorityClass = t.priority === "URGENT" ? "priority-urgent" : (t.priority === "HIGH" ? "priority-high" : (t.priority === "MEDIUM" ? "priority-medium" : "priority-low"));
+        const priorityLabel = t.priority === "URGENT" ? "Khẩn cấp" : (t.priority === "HIGH" ? "Cao" : (t.priority === "MEDIUM" ? "Trung bình" : "Thấp"));
+        const statusLabel = t.status === "NEW" ? "Mới tiếp nhận" : (t.status === "PROCESSING" ? "Đang xử lý" : (t.status === "WAITING_CUSTOMER" ? "Chờ khách" : (t.status === "RESOLVED" ? "Đã giải quyết" : "Đóng")));
+        const statusClass = t.status === "NEW" ? "status-new" : (t.status === "PROCESSING" ? "status-processing" : (t.status === "RESOLVED" ? "status-resolved" : "status-waiting"));
+
+        return `
+            <div style="padding:12px; border-bottom:1px solid var(--crm-border); display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <a href="support-tickets.html" style="font-weight:700; font-size:12px; color:var(--crm-primary); text-decoration:none;">
+                        ${escapeHtml(t.ticketCode)}
+                    </a>
+                    <span class="priority-badge ${priorityClass}" style="font-size:10.5px; padding:1px 6px;">
+                        ${priorityLabel}
+                    </span>
+                </div>
+                <div style="font-size:13px; font-weight:600; color:var(--crm-text); line-height:1.35;">
+                    ${escapeHtml(t.title)}
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--crm-muted); margin-top:2px;">
+                    <span class="status-pill ${statusClass}" style="font-size:11px; padding:1px 8px;">
+                        <span class="status-dot"></span>
+                        ${statusLabel}
+                    </span>
+                    <span>👤 ${escapeHtml(t.assigneeName || "Chưa phân công")}</span>
+                </div>
+            </div>
+        `;
+    }).join("");
 }
 
 document.querySelectorAll(".right-tab").forEach(tab => {
@@ -150,8 +306,10 @@ document.querySelectorAll(".right-tab").forEach(tab => {
         const target = tab.dataset.tab;
         const cPanel = document.getElementById("contactsPanel");
         const oPanel = document.getElementById("opportunitiesPanel");
+        const tPanel = document.getElementById("ticketsPanel");
         if (cPanel) cPanel.hidden = target !== "contacts";
         if (oPanel) oPanel.hidden = target !== "opportunities";
+        if (tPanel) tPanel.hidden = target !== "tickets";
     });
 });
 
