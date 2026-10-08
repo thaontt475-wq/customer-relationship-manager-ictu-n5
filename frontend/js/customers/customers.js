@@ -368,14 +368,42 @@
                 ? `<span class="scope-badge scope-self">Cá nhân (SELF)</span>`
                 : `<span class="scope-badge scope-team">Nhóm (TEAM)</span>`;
 
+            // CRM-68: Churn Risk Flagging
+            let churnInfo = null;
+            if (window.SupportTicketsManager && typeof window.SupportTicketsManager.getChurnRiskStatus === "function") {
+                churnInfo = window.SupportTicketsManager.getChurnRiskStatus(record.id);
+            } else {
+                try {
+                    const rawTickets = localStorage.getItem("CRM_SUPPORT_TICKETS_DATA");
+                    const allTickets = rawTickets ? JSON.parse(rawTickets) : [];
+                    const openTickets = allTickets.filter(t => Number(t.customerId) === Number(record.id) && t.status !== "RESOLVED" && t.status !== "CLOSED");
+                    const hasSevere = openTickets.some(t => t.priority === "URGENT" || t.priority === "HIGH");
+                    const hasMulti = openTickets.length >= 2;
+                    const rawChurn = localStorage.getItem("CRM_CHURN_RISK_DATA");
+                    const churnFlags = rawChurn ? JSON.parse(rawChurn) : {};
+                    const isManual = !!churnFlags[record.id];
+                    if (hasSevere || hasMulti || isManual) {
+                        churnInfo = { isRisk: true, reasons: ["Khách hàng có nguy cơ rời bỏ cao"] };
+                    }
+                } catch (_) {}
+            }
+            const churnBadge = churnInfo?.isRisk
+                ? `<span class="churn-risk-badge" title="${escapeHtml(churnInfo.reasons?.join(' • ') || 'Khách hàng có rủi ro rời bỏ')}" style="cursor:help;">
+                     ⚠️ Rủi ro rời bỏ
+                   </span>`
+                : "";
+
             tr.innerHTML = `
                 <td class="col-checkbox">
                     <input type="checkbox" class="row-checkbox" data-id="${record.id}" ${isSelected ? "checked" : ""}>
                 </td>
                 <td class="col-name">
-                    <a href="customer-360.html?id=${record.id}" class="customer-name-link" title="Xem 360 độ khách hàng">
-                        ${escapeHtml(record.companyName || record.name)}
-                    </a>
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        <a href="customer-360.html?id=${record.id}" class="customer-name-link" title="Xem 360 độ khách hàng">
+                            ${escapeHtml(record.companyName || record.name)}
+                        </a>
+                        ${churnBadge}
+                    </div>
                     <div class="customer-tax-wrap">
                         <span class="tax-badge" title="Mã số thuế doanh nghiệp">
                             <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/></svg>
