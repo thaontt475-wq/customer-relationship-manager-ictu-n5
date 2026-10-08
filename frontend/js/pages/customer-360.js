@@ -132,7 +132,20 @@ async function initCustomer360() {
 
     // CRM-68: Load and Render Customer Support Tickets
     renderCustomerTickets360();
+
+    // CRM-62: Load and Render Customer Contacts & Decision Roles
+    if (window.ContactsManager && customerId) {
+        window.ContactsManager.renderCustomer360Contacts(document.getElementById("contactsPanel"), customerId);
+    }
 }
+
+// CRM-62: Re-render contacts on update
+document.addEventListener("crm:contacts-updated", () => {
+    if (window.ContactsManager && customerId) {
+        window.ContactsManager.renderCustomer360Contacts(document.getElementById("contactsPanel"), customerId);
+    }
+});
+
 
 /* =========================================================
    CRM-68: CHURN RISK & SALES ALERT IN CUSTOMER 360

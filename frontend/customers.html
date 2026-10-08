@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="css/customers/customers.css">
 <link rel="stylesheet" href="css/pages/duplicate-merge.css">
 <link rel="stylesheet" href="css/pages/support-tickets.css">
+<link rel="stylesheet" href="css/pages/contacts.css">
 <link rel="stylesheet" href="css/animations.css">
 </head>
 
@@ -46,6 +47,11 @@
         <a href="customers.html" class="crm-nav-item active">
             <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
             <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
         </a>
 
         <a href="support-tickets.html" class="crm-nav-item">
@@ -122,6 +128,10 @@
         </div>
 
         <div class="customer-head-actions">
+            <a href="contacts.html" class="crm-btn crm-btn-secondary" style="text-decoration:none;" title="Quản lý Người liên hệ & Vai trò quyết định mua (CRM-62)">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Người liên hệ (CRM-62)
+            </a>
             <button id="btnExportExcel" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu Excel">
                 <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Xuất Excel
@@ -793,6 +803,7 @@
 <script src="js/pages/duplicate-merge.js"></script>
 <script src="js/pages/customer-filter.js"></script>
 <script src="js/pages/support-tickets.js"></script>
+<script src="js/pages/contacts.js"></script>
 <script src="js/customers/customers.js"></script>
 <script src="js/pages/customers.js"></script>
 <script src="js/page-transition.js"></script>

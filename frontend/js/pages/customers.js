@@ -720,14 +720,41 @@
                     </div>
                 </td>
                 <td class="col-contact">
-                    <div class="contact-item" title="Email liên hệ">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                        <span>${escapeHtml(record.email || "—")}</span>
-                    </div>
-                    <div class="contact-item" title="Số điện thoại / Hotline">
-                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        <span>${escapeHtml(record.phone || "—")}</span>
-                    </div>
+                    ${(function() {
+                        if (window.ContactsManager) {
+                            const custContacts = window.ContactsManager.getContactsByCustomer(record.id);
+                            const primaryC = custContacts.find(c => c.isPrimary) || custContacts[0];
+                            if (primaryC) {
+                                return `
+                                    <div style="margin-bottom:4px; font-weight:700; color:var(--crm-text); font-size:12.5px; display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                                        <span>⭐ ${escapeHtml(primaryC.fullName)}</span>
+                                        ${window.ContactsManager.renderDecisionRoleBadge(primaryC.decisionRole)}
+                                    </div>
+                                    <div style="font-size:11.5px; color:var(--crm-muted); margin-bottom:4px;">
+                                        ${escapeHtml(primaryC.jobTitle)} (${custContacts.length} liên hệ)
+                                    </div>
+                                    <div class="contact-item" title="Email liên hệ chính">
+                                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                        <span>${escapeHtml(primaryC.email || record.email || "—")}</span>
+                                    </div>
+                                    <div class="contact-item" title="Số điện thoại / Hotline">
+                                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                        <span>${escapeHtml(primaryC.phone || record.phone || "—")}</span>
+                                    </div>
+                                `;
+                            }
+                        }
+                        return `
+                            <div class="contact-item" title="Email liên hệ">
+                                <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                <span>${escapeHtml(record.email || "—")}</span>
+                            </div>
+                            <div class="contact-item" title="Số điện thoại / Hotline">
+                                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                <span>${escapeHtml(record.phone || "—")}</span>
+                            </div>
+                        `;
+                    })()}
                 </td>
                 <td class="col-meta">
                     <div class="meta-pill" title="Ngành nghề kinh doanh">
@@ -754,6 +781,9 @@
                 <td class="col-actions">
                     <div class="row-action-btn-group">
                         ${mergeActionBtnHtml}
+                        <a href="contacts.html?customerId=${record.id}" class="action-icon-btn" title="Quản lý Người liên hệ & Vai trò mua (CRM-62)" style="color:var(--crm-primary);">
+                            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </a>
                         <a href="customer-360.html?id=${record.id}" class="action-icon-btn btn-view" title="Xem hồ sơ 360°">
                             <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         </a>
