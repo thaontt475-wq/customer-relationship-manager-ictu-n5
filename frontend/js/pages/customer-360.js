@@ -64,14 +64,41 @@ async function initCustomer360() {
         const data = await api(`/api/customers/${customerId}`);
         if (data) {
             currentCustomer = data;
-            writeDisplay("company360Name", data.name);
+            writeDisplay("company360Name", data.name || data.companyName);
             writeDisplay("company360Tax", data.taxCode);
             writeDisplay("company360Industry", data.industry);
             writeDisplay("company360Phone", data.phone);
             writeDisplay("company360Website", data.website);
         }
     } catch (err) {
-        console.warn("Could not load customer info:", err);
+        console.warn("Could not load customer info from API, checking LocalStorage:", err);
+        try {
+            const raw = localStorage.getItem("CRM_CUSTOMERS_DATA");
+            if (raw) {
+                const list = JSON.parse(raw);
+                const found = list.find(c => Number(c.id) === Number(customerId));
+                if (found) {
+                    currentCustomer = found;
+                    writeDisplay("company360Name", found.companyName || found.name);
+                    writeDisplay("company360Tax", found.taxCode);
+                    writeDisplay("company360Industry", found.industry || "Công nghệ & Viễn thông");
+                    writeDisplay("company360Phone", found.phone);
+                    writeDisplay("company360Website", found.website);
+
+                    // Also load activities from record
+                    if (Array.isArray(found.activities)) {
+                        found.activities.forEach(a => {
+                            timeline.push({
+                                type: (a.type || "note").toLowerCase(),
+                                text: a.summary || a.description || "",
+                                time: a.date ? new Date(a.date) : new Date()
+                            });
+                        });
+                        renderTimeline();
+                    }
+                }
+            }
+        } catch (_) {}
     }
 
     // Load activities for timeline
