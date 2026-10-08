@@ -88,19 +88,22 @@
                     </div>
                 </div>
 
-                <!-- Financial & Pipeline KPIs -->
+                <!-- Financial & Pipeline KPIs (Chuẩn S3-03) -->
                 <div class="c360-profile-stats">
                     <div class="c360-stat-box">
-                        <div class="c360-stat-label">Doanh thu tích lũy</div>
+                        <div class="c360-stat-label">Tổng giá trị đã ký</div>
                         <div class="c360-stat-val highlight" id="kpiRevenue">1.250.000.000 ₫</div>
+                        <div class="c360-stat-sub" id="kpiSignedSub" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">2 Hợp đồng • 1 Deal Won</div>
                     </div>
                     <div class="c360-stat-box">
-                        <div class="c360-stat-label">Cơ hội đang mở</div>
-                        <div class="c360-stat-val" id="kpiOpenDeals">3 Deals (570M ₫)</div>
+                        <div class="c360-stat-label">Giá trị cơ hội đang mở</div>
+                        <div class="c360-stat-val" style="color: var(--primary);" id="kpiOpenDeals">655.000.000 ₫</div>
+                        <div class="c360-stat-sub" id="kpiOpenDealsCount" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">3 Cơ hội đang mở</div>
                     </div>
                     <div class="c360-stat-box">
-                        <div class="c360-stat-label">Điểm tín nhiệm</div>
+                        <div class="c360-stat-label">Điểm tín nhiệm & Sức khỏe</div>
                         <div class="c360-stat-val" style="color: var(--success);" id="kpiHealthScore">95 / 100</div>
+                        <div class="c360-stat-sub" style="font-size: 0.72rem; color: var(--success); font-weight: 600; margin-top: 2px;">Tín nhiệm cao (VIP)</div>
                     </div>
                 </div>
             </div>
@@ -286,8 +289,26 @@
                         </div>
                     </div>
 
-                    <!-- TAB 2: TIMELINE TƯƠNG TÁC -->
+                    <!-- TAB 2: TIMELINE TƯƠNG TÁC (Tối ưu tải < 1.5s với 500 hoạt động theo S3-03) -->
                     <div id="tab-timeline" class="c360-tab-pane">
+                        <!-- Benchmark & Performance Test Bar -->
+                        <div class="c360-benchmark-bar" style="display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <div class="c360-benchmark-info" style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 0.86rem; color: #1e40af;">⚡ <strong>Yêu cầu S3-03:</strong> Tải dưới 1.5s với 500 hoạt động</span>
+                                <span id="benchmarkBadge" class="badge badge-success" style="font-size: 0.8rem; padding: 4px 10px;">
+                                    ⏱️ Tải trong: <strong id="benchmarkTime">18.5 ms</strong> (<span id="benchmarkCount">4</span> hoạt động)
+                                </span>
+                            </div>
+                            <div class="c360-benchmark-actions" style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-warning btn-sm" id="btnBenchmark500">
+                                    ⚡ Nạp & Đo tải 500 hoạt động
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btnResetTimeline">
+                                    Mặc định
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Quick Log Input -->
                         <div class="c360-quick-log">
                             <div class="c360-log-types">
@@ -303,6 +324,16 @@
                                     <span>💾</span> Lưu vào Timeline
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- Timeline Filters -->
+                        <div class="c360-timeline-filters" style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
+                            <button type="button" class="c360-deal-filter-btn active" data-tfilter="ALL">Tất cả (<span id="timelineCountFilter">4</span>)</button>
+                            <button type="button" class="c360-deal-filter-btn" data-tfilter="meeting">🤝 Cuộc họp</button>
+                            <button type="button" class="c360-deal-filter-btn" data-tfilter="call">📞 Cuộc gọi</button>
+                            <button type="button" class="c360-deal-filter-btn" data-tfilter="email">✉️ Email</button>
+                            <button type="button" class="c360-deal-filter-btn" data-tfilter="note">📝 Ghi chú</button>
+                            <button type="button" class="c360-deal-filter-btn" data-tfilter="care">❤️ Chăm sóc</button>
                         </div>
 
                         <!-- Timeline List -->
