@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme = localStorage.getItem("crm_ui_theme");
+        document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+        document.documentElement.removeAttribute("data-crm-theme");
+    } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>Quản lý Người liên hệ & Vai trò quyết định mua | Corporate CRM</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/contacts.css">
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="support-tickets.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg></span>
+            <span class="crm-nav-label">Chăm sóc & Hỗ trợ</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản lý</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-4 2.7-7 6-7s6 3 6 7"/><path d="M15 14c3 0 5 2 5 5"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm người liên hệ, chức danh, email...">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button id="themeToggle" class="crm-icon-btn" type="button" aria-label="Đổi giao diện" title="Đổi giao diện Sáng / Tối">
+            <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">U</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Quản trị viên</span>
+                </div>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main">
+    <div class="contacts-page">
+
+        <!-- 1. Header & Actions -->
+        <header class="contacts-page-head">
+            <div>
+                <div class="contacts-kicker">CRM / Khách hàng / Quản lý Người liên hệ</div>
+                <h1>
+                    <span>Quản lý Người liên hệ & Vai trò quyết định mua</span>
+                    <span style="font-size:12px; font-weight:700; background:rgba(37,99,235,0.1); color:var(--crm-primary); padding:3px 8px; border-radius:12px;">CRM-62</span>
+                </h1>
+                <p class="head-desc">
+                    Quản lý đầu mối liên hệ đa tầng của khách hàng doanh nghiệp. Nhận diện chính xác <strong>Người quyết định</strong>, 
+                    <strong>Người ảnh hưởng</strong>, <strong>Người dùng cuối</strong> và <strong>Người cản trở</strong> để xây dựng chiến lược đàm phán tối ưu, đồng thời lưu vết lịch sử điều chuyển công tác.
+                </p>
+            </div>
+
+            <div class="contacts-head-actions">
+                <button id="btnViewAllHistory" class="crm-btn crm-btn-secondary" type="button" title="Xem dòng thời gian điều chuyển công tác toàn hệ thống">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Lịch sử điều chuyển
+                </button>
+
+                <button id="btnExportContacts" class="crm-btn crm-btn-secondary" type="button" title="Xuất danh sách sang file CSV/Excel">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Xuất Excel
+                </button>
+
+                <button id="btnAddNewContact" class="crm-btn crm-btn-primary" type="button">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Thêm người liên hệ
+                </button>
+            </div>
+        </header>
+
+        <!-- 2. KPI Metrics Bar -->
+        <section class="contacts-kpi-bar" aria-label="Chỉ số vai trò quyết định mua hàng">
+            <div class="contacts-kpi-card" data-filter="ALL" title="Xem tất cả người liên hệ">
+                <div class="kpi-icon-wrap" style="background:rgba(37,99,235,0.1); color:var(--crm-primary);">👥</div>
+                <div class="contacts-kpi-info">
+                    <div class="contacts-kpi-value" id="kpiTotal">0</div>
+                    <div class="contacts-kpi-label">Tổng người liên hệ</div>
+                </div>
+            </div>
+
+            <div class="contacts-kpi-card kpi-purple" data-filter="DECISION_MAKER" title="Lọc người có thẩm quyền phê duyệt ngân sách và chốt hợp đồng">
+                <div class="kpi-icon-wrap kpi-purple">👑</div>
+                <div class="contacts-kpi-info">
+                    <div class="contacts-kpi-value" id="kpiDecision">0</div>
+                    <div class="contacts-kpi-label">Người quyết định</div>
+                </div>
+            </div>
+
+            <div class="contacts-kpi-card kpi-blue" data-filter="INFLUENCER" title="Lọc người có tiếng nói chuyên môn và tác động lớn">
+                <div class="kpi-icon-wrap kpi-blue">⚡</div>
+                <div class="contacts-kpi-info">
+                    <div class="contacts-kpi-value" id="kpiInfluencer">0</div>
+                    <div class="contacts-kpi-label">Người ảnh hưởng</div>
+                </div>
+            </div>
+
+            <div class="contacts-kpi-card kpi-red" data-filter="BLOCKER" title="CẢNH BÁO: Người có xu hướng cản trở, trì hoãn hoặc thắt chặt điều khoản">
+                <div class="kpi-icon-wrap kpi-red">⚠️</div>
+                <div class="contacts-kpi-info">
+                    <div class="contacts-kpi-value" id="kpiBlocker">0</div>
+                    <div class="contacts-kpi-label">Người cản trở (Rủi ro)</div>
+                </div>
+            </div>
+
+            <div class="contacts-kpi-card kpi-amber" data-filter="PRIMARY" title="Lọc các đại diện đầu mối liên hệ chính của doanh nghiệp">
+                <div class="kpi-icon-wrap kpi-amber">⭐</div>
+                <div class="contacts-kpi-info">
+                    <div class="contacts-kpi-value" id="kpiPrimary">0</div>
+                    <div class="contacts-kpi-label">Đầu mối chính B2B</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Toolbar & Role Filter Bar -->
+        <section class="contacts-toolbar-card">
+            <div class="contacts-filter-row">
+                <div class="contacts-search-box">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                    <input id="inputContactSearch" type="search" placeholder="Tìm theo tên, email, SĐT, chức danh, doanh nghiệp...">
+                </div>
+
+                <div class="contacts-filter-controls">
+                    <select id="selectCustomerFilter" aria-label="Lọc theo doanh nghiệp">
+                        <option value="ALL">Tất cả doanh nghiệp</option>
+                    </select>
+
+                    <select id="selectStatusFilter" aria-label="Lọc theo trạng thái">
+                        <option value="ALL">Tất cả trạng thái</option>
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="INACTIVE">Tạm dừng</option>
+                    </select>
+
+                    <div class="view-mode-toggle" aria-label="Chế độ hiển thị">
+                        <button id="btnCardView" class="view-mode-btn active" type="button" title="Hiển thị dạng thẻ Card">
+                            <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                            Thẻ
+                        </button>
+                        <button id="btnTableView" class="view-mode-btn" type="button" title="Hiển thị dạng bảng Grid">
+                            <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                            Bảng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Filter Pills by Decision Roles -->
+            <div class="role-pills-bar">
+                <span class="role-pill-label">Lọc vai trò mua hàng:</span>
+
+                <button class="role-filter-pill active" data-role="ALL" type="button">
+                    <span>Tất cả</span>
+                    <span class="pill-count" id="pillCountAll">0</span>
+                </button>
+
+                <button class="role-filter-pill" data-role="DECISION_MAKER" type="button">
+                    <span>👑 Người quyết định</span>
+                    <span class="pill-count" id="pillCountDecision">0</span>
+                </button>
+
+                <button class="role-filter-pill" data-role="INFLUENCER" type="button">
+                    <span>⚡ Người ảnh hưởng</span>
+                    <span class="pill-count" id="pillCountInfluencer">0</span>
+                </button>
+
+                <button class="role-filter-pill" data-role="END_USER" type="button">
+                    <span>👤 Người dùng cuối</span>
+                    <span class="pill-count" id="pillCountEndUser">0</span>
+                </button>
+
+                <button class="role-filter-pill" data-role="BLOCKER" type="button">
+                    <span>⚠️ Người cản trở</span>
+                    <span class="pill-count" id="pillCountBlocker">0</span>
+                </button>
+
+                <button class="role-filter-pill" data-role="PRIMARY" type="button">
+                    <span>⭐ Đầu mối chính</span>
+                    <span class="pill-count" id="pillCountPrimary">0</span>
+                </button>
+
+                <div style="margin-left:auto; font-size:12px; color:var(--crm-muted);" id="txtFilteredCount">
+                    Đang tải dữ liệu...
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Dynamic Contact List Container (Cards or Table) -->
+        <section id="contactsListContainer" aria-label="Danh sách người liên hệ">
+            <!-- Rendered dynamically by contacts.js -->
+        </section>
+
+    </div>
+</main>
+
+<!-- ================= MODAL: ADD / EDIT CONTACT ================= -->
+<div id="contactFormModal" class="contacts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalContactTitle">
+    <div class="contacts-modal modal-lg">
+        <header class="contacts-modal-head">
+            <h3 id="modalContactTitle">Thêm mới người liên hệ B2B</h3>
+            <button class="contacts-modal-close" data-close-modal type="button" aria-label="Đóng">✕</button>
+        </header>
+
+        <form id="contactForm" novalidate>
+            <div class="contacts-modal-body">
+                <div class="form-field-group">
+                    <label for="contactCustomerId">Doanh nghiệp trực thuộc <span class="req-star">*</span></label>
+                    <select id="contactCustomerId" class="crm-input" required>
+                        <!-- Populated by JavaScript -->
+                    </select>
+                    <span class="field-hint">Mỗi doanh nghiệp có thể có nhiều người liên hệ với các vai trò khác nhau.</span>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="contactFullName">Họ và tên <span class="req-star">*</span></label>
+                        <input id="contactFullName" class="crm-input" type="text" placeholder="Ví dụ: Nguyễn Văn A" required>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="contactJobTitle">Chức danh / Vị trí <span class="req-star">*</span></label>
+                        <input id="contactJobTitle" class="crm-input" type="text" placeholder="Ví dụ: Giám đốc CNTT (CIO)" required>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="contactEmail">Email công việc <span class="req-star">*</span></label>
+                        <input id="contactEmail" class="crm-input" type="email" placeholder="name@company.com" required>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="contactPhone">Số điện thoại di động <span class="req-star">*</span></label>
+                        <input id="contactPhone" class="crm-input" type="tel" placeholder="0912 345 678" required>
+                        <span class="field-hint">Định dạng SĐT Việt Nam (10 chữ số).</span>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="contactDepartment">Phòng ban / Đơn vị</label>
+                        <input id="contactDepartment" class="crm-input" type="text" placeholder="Ví dụ: Ban Điều hành, Khối Công nghệ">
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="contactStatus">Trạng thái làm việc</label>
+                        <select id="contactStatus" class="crm-input">
+                            <option value="ACTIVE">Đang hoạt động (Active)</option>
+                            <option value="INACTIVE">Tạm dừng (Inactive)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Decision Role Selector Cards -->
+                <div class="form-field-group">
+                    <label>Vai trò trong quyết định mua hàng (Decision-Making Role) <span class="req-star">*</span></label>
+                    <div class="role-radio-cards-grid">
+                        <div class="role-radio-card" data-role="DECISION_MAKER">
+                            <input type="radio" name="decisionRole" value="DECISION_MAKER" id="roleDM">
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleDM">
+                                    <span>👑 Người quyết định</span>
+                                </label>
+                                <div class="role-radio-desc">Có quyền duyệt ngân sách & ký hợp đồng (CEO, Chủ tịch, Giám đốc khối).</div>
+                            </div>
+                        </div>
+
+                        <div class="role-radio-card" data-role="INFLUENCER">
+                            <input type="radio" name="decisionRole" value="INFLUENCER" id="roleINF">
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleINF">
+                                    <span>⚡ Người ảnh hưởng</span>
+                                </label>
+                                <div class="role-radio-desc">Đánh giá tiêu chuẩn chuyên môn, đề xuất hoặc tác động mạnh đến lựa chọn.</div>
+                            </div>
+                        </div>
+
+                        <div class="role-radio-card" data-role="END_USER">
+                            <input type="radio" name="decisionRole" value="END_USER" id="roleEU" checked>
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleEU">
+                                    <span>👤 Người dùng cuối</span>
+                                </label>
+                                <div class="role-radio-desc">Vận hành trực tiếp sản phẩm hằng ngày, phản hồi trải nghiệm thực tế.</div>
+                            </div>
+                        </div>
+
+                        <div class="role-radio-card" data-role="BLOCKER">
+                            <input type="radio" name="decisionRole" value="BLOCKER" id="roleBLK">
+                            <div class="role-radio-info">
+                                <label class="role-radio-title" for="roleBLK">
+                                    <span style="color:var(--crm-danger);">⚠️ Người cản trở</span>
+                                </label>
+                                <div class="role-radio-desc">Có thể phản đối, siết chặt chi phí, ưu tiên giải pháp nội bộ hoặc trì hoãn đàm phán.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Primary Contact Switch -->
+                <div class="form-field-group" style="background:rgba(217,119,6,0.06); border:1px dashed rgba(217,119,6,0.3); border-radius:8px; padding:12px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input id="contactIsPrimary" type="checkbox" style="width:18px; height:18px;">
+                        <span style="font-weight:700; color:#b45309;">
+                            ⭐ Đặt làm Đầu mối liên hệ chính (Primary Contact) của doanh nghiệp này
+                        </span>
+                    </label>
+                    <span class="field-hint" style="margin-left:26px; display:block;">
+                        Khi chọn, hệ thống sẽ tự động gỡ cờ đầu mối chính khỏi những người liên hệ khác của cùng doanh nghiệp.
+                    </span>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="contactNotes">Ghi chú chiến lược tiếp cận / Tâm lý khách hàng</label>
+                    <textarea id="contactNotes" class="crm-input" style="height:70px; padding:8px 12px; resize:vertical;" placeholder="Ví dụ: Cần chuẩn bị kỹ tài liệu bảo mật; người này đánh giá cao sự trung thực và cam kết SLA..."></textarea>
+                </div>
+            </div>
+
+            <footer class="contacts-modal-footer">
+                <button class="crm-btn crm-btn-secondary" data-close-modal type="button">Hủy bỏ</button>
+                <button id="btnSubmitContact" class="crm-btn crm-btn-primary" type="submit">Lưu người liên hệ</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<!-- ================= MODAL: RE-ASSIGNMENT (CHUYỂN CÔNG TY) ================= -->
+<div id="transferContactModal" class="contacts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle">
+    <div class="contacts-modal">
+        <header class="contacts-modal-head">
+            <h3 id="modalTransferTitle">
+                <span>🔄 Điều chuyển công tác người liên hệ</span>
+            </h3>
+            <button class="contacts-modal-close" data-close-modal type="button" aria-label="Đóng">✕</button>
+        </header>
+
+        <form id="transferForm" novalidate>
+            <div class="contacts-modal-body">
+                <div class="transfer-source-box">
+                    <div class="transfer-source-row">
+                        Nhân sự điều chuyển: <strong id="transferContactName">—</strong>
+                    </div>
+                    <div class="transfer-source-row">
+                        Doanh nghiệp hiện tại: <strong id="transferCurrentCompany">—</strong>
+                    </div>
+                    <div class="transfer-source-row">
+                        Vị trí / Chức danh cũ: <strong id="transferCurrentJobTitle">—</strong>
+                    </div>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="transferNewCustomerId">Doanh nghiệp chuyển đến <span class="req-star">*</span></label>
+                    <select id="transferNewCustomerId" class="crm-input" required>
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field-group">
+                        <label for="transferNewJobTitle">Chức danh tại công ty mới <span class="req-star">*</span></label>
+                        <input id="transferNewJobTitle" class="crm-input" type="text" placeholder="Chức danh mới..." required>
+                    </div>
+
+                    <div class="form-field-group">
+                        <label for="transferNewDepartment">Phòng ban mới</label>
+                        <input id="transferNewDepartment" class="crm-input" type="text" placeholder="Phòng ban mới...">
+                    </div>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="transferDate">Ngày điều chuyển công tác <span class="req-star">*</span></label>
+                    <input id="transferDate" class="crm-input" type="date" required>
+                </div>
+
+                <div class="form-field-group" style="background:rgba(217,119,6,0.06); border:1px dashed rgba(217,119,6,0.3); border-radius:8px; padding:10px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input id="transferSetPrimary" type="checkbox" style="width:16px; height:16px;">
+                        <span style="font-weight:600; font-size:13px; color:#b45309;">
+                            ⭐ Đặt làm Đầu mối liên hệ chính tại công ty mới
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-field-group">
+                    <label for="transferReason">Lý do điều chuyển / Ghi chú lịch sử vết <span class="req-star">*</span></label>
+                    <textarea id="transferReason" class="crm-input" style="height:80px; padding:8px 12px; resize:vertical;" placeholder="Ví dụ: Chuyển công tác sang FPT phụ trách chỉ đạo chuyển đổi số hạ tầng cloud toàn tập đoàn..." required></textarea>
+                    <span class="field-hint">Thông tin này sẽ được lưu trữ vĩnh viễn trong dòng thời gian công tác để nhân viên kinh doanh tra cứu lịch sử quan hệ.</span>
+                </div>
+            </div>
+
+            <footer class="contacts-modal-footer">
+                <button class="crm-btn crm-btn-secondary" data-close-modal type="button">Hủy bỏ</button>
+                <button class="crm-btn crm-btn-primary" type="submit">
+                    Xác nhận điều chuyển
+                </button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<!-- ================= MODAL: CAREER HISTORY AUDIT TRAIL ================= -->
+<div id="contactHistoryModal" class="contacts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+    <div class="contacts-modal modal-lg">
+        <header class="contacts-modal-head">
+            <h3 id="historyModalTitle">📜 Lịch sử chuyển công tác (Audit Trail)</h3>
+            <button class="contacts-modal-close" data-close-modal type="button" aria-label="Đóng">✕</button>
+        </header>
+
+        <div class="contacts-modal-body">
+            <div id="historyTimelineContainer">
+                <!-- Rendered dynamically by contacts.js -->
+            </div>
+        </div>
+
+        <footer class="contacts-modal-footer">
+            <button class="crm-btn crm-btn-secondary" data-close-modal type="button">Đóng</button>
+        </footer>
+    </div>
+</div>
+
+<!-- Mobile Shell Elements -->
+<header class="crm-mobile-header">
+    <button id="mobileMenuButton" class="crm-mobile-menu" type="button" aria-label="Menu">
+        <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <strong>Corporate CRM</strong>
+    <div class="crm-avatar">U</div>
+</header>
+
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+
+<aside id="mobileDrawer" class="crm-mobile-drawer">
+    <div class="crm-drawer-header">
+        <div class="crm-avatar">U</div>
+        <div class="crm-drawer-user">
+            <strong id="mobileUserName">Nông Quang Tiệp</strong>
+            <span id="mobileUserRole">Quản trị viên</span>
+        </div>
+    </div>
+    <nav class="crm-nav">
+        <a href="dashboard.html" class="crm-nav-item">Tổng quan</a>
+        <a href="customers.html" class="crm-nav-item">Khách hàng</a>
+        <a href="contacts.html" class="crm-nav-item active">Người liên hệ (CRM-62)</a>
+        <a href="support-tickets.html" class="crm-nav-item">Chăm sóc & Hỗ trợ</a>
+        <a href="pipeline.html" class="crm-nav-item">Cơ hội</a>
+    </nav>
+</aside>
+
+<!-- Scripts -->
+<script src="js/pages/contacts.js"></script>
+<script src="js/page-transition.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

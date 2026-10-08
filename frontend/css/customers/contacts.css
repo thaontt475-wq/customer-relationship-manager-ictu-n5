@@ -1,0 +1,1087 @@
+/* ===================================================================
+   ENTERPRISE B2B CONTACT MANAGEMENT & DECISION ROLES (CRM-62)
+   Design System Compliant, Dark/Light Mode, Responsive, Accessible
+   =================================================================== */
+
+/* --- 1. PAGE CONTAINER & HEADER --- */
+.contacts-page {
+    min-width: 0;
+    padding-bottom: 48px;
+}
+
+.contacts-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+
+.contacts-kicker {
+    margin: 0 0 6px;
+    color: var(--crm-muted);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.contacts-page-head h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.contacts-page-head p.head-desc {
+    margin: 8px 0 0;
+    color: var(--crm-muted);
+    font-size: 14px;
+    max-width: 780px;
+    line-height: 1.55;
+}
+
+.contacts-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* --- 2. KPI SUMMARY BAR --- */
+.contacts-kpi-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.contacts-kpi-card {
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow-sm);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.contacts-kpi-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: transparent;
+    transition: background-color 180ms ease;
+}
+
+.contacts-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--crm-shadow);
+    border-color: var(--crm-border-strong);
+}
+
+.contacts-kpi-card.active-filter::after {
+    background: var(--kpi-accent, var(--crm-primary));
+}
+
+.contacts-kpi-card .kpi-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.kpi-purple { background: rgba(124, 58, 237, 0.12); color: #7c3aed; --kpi-accent: #7c3aed; }
+.kpi-blue { background: rgba(37, 99, 235, 0.12); color: #2563eb; --kpi-accent: #2563eb; }
+.kpi-green { background: rgba(22, 163, 74, 0.12); color: #16a34a; --kpi-accent: #16a34a; }
+.kpi-red { background: rgba(220, 38, 38, 0.12); color: #dc2626; --kpi-accent: #dc2626; }
+.kpi-amber { background: rgba(217, 119, 6, 0.12); color: #d97706; --kpi-accent: #d97706; }
+
+.contacts-kpi-info {
+    min-width: 0;
+}
+
+.contacts-kpi-value {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--crm-text);
+}
+
+.contacts-kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--crm-muted);
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+/* --- 3. TOOLBAR & FILTERS --- */
+.contacts-toolbar-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow-sm);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.contacts-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.contacts-search-box {
+    position: relative;
+    flex: 1 1 280px;
+    min-width: 240px;
+}
+
+.contacts-search-box svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 17px;
+    height: 17px;
+    color: var(--crm-muted);
+    pointer-events: none;
+}
+
+.contacts-search-box input {
+    width: 100%;
+    height: 40px;
+    padding: 0 14px 0 38px;
+    background: var(--crm-bg);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    color: var(--crm-text);
+    font-size: 13.5px;
+    transition: all 150ms ease;
+}
+
+.contacts-search-box input:focus {
+    border-color: var(--crm-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    background: var(--crm-surface);
+}
+
+.contacts-filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.contacts-filter-controls select {
+    height: 40px;
+    padding: 0 12px;
+    border-radius: var(--crm-radius-sm);
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface);
+    color: var(--crm-text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Quick Filter Role Pills */
+.role-pills-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+    border-top: 1px dashed var(--crm-border);
+}
+
+.role-pill-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--crm-muted);
+    text-transform: uppercase;
+    margin-right: 4px;
+}
+
+.role-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--crm-border);
+    background: var(--crm-bg);
+    color: var(--crm-text-2);
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 140ms ease;
+    user-select: none;
+}
+
+.role-filter-pill:hover {
+    border-color: var(--crm-primary);
+    background: var(--crm-surface);
+    transform: translateY(-1px);
+}
+
+.role-filter-pill.active {
+    background: var(--crm-primary);
+    color: #ffffff;
+    border-color: var(--crm-primary);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.role-filter-pill .pill-count {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.role-filter-pill.active .pill-count {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* View switcher */
+.view-mode-toggle {
+    display: inline-flex;
+    border-radius: var(--crm-radius-sm);
+    border: 1px solid var(--crm-border);
+    overflow: hidden;
+    background: var(--crm-bg);
+}
+
+.view-mode-btn {
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    color: var(--crm-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 120ms ease;
+}
+
+.view-mode-btn.active {
+    background: var(--crm-surface);
+    color: var(--crm-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* --- 4. DECISION ROLE BADGES --- */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.role-badge svg, .role-badge .badge-icon {
+    font-size: 13px;
+    line-height: 1;
+}
+
+/* Decision Maker: Purple / Violet */
+.role-decision-maker {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+    border-color: rgba(124, 58, 237, 0.28);
+}
+
+/* Influencer: Blue */
+.role-influencer {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border-color: rgba(37, 99, 235, 0.28);
+}
+
+/* End User: Green */
+.role-end-user {
+    background: rgba(22, 163, 74, 0.12);
+    color: #16a34a;
+    border-color: rgba(22, 163, 74, 0.28);
+}
+
+/* Blocker: Red / Orange warning */
+.role-blocker {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.32);
+    animation: blockerPulse 3s infinite ease-in-out;
+}
+
+@keyframes blockerPulse {
+    0%, 100% { border-color: rgba(220, 38, 38, 0.32); }
+    50% { border-color: rgba(220, 38, 38, 0.65); box-shadow: 0 0 8px rgba(220, 38, 38, 0.18); }
+}
+
+/* Primary Contact Badge */
+.primary-contact-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    background: rgba(217, 119, 6, 0.14);
+    color: #b45309;
+    border: 1px solid rgba(217, 119, 6, 0.35);
+    white-space: nowrap;
+}
+
+.primary-contact-badge .star-icon {
+    color: #f59e0b;
+    font-size: 13px;
+}
+
+/* Status Badge */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-active { background: rgba(22, 163, 74, 0.1); color: #16a34a; }
+.status-inactive { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+
+/* --- 5. CONTACT CARDS GRID VIEW --- */
+.contacts-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 18px;
+}
+
+.contact-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow-sm);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    position: relative;
+    border-left: 4px solid var(--card-accent, var(--crm-primary));
+}
+
+.contact-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--crm-shadow);
+    border-color: var(--crm-border-strong);
+}
+
+.contact-card.accent-decision-maker { --card-accent: #7c3aed; }
+.contact-card.accent-influencer { --card-accent: #2563eb; }
+.contact-card.accent-end-user { --card-accent: #16a34a; }
+.contact-card.accent-blocker { --card-accent: #dc2626; }
+
+.contact-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.contact-card-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.contact-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.contact-name-info {
+    min-width: 0;
+}
+
+.contact-full-name {
+    margin: 0;
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contact-job-title {
+    margin: 2px 0 0;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--crm-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contact-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+/* Company link row */
+.contact-company-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--crm-radius-sm);
+    background: var(--crm-bg);
+    font-size: 13px;
+}
+
+.contact-company-row svg {
+    width: 16px;
+    height: 16px;
+    color: var(--crm-muted);
+    flex-shrink: 0;
+}
+
+.contact-company-link {
+    color: var(--crm-primary);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contact-company-link:hover {
+    text-decoration: underline;
+}
+
+/* Communication info */
+.contact-comms-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--crm-text-2);
+}
+
+.contact-comm-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contact-comm-item svg {
+    width: 15px;
+    height: 15px;
+    color: var(--crm-muted);
+    flex-shrink: 0;
+}
+
+.contact-comm-item a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.contact-comm-item a:hover {
+    color: var(--crm-primary);
+    text-decoration: underline;
+}
+
+/* Notes & Strategy callout */
+.contact-strategy-note {
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(100, 116, 139, 0.06);
+    border-left: 2px solid var(--crm-border-strong);
+    color: var(--crm-muted);
+    line-height: 1.45;
+}
+
+.contact-strategy-note strong {
+    color: var(--crm-text);
+}
+
+/* Recent career history snippet */
+.contact-history-badge {
+    font-size: 11px;
+    color: var(--crm-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Card action footer */
+.contact-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--crm-border);
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.contact-action-btn {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface);
+    color: var(--crm-text-2);
+    cursor: pointer;
+    transition: all 120ms ease;
+}
+
+.contact-action-btn:hover {
+    background: var(--crm-bg);
+    border-color: var(--crm-border-strong);
+    color: var(--crm-text);
+}
+
+.contact-action-btn.btn-set-primary {
+    color: #b45309;
+    border-color: rgba(217, 119, 6, 0.3);
+}
+
+.contact-action-btn.btn-set-primary:hover {
+    background: rgba(217, 119, 6, 0.08);
+}
+
+.contact-action-btn.btn-transfer {
+    color: #2563eb;
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+.contact-action-btn.btn-transfer:hover {
+    background: rgba(37, 99, 235, 0.08);
+}
+
+/* --- 6. DATA GRID TABLE VIEW --- */
+.contacts-table-wrapper {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow-sm);
+    overflow-x: auto;
+}
+
+.contacts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    text-align: left;
+}
+
+.contacts-table th {
+    background: var(--crm-bg);
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--crm-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--crm-border);
+    white-space: nowrap;
+}
+
+.contacts-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--crm-border);
+    vertical-align: middle;
+}
+
+.contacts-table tbody tr:hover {
+    background: var(--crm-surface-soft);
+}
+
+.contacts-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* --- 7. MODALS (ADD/EDIT, RE-ASSIGNMENT, HISTORY) --- */
+.contacts-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 200ms ease;
+}
+
+.contacts-modal-overlay.open {
+    display: flex;
+}
+
+.contacts-modal {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+    box-shadow: var(--crm-shadow);
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalSlideUp 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contacts-modal.modal-lg {
+    max-width: 720px;
+}
+
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(16px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.contacts-modal-head {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--crm-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.contacts-modal-head h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contacts-modal-close {
+    background: transparent;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    color: var(--crm-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+}
+
+.contacts-modal-close:hover {
+    background: var(--crm-bg);
+    color: var(--crm-text);
+}
+
+.contacts-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.contacts-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--crm-border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    background: var(--crm-bg);
+}
+
+/* Form layout inside modal */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.form-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-field-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--crm-text);
+}
+
+.form-field-group label .req-star {
+    color: var(--crm-danger);
+}
+
+.form-field-group .field-hint {
+    font-size: 11.5px;
+    color: var(--crm-muted);
+}
+
+/* Radio Cards for Decision Role Selection */
+.role-radio-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.role-radio-card {
+    border: 1.5px solid var(--crm-border);
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: all 150ms ease;
+    background: var(--crm-surface);
+}
+
+.role-radio-card:hover {
+    border-color: var(--crm-primary);
+    background: var(--crm-bg);
+}
+
+.role-radio-card input[type="radio"] {
+    margin-top: 3px;
+}
+
+.role-radio-info {
+    min-width: 0;
+}
+
+.role-radio-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.role-radio-desc {
+    font-size: 11px;
+    color: var(--crm-muted);
+    margin-top: 2px;
+    line-height: 1.35;
+}
+
+.role-radio-card.selected {
+    border-color: var(--crm-primary);
+    background: var(--crm-primary-soft);
+    box-shadow: 0 0 0 1px var(--crm-primary);
+}
+
+/* Transfer Callout Box */
+.transfer-source-box {
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: var(--crm-bg);
+    border: 1px dashed var(--crm-border-strong);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.transfer-source-row {
+    font-size: 13px;
+    color: var(--crm-text-2);
+}
+
+.transfer-source-row strong {
+    color: var(--crm-text);
+}
+
+/* History Timeline inside Modal */
+.contact-history-timeline {
+    position: relative;
+    padding-left: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-history-timeline::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--crm-border-strong);
+}
+
+.history-timeline-node {
+    position: relative;
+}
+
+.history-timeline-dot {
+    position: absolute;
+    left: -28px;
+    top: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--crm-primary);
+    border: 3px solid var(--crm-surface);
+    box-shadow: 0 0 0 1px var(--crm-primary);
+}
+
+.history-timeline-date {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--crm-primary);
+}
+
+.history-timeline-content {
+    background: var(--crm-bg);
+    border: 1px solid var(--crm-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 6px;
+}
+
+.history-timeline-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+}
+
+.history-timeline-meta {
+    font-size: 12px;
+    color: var(--crm-muted);
+    margin-top: 4px;
+}
+
+.history-timeline-reason {
+    font-size: 12.5px;
+    color: var(--crm-text-2);
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--crm-border);
+}
+
+/* --- 8. INTEGRATION WITH CUSTOMER-360 RIGHT PANEL --- */
+.customer-360-contact-item {
+    padding: 12px;
+    border-radius: var(--crm-radius-sm);
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface);
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 150ms ease;
+}
+
+.customer-360-contact-item:hover {
+    border-color: var(--crm-primary);
+}
+
+.c360-contact-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.c360-contact-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.c360-contact-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.c360-contact-name {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--crm-text);
+}
+
+.c360-contact-title {
+    font-size: 11.5px;
+    color: var(--crm-muted);
+}
+
+.c360-contact-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--crm-border);
+}
+
+/* --- 9. DARK MODE SUPPORT --- */
+[data-theme="dark"] .contacts-kpi-card {
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+}
+
+[data-theme="dark"] .kpi-purple { background: rgba(124, 58, 237, 0.22); color: #c4b5fd; }
+[data-theme="dark"] .kpi-blue { background: rgba(37, 99, 235, 0.22); color: #93c5fd; }
+[data-theme="dark"] .kpi-green { background: rgba(22, 163, 74, 0.22); color: #86efac; }
+[data-theme="dark"] .kpi-red { background: rgba(220, 38, 38, 0.22); color: #fca5a5; }
+[data-theme="dark"] .kpi-amber { background: rgba(217, 119, 6, 0.22); color: #fcd34d; }
+
+[data-theme="dark"] .role-decision-maker {
+    background: rgba(124, 58, 237, 0.22);
+    color: #c4b5fd;
+    border-color: rgba(124, 58, 237, 0.45);
+}
+
+[data-theme="dark"] .role-influencer {
+    background: rgba(37, 99, 235, 0.22);
+    color: #93c5fd;
+    border-color: rgba(37, 99, 235, 0.45);
+}
+
+[data-theme="dark"] .role-end-user {
+    background: rgba(22, 163, 74, 0.22);
+    color: #86efac;
+    border-color: rgba(22, 163, 74, 0.45);
+}
+
+[data-theme="dark"] .role-blocker {
+    background: rgba(220, 38, 38, 0.22);
+    color: #fca5a5;
+    border-color: rgba(220, 38, 38, 0.45);
+}
+
+[data-theme="dark"] .primary-contact-badge {
+    background: rgba(217, 119, 6, 0.22);
+    color: #fde047;
+    border-color: rgba(217, 119, 6, 0.45);
+}
+
+[data-theme="dark"] .contact-card {
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+}
+
+[data-theme="dark"] .contact-company-row,
+[data-theme="dark"] .transfer-source-box,
+[data-theme="dark"] .history-timeline-content {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="dark"] .role-radio-card {
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+}
+
+[data-theme="dark"] .role-radio-card.selected {
+    background: rgba(37, 99, 235, 0.15);
+}
+
+/* --- 10. RESPONSIVE DESIGN (DOWN TO 360PX) --- */
+@media (max-width: 768px) {
+    .contacts-kpi-bar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .contacts-filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .role-radio-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contacts-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .contacts-kpi-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .contacts-modal {
+        max-width: 100%;
+        max-height: 95vh;
+    }
+}
