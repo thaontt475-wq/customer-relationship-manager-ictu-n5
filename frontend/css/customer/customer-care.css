@@ -1,0 +1,321 @@
+/* ==========================================================================
+   Customer Care / Follow-Up Needed List Styles (S3-09 / CRM-69)
+   Author: Hoàng Văn Thắng (Frontend Lead)
+   Features:
+   - Filter by N days of non-interaction
+   - Contract values & Last interaction metrics
+   - Multi-column sort
+   - Quick action: "Đã liên hệ" (Mark Contacted)
+   - Dynamic Refresh list with loading animation
+   ========================================================================== */
+
+/* Summary KPI Cards */
+.care-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.care-kpi-card {
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xs);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.care-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.care-kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+}
+
+.care-kpi-icon.danger { background: #fee2e2; color: #dc2626; }
+.care-kpi-icon.warning { background: #fef3c7; color: #d97706; }
+.care-kpi-icon.primary { background: #e0e7ff; color: #4338ca; }
+.care-kpi-icon.success { background: #dcfce7; color: #16a34a; }
+
+.care-kpi-val {
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.care-kpi-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Control & Filter Panel */
+.care-filter-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-xs);
+}
+
+.care-filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* N Days Filter Control */
+.care-n-days-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+}
+
+.care-n-days-label {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.care-n-days-input {
+    width: 70px;
+    padding: 6px 10px;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--primary);
+    text-align: center;
+    outline: none;
+    background: #ffffff;
+}
+
+.care-n-days-unit {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* Presets Chips */
+.care-presets-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.care-preset-chip {
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.care-preset-chip:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.care-preset-chip.active {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+}
+
+/* Sort & Search Toolbar */
+.care-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.care-search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f1f5f9;
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    flex: 1;
+    max-width: 380px;
+}
+
+.care-search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 0.88rem;
+}
+
+.care-sort-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.care-sort-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.care-sort-select {
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+}
+
+/* Refresh Button with Spinner */
+.btn-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-refresh:hover {
+    background: #f8fafc;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-refresh.spinning .refresh-icon {
+    display: inline-block;
+    animation: careSpin 0.7s linear infinite;
+}
+
+@keyframes careSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Table Specific Badges & Overdue Indicators */
+.care-overdue-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.care-overdue-badge.critical {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecdd3;
+}
+
+.care-overdue-badge.warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.care-overdue-badge.normal {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+/* Quick Action: "Đã liên hệ" Button */
+.btn-mark-contacted {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+}
+
+.btn-mark-contacted:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.35);
+}
+
+.btn-mark-contacted.disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Toast */
+.care-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #0f172a;
+    color: #ffffff;
+    padding: 14px 22px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    font-size: 0.9rem;
+    font-weight: 600;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: careToastSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes careToastSlide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

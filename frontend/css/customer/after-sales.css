@@ -1,0 +1,115 @@
+/* ==========================================================================
+   After-sales Support & Churn Risk Warning Styles (S3-08 / CRM-68)
+   ========================================================================== */
+
+/* Risk Gauge & Summary Cards */
+.risk-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.risk-kpi-card {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.risk-kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.risk-kpi-icon.danger { background: var(--danger-light); color: var(--danger); }
+.risk-kpi-icon.warning { background: var(--warning-light); color: var(--warning); }
+.risk-kpi-icon.success { background: var(--success-light); color: var(--success); }
+.risk-kpi-icon.info { background: var(--info-light); color: var(--info); }
+
+.risk-kpi-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.risk-kpi-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Risk Alert Banner */
+.risk-alert-banner {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    border-left: 6px solid var(--danger);
+    border-radius: var(--radius-md);
+    padding: 18px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.risk-alert-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.risk-alert-badge {
+    background: var(--danger);
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-weight: 800;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.risk-alert-factors {
+    margin-top: 6px;
+    display: flex;
+    gap: 16px;
+    font-size: 0.82rem;
+    color: #9f1239;
+}
+
+.risk-factor-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Customer Risk Table */
+.risk-meter {
+    width: 100px;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.risk-meter-fill {
+    height: 100%;
+    border-radius: var(--radius-full);
+}
+
+.sla-overdue {
+    color: var(--danger);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}

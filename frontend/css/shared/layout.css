@@ -1,0 +1,199 @@
+/* ==========================================================================
+   CRM Main Layout Structure (Sidebar + Header + Page Content)
+   ========================================================================== */
+
+.crm-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-page);
+    position: relative;
+}
+
+.crm-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevents flex children from overflowing */
+    overflow-x: hidden;
+}
+
+.crm-header {
+    height: 70px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.crm-header__search {
+    position: relative;
+    width: 380px;
+}
+
+.crm-header__search input {
+    width: 100%;
+    padding: 9px 16px 9px 40px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-color);
+    background: #f8fafc;
+    font-size: 0.88rem;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.crm-header__search input:focus {
+    background: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(47, 91, 255, 0.12);
+}
+
+.crm-header__search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.crm-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.crm-header__icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+    transition: all var(--transition-fast);
+}
+
+.crm-header__icon-btn:hover {
+    background: var(--bg-surface-alt);
+    color: var(--primary);
+}
+
+.crm-header__badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 18px;
+    height: 18px;
+    background: var(--danger);
+    color: #ffffff;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+}
+
+.crm-header__user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border-color);
+    cursor: pointer;
+}
+
+.crm-header__avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #2f5bff);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+.crm-header__user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.crm-header__user-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.crm-header__user-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Page Container */
+.crm-content {
+    flex: 1;
+    padding: 28px 32px 48px;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.page-title-box h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.page-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.page-breadcrumb a {
+    color: var(--text-muted);
+}
+.page-breadcrumb a:hover {
+    color: var(--primary);
+}
+
+.page-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+@media (max-width: 992px) {
+    .crm-header {
+        padding: 0 16px;
+    }
+    .crm-content {
+        padding: 20px 16px;
+    }
+    .crm-header__search {
+        display: none;
+    }
+}

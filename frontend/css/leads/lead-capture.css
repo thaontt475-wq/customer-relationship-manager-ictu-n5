@@ -1,0 +1,218 @@
+/* ==========================================================================
+   Web-to-Lead Form Styles (S4-01 / CRM-113)
+   Author: Hoàng Thắng (Frontend)
+   ========================================================================== */
+
+.w2l-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, #edf2fe, #f8fafc 60%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    font-family: var(--font-sans);
+}
+
+.w2l-container {
+    width: 100%;
+    max-width: 1040px;
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+/* Left Hero / Brand section */
+.w2l-hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2f5bff 100%);
+    padding: 48px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+.w2l-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px;
+    right: -60px;
+    width: 200px;
+    height: 200px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+}
+
+.w2l-brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 700;
+    backdrop-filter: blur(8px);
+    width: fit-content;
+}
+
+.w2l-hero-title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1.25;
+    margin: 24px 0 16px;
+    color: #ffffff;
+}
+
+.w2l-hero-desc {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.w2l-features-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.w2l-feature-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.w2l-check-icon {
+    width: 22px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+.w2l-trust-quote {
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    font-style: italic;
+}
+
+/* Right Form Section */
+.w2l-form-wrap {
+    padding: 48px;
+    background: #ffffff;
+}
+
+.w2l-form-header {
+    margin-bottom: 28px;
+}
+
+.w2l-form-header h2 {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.w2l-form-header p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.w2l-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.w2l-utm-tags {
+    background: #f1f5f9;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.w2l-utm-badge {
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.btn-submit-lead {
+    width: 100%;
+    padding: 13px;
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(47, 91, 255, 0.3);
+    transition: all var(--transition-fast);
+}
+
+.btn-submit-lead:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(47, 91, 255, 0.4);
+}
+
+.btn-submit-lead:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Thank You Success Overlay */
+.w2l-success-box {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.w2l-success-icon {
+    width: 72px;
+    height: 72px;
+    background: var(--success-light);
+    color: var(--success);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 auto 20px;
+}
+
+@media (max-width: 900px) {
+    .w2l-container {
+        grid-template-columns: 1fr;
+    }
+    .w2l-hero {
+        padding: 32px;
+    }
+    .w2l-form-wrap {
+        padding: 32px 24px;
+    }
+    .w2l-row-2 {
+        grid-template-columns: 1fr;
+    }
+}
