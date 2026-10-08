@@ -36,7 +36,6 @@ public class Customer360Servlet extends HttpServlet {
         sb.append("  \"code\": \"CUST-2026-089\",\n");
         sb.append("  \"industry\": \"Công nghệ & Game\",\n");
         sb.append("  \"parentCompany\": \"NONE\",\n");
-        sb.append("  \"owner\": \"Hoàng Văn Thắng\",\n");
         sb.append("  \"healthScore\": 95,\n");
         sb.append("  \"phone\": \"028 3962 3888\",\n");
         sb.append("  \"email\": \"contact@vng.com.vn\",\n");
