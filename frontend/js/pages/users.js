@@ -1951,6 +1951,7 @@ async function deleteUser(
         });
 
         await loadUsers();
+        alert(`Đã xóa người dùng "${user.fullName}" thành công!`);
 
     } catch (error) {
 

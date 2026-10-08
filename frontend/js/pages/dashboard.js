@@ -336,48 +336,35 @@ function renderFunnel(
 
 
     const defaults = [
-        {
-            key: "approach",
-            label: "Tiếp cận"
-        },
-        {
-            key: "quote",
-            label: "Báo giá"
-        },
-        {
-            key: "negotiation",
-            label: "Đàm phán"
-        },
-        {
-            key: "closing",
-            label: "Chốt"
-        }
+        { key: "1", label: "Khảo sát nhu cầu" },
+        { key: "2", label: "Đánh giá nhu cầu" },
+        { key: "3", label: "Gửi đề xuất & Báo giá" },
+        { key: "4", label: "Thương lượng & Đàm phán" },
+        { key: "5", label: "Chốt thành công (Won)" },
+        { key: "6", label: "Đóng thua (Lost)" },
+        { key: "approach", label: "Tiếp cận" },
+        { key: "quote", label: "Báo giá" },
+        { key: "negotiation", label: "Đàm phán" },
+        { key: "closing", label: "Chốt" }
     ];
 
-
-    for (
-        const stage
-        of defaults
-    ) {
-
+    for (const stage of defaults) {
         if (
-            existingKeys.has(
-                stage.key
-            )
-            &&
-            !stages.some(
-                item =>
-                    item.key
-                    === stage.key
-            )
+            existingKeys.has(stage.key) &&
+            !stages.some(item => String(item.key) === String(stage.key))
         ) {
-
-            stages.push(
-                stage
-            );
-
+            stages.push(stage);
         }
+    }
 
+    // Nếu vẫn chưa có stage nào khớp với existingKeys, tự tạo từ existingKeys qua stageLabel
+    for (const k of existingKeys) {
+        if (!stages.some(item => String(item.key) === String(k))) {
+            stages.push({
+                key: String(k),
+                label: stageLabel(k)
+            });
+        }
     }
 
 
@@ -1043,25 +1030,29 @@ function shortMoney(value) {
 
 
 function stageLabel(key) {
-
-    switch (key) {
-
+    const keyStr = String(key).trim();
+    switch (keyStr) {
+        case "1":
         case "approach":
-            return "Tiếp cận";
-
+            return "Khảo sát nhu cầu";
+        case "2":
+            return "Đánh giá nhu cầu";
+        case "3":
         case "quote":
-            return "Báo giá";
-
+            return "Gửi báo giá";
+        case "4":
         case "negotiation":
-            return "Đàm phán";
-
+            return "Đàm phán & Thương lượng";
+        case "5":
         case "closing":
-            return "Chốt";
-
+        case "won":
+            return "Chốt thành công (Won)";
+        case "6":
+        case "lost":
+            return "Đóng thua (Lost)";
         default:
-            return key;
+            return `Giai đoạn ${keyStr}`;
     }
-
 }
 
 
@@ -1247,16 +1238,14 @@ function text(
 
 
 function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-    return String(
-        value
-        ??
-        ""
-    )
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
 renderDashboard();
 
 (async function syncBackendData() {
