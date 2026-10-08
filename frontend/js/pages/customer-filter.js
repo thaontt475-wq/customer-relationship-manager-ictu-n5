@@ -76,6 +76,22 @@
                 ownerUserId: "",
                 scopeFilter: "ALL"
             }
+        },
+        {
+            id: "view_duplicates",
+            name: "Trùng lặp tiềm ẩn",
+            badge: "CRM-64",
+            isPreset: true,
+            filter: {
+                keyword: "",
+                status: "",
+                industryId: "",
+                companySizeId: "",
+                region: "",
+                ownerUserId: "",
+                scopeFilter: "ALL",
+                isDuplicateOnly: true
+            }
         }
     ];
 
@@ -87,7 +103,8 @@
         companySizeId: "",
         region: "",
         ownerUserId: "",
-        scopeFilter: "ALL"
+        scopeFilter: "ALL",
+        isDuplicateOnly: false
     };
 
     let savedViews = [];
@@ -356,6 +373,9 @@
         if (filterCriteria.scopeFilter && filterCriteria.scopeFilter !== "ALL") {
             chips.push({ key: "scopeFilter", label: `Phạm vi: ${filterCriteria.scopeFilter === "SELF" ? "Cá nhân (SELF)" : "Nhóm (TEAM)"}` });
         }
+        if (filterCriteria.isDuplicateOnly) {
+            chips.push({ key: "isDuplicateOnly", label: "⚠️ Chỉ khách trùng lặp" });
+        }
 
         if (chips.length === 0) {
             elements.activeChipsContainer.style.display = "none";
@@ -402,6 +422,8 @@
         if (key === "scopeFilter") {
             filterCriteria[key] = "ALL";
             if (elements.scopeFilter) elements.scopeFilter.value = "ALL";
+        } else if (key === "isDuplicateOnly") {
+            filterCriteria.isDuplicateOnly = false;
         } else {
             filterCriteria[key] = "";
             if (key === "keyword" && elements.search) elements.search.value = "";

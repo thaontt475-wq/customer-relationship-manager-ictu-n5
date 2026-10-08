@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="css/app-shell.css">
 <link rel="stylesheet" href="css/pages/customers.css">
 <link rel="stylesheet" href="css/customers/customers.css">
+<link rel="stylesheet" href="css/pages/duplicate-merge.css">
 <link rel="stylesheet" href="css/animations.css">
 </head>
 
@@ -192,6 +193,11 @@
                 </select>
             </div>
             <div class="saved-views-actions">
+                <button id="btnQuickDuplicates" class="crm-btn crm-btn-secondary" type="button" title="Lọc nhanh danh sách khách hàng có dấu hiệu trùng lặp (CRM-64)">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" style="color:#d97706;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Khách trùng lặp</span>
+                    <span id="badgeDuplicatesCount" class="tax-badge" style="background:#fef3c7; color:#b45309; border-color:#fcd34d; font-weight:700; margin-left:2px;">0</span>
+                </button>
                 <button id="btnOpenSaveViewModal" class="crm-btn crm-btn-secondary btn-save-view" type="button" title="Lưu lại bộ lọc hiện tại thành một góc nhìn tùy chỉnh">
                     <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                     <span>Lưu bộ lọc</span>
@@ -348,6 +354,24 @@
             <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
         </button>
     </header>
+
+    <!-- CRM-64: REALTIME DUPLICATE DETECTION ALERT BANNER -->
+    <div id="drawerDuplicateAlert" class="drawer-duplicate-alert" style="display:none;">
+        <div class="drawer-dup-head">
+            <svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Cảnh báo: Phát hiện thông tin nghi trùng lặp (CRM-64)</span>
+        </div>
+        <div class="drawer-dup-body">
+            <div id="drawerDupSummary" style="font-weight:600; margin-bottom:4px;">Doanh nghiệp này có thông tin trùng khớp với bản ghi đã tồn tại.</div>
+            <div id="drawerDupReasons" class="drawer-dup-reasons"></div>
+        </div>
+        <div class="drawer-dup-actions">
+            <button type="button" class="btn-drawer-merge" id="btnDrawerOpenMerge">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M8 7v10M8 12h8m0-5v10m-3-12 3 2 3-2m-6 14 3-2 3 2"/></svg>
+                So sánh đối chiếu & Gộp khách hàng ngay
+            </button>
+        </div>
+    </div>
 
     <form id="customerForm" class="customer-form-scroll" novalidate>
         <input id="customerId" type="hidden" value="">
@@ -606,10 +630,162 @@
     </div>
 </div>
 
+<!-- =========================================================
+     CRM-64: SIDE-BY-SIDE DUPLICATE COMPARISON & MERGE MODAL
+========================================================= -->
+<div id="mergeComparisonModalOverlay" class="merge-modal-overlay"></div>
+<div id="mergeComparisonModal" class="merge-modal-dialog" role="dialog" aria-labelledby="mergeModalTitle">
+    <header class="merge-modal-header">
+        <div class="merge-modal-title-group">
+            <span class="merge-modal-tag">
+                <svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                QUẢN LÝ TRÙNG LẶP & HỢP NHẤT DỮ LIỆU (CRM-64)
+            </span>
+            <h2 id="mergeModalTitle" class="merge-modal-title">Đối chiếu & Gộp Khách hàng Trùng lặp</h2>
+            <p class="merge-modal-desc">So sánh trực quan 2 bản ghi, chọn dữ liệu ưu tiên giữ lại và chuyển giao toàn bộ liên hệ, cơ hội bán hàng về hồ sơ gốc.</p>
+        </div>
+        <div class="merge-header-right">
+            <!-- Role Switcher / Simulator -->
+            <div class="role-simulator-box" title="Chuyển đổi vai trò để kiểm thử phân quyền gộp khách hàng">
+                <span class="role-sim-label">Vai trò:</span>
+                <select id="roleSimulatorSelect" class="role-sim-select" aria-label="Mô phỏng vai trò người dùng">
+                    <option value="TEAM_LEAD">👑 Trưởng nhóm (Team Lead / Admin)</option>
+                    <option value="SALE">👤 Nhân viên Sale (Chỉ xem)</option>
+                </select>
+            </div>
+            <button id="btnCloseMergeModal" type="button" class="merge-close-btn" aria-label="Đóng cửa sổ">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="merge-modal-body">
+        <!-- 1. Reason alert banner -->
+        <div class="merge-reason-banner">
+            <div class="merge-reason-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0Z"/></svg>
+            </div>
+            <div class="merge-reason-content">
+                <h4>Dấu hiệu trùng lặp phát hiện bởi hệ thống:</h4>
+                <div id="mergeReasonTags" class="merge-reason-tags"></div>
+            </div>
+        </div>
+
+        <!-- 2. Master Record Selection Cards -->
+        <div>
+            <div style="font-size:13px; font-weight:700; margin-bottom:8px; color:var(--crm-text);">
+                1. Chọn Bản ghi gốc (Master Record) sẽ được giữ lại làm đại diện:
+            </div>
+            <div class="master-selection-grid">
+                <!-- Card A -->
+                <div class="master-record-card selected" id="cardRecordA">
+                    <div class="master-card-head">
+                        <label class="master-radio-label">
+                            <input type="radio" name="masterSelection" value="A" id="radioSelectMasterA" checked>
+                            <span>Hồ sơ A (Bản ghi gốc)</span>
+                        </label>
+                        <span class="master-status-tag is-master" id="tagMasterA">MASTER RECORD</span>
+                    </div>
+                    <h3 class="master-company-title" id="cardACompanyName">—</h3>
+                    <div class="master-quick-meta">
+                        <span>MST: <strong id="cardATaxCode">—</strong></span>
+                        <span>Sale: <strong id="cardAOwner">—</strong></span>
+                        <span>Vòng đời: <strong id="cardAStatus">—</strong></span>
+                    </div>
+                </div>
+
+                <!-- Card B -->
+                <div class="master-record-card" id="cardRecordB">
+                    <div class="master-card-head">
+                        <label class="master-radio-label">
+                            <input type="radio" name="masterSelection" value="B" id="radioSelectMasterB">
+                            <span>Hồ sơ B (Bản ghi phụ)</span>
+                        </label>
+                        <span class="master-status-tag is-secondary" id="tagMasterB">SẼ CHUYỂN ĐÃ GỘP</span>
+                    </div>
+                    <h3 class="master-company-title" id="cardBCompanyName">—</h3>
+                    <div class="master-quick-meta">
+                        <span>MST: <strong id="cardBTaxCode">—</strong></span>
+                        <span>Sale: <strong id="cardBOwner">—</strong></span>
+                        <span>Vòng đời: <strong id="cardBStatus">—</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Side-by-Side Field Comparison Table -->
+        <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="font-size:13px; font-weight:700; color:var(--crm-text);">
+                    2. Đối chiếu chi tiết & Chọn giá trị ưu tiên cho từng trường thông tin:
+                </div>
+                <div style="font-size:12px; color:var(--crm-muted);">
+                    <span class="field-diff-indicator"></span> Hàng có màu vàng biểu thị giá trị khác nhau giữa 2 bản ghi
+                </div>
+            </div>
+
+            <div class="side-by-side-wrapper">
+                <table class="side-by-side-table">
+                    <thead>
+                        <tr>
+                            <th class="col-field-label">Trường dữ liệu</th>
+                            <th class="col-record-a" id="thRecordAName">Bản ghi A</th>
+                            <th class="col-record-b" id="thRecordBName">Bản ghi B</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sideBySideTableBody">
+                        <!-- Rendered dynamically by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Data Consolidation Summary -->
+        <div class="merge-data-preview-card">
+            <div class="preview-card-head">
+                <h4 class="preview-card-title">
+                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Chính sách bảo toàn dữ liệu đầy đủ (Comprehensive Data Merge):
+                </h4>
+            </div>
+            <div class="preview-badge-pills">
+                <div class="preview-pill" id="pillContactsCount">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+                    <span>Người liên hệ: <strong id="txtContactsCount">0 + 0 = 0 liên hệ</strong></span>
+                </div>
+                <div class="preview-pill" id="pillDealsCount">
+                    <svg viewBox="0 0 24 24"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg>
+                    <span>Cơ hội bán hàng: <strong id="txtDealsCount">0 + 0 = 0 deals</strong></span>
+                </div>
+                <div class="preview-pill" id="pillActivitiesCount">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span>Lịch sử chăm sóc: <strong id="txtActivitiesCount">Gộp toàn bộ hoạt động</strong></span>
+                </div>
+            </div>
+            <div class="secondary-retire-note">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;color:var(--crm-muted);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>Hồ sơ phụ sẽ được chuyển trạng thái <strong>"Đã gộp" (MERGED / Inactive)</strong> và liên kết vĩnh viễn đến Hồ sơ gốc trong hệ thống.</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="merge-modal-footer">
+        <div class="merge-permission-status" id="mergePermissionStatus">
+            <!-- Rendered dynamically according to user role -->
+        </div>
+        <div class="merge-footer-buttons">
+            <button id="btnCancelMerge" class="crm-btn crm-btn-secondary" type="button">Hủy bỏ</button>
+            <button id="btnConfirmMerge" class="btn-confirm-merge" type="button">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Xác nhận gộp khách hàng
+            </button>
+        </div>
+    </footer>
+</div>
+
 <!-- Scripts -->
-<script src="js/customers/customer-filter.js"></script>
+<script src="js/pages/duplicate-merge.js"></script>
 <script src="js/pages/customer-filter.js"></script>
-<script src="js/customers/customers.js"></script>
 <script src="js/pages/customers.js"></script>
 <script src="js/page-transition.js"></script>
 <script src="js/theme.js"></script>
