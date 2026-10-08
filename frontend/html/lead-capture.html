@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký Tư Vấn Giải Pháp CRM Doanh Nghiệp | ICTU</title>
+    <link rel="stylesheet" href="../css/shared/common.css">
+    <link rel="stylesheet" href="../css/leads/lead-capture.css">
+</head>
+<body class="w2l-page">
+
+    <div class="w2l-container">
+        <!-- Left Hero Section -->
+        <div class="w2l-hero">
+            <div>
+                <div class="w2l-brand-badge">
+                    <span>⚡</span> CRM ICTU N5 • DOANH NGHIỆP
+                </div>
+                <h1 class="w2l-hero-title">Đột phá doanh số với nền tảng CRM toàn diện</h1>
+                <p class="w2l-hero-desc">
+                    Quản lý khách hàng 360 độ, theo dõi Lead tự động từ chiến dịch marketing và tối ưu quy trình bán hàng khép kín.
+                </p>
+
+                <ul class="w2l-features-list">
+                    <li class="w2l-feature-item">
+                        <span class="w2l-check-icon">✓</span> Tích hợp đa kênh (Facebook Ads, Google, Website)
+                    </li>
+                    <li class="w2l-feature-item">
+                        <span class="w2l-check-icon">✓</span> Tự động chấm điểm và phân bổ Lead theo thời gian thực
+                    </li>
+                    <li class="w2l-feature-item">
+                        <span class="w2l-check-icon">✓</span> Dùng thử miễn phí 14 ngày đầy đủ tính năng
+                    </li>
+                </ul>
+            </div>
+
+            <div class="w2l-trust-quote">
+                "Hơn 500+ doanh nghiệp đã gia tăng 35% tỷ lệ chốt đơn sau 3 tháng triển khai hệ thống."
+            </div>
+        </div>
+
+        <!-- Right Lead Form Section -->
+        <div class="w2l-form-wrap">
+            <div id="formSectionWrapper">
+                <div class="w2l-form-header">
+                    <h2>Đăng ký nhận tư vấn</h2>
+                    <p>Điền thông tin bên dưới để chuyên viên giải pháp liên hệ trong 15 phút</p>
+                </div>
+
+                <!-- UTM Tracking Information Badge -->
+                <div class="w2l-utm-tags">
+                    <span>Nguồn tiếp cận: <span id="utmDisplaySource" class="w2l-utm-badge">Direct Website</span></span>
+                    <span>•</span>
+                    <span>Chiến dịch: <span id="utmDisplayCampaign" class="w2l-utm-badge">Organic 2026</span></span>
+                </div>
+
+                <form id="webToLeadForm" novalidate>
+                    <!-- Hidden UTM Inputs -->
+                    <input type="hidden" id="utm_source" name="utm_source">
+                    <input type="hidden" id="utm_campaign" name="utm_campaign">
+                    <input type="hidden" id="utm_medium" name="utm_medium">
+                    <input type="hidden" id="utm_term" name="utm_term">
+                    <input type="hidden" id="utm_content" name="utm_content">
+
+                    <div class="form-group">
+                        <label class="form-label" for="leadFullName">Họ và tên của bạn <span class="required">*</span></label>
+                        <input type="text" id="leadFullName" class="form-control" placeholder="Ví dụ: Nguyễn Văn An" required>
+                        <div class="form-error">Vui lòng nhập họ tên</div>
+                    </div>
+
+                    <div class="w2l-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="leadPhone">Số điện thoại <span class="required">*</span></label>
+                            <input type="tel" id="leadPhone" class="form-control" placeholder="09xxxxxxxx" required>
+                            <div class="form-error">Số điện thoại không hợp lệ</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="leadEmail">Email công việc <span class="required">*</span></label>
+                            <input type="email" id="leadEmail" class="form-control" placeholder="name@company.com" required>
+                            <div class="form-error">Email không đúng định dạng</div>
+                        </div>
+                    </div>
+
+                    <div class="w2l-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="leadCompany">Tên doanh nghiệp <span class="required">*</span></label>
+                            <input type="text" id="leadCompany" class="form-control" placeholder="Tên công ty của bạn" required>
+                            <div class="form-error">Vui lòng nhập tên công ty</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="leadInterest">Giải pháp quan tâm</label>
+                            <select id="leadInterest" class="form-select">
+                                <option value="CRM B2B">Quản trị Khách hàng Doanh nghiệp (B2B)</option>
+                                <option value="LEAD_MANAGEMENT">Hệ thống Lead & Automation</option>
+                                <option value="CUSTOMER_360">Hồ sơ Khách hàng 360 độ</option>
+                                <option value="FULL_SUITE">Trọn gói giải pháp CRM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="leadNote">Nhu cầu hoặc lưu ý thêm</label>
+                        <textarea id="leadNote" class="form-control" rows="2" placeholder="Ví dụ: Quy mô đội ngũ sales 20 người, cần triển khai trong tháng..."></textarea>
+                    </div>
+
+                    <button type="submit" id="submitLeadBtn" class="btn-submit-lead">
+                        ĐĂNG KÝ TƯ VẤN & TRẢI NGHIỆM MIỄN PHÍ ➔
+                    </button>
+                </form>
+            </div>
+
+            <!-- Success State Box -->
+            <div id="successSectionBox" class="w2l-success-box">
+                <div class="w2l-success-icon">✓</div>
+                <h3 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;">Đăng ký thành công!</h3>
+                <p style="color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; margin-bottom: 24px;">
+                    Cảm ơn bạn đã quan tâm. Thông tin của bạn đã được ghi nhận vào hệ thống CRM. Chuyên viên tư vấn giải pháp sẽ liên hệ với bạn trong vòng 15 phút.
+                </p>
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">Gửi yêu cầu khác</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/leads/lead-capture.js"></script>
+</body>
+</html>

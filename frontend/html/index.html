@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-CRM Enterprise - Bàn giao Mã nguồn Hoàng Thắng</title>
+    <link rel="stylesheet" href="../css/shared/common.css">
+    <link rel="stylesheet" href="../css/shared/layout.css">
+    <style>
+        .portal-hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2f5bff 100%);
+            color: #ffffff;
+            padding: 40px 32px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 32px;
+            box-shadow: 0 12px 24px rgba(47, 91, 255, 0.2);
+        }
+        .sprint-section-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin: 32px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-primary);
+        }
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .portal-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all var(--transition-normal);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .portal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+        .portal-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            width: fit-content;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body style="background: #f8fafc; padding: 40px 24px;">
+
+    <div style="max-width: 1140px; margin: 0 auto;">
+        <!-- Hero Header -->
+        <div class="portal-hero">
+            <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: #ffffff; margin-bottom: 16px;">
+                🚀 BÀN GIAO TOÀN DIỆN MÃ NGUỒN FRONTEND
+            </span>
+            <h1 style="color: #ffffff; font-size: 2rem; margin-bottom: 8px;">Workspace Hoàng Thắng (Frontend Lead)</h1>
+            <p style="color: #e0e7ff; font-size: 0.95rem; max-width: 800px; line-height: 1.6;">
+                Hoàn thành 100% tất cả các màn hình và chức năng được giao kết hợp cùng <strong>Toàn (Backend)</strong> qua các Sprint:
+                <strong>Sprint 1, Sprint 2, Sprint 3, Sprint 4</strong>.
+            </p>
+        </div>
+
+        <!-- Sprint 1 & 2 Section -->
+        <div class="sprint-section-title">
+            <span>Tuần 1 — Sprint 1 + Sprint 2</span>
+            <span class="badge badge-purple">20 SP</span>
+        </div>
+        <div class="portal-grid">
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #edf3ff; color: #2f5bff;">Sprint 1 • CRM-21 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Đăng nhập Email + Mật khẩu</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Giao diện đăng nhập hiện đại, validate HTML5, bảo mật mật khẩu, liên kết quên mật khẩu.
+                    </p>
+                </div>
+                <a href="../jsp/auth/login.jsp" class="btn btn-secondary" style="width: 100%;">
+                    Mở Trang Đăng nhập ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #f1f5f9; color: #334155;">Sprint 1 • CRM-26 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Menu theo quyền (Sidebar Navigation)</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Thanh điều hướng Sidebar C-CRM Enterprise, highlight Active mục đang chọn, hỗ trợ phân quyền hiển thị.
+                    </p>
+                </div>
+                <a href="../jsp/shared/sidebar.jsp" class="btn btn-secondary" style="width: 100%;">
+                    Kiểm tra Sidebar Component ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #ecfdf5; color: #065f46;">Sprint 2 • CRM-42 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Cơ cấu tổ chức kinh doanh</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Sơ đồ cây phân cấp (Hierarchy Tree), thêm phòng ban mới, chặn xóa phòng ban có nhân sự.
+                    </p>
+                </div>
+                <a href="../jsp/organization/organization.jsp" class="btn btn-primary" style="width: 100%;">
+                    Mở Cơ cấu tổ chức ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #fdf4ff; color: #86198f;">Sprint 2 • CRM-48 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Lý do thắng/thua + Đối thủ</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Danh mục Won/Lost lý do, bật/tắt áp dụng, quản lý hồ sơ điểm mạnh/điểm yếu của đối thủ cạnh tranh.
+                    </p>
+                </div>
+                <a href="../jsp/winloss/winloss.jsp" class="btn btn-primary" style="width: 100%;">
+                    Mở Win/Loss & Đối thủ ➔
+                </a>
+            </div>
+        </div>
+
+        <!-- Sprint 3 & 4 Section -->
+        <div class="sprint-section-title">
+            <span>Tuần 2 — Sprint 3 + Sprint 4</span>
+            <span class="badge badge-purple">23 SP</span>
+        </div>
+        <div class="portal-grid">
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #edf3ff; color: #2f5bff;">Sprint 3 • CRM-63 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Customer 360</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Hồ sơ khách hàng đa chiều, timeline tương tác thời gian thực, quick note log, tab Deals, Hợp đồng.
+                    </p>
+                </div>
+                <a href="../jsp/customer/customer-360.jsp" class="btn btn-primary" style="width: 100%;">
+                    Mở Customer 360 ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #fef2f2; color: #991b1b;">Sprint 3 • CRM-68 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Hỗ trợ sau bán + Cảnh báo rủi ro</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Banner cảnh báo Churn Risk, quản lý Ticket hỗ trợ sau bán, vi phạm cam kết SLA và modal tạo Ticket.
+                    </p>
+                </div>
+                <a href="../jsp/customer/after-sales-risk.jsp" class="btn btn-secondary" style="width: 100%;">
+                    Mở Sau bán & Rủi ro ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #fffbeb; color: #b45309;">Sprint 3 • CRM-69 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Danh sách khách hàng cần chăm sóc</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Bộ lọc N ngày chưa tương tác, lần liên hệ gần nhất, giá trị hợp đồng, đa tiêu chí sắp xếp, nút Đã liên hệ và Refresh.
+                    </p>
+                </div>
+                <a href="../jsp/customer/customer-care.jsp" class="btn btn-primary" style="width: 100%;">
+                    Mở DS Cần chăm sóc ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #ecfdf5; color: #065f46;">Sprint 4 • CRM-113 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Form website thu Lead</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Landing page thu Lead ngoài web, tự động bắt UTM campaign, regex validate SĐT VN, chống spam.
+                    </p>
+                </div>
+                <a href="lead-capture.html?utm_source=facebook&utm_campaign=summer_2026" target="_blank" class="btn btn-primary" style="width: 100%;">
+                    Mở Web-to-Lead Form ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #f5f3ff; color: #5b21b6;">Sprint 4 • CRM-117 (5 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Lead theo Campaign</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Thống kê KPI chuyển đổi, quản lý danh sách lead theo chiến dịch Marketing, modal gán Lead.
+                    </p>
+                </div>
+                <a href="../jsp/leads/lead-campaign.jsp" class="btn btn-secondary" style="width: 100%;">
+                    Mở Lead theo Campaign ➔
+                </a>
+            </div>
+
+            <div class="portal-card">
+                <div>
+                    <span class="portal-badge" style="background: #fffbeb; color: #92400e;">Sprint 4 • CRM-123 (3 SP)</span>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Bộ lọc Lead & Saved Filters</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                        Lọc đa tiêu chí theo Nguồn/Trạng thái/Điểm số, lưu bộ lọc tùy biến vào localStorage, click chip lọc nhanh.
+                    </p>
+                </div>
+                <a href="../jsp/leads/lead-list-filter.jsp" class="btn btn-secondary" style="width: 100%;">
+                    Mở Bộ lọc & Saved Filters ➔
+                </a>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
