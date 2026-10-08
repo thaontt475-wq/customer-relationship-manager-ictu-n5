@@ -751,7 +751,7 @@ function renderTimeline(cust, filter = currentTimelineFilter) {
                 <div class="c360-timeline-icon">${iconMap[item.type] || '📝'}</div>
                 <div class="c360-timeline-card">
                     <div class="c360-timeline-header">
-                        <span class="c360-timeline-title">${item.title} • <small style="color: var(--primary); font-weight: 700;">${item.author}</small></span>
+                        <span class="c360-timeline-title">${item.title}</span>
                         <span class="c360-timeline-time">${item.time}</span>
                     </div>
                     <div class="c360-timeline-body">${escapeHtml(item.body)}</div>

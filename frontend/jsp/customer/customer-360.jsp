@@ -69,7 +69,6 @@
                         <div class="c360-meta-tags">
                             <span class="c360-meta-item">🏢 Mã KH: <strong id="custCode">CUST-2026-089</strong></span>
                             <span class="c360-meta-item">🌐 Lĩnh vực: <strong id="custIndustry">Công nghệ & Game</strong></span>
-                            <span class="c360-meta-item">👤 Phụ trách: <strong>Hoàng Văn Thắng</strong></span>
                             <span class="c360-meta-item">📍 Quy mô: <strong id="custEmployees">4.500 Nhân sự</strong></span>
                         </div>
 
