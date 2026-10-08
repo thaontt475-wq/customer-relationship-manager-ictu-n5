@@ -1,145 +1,336 @@
+/* ==========================================================================
+   CUSTOMER 360 DASHBOARD STYLES (CRM-63)
+   Enterprise B2B Architecture · 2-Column Responsive · Dark/Light Mode Tokens
+   ========================================================================== */
+
+/* 1. HEADER & TOP OVERVIEW */
 .customer360-head {
     display: flex;
-
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-
     gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
 
-    margin-bottom: 24px;
+.head-left-box {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .back-link {
-    display: inline-block;
-
-    margin-bottom: 8px;
-
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
     color: var(--crm-muted);
-
     text-decoration: none;
-
-    font-size: 12px;
+    font-size: 12.5px;
+    font-weight: 500;
+    transition: color 150ms ease;
 }
 
-.customer360-head h1 {
+.back-link:hover {
+    color: var(--crm-primary);
+}
+
+.head-title-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.head-title-line h1 {
     margin: 0;
-
     font-size: 26px;
+    font-weight: 800;
+    color: var(--crm-text);
+    letter-spacing: -0.5px;
 }
 
+.lifecycle-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
 
+.badge-active {
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--crm-success);
+    border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.badge-prospect {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--crm-primary);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.badge-negotiating {
+    background: rgba(217, 119, 6, 0.12);
+    color: var(--crm-warning);
+    border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.badge-inactive {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--crm-muted);
+    border: 1px solid var(--crm-border);
+}
+
+.head-meta-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+    color: var(--crm-muted);
+    margin-top: 2px;
+    flex-wrap: wrap;
+}
+
+.head-meta-summary strong {
+    color: var(--crm-text);
+}
+
+/* QUICK ACTION BUTTONS */
 .quick-actions {
     display: flex;
-
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .quick-btn {
-    min-width: 86px;
-    min-height: 48px;
-
+    min-width: 84px;
+    min-height: 44px;
     display: flex;
     flex-direction: column;
-
     align-items: center;
     justify-content: center;
-
-    gap: 3px;
-
+    gap: 2px;
     border: 0;
-
-    border-radius: 9px;
-
+    border-radius: 10px;
     color: #fff;
+    cursor: pointer;
+    transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
 
-    font-size: 16px;
+.quick-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quick-btn:active {
+    transform: scale(0.97);
 }
 
 .quick-btn span {
-    font-size: 12px;
-
+    font-size: 11.5px;
     font-weight: 650;
 }
 
 .quick-btn.call {
-    background: var(--crm-success);
+    background: #16a34a;
 }
 
 .quick-btn.email {
-    background: var(--crm-warning);
+    background: #ea580c;
 }
 
 .quick-btn.note {
     background: #7c3aed;
 }
 
-
-.customer360-grid {
-    display: grid;
-
-    grid-template-columns:
-        minmax(190px,.72fr)
-        minmax(360px,1.65fr)
-        minmax(220px,.82fr);
-
-    gap: 16px;
-
-    align-items: start;
+.quick-btn.deal {
+    background: #2563eb;
 }
 
+/* ==========================================================================
+   2. KPI METRICS CARDS (FINANCIAL & PIPELINE)
+   ========================================================================== */
+.customer360-kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
 
-.company-panel,
-.timeline-panel,
-.compact-panel {
+.kpi-metric-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: var(--crm-radius-md);
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    box-shadow: var(--crm-shadow-sm);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.kpi-metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--crm-shadow);
+    border-color: var(--crm-border-strong);
+}
+
+.kpi-icon-wrap {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+}
+
+.icon-green {
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--crm-success);
+}
+
+.icon-blue {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--crm-primary);
+}
+
+.icon-purple {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+}
+
+.icon-amber {
+    background: rgba(217, 119, 6, 0.12);
+    color: var(--crm-warning);
+}
+
+.kpi-body {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
 }
 
-.company-panel {
-    padding: 16px;
+.kpi-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--crm-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kpi-value {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    line-height: 1.25;
+    margin: 3px 0 2px;
+}
+
+.text-green { color: var(--crm-success); }
+.text-blue { color: var(--crm-primary); }
+.text-purple { color: #7c3aed; }
+.text-amber { color: var(--crm-warning); }
+
+.kpi-subtext {
+    font-size: 11.5px;
+    color: var(--crm-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   3. 2-COLUMN ENTERPRISE DASHBOARD GRID
+   ========================================================================== */
+.customer360-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 380px) 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+
+.right-column {
+    min-width: 0;
+}
+
+.company-panel,
+.side-contacts-panel,
+.side-tickets-panel,
+.compact-panel {
+    padding: 16px 18px;
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow-sm);
+}
+
+.compact-panel {
+    padding: 0;
+    overflow: hidden;
 }
 
 .panel-header {
     display: flex;
-
     align-items: center;
     justify-content: space-between;
-
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .panel-header h2 {
     margin: 0;
-
     font-size: 14px;
+    font-weight: 700;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.panel-head-icon {
+    width: 17px;
+    height: 17px;
+    color: var(--crm-primary);
 }
 
 .edit-icon {
     width: 30px;
     height: 30px;
-
     border: 0;
-
     border-radius: 7px;
-
     background: transparent;
-
     color: var(--crm-primary);
-
-    font-size: 15px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background 150ms ease;
 }
 
 .edit-icon:hover {
     background: var(--crm-primary-soft);
 }
 
-
+/* COMPANY INFO LIST */
 .company-info {
     margin: 0;
 }
 
 .company-info > div {
-    padding: 11px 0;
-
+    padding: 9px 0;
     border-bottom: 1px solid var(--crm-border);
 }
 
@@ -149,394 +340,954 @@
 
 .company-info dt {
     color: var(--crm-muted);
-
-    font-size: 12px;
+    font-size: 11.5px;
+    font-weight: 500;
 }
 
 .company-info dd {
-    margin: 4px 0 0;
-
+    margin: 3px 0 0;
     color: var(--crm-text);
-
     font-size: 13px;
-
-    font-weight: 550;
+    font-weight: 600;
+    word-break: break-word;
 }
 
-
-.timeline-panel {
-    padding: 16px;
+/* ==========================================================================
+   4. CONTACTS LIST IN LEFT COLUMN (CRM-62 INTEGRATION)
+   ========================================================================== */
+.contacts-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.activity-composer {
-    padding: 12px;
-
-    margin-bottom: 16px;
-
+.contact-card-item {
+    padding: 11px 13px;
+    border-radius: 10px;
     border: 1px solid var(--crm-border);
+    background: var(--crm-surface-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 150ms ease, background-color 150ms ease;
+}
 
-    border-radius: 9px;
+.contact-card-item:hover {
+    border-color: var(--crm-border-strong);
+    background: var(--crm-surface);
+}
 
-    background: #fbfdff;
+.contact-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.contact-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+}
+
+.contact-badges-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.badge-primary-star {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+
+.buying-role-pill {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+
+.role-decision-maker {
+    background: rgba(124, 58, 237, 0.12);
+    color: #7c3aed;
+    border: 1px solid rgba(124, 58, 237, 0.25);
+}
+
+.role-influencer {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.role-end-user {
+    background: rgba(13, 148, 136, 0.12);
+    color: #0d9488;
+    border: 1px solid rgba(13, 148, 136, 0.25);
+}
+
+.role-blocker {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.contact-meta-row {
+    font-size: 12px;
+    color: var(--crm-muted);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contact-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 6px;
+    border-top: 1px dashed var(--crm-border);
+    margin-top: 2px;
+}
+
+.contact-quick-link {
+    font-size: 11.5px;
+    color: var(--crm-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.contact-quick-link:hover {
+    text-decoration: underline;
+}
+
+.btn-set-primary {
+    font-size: 11px;
+    padding: 2px 7px;
+    border: 1px solid var(--crm-border);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--crm-muted);
+    cursor: pointer;
+    transition: all 140ms ease;
+}
+
+.btn-set-primary:hover {
+    background: var(--crm-surface-soft);
+    color: var(--crm-text);
+}
+
+.btn-xs {
+    min-height: 28px;
+    font-size: 11.5px;
+    padding: 0 10px;
+}
+
+.btn-sm {
+    min-height: 32px;
+    font-size: 12.5px;
+    padding: 0 12px;
+}
+
+/* ==========================================================================
+   5. RIGHT COLUMN: TABS & PANEL HUBS
+   ========================================================================== */
+.right-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-bottom: 1px solid var(--crm-border);
+    background: var(--crm-surface-soft);
+}
+
+.right-tab {
+    min-height: 48px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--crm-muted);
+    font-size: 13px;
+    font-weight: 650;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    cursor: pointer;
+    transition: all 160ms ease;
+    padding: 0 12px;
+}
+
+.right-tab:hover {
+    color: var(--crm-text);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.right-tab.active {
+    color: var(--crm-primary);
+    background: var(--crm-surface);
+    border-bottom-color: var(--crm-primary);
+}
+
+.tab-count-pill {
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    background: var(--crm-border);
+    color: var(--crm-text);
+}
+
+.right-tab.active .tab-count-pill {
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary);
+}
+
+.right-content {
+    padding: 18px;
+}
+
+/* ==========================================================================
+   6. TAB 1: ACTIVITY TIMELINE & COMPOSER
+   ========================================================================== */
+.activity-composer {
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    border: 1px solid var(--crm-border);
+    border-radius: 10px;
+    background: var(--crm-surface-soft);
+}
+
+.composer-headline {
+    font-size: 12.5px;
+    color: var(--crm-text);
+    margin-bottom: 8px;
 }
 
 .activity-composer textarea {
     width: 100%;
     min-height: 75px;
-
-    padding: 10px;
-
+    padding: 10px 12px;
     resize: vertical;
-
     border: 1px solid var(--crm-border);
-
     border-radius: 8px;
-
     outline: none;
-
     font: inherit;
-
-    font-size: 12px;
+    font-size: 13px;
+    background: var(--crm-surface);
+    color: var(--crm-text);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .activity-composer textarea:focus {
     border-color: var(--crm-primary);
-
-    box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .composer-actions {
     display: flex;
-
     justify-content: flex-end;
-
-    gap: 8px;
-
-    margin-top: 8px;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .composer-actions select {
     width: 150px;
+    min-height: 36px;
+    font-size: 13px;
 }
 
+.timeline-toolbar-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
 
+.timeline-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface);
+    color: var(--crm-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 140ms ease;
+}
+
+.filter-btn:hover {
+    border-color: var(--crm-border-strong);
+    color: var(--crm-text);
+}
+
+.filter-btn.active {
+    background: var(--crm-primary);
+    color: #fff;
+    border-color: var(--crm-primary);
+}
+
+/* BENCHMARK REQUIREMENT (<1.5s FOR 500+ ITEMS) */
+.perf-benchmark-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.perf-badge {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--crm-primary);
+}
+
+.btn-simulate-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px dashed var(--crm-border-strong);
+    background: transparent;
+    color: var(--crm-muted);
+    cursor: pointer;
+    transition: all 140ms ease;
+}
+
+.btn-simulate-badge:hover {
+    background: var(--crm-surface-soft);
+    color: var(--crm-text);
+    border-style: solid;
+}
+
+/* TIMELINE LIST TREE */
 .timeline-list {
     position: relative;
-
     display: grid;
-
-    gap: 11px;
-
+    gap: 12px;
     padding-left: 24px;
 }
 
 .timeline-list::before {
     content: "";
-
     position: absolute;
-
     left: 8px;
-    top: 4px;
-    bottom: 4px;
-
-    width: 1px;
-
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
     background: var(--crm-border);
 }
 
 .timeline-empty {
     color: var(--crm-muted);
-
-    font-size: 12px;
+    font-size: 13px;
+    text-align: center;
+    padding: 32px 0;
 }
 
 .timeline-item {
     position: relative;
-
-    padding: 12px;
-
+    padding: 12px 14px;
     border: 1px solid var(--crm-border);
+    border-radius: 10px;
+    background: var(--crm-surface);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
 
-    border-radius: 9px;
-
-    background: #fff;
+.timeline-item:hover {
+    border-color: var(--crm-border-strong);
+    box-shadow: var(--crm-shadow-sm);
 }
 
 .timeline-item::before {
     content: "";
-
     position: absolute;
-
     left: -21px;
-    top: 16px;
-
-    width: 9px;
-    height: 9px;
-
+    top: 15px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
-
     background: var(--crm-primary);
-
     box-shadow: 0 0 0 4px var(--crm-primary-soft);
+}
+
+.timeline-item.item-call::before {
+    background: var(--crm-success);
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.15);
+}
+
+.timeline-item.item-email::before {
+    background: #ea580c;
+    box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.15);
+}
+
+.timeline-item.item-meeting::before {
+    background: #7c3aed;
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
 }
 
 .timeline-item-head {
     display: flex;
-
     align-items: center;
     justify-content: space-between;
-
     gap: 10px;
 }
 
 .timeline-type {
-    font-size: 12px;
-
+    font-size: 12.5px;
     font-weight: 700;
+    color: var(--crm-text);
 }
 
 .timeline-time {
     color: var(--crm-muted);
+    font-size: 11.5px;
+}
 
-    font-size: 12px;
+.timeline-author {
+    font-size: 11px;
+    color: var(--crm-muted);
+    margin-top: 2px;
 }
 
 .timeline-text {
-    margin-top: 7px;
-
+    margin-top: 6px;
     color: var(--crm-text-2);
-
-    font-size: 12px;
-
-    line-height: 1.45;
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-word;
 }
 
-
-.right-column {
-    min-width: 0;
+.timeline-load-more {
+    margin-top: 16px;
+    text-align: center;
 }
 
-.compact-panel {
-    overflow: hidden;
-}
-
-.right-tabs {
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
+/* ==========================================================================
+   7. TAB 2: DEALS (CƠ HỘI BÁN HÀNG)
+   ========================================================================== */
+.deals-tab-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--crm-border);
 }
 
-.right-tab {
-    min-height: 43px;
+.deals-summary-text strong {
+    font-size: 14px;
+    color: var(--crm-text);
+    display: block;
+}
 
-    border: 0;
-
-    background: #fff;
-
-    color: var(--crm-muted);
-
+.deals-summary-text span {
     font-size: 12px;
+}
 
+.deals-group-box {
+    border: 1px solid var(--crm-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: var(--crm-surface);
+    margin-bottom: 16px;
+}
+
+.deals-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.group-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.dot-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.dot-indicator.open {
+    background: var(--crm-primary);
+}
+
+.dot-indicator.closed {
+    background: var(--crm-success);
+}
+
+.group-amount {
+    font-size: 14px;
+    font-weight: 750;
+    color: var(--crm-text);
+}
+
+.deals-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.deal-item-row {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 140ms ease;
+}
+
+.deal-item-row:hover {
+    background: var(--crm-surface);
+    border-color: var(--crm-border-strong);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.deal-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.deal-item-name {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+}
+
+.deal-item-amount {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--crm-primary);
+}
+
+.deal-progress-bar-bg {
+    width: 100%;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--crm-border);
+    overflow: hidden;
+}
+
+.deal-progress-bar-fill {
+    height: 100%;
+    background: var(--crm-primary);
+    border-radius: 999px;
+}
+
+.deal-item-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--crm-muted);
+}
+
+.deal-stage-pill {
+    font-weight: 600;
+    color: var(--crm-text-2);
+}
+
+.deal-won-badge {
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--crm-success);
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+.deal-lost-badge {
+    background: rgba(220, 38, 38, 0.12);
+    color: var(--crm-danger);
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+/* ==========================================================================
+   8. TAB 3: ATTACHMENTS (TỆP ĐÍNH KÈM)
+   ========================================================================== */
+.attachments-tab-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--crm-border);
+}
+
+.attachments-summary-text strong {
+    font-size: 14px;
+    color: var(--crm-text);
+    display: block;
+}
+
+.attachments-summary-text span {
+    font-size: 12px;
+}
+
+.attachments-table-container {
+    overflow-x: auto;
+    border: 1px solid var(--crm-border);
+    border-radius: 10px;
+}
+
+.attachments-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.attachments-table th {
+    background: var(--crm-surface-soft);
+    padding: 11px 14px;
+    font-size: 12px;
+    font-weight: 650;
+    color: var(--crm-muted);
+    border-bottom: 1px solid var(--crm-border);
+}
+
+.attachments-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--crm-border);
+    color: var(--crm-text);
+}
+
+.attachments-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.attachments-table tr:hover td {
+    background: var(--crm-surface-soft);
+}
+
+.file-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 600;
 }
 
-.right-tab.active {
-    color: var(--crm-primary-dark);
-
-    border-bottom: 2px solid var(--crm-primary);
+.file-icon {
+    font-size: 16px;
 }
 
-.right-content {
-    padding: 14px;
+.file-action-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--crm-border);
+    background: transparent;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--crm-primary);
+    transition: all 140ms ease;
+}
+
+.file-action-btn:hover {
+    background: var(--crm-primary-soft);
+}
+
+.file-delete-btn {
+    color: var(--crm-danger);
+    margin-left: 6px;
+}
+
+.file-delete-btn:hover {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+/* ==========================================================================
+   9. MODALS & FORMS
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+.modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.company-modal {
+    position: fixed;
+    z-index: 3100;
+    top: 50%;
+    left: 50%;
+    width: min(480px, calc(100% - 32px));
+    transform: translate(-50%, calc(-50% + 8px)) scale(0.97);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 180ms ease, transform 180ms var(--crm-ease), visibility 0s linear 180ms;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    border-radius: var(--crm-radius-md);
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+.company-modal.open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.modal-head {
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--crm-border);
+}
+
+.modal-head strong {
+    font-size: 15px;
+    color: var(--crm-text);
+}
+
+.modal-head button {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    color: var(--crm-muted);
+}
+
+.modal-head button:hover {
+    background: var(--crm-surface-soft);
+    color: var(--crm-text);
+}
+
+.company-modal form {
+    padding: 18px;
+}
+
+.company-modal form > label,
+.company-modal .form-row-2 > label {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--crm-text-2);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.company-modal form input,
+.company-modal form select {
+    margin-top: 5px;
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.drop-zone-box {
+    margin: 10px 0 14px;
+    border: 2px dashed var(--crm-border-strong);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    color: var(--crm-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: var(--crm-surface-soft);
+    cursor: pointer;
+    transition: border-color 150ms ease;
+}
+
+.drop-zone-box:hover {
+    border-color: var(--crm-primary);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--crm-border);
 }
 
 .empty-small {
-    min-height: 150px;
-
+    min-height: 120px;
     display: flex;
-
     align-items: center;
     justify-content: center;
-
     color: var(--crm-muted);
-
     text-align: center;
-
-    font-size: 12px;
+    font-size: 12.5px;
+    padding: 16px;
 }
 
 .full-button {
     width: 100%;
 }
 
-
-/* modal */
-
-.modal-overlay {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 3000;
-
-    background: rgba(15,23,42,.35);
-
-    opacity: 0;
-
-    visibility: hidden;
-
-    transition: opacity 180ms ease, visibility 0s linear 180ms;
+/* ==========================================================================
+   10. DARK MODE SUPPORT (data-theme="dark")
+   ========================================================================== */
+html[data-theme="dark"] .kpi-metric-card,
+[data-theme="dark"] .kpi-metric-card {
+    background: #111827;
+    border-color: #1f2937;
 }
 
-.modal-overlay.open {
-    opacity: 1;
-
-    visibility: visible;
-
-    transition-delay: 0s;
+html[data-theme="dark"] .company-panel,
+html[data-theme="dark"] .side-contacts-panel,
+html[data-theme="dark"] .side-tickets-panel,
+html[data-theme="dark"] .compact-panel,
+html[data-theme="dark"] .company-modal {
+    background: #111827;
+    border-color: #1f2937;
 }
 
-
-.company-modal {
-    position: fixed;
-
-    z-index: 3100;
-
-    top: 50%;
-    left: 50%;
-
-    width: min(430px,calc(100% - 32px));
-
-    transform: translate(-50%, calc(-50% + 6px)) scale(.97);
-
-    opacity: 0;
-
-    visibility: hidden;
-
-    transition: opacity 180ms ease, transform 180ms var(--crm-ease), visibility 0s linear 180ms;
-    max-height: calc(100dvh - 32px);
-    overflow-y: auto;
-
-    border-radius: var(--crm-radius-md);
+html[data-theme="dark"] .activity-composer,
+html[data-theme="dark"] .contact-card-item,
+html[data-theme="dark"] .deal-item-row,
+html[data-theme="dark"] .deals-group-box,
+html[data-theme="dark"] .right-tabs {
+    background: #1e293b;
+    border-color: #334155;
 }
 
-.company-modal.open {
-    transform: translate(-50%, -50%) scale(1);
-
-    opacity: 1;
-
-    visibility: visible;
-
-    transition-delay: 0s;
+html[data-theme="dark"] .right-tab.active {
+    background: #111827;
 }
 
-.modal-head {
-    min-height: 58px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 16px;
-
-    border-bottom: 1px solid var(--crm-border);
+html[data-theme="dark"] .timeline-item {
+    background: #111827;
+    border-color: #1f2937;
 }
 
-.modal-head button {
-    width: 34px;
-    height: 34px;
-
-    border: 0;
-
-    background: transparent;
-
-    font-size: 22px;
+html[data-theme="dark"] .activity-composer textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
 }
 
-.company-modal form {
-    padding: 16px;
+html[data-theme="dark"] .drop-zone-box {
+    background: #0f172a;
+    border-color: #334155;
 }
 
-.company-modal form > label {
-    display: block;
-
-    margin-bottom: 12px;
-
-    color: var(--crm-text-2);
-
-    font-size: 12px;
-
-    font-weight: 600;
+html[data-theme="dark"] .attachments-table th {
+    background: #1e293b;
 }
 
-.company-modal form input {
-    margin-top: 6px;
+html[data-theme="dark"] .filter-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
 }
 
-.modal-footer {
-    display: flex;
-
-    justify-content: flex-end;
-
-    gap: 8px;
-
-    margin-top: 18px;
+html[data-theme="dark"] .filter-btn.active {
+    background: var(--crm-primary);
+    color: #fff;
 }
 
+html[data-theme="dark"] .badge-primary-star {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde047;
+    border-color: rgba(245, 158, 11, 0.4);
+}
 
-@media (max-width:1250px) {
-
+/* ==========================================================================
+   11. RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 1024px) {
     .customer360-grid {
-        grid-template-columns:
-            220px minmax(0,1fr);
+        grid-template-columns: 1fr;
+    }
+
+    .left-column {
+        order: 2;
     }
 
     .right-column {
-        grid-column:
-            1 / -1;
+        order: 1;
     }
 }
 
-
-@media (max-width:768px) {
-
+@media (max-width: 768px) {
     .customer360-head {
-        align-items: stretch;
-
         flex-direction: column;
+        align-items: stretch;
     }
 
     .quick-actions {
-        position: sticky;
-
-        top: 65px;
-
-        z-index: 20;
-
-        padding: 8px;
-
-        margin-left: -4px;
-        margin-right: -4px;
-
-        border-radius: 10px;
-
-        background: rgba(247,249,252,.96);
+        width: 100%;
     }
 
     .quick-btn {
         flex: 1;
     }
 
-    .customer360-grid {
+    .customer360-kpis-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .right-tabs {
         grid-template-columns: 1fr;
     }
 
-    .company-panel,
-    .timeline-panel,
-    .right-column {
-        grid-column: auto;
+    .right-tab {
+        min-height: 40px;
+    }
+
+    .form-row-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .customer360-kpis-grid {
+        grid-template-columns: 1fr;
     }
 }

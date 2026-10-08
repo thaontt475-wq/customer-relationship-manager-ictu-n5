@@ -233,27 +233,36 @@
             const parser = new DOMParser();
             const newDoc = parser.parseFromString(html, "text/html");
 
-            // Tìm script chức năng tương ứng
-            const pageScriptTag = Array.from(newDoc.querySelectorAll("script[src]")).find(s => {
-                const src = s.getAttribute("src") || "";
-                return src.includes("pages/");
+            // Tìm toàn bộ script chức năng của trang mục tiêu (loại trừ các script shell dùng chung đã nạp)
+            const sharedShellScripts = [
+                "page-transition.js",
+                "theme.js",
+                "shared-shell.js",
+                "ui-core.js",
+                "ui-effects.js"
+            ];
+
+            const pageScriptTags = Array.from(newDoc.querySelectorAll("script[src]")).filter(s => {
+                const src = (s.getAttribute("src") || "").trim();
+                return src && !sharedShellScripts.some(name => src.endsWith(name));
             });
 
-            let scriptCodePromise = Promise.resolve(null);
-            if (pageScriptTag) {
-                const scriptUrl = new URL(pageScriptTag.getAttribute("src"), targetUrl).href;
-                scriptCodePromise = fetch(scriptUrl, { cache: "no-cache" })
-                    .then(r => r.ok ? r.text() : null)
-                    .catch(err => {
-                        console.warn("Không thể tải script:", scriptUrl, err);
-                        return null;
-                    });
-            }
+            const scriptCodesPromise = Promise.all(
+                pageScriptTags.map(tag => {
+                    const scriptUrl = new URL(tag.getAttribute("src"), targetUrl).href;
+                    return fetch(scriptUrl, { cache: "no-cache" })
+                        .then(r => r.ok ? r.text() : null)
+                        .catch(err => {
+                            console.warn("Không thể tải script:", scriptUrl, err);
+                            return null;
+                        });
+                })
+            );
 
-            // Tải trước CSS và Script ĐỒNG THỜI trước khi đụng vào DOM
-            const [commitStyles, scriptCode] = await Promise.all([
+            // Tải trước CSS và toàn bộ Scripts ĐỒNG THỜI trước khi hoán đổi DOM
+            const [commitStyles, scriptCodes] = await Promise.all([
                 preparePageStyles(newDoc),
-                scriptCodePromise
+                scriptCodesPromise
             ]);
 
             // Mờ nhẹ vùng làm việc hiện tại
@@ -291,9 +300,9 @@
             // G. CUỘN LÊN ĐẦU
             window.scrollTo(0, 0);
 
-            // H. THỰC THI SCRIPT CHỨC NĂNG VỚI HỆ THỐNG GHI NHẬN CLEANUP
-            if (scriptCode) {
-                executePageScriptCode(scriptCode);
+            // H. THỰC THI TOÀN BỘ SCRIPT CHỨC NĂNG THEO THỨ TỰ VỚI HỆ THỐNG GHI NHẬN CLEANUP
+            if (Array.isArray(scriptCodes)) {
+                executePageScripts(scriptCodes);
             }
 
             // I. ĐỒNG BỘ AVATAR & MOBILE DRAWER NẾU CÓ
@@ -464,10 +473,10 @@
 
 
     /* =========================================================
-       9. THỰC THI SCRIPT CHỨC NĂNG VÀ THEO DÕI SỰ KIỆN
+       9. THỰC THI CÁC SCRIPT CHỨC NĂNG VÀ THEO DÕI SỰ KIỆN
     ========================================================= */
-    function executePageScriptCode(code) {
-        if (!code) return;
+    function executePageScripts(codes) {
+        if (!Array.isArray(codes) || codes.length === 0) return;
 
         const originalDocAdd = document.addEventListener;
         const originalDocRemove = document.removeEventListener;
@@ -510,16 +519,25 @@
         };
 
         try {
-            const runner = new Function(code);
-            runner();
-        } catch (err) {
-            console.error("Lỗi khi khởi chạy script chức năng:", err);
+            for (const code of codes) {
+                if (!code) continue;
+                try {
+                    const runner = new Function(code);
+                    runner.call(window);
+                } catch (err) {
+                    console.error("Lỗi khi khởi chạy script chức năng:", err);
+                }
+            }
         } finally {
             // Khôi phục lại native listeners
             document.addEventListener = originalDocAdd;
             window.addEventListener = originalWinAdd;
             window.setInterval = originalSetInterval;
         }
+    }
+
+    function executePageScriptCode(code) {
+        executePageScripts([code]);
     }
 
 
