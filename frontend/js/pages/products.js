@@ -8,6 +8,12 @@ let products = [];
 let searchTimer = null;
 
 
+function normalizeProductType(val) {
+    if (!val) return "one-time";
+    const s = String(val).toLowerCase().replace(/_/g, "-");
+    return s.includes("sub") ? "subscription" : "one-time";
+}
+
 /* =========================================================
    DOM
 ========================================================= */
@@ -336,6 +342,38 @@ function bindEvents() {
         );
 
 
+    document
+        .getElementById(
+            "productCode"
+        )
+        ?.addEventListener(
+            "input",
+            event => {
+                const enteredCode = event.target.value.trim().toUpperCase();
+                const curEdit = value("editingProduct");
+                if (!curEdit && enteredCode) {
+                    const matched = products.find(
+                        p => String(p.code || "").trim().toUpperCase() === enteredCode
+                    );
+                    if (matched) {
+                        setValue("editingProduct", matched.id);
+                        setValue("productName", matched.name);
+                        setValue("productType", normalizeProductType(matched.type));
+                        setValue("productUnit", matched.unit || "");
+                        setValue("listPrice", matched.listPrice ?? 0);
+                        setValue("floorPrice", matched.floorPrice ?? 0);
+                        setValue("costPrice", matched.costPrice ?? 0);
+                        setValue("productStatus", matched.active ? "active" : "inactive");
+
+                        const titleEl = document.getElementById("productDrawerTitle");
+                        const submitBtn = document.querySelector("#productForm button[type='submit']");
+                        if (titleEl) titleEl.textContent = "Sửa sản phẩm: " + matched.code;
+                        if (submitBtn) submitBtn.textContent = "Cập nhật";
+                    }
+                }
+            }
+        );
+
     document.addEventListener(
         "click",
         async event => {
@@ -345,38 +383,38 @@ function bindEvents() {
                     "[data-edit-product]"
                 );
 
-
             if (edit) {
-
                 openDrawer(
                     Number(
                         edit.dataset
                             .editProduct
                     )
                 );
-
                 return;
             }
-
 
             const discontinue =
                 event.target.closest(
                     "[data-discontinue-product]"
                 );
 
-
             if (discontinue) {
-
                 const id =
                     Number(
                         discontinue.dataset
                             .discontinueProduct
                     );
-
-
                 await discontinueProduct(
                     id
                 );
+                return;
+            }
+
+            // Clicking anywhere on a table row opens the edit drawer
+            const tr = event.target.closest("tr[data-product-id]");
+            if (tr && !event.target.closest("button") && !event.target.closest("a")) {
+                openDrawer(Number(tr.dataset.productId));
+                return;
             }
         }
     );
@@ -475,71 +513,47 @@ async function saveProductForm() {
         );
 
 
+    const rawType = value("productType");
+
     const payload = {
-
         code,
-
         name,
-
-        type:
-            value(
-                "productType"
-            ) || null,
-
-        unit:
-            value(
-                "productUnit"
-            ) || null,
-
+        type: rawType === "subscription" ? "SUBSCRIPTION" : "ONE_TIME",
+        unit: value("productUnit") || null,
         listPrice,
-
         floorPrice,
-
         costPrice,
-
-        active:
-            status !==
-            "inactive" &&
-            status !==
-            "discontinued"
+        active: status !== "inactive" && status !== "discontinued"
     };
 
+    let editing = value("editingProduct");
 
-    const editing =
-        value(
-            "editingProduct"
+    // If editing is not set, but the entered code matches an existing product:
+    if (!editing && code) {
+        const existing = products.find(
+            p => String(p.code || "").trim().toUpperCase() === code.trim().toUpperCase()
         );
-
+        if (existing) {
+            editing = String(existing.id);
+            setValue("editingProduct", existing.id);
+        }
+    }
 
     try {
-
         if (editing) {
-
             await api(
                 `/api/products/${editing}`,
                 {
-                    method:
-                        "PUT",
-
-                    body:
-                        JSON.stringify(
-                            payload
-                        )
+                    method: "PUT",
+                    body: JSON.stringify(payload)
                 }
             );
-
         } else {
-
             await api(
                 "/api/products",
                 {
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify(
-                            payload
-                        )
+                    method: "POST",
+                    body: JSON.stringify(payload)
                 }
             );
         }
@@ -637,100 +651,37 @@ async function discontinueProduct(
 function openDrawer(
     id = null
 ) {
+    document.getElementById("productForm")?.reset();
+    setValue("editingProduct", "");
 
-    document
-        .getElementById(
-            "productForm"
-        )
-        ?.reset();
+    const titleEl = document.getElementById("productDrawerTitle");
+    const submitBtn = document.querySelector("#productForm button[type='submit']");
 
-
-    setValue(
-        "editingProduct",
-        ""
-    );
-
-
-    if (
-        document.getElementById(
-            "productError"
-        )
-    ) {
-
-        document.getElementById(
-            "productError"
-        ).textContent =
-            "";
+    if (document.getElementById("productError")) {
+        document.getElementById("productError").textContent = "";
     }
 
-
     if (id !== null) {
-
-        const product =
-            products.find(
-                item =>
-                    Number(item.id)
-                    ===
-                    Number(id)
-            );
-
-
+        const product = products.find(item => Number(item.id) === Number(id));
         if (product) {
+            setValue("editingProduct", product.id);
+            setValue("productCode", product.code);
+            setValue("productName", product.name);
+            setValue("productType", normalizeProductType(product.type));
+            setValue("productUnit", product.unit || "");
+            setValue("listPrice", product.listPrice ?? 0);
+            setValue("floorPrice", product.floorPrice ?? 0);
+            setValue("costPrice", product.costPrice ?? 0);
+            setValue("productStatus", product.active ? "active" : "inactive");
 
-            setValue(
-                "editingProduct",
-                product.id
-            );
-
-            setValue(
-                "productCode",
-                product.code
-            );
-
-            setValue(
-                "productName",
-                product.name
-            );
-
-            setValue(
-                "productType",
-                product.type || ""
-            );
-
-            setValue(
-                "productUnit",
-                product.unit || ""
-            );
-
-            setValue(
-                "listPrice",
-                product.listPrice ?? 0
-            );
-
-            setValue(
-                "floorPrice",
-                product.floorPrice ?? 0
-            );
-
-            setValue(
-                "costPrice",
-                product.costPrice ?? 0
-            );
-
-            setValue(
-                "productStatus",
-                product.active
-                    ? "active"
-                    : "inactive"
-            );
+            if (titleEl) titleEl.textContent = "Sửa sản phẩm: " + product.code;
+            if (submitBtn) submitBtn.textContent = "Cập nhật";
         }
-
     } else {
-
-        setValue(
-            "productStatus",
-            "active"
-        );
+        if (titleEl) titleEl.textContent = "Thêm sản phẩm";
+        if (submitBtn) submitBtn.textContent = "Lưu";
+        setValue("productStatus", "active");
+        setValue("productType", "one-time");
     }
 
 
@@ -800,68 +751,43 @@ function render() {
 
                 if (
                     type &&
-                    product.type !==
+                    normalizeProductType(product.type) !==
                     type
                 ) {
-
                     return false;
                 }
-
 
                 return true;
             }
         );
 
-
-    body.innerHTML =
-        "";
-
+    body.innerHTML = "";
 
     if (empty) {
-
         empty.style.display =
             filtered.length
                 ? "none"
                 : "flex";
     }
 
+    for (const product of filtered) {
+        const tr = document.createElement("tr");
+        tr.className = "product-row-clickable";
+        tr.dataset.productId = product.id;
+        tr.title = "Bấm để sửa sản phẩm: " + product.code;
 
-    for (
-        const product
-        of filtered
-    ) {
-
-        const tr =
-            document.createElement(
-                "tr"
-            );
-
-
-        const status =
-            product.active
-                ? "active"
-                : "inactive";
-
+        const status = product.active ? "active" : "inactive";
+        const isSub = normalizeProductType(product.type) === "subscription";
 
         tr.innerHTML = `
-
             <td class="product-code">
                 ${escapeHtml(product.code)}
             </td>
-
             <td>
                 ${escapeHtml(product.name)}
             </td>
-
             <td>
-                ${
-                    product.type ===
-                    "subscription"
-
-                    ? "Dịch vụ thuê bao"
-
-                    : "Sản phẩm một lần"
-                }
+                ${isSub ? "Dịch vụ thuê bao" : "Sản phẩm một lần"}
             </td>
 
             <td>

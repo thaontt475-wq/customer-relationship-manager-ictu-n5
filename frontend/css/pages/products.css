@@ -94,6 +94,38 @@
     font-size: 12px;
 }
 
+.product-row-clickable {
+    cursor: pointer;
+    transition: background-color 150ms ease;
+}
+
+.product-row-clickable:hover td {
+    background-color: #f1f5f9;
+}
+
+.products-table-card th:last-child {
+    position: sticky;
+    right: 0;
+    background: #f8fafc;
+    z-index: 2;
+    text-align: right;
+    box-shadow: -3px 0 6px rgba(15, 23, 42, 0.04);
+}
+
+.products-table-card td:last-child {
+    position: sticky;
+    right: 0;
+    background: #ffffff;
+    z-index: 1;
+    text-align: right;
+    box-shadow: -3px 0 6px rgba(15, 23, 42, 0.04);
+    white-space: nowrap;
+}
+
+.product-row-clickable:hover td:last-child {
+    background-color: #f1f5f9;
+}
+
 
 .product-code {
     color:

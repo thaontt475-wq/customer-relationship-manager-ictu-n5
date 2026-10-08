@@ -8,7 +8,7 @@ public class SessionDAO {
     public Map<String, Object> findAccount(long id) throws SQLException {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement statement = connection.prepareStatement("""
-                 SELECT u.id, u.email, u.full_name, u.status, u.session_version,
+                 SELECT u.id, u.email, u.full_name, u.avatar_url, u.avatar_thumbnail_url, u.status, u.session_version,
                         u.data_scope, u.team_id, t.name AS team_name
                  FROM users u LEFT JOIN teams t ON t.id = u.team_id WHERE u.id = ?
                  """)) {
@@ -20,6 +20,8 @@ public class SessionDAO {
                 account.put("userId", rs.getLong("id"));
                 account.put("email", rs.getString("email"));
                 account.put("fullName", rs.getString("full_name"));
+                account.put("avatarUrl", rs.getString("avatar_url"));
+                account.put("avatarThumbnailUrl", rs.getString("avatar_thumbnail_url"));
                 account.put("status", rs.getString("status"));
                 account.put("sessionVersion", rs.getLong("session_version"));
                 account.put("dataScope", rs.getString("data_scope"));
