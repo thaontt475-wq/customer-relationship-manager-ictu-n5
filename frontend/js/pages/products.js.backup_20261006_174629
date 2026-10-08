@@ -1,0 +1,677 @@
+"use strict";
+
+let products =
+    loadProducts();
+
+
+const body =
+    document.getElementById(
+        "productBody"
+    );
+
+const empty =
+    document.getElementById(
+        "productEmpty"
+    );
+
+const drawer =
+    document.getElementById(
+        "productDrawer"
+    );
+
+const overlay =
+    document.getElementById(
+        "productOverlay"
+    );
+
+
+document
+    .getElementById(
+        "addProduct"
+    )
+    .addEventListener(
+        "click",
+        () => openDrawer()
+    );
+
+
+document
+    .getElementById(
+        "closeProductDrawer"
+    )
+    .addEventListener(
+        "click",
+        closeDrawer
+    );
+
+
+document
+    .getElementById(
+        "cancelProduct"
+    )
+    .addEventListener(
+        "click",
+        closeDrawer
+    );
+
+
+overlay.addEventListener(
+    "click",
+    closeDrawer
+);
+
+
+[
+    "productSearch",
+    "productTypeFilter",
+    "productStatusFilter"
+]
+.forEach(
+    id => {
+
+        document
+            .getElementById(id)
+            .addEventListener(
+                id === "productSearch"
+                    ?
+                    "input"
+                    :
+                    "change",
+                render
+            );
+    }
+);
+
+
+document
+    .getElementById(
+        "productForm"
+    )
+    .addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+            saveProductForm();
+
+        }
+    );
+
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const edit =
+            event.target.closest(
+                "[data-edit-product]"
+            );
+
+
+        if (edit) {
+
+            openDrawer(
+                Number(
+                    edit.dataset.editProduct
+                )
+            );
+        }
+
+    }
+);
+
+
+function saveProductForm() {
+
+    const code =
+        value(
+            "productCode"
+        );
+
+    const name =
+        value(
+            "productName"
+        );
+
+    const error =
+        document.getElementById(
+            "productError"
+        );
+
+
+    error.textContent = "";
+
+
+    if (
+        !code
+        ||
+        !name
+    ) {
+
+        error.textContent =
+            "Mã sản phẩm và tên sản phẩm là bắt buộc.";
+
+        return;
+    }
+
+
+    const editValue =
+        document
+            .getElementById(
+                "editingProduct"
+            )
+            .value;
+
+
+    const editIndex =
+        editValue === ""
+            ?
+            null
+            :
+            Number(editValue);
+
+
+    const duplicate =
+        products.findIndex(
+            (
+                product,
+                index
+            ) =>
+                product.code
+                    .toLowerCase()
+                ===
+                code.toLowerCase()
+                &&
+                index !== editIndex
+        );
+
+
+    if (
+        duplicate >= 0
+    ) {
+
+        error.textContent =
+            "Mã sản phẩm đã tồn tại.";
+
+        return;
+    }
+
+
+    const listPrice =
+        numberValue(
+            "listPrice"
+        );
+
+    const floorPrice =
+        numberValue(
+            "floorPrice"
+        );
+
+
+    if (
+        floorPrice
+        >
+        listPrice
+        &&
+        listPrice > 0
+    ) {
+
+        error.textContent =
+            "Giá sàn không nên lớn hơn giá niêm yết.";
+
+        return;
+    }
+
+
+    const product = {
+        code,
+        name,
+
+        unit:
+            value(
+                "productUnit"
+            ),
+
+        type:
+            value(
+                "productType"
+            ),
+
+        listPrice,
+
+        floorPrice,
+
+        costPrice:
+            numberValue(
+                "costPrice"
+            ),
+
+        status:
+            value(
+                "productStatus"
+            )
+    };
+
+
+    if (
+        editIndex === null
+    ) {
+
+        products.push(
+            product
+        );
+
+    } else {
+
+        products[
+            editIndex
+        ] = product;
+    }
+
+
+    saveProducts();
+
+    closeDrawer();
+
+    render();
+
+}
+
+
+function render() {
+
+    const query =
+        value(
+            "productSearch"
+        )
+        .toLowerCase();
+
+
+    const type =
+        value(
+            "productTypeFilter"
+        );
+
+
+    const status =
+        value(
+            "productStatusFilter"
+        );
+
+
+    const filtered =
+        products
+            .map(
+                (
+                    product,
+                    index
+                ) => ({
+                    product,
+                    index
+                })
+            )
+            .filter(
+                entry => {
+
+                    const text =
+                        (
+                            entry.product.code
+                            +
+                            " "
+                            +
+                            entry.product.name
+                        )
+                        .toLowerCase();
+
+
+                    return (
+                        (
+                            !query
+                            ||
+                            text.includes(
+                                query
+                            )
+                        )
+                        &&
+                        (
+                            !type
+                            ||
+                            entry.product.type
+                                === type
+                        )
+                        &&
+                        (
+                            !status
+                            ||
+                            entry.product.status
+                                === status
+                        )
+                    );
+
+                }
+            );
+
+
+    body.innerHTML = "";
+
+
+    empty.style.display =
+        filtered.length
+            ?
+            "none"
+            :
+            "flex";
+
+
+    for (
+        const entry
+        of filtered
+    ) {
+
+        const product =
+            entry.product;
+
+
+        const tr =
+            document.createElement(
+                "tr"
+            );
+
+
+        tr.innerHTML = `
+            <td class="product-code">
+                ${escapeHtml(product.code)}
+            </td>
+
+            <td>
+                ${escapeHtml(product.name)}
+            </td>
+
+            <td>
+                ${
+                    product.type === "subscription"
+                    ?
+                    "Dịch vụ thuê bao"
+                    :
+                    "Sản phẩm một lần"
+                }
+            </td>
+
+            <td>
+                ${escapeHtml(product.unit || "—")}
+            </td>
+
+            <td>
+                ${money(product.listPrice)}
+            </td>
+
+            <td>
+                ${money(product.floorPrice)}
+            </td>
+
+            <td>
+                ${money(product.costPrice)}
+            </td>
+
+            <td>
+
+                <span class="product-status ${product.status}">
+
+                    ${
+                        product.status === "active"
+                        ?
+                        "Đang kinh doanh"
+                        :
+                        "Ngừng kinh doanh"
+                    }
+
+                </span>
+
+            </td>
+
+            <td>
+
+                <button
+                    type="button"
+                    class="product-action"
+                    data-edit-product="${entry.index}"
+                >
+                    Sửa
+                </button>
+
+            </td>
+        `;
+
+
+        body.appendChild(
+            tr
+        );
+    }
+
+}
+
+
+function openDrawer(
+    index = null
+) {
+
+    document
+        .getElementById(
+            "productForm"
+        )
+        .reset();
+
+
+    document
+        .getElementById(
+            "editingProduct"
+        )
+        .value = "";
+
+
+    document
+        .getElementById(
+            "productError"
+        )
+        .textContent = "";
+
+
+    document
+        .getElementById(
+            "productDrawerTitle"
+        )
+        .textContent =
+            "Thêm sản phẩm";
+
+
+    if (
+        index !== null
+        &&
+        products[index]
+    ) {
+
+        const product =
+            products[index];
+
+
+        document
+            .getElementById(
+                "editingProduct"
+            )
+            .value =
+                String(index);
+
+
+        document
+            .getElementById(
+                "productDrawerTitle"
+            )
+            .textContent =
+                "Sửa sản phẩm";
+
+
+        setValue(
+            "productCode",
+            product.code
+        );
+
+        setValue(
+            "productName",
+            product.name
+        );
+
+        setValue(
+            "productUnit",
+            product.unit
+        );
+
+        setValue(
+            "productType",
+            product.type
+        );
+
+        setValue(
+            "listPrice",
+            product.listPrice
+        );
+
+        setValue(
+            "floorPrice",
+            product.floorPrice
+        );
+
+        setValue(
+            "costPrice",
+            product.costPrice
+        );
+
+        setValue(
+            "productStatus",
+            product.status
+        );
+
+    }
+
+
+    drawer.classList.add(
+        "open"
+    );
+
+    overlay.classList.add(
+        "open"
+    );
+
+}
+
+
+function closeDrawer() {
+
+    drawer.classList.remove(
+        "open"
+    );
+
+    overlay.classList.remove(
+        "open"
+    );
+
+}
+
+
+function loadProducts() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "crm_ui_products"
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+    }
+
+}
+
+
+function saveProducts() {
+
+    localStorage.setItem(
+        "crm_ui_products",
+        JSON.stringify(
+            products
+        )
+    );
+
+}
+
+
+function value(id) {
+
+    return document
+        .getElementById(id)
+        .value
+        .trim();
+
+}
+
+
+function numberValue(id) {
+
+    return Math.max(
+        0,
+        Number(
+            document
+                .getElementById(id)
+                .value
+        ) || 0
+    );
+
+}
+
+
+function setValue(
+    id,
+    value
+) {
+
+    document
+        .getElementById(id)
+        .value =
+            value ?? "";
+
+}
+
+
+function money(value) {
+
+    return new Intl.NumberFormat(
+        "vi-VN",
+        {
+            style: "currency",
+            currency: "VND",
+            maximumFractionDigits: 0
+        }
+    )
+    .format(
+        Number(value) || 0
+    );
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+render();

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Danh mục dùng chung</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/master-data.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Cấu hình
+        </div>
+
+        <a href="organization.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/></svg></span>
+            <span class="crm-nav-label">Cơ cấu tổ chức</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+
+        <a href="custom-fields.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg></span>
+            <span class="crm-nav-label">Trường tùy chỉnh</span>
+        </a>
+
+        <a href="win-loss-settings.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></span>
+            <span class="crm-nav-label">Win / Loss</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+</header>
+
+
+<main class="crm-main master-page">
+
+    <section class="master-head">
+
+        <div>
+
+            <p>
+                Cấu hình / Danh mục
+            </p>
+
+            <h1>
+                Danh mục dùng chung
+            </h1>
+
+            <span>
+                Quản lý các lựa chọn dùng lại trong toàn bộ CRM.
+            </span>
+
+        </div>
+
+
+        <button
+            id="addMasterItem"
+            class="crm-btn crm-btn-primary"
+            type="button"
+        >
+            + Thêm giá trị
+        </button>
+
+    </section>
+
+
+    <section class="master-layout">
+
+        <aside class="crm-card master-categories">
+
+            <button
+                class="category-button active"
+                data-category="industry"
+                type="button"
+            >
+                Ngành nghề
+            </button>
+
+            <button
+                class="category-button"
+                data-category="lead-source"
+                type="button"
+            >
+                Nguồn Lead
+            </button>
+
+            <button
+                class="category-button"
+                data-category="activity-type"
+                type="button"
+            >
+                Loại hoạt động
+            </button>
+
+            <button
+                class="category-button"
+                data-category="company-size"
+                type="button"
+            >
+                Quy mô doanh nghiệp
+            </button>
+
+        </aside>
+
+
+        <section class="crm-card master-values">
+
+            <header>
+
+                <div>
+                    <h2 id="categoryTitle">
+                        Ngành nghề
+                    </h2>
+
+                    <p>
+                        Có thể thêm, sửa, ngừng sử dụng hoặc thay đổi thứ tự.
+                    </p>
+                </div>
+
+            </header>
+
+
+            <div
+                id="masterList"
+                class="master-list"
+            ></div>
+
+
+            <div
+                id="masterEmpty"
+                class="master-empty"
+            >
+                Chưa có giá trị trong danh mục này.
+            </div>
+
+        </section>
+
+    </section>
+
+</main>
+
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+
+<!-- MASTER DRAWER -->
+
+<div
+    id="masterOverlay"
+    class="master-overlay"
+></div>
+
+
+<aside
+    id="masterDrawer"
+    class="master-drawer"
+>
+
+    <header>
+
+        <div>
+            <strong id="masterDrawerTitle">
+                Thêm giá trị
+            </strong>
+
+            <span id="masterDrawerCategory">
+                —
+            </span>
+        </div>
+
+        <button
+            id="closeMasterDrawer"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form id="masterForm">
+
+        <input
+            id="editingMasterId"
+            type="hidden"
+        >
+
+
+        <label>
+            Mã
+            <em>*</em>
+
+            <input
+                id="masterCode"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Tên hiển thị
+            <em>*</em>
+
+            <input
+                id="masterName"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <label>
+            Trạng thái
+
+            <select
+                id="masterStatus"
+                class="crm-input"
+            >
+                <option value="active">
+                    Đang sử dụng
+                </option>
+
+                <option value="inactive">
+                    Ngừng sử dụng
+                </option>
+            </select>
+        </label>
+
+
+        <div
+            id="masterError"
+            class="master-error"
+        ></div>
+
+
+        <footer>
+
+            <button
+                id="cancelMaster"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Lưu
+            </button>
+
+        </footer>
+
+    </form>
+
+</aside>
+
+
+
+
+
+<script src="js/pages/master-data.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

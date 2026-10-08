@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme =
+            localStorage.getItem("crm_ui_theme");
+
+        document.documentElement.setAttribute(
+            "data-theme",
+            theme === "dark"
+                ? "dark"
+                : "light"
+        );
+
+        document.documentElement.removeAttribute(
+            "data-crm-theme"
+        );
+    } catch (e) {
+        document.documentElement.setAttribute(
+            "data-theme",
+            "light"
+        );
+    }
+})();
+</script>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>Pipeline Kanban</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/pipeline.css">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+
+<!-- SIDEBAR -->
+
+<aside class="crm-sidebar">
+
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+
+        <div class="crm-nav-section">
+            Không gian làm việc
+        </div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">
+            Quản lý
+        </div>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="#" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m9 3 6 0 1 4 4 1 1 6-4 2-1 4-6 1-2-4-4-1-1-6 4-2 1-4Z"/></svg></span>
+            <span class="crm-nav-label">Cấu hình</span>
+        </a>
+
+    </nav>
+
+    
+
+</aside>
+
+
+<!-- TOPBAR -->
+
+<header class="crm-topbar">
+
+    <div class="crm-search">
+
+        <svg viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="m20 20-4-4"/>
+        </svg>
+
+        <input
+            id="globalSearch"
+            type="search"
+            placeholder="Tìm kiếm cơ hội..."
+        >
+
+        <kbd>Ctrl K</kbd>
+
+    </div>
+
+
+    <div class="crm-top-actions">
+
+        <button class="crm-icon-btn" type="button">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+
+            <button
+                id="userButton"
+                class="crm-user-button"
+                type="button"
+            >
+                <div class="crm-avatar">U</div>
+
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Người dùng</span>
+                    <span class="crm-user-role">Vai trò</span>
+                </div>
+
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+            </button>
+
+            <div
+                id="userDropdown"
+                class="crm-user-dropdown"
+            >
+                <a href="#">Hồ sơ cá nhân</a>
+                <a href="#">Đổi mật khẩu</a>
+                <button type="button">Đăng xuất</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- MAIN -->
+
+<main class="crm-main pipeline-page">
+
+    <section class="pipeline-head">
+
+        <div>
+
+            <p class="pipeline-kicker">
+                CRM / Cơ hội
+            </p>
+
+            <h1>
+                Bảng Kanban Pipeline
+            </h1>
+
+            <p>
+                Kéo thả cơ hội giữa các giai đoạn hoặc dùng nút chuyển giai đoạn.
+            </p>
+
+        </div>
+
+
+        <button
+            id="addOpportunityButton"
+            class="crm-btn crm-btn-primary"
+            type="button"
+        >
+            + Thêm cơ hội
+        </button>
+
+    </section>
+
+
+    <section class="pipeline-filter crm-card">
+
+        <input
+            id="pipelineSearch"
+            class="crm-input"
+            type="search"
+            placeholder="Tìm tên cơ hội / khách hàng..."
+        >
+
+        <select
+            id="ownerFilter"
+            class="crm-input"
+        >
+            <option value="">
+                Tất cả người sở hữu
+            </option>
+
+            <option value="Tôi">
+                Tôi
+            </option>
+
+            <option value="Nhóm">
+                Nhóm
+            </option>
+        </select>
+
+        <button
+            id="resetPipelineFilter"
+            class="crm-btn crm-btn-secondary"
+            type="button"
+        >
+            Đặt lại
+        </button>
+
+    </section>
+
+
+    <section
+        id="pipelineBoard"
+        class="pipeline-board"
+    >
+
+        <article
+            class="pipeline-column"
+            data-stage="approach"
+        >
+
+            <header class="column-head approach">
+
+                <div>
+                    <strong>Tiếp cận</strong>
+                    <span class="column-count">0 cơ hội</span>
+                </div>
+
+                <b class="column-total">0 ₫</b>
+
+            </header>
+
+            <div
+                class="column-body"
+                data-drop-zone="approach"
+            ></div>
+
+        </article>
+
+
+        <article
+            class="pipeline-column"
+            data-stage="quote"
+        >
+
+            <header class="column-head quote">
+
+                <div>
+                    <strong>Báo giá</strong>
+                    <span class="column-count">0 cơ hội</span>
+                </div>
+
+                <b class="column-total">0 ₫</b>
+
+            </header>
+
+            <div
+                class="column-body"
+                data-drop-zone="quote"
+            ></div>
+
+        </article>
+
+
+        <article
+            class="pipeline-column"
+            data-stage="negotiation"
+        >
+
+            <header class="column-head negotiation">
+
+                <div>
+                    <strong>Đàm phán</strong>
+                    <span class="column-count">0 cơ hội</span>
+                </div>
+
+                <b class="column-total">0 ₫</b>
+
+            </header>
+
+            <div
+                class="column-body"
+                data-drop-zone="negotiation"
+            ></div>
+
+        </article>
+
+
+        <article
+            class="pipeline-column"
+            data-stage="closing"
+        >
+
+            <header class="column-head closing">
+
+                <div>
+                    <strong>Chốt</strong>
+                    <span class="column-count">0 cơ hội</span>
+                </div>
+
+                <b class="column-total">0 ₫</b>
+
+            </header>
+
+            <div
+                class="column-body"
+                data-drop-zone="closing"
+            ></div>
+
+        </article>
+
+    </section>
+
+</main>
+
+
+<!-- =========================================================
+     OPPORTUNITY DRAWER
+========================================================= -->
+
+<div
+    id="opportunityOverlay"
+    class="pipeline-overlay"
+></div>
+
+
+<aside
+    id="opportunityDrawer"
+    class="opportunity-drawer"
+>
+
+    <header class="drawer-head">
+
+        <div>
+            <strong id="opportunityDrawerTitle">
+                Thêm cơ hội
+            </strong>
+
+            <span>
+                Thông tin cơ hội bán hàng
+            </span>
+        </div>
+
+        <button
+            id="closeOpportunityDrawer"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <form
+        id="opportunityForm"
+        class="opportunity-form"
+        novalidate
+    >
+
+        <input
+            id="opportunityEditIndex"
+            type="hidden"
+        >
+
+
+        <label>
+            Tên cơ hội
+            <em>*</em>
+
+            <input
+                id="opportunityName"
+                class="crm-input"
+                type="text"
+            >
+
+            <small id="opportunityNameError"></small>
+        </label>
+
+
+        <label>
+            Khách hàng <em>*</em>
+
+            <select
+                id="opportunityCustomer"
+                class="crm-input"
+            >
+                <option value="">-- Chọn khách hàng --</option>
+            </select>
+            <small id="opportunityCustomerError"></small>
+        </label>
+
+
+        <div class="form-grid">
+
+            <label>
+                Giá trị dự kiến
+
+                <input
+                    id="opportunityValue"
+                    class="crm-input"
+                    type="number"
+                    min="0"
+                    step="1000"
+                >
+            </label>
+
+
+            <label>
+                Ngày dự kiến chốt
+
+                <input
+                    id="opportunityCloseDate"
+                    class="crm-input"
+                    type="date"
+                >
+            </label>
+
+        </div>
+
+
+        <div class="form-grid">
+
+            <label>
+                Giai đoạn
+
+                <select
+                    id="opportunityStage"
+                    class="crm-input"
+                >
+                    <option value="approach">
+                        Tiếp cận
+                    </option>
+
+                    <option value="quote">
+                        Báo giá
+                    </option>
+
+                    <option value="negotiation">
+                        Đàm phán
+                    </option>
+
+                    <option value="closing">
+                        Chốt
+                    </option>
+                </select>
+            </label>
+
+
+            <label>
+                Xác suất %
+
+                <input
+                    id="opportunityProbability"
+                    class="crm-input"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value="10"
+                >
+            </label>
+
+        </div>
+
+
+        <label>
+            Người sở hữu
+
+            <input
+                id="opportunityOwner"
+                class="crm-input"
+                type="text"
+            >
+        </label>
+
+
+        <footer class="drawer-footer">
+
+            <button
+                id="cancelOpportunity"
+                class="crm-btn crm-btn-secondary"
+                type="button"
+            >
+                Hủy
+            </button>
+
+            <button
+                class="crm-btn crm-btn-primary"
+                type="submit"
+            >
+                Lưu cơ hội
+            </button>
+
+        </footer>
+
+    </form>
+
+</aside>
+
+
+<!-- =========================================================
+     WIN / LOSS MODAL
+========================================================= -->
+
+<div
+    id="closeDealOverlay"
+    class="close-deal-overlay"
+></div>
+
+
+<section
+    id="closeDealModal"
+    class="close-deal-modal crm-card"
+>
+
+    <header class="close-deal-head">
+
+        <div>
+
+            <span
+                id="closeDealEmoji"
+                class="deal-emoji"
+            >
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4-12 8 8L4 20Zm7-15 1-2m5 7 4-1m-6-3 3-3"/></svg>
+            </span>
+
+            <strong id="closeDealTitle">
+                Đóng Cơ Hội
+            </strong>
+
+        </div>
+
+
+        <button
+            id="closeDealX"
+            type="button"
+        >
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+
+    </header>
+
+
+    <div class="deal-mode-switch">
+
+        <button
+            type="button"
+            class="deal-mode active"
+            data-deal-mode="won"
+        >
+            Thắng
+        </button>
+
+        <button
+            type="button"
+            class="deal-mode"
+            data-deal-mode="lost"
+        >
+            Thua
+        </button>
+
+    </div>
+
+
+    <!-- WON -->
+
+    <form
+        id="wonForm"
+        class="deal-form"
+    >
+
+        <label>
+            Giá trị chốt thực tế
+            <em>*</em>
+
+            <div class="money-field">
+
+                <span>₫</span>
+
+                <input
+                    id="wonValue"
+                    type="number"
+                    min="0"
+                    step="1000"
+                >
+
+            </div>
+        </label>
+
+
+        <label>
+            Ngày ký
+            <em>*</em>
+
+            <input
+                id="wonDate"
+                class="crm-input"
+                type="date"
+            >
+        </label>
+
+        <label>
+            Lý do Thắng
+            <em>*</em>
+
+            <select
+                id="winReason"
+                class="crm-input"
+            >
+                <option value="">-- Chọn lý do Thắng --</option>
+            </select>
+        </label>
+
+
+        <div
+            id="wonError"
+            class="deal-error"
+        ></div>
+
+
+        <footer class="deal-footer">
+
+            <button
+                type="button"
+                class="crm-btn crm-btn-secondary"
+                data-close-deal
+            >
+                Hủy
+            </button>
+
+            <button
+                type="submit"
+                class="crm-btn crm-btn-primary won-button"
+            >
+                Xác nhận Thắng
+            </button>
+
+        </footer>
+
+    </form>
+
+
+    <!-- LOST -->
+
+    <form
+        id="lostForm"
+        class="deal-form"
+        hidden
+    >
+
+        <label>
+            Lý do Thua
+            <em>*</em>
+
+            <select
+                id="lossReason"
+                class="crm-input"
+            >
+                <option value="">
+                    -- Chọn lý do Thua --
+                </option>
+            </select>
+        </label>
+
+
+        <label>
+            Đối thủ cạnh tranh
+            <em>*</em>
+
+            <select
+                id="lossCompetitor"
+                class="crm-input"
+            >
+                <option value="">
+                    -- Chọn đối thủ thắng thầu --
+                </option>
+            </select>
+        </label>
+
+
+        <div
+            id="lostError"
+            class="deal-error"
+        ></div>
+
+
+        <footer class="deal-footer">
+
+            <button
+                type="button"
+                class="crm-btn crm-btn-secondary"
+                data-close-deal
+            >
+                Hủy
+            </button>
+
+            <button
+                type="submit"
+                class="crm-btn crm-btn-primary lost-button"
+            >
+                Xác nhận Đóng
+            </button>
+
+        </footer>
+
+    </form>
+
+</section>
+
+
+<!-- =========================================================
+     MOBILE
+========================================================= -->
+
+<header class="crm-mobile-header">
+
+    <button
+        id="mobileMenuButton"
+        class="crm-mobile-menu"
+        type="button"
+    >
+        <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+
+    <div class="crm-avatar">
+        U
+    </div>
+
+</header>
+
+
+<div
+    id="drawerOverlay"
+    class="crm-drawer-overlay"
+></div>
+
+
+<aside
+    id="mobileDrawer"
+    class="crm-mobile-drawer"
+>
+
+    <div class="crm-drawer-header">
+
+        <div class="crm-avatar">U</div>
+
+        <div class="crm-drawer-user">
+            <strong>Người dùng</strong>
+            <span>Vai trò</span>
+        </div>
+
+    </div>
+
+    <nav class="crm-nav">
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<nav class="crm-bottom-nav">
+
+    <a
+        href="dashboard.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+        </span>
+
+        <span>Tổng quan</span>
+    </a>
+
+
+    <a
+        href="customers.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+        </span>
+
+        <span>Khách hàng</span>
+    </a>
+
+
+    <a
+        href="pipeline.html"
+        class="crm-bottom-item active"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <path d="m12 3 8 9-8 9-8-9 8-9Z"/>
+            </svg>
+        </span>
+
+        <span>Cơ hội</span>
+    </a>
+
+
+    <a
+        href="calendar.html"
+        class="crm-bottom-item"
+    >
+        <span>
+            <svg class="crm-inline-icon"
+                 viewBox="0 0 24 24"
+                 aria-hidden="true">
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M8 3v4m8-4v4M3 10h18"/>
+            </svg>
+        </span>
+
+        <span>Lịch</span>
+    </a>
+
+</nav>
+
+
+
+
+
+<script src="js/pages/pipeline.js"></script>
+
+<script src="js/page-transition.js"></script>
+
+
+
+
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>

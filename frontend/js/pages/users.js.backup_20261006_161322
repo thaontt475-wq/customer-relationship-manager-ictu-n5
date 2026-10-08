@@ -1,0 +1,1187 @@
+"use strict";
+
+const PAGE_SIZE = 20;
+
+let currentPage = 1;
+
+let users =
+    loadUsers();
+
+
+const tableBody =
+    document.getElementById(
+        "usersTableBody"
+    );
+
+const empty =
+    document.getElementById(
+        "usersEmpty"
+    );
+
+const searchInput =
+    document.getElementById(
+        "userSearch"
+    );
+
+const roleFilter =
+    document.getElementById(
+        "roleFilter"
+    );
+
+const statusFilter =
+    document.getElementById(
+        "statusFilter"
+    );
+
+
+const drawer =
+    document.getElementById(
+        "userDrawer"
+    );
+
+const drawerOverlay =
+    document.getElementById(
+        "userDrawerOverlay"
+    );
+
+
+document
+    .getElementById(
+        "createUserButton"
+    )
+    .addEventListener(
+        "click",
+        () => openUserDrawer()
+    );
+
+
+document
+    .getElementById(
+        "closeUserDrawer"
+    )
+    .addEventListener(
+        "click",
+        closeUserDrawer
+    );
+
+
+document
+    .getElementById(
+        "cancelUserForm"
+    )
+    .addEventListener(
+        "click",
+        closeUserDrawer
+    );
+
+
+drawerOverlay.addEventListener(
+    "click",
+    closeUserDrawer
+);
+
+
+searchInput.addEventListener(
+    "input",
+    () => {
+        currentPage = 1;
+        render();
+    }
+);
+
+
+roleFilter.addEventListener(
+    "change",
+    () => {
+        currentPage = 1;
+        render();
+    }
+);
+
+
+statusFilter.addEventListener(
+    "change",
+    () => {
+        currentPage = 1;
+        render();
+    }
+);
+
+
+document
+    .getElementById(
+        "prevPage"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            if (
+                currentPage > 1
+            ) {
+                currentPage--;
+                render();
+            }
+        }
+    );
+
+
+document
+    .getElementById(
+        "nextPage"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const total =
+                filteredUsers().length;
+
+            const totalPages =
+                Math.max(
+                    1,
+                    Math.ceil(
+                        total
+                        /
+                        PAGE_SIZE
+                    )
+                );
+
+            if (
+                currentPage
+                <
+                totalPages
+            ) {
+                currentPage++;
+                render();
+            }
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "userForm"
+    )
+    .addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+            saveUserForm();
+
+        }
+    );
+
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const edit =
+            event.target.closest(
+                "[data-edit-user]"
+            );
+
+        if (edit) {
+
+            openUserDrawer(
+                Number(
+                    edit.dataset.editUser
+                )
+            );
+
+            return;
+        }
+
+
+        const lock =
+            event.target.closest(
+                "[data-lock-user]"
+            );
+
+        if (lock) {
+
+            openLockModal(
+                Number(
+                    lock.dataset.lockUser
+                )
+            );
+
+            return;
+        }
+
+
+        const unlock =
+            event.target.closest(
+                "[data-unlock-user]"
+            );
+
+        if (unlock) {
+
+            const index =
+                Number(
+                    unlock.dataset.unlockUser
+                );
+
+            if (users[index]) {
+
+                users[index].status =
+                    "active";
+
+                saveUsers();
+
+                render();
+            }
+
+        }
+
+    }
+);
+
+
+/* =============================
+   FORM
+============================= */
+
+function saveUserForm() {
+
+    const name =
+        value("fullName");
+
+    const email =
+        value("userEmail");
+
+    const team =
+        value("userTeam");
+
+
+    const roles =
+        Array
+            .from(
+                document
+                    .querySelectorAll(
+                        'input[name="roles"]:checked'
+                    )
+            )
+            .map(
+                input =>
+                    input.value
+            );
+
+
+    const editValue =
+        document.getElementById(
+            "editingUserIndex"
+        ).value;
+
+
+    const editIndex =
+        editValue === ""
+            ? null
+            : Number(editValue);
+
+
+    clearErrors();
+
+
+    if (
+        !name
+        ||
+        !email
+    ) {
+
+        document.getElementById(
+            "userFormError"
+        ).textContent =
+            "Vui lòng nhập họ tên và email.";
+
+        return;
+    }
+
+
+    const duplicate =
+        users.findIndex(
+            (user,index) =>
+                user.email
+                    .toLowerCase()
+                ===
+                email.toLowerCase()
+                &&
+                index !== editIndex
+        );
+
+
+    if (
+        duplicate >= 0
+    ) {
+
+        document.getElementById(
+            "emailError"
+        ).textContent =
+            "Email này đã tồn tại.";
+
+        return;
+    }
+
+
+    if (
+        roles.includes(
+            "Trưởng nhóm"
+        )
+        &&
+        !team
+    ) {
+
+        document.getElementById(
+            "teamError"
+        ).textContent =
+            "Trưởng nhóm phải được gán vào một nhóm.";
+
+        return;
+    }
+
+
+    const isCurrent =
+        document
+            .getElementById(
+                "isCurrentAccount"
+            )
+            .checked;
+
+
+    if (
+        editIndex !== null
+        &&
+        users[editIndex]
+        &&
+        users[editIndex]
+            .isCurrentAccount
+        &&
+        users[editIndex]
+            .roles
+            .includes(
+                "Quản trị"
+            )
+        &&
+        !roles.includes(
+            "Quản trị"
+        )
+    ) {
+
+        document.getElementById(
+            "userFormError"
+        ).textContent =
+            "Không thể tự thu hồi vai trò Quản trị của chính mình.";
+
+        return;
+    }
+
+
+    const user = {
+        name,
+        email,
+        team,
+        roles,
+        status:
+            editIndex !== null
+            &&
+            users[editIndex]
+            ?
+            users[editIndex].status
+            :
+            "active",
+
+        isCurrentAccount:
+            isCurrent
+    };
+
+
+    if (
+        editIndex === null
+    ) {
+
+        users.push(user);
+
+    } else {
+
+        users[editIndex] =
+            user;
+    }
+
+
+    saveUsers();
+
+    closeUserDrawer();
+
+    render();
+
+}
+
+
+function openUserDrawer(
+    index = null
+) {
+
+    document
+        .getElementById(
+            "userForm"
+        )
+        .reset();
+
+
+    clearErrors();
+
+
+    document.getElementById(
+        "editingUserIndex"
+    ).value = "";
+
+
+    document.getElementById(
+        "userDrawerTitle"
+    ).textContent =
+        "Tạo người dùng";
+
+
+    if (
+        index !== null
+        &&
+        users[index]
+    ) {
+
+        const user =
+            users[index];
+
+
+        document.getElementById(
+            "editingUserIndex"
+        ).value =
+            String(index);
+
+
+        document.getElementById(
+            "userDrawerTitle"
+        ).textContent =
+            "Sửa người dùng";
+
+
+        setValue(
+            "fullName",
+            user.name
+        );
+
+        setValue(
+            "userEmail",
+            user.email
+        );
+
+        setValue(
+            "userTeam",
+            user.team
+        );
+
+
+        document
+            .querySelectorAll(
+                'input[name="roles"]'
+            )
+            .forEach(
+                checkbox => {
+
+                    checkbox.checked =
+                        user.roles
+                            .includes(
+                                checkbox.value
+                            );
+                }
+            );
+
+
+        document.getElementById(
+            "isCurrentAccount"
+        ).checked =
+            Boolean(
+                user.isCurrentAccount
+            );
+
+    }
+
+
+    drawer.classList.add(
+        "open"
+    );
+
+    drawerOverlay.classList.add(
+        "open"
+    );
+
+}
+
+
+function closeUserDrawer() {
+
+    drawer.classList.remove(
+        "open"
+    );
+
+    drawerOverlay.classList.remove(
+        "open"
+    );
+
+}
+
+
+/* =============================
+   LOCK
+============================= */
+
+const lockModal =
+    document.getElementById(
+        "lockModal"
+    );
+
+const lockOverlay =
+    document.getElementById(
+        "lockOverlay"
+    );
+
+
+document
+    .getElementById(
+        "closeLockModal"
+    )
+    .addEventListener(
+        "click",
+        closeLockModal
+    );
+
+
+document
+    .getElementById(
+        "cancelLock"
+    )
+    .addEventListener(
+        "click",
+        closeLockModal
+    );
+
+
+lockOverlay.addEventListener(
+    "click",
+    closeLockModal
+);
+
+
+document
+    .getElementById(
+        "lockForm"
+    )
+    .addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const index =
+                Number(
+                    document
+                        .getElementById(
+                            "lockUserIndex"
+                        )
+                        .value
+                );
+
+
+            const receiver =
+                document
+                    .getElementById(
+                        "transferUser"
+                    )
+                    .value;
+
+
+            const error =
+                document
+                    .getElementById(
+                        "lockError"
+                    );
+
+
+            if (!receiver) {
+
+                error.textContent =
+                    "Bắt buộc chọn người tiếp nhận dữ liệu trước khi khóa.";
+
+                return;
+            }
+
+
+            if (
+                !users[index]
+            ) {
+                return;
+            }
+
+
+            users[index].status =
+                "locked";
+
+
+            users[index].lastTransfer = {
+                receiver,
+                reason:
+                    value(
+                        "transferReason"
+                    ),
+
+                time:
+                    new Date()
+                        .toISOString()
+            };
+
+
+            saveUsers();
+
+            closeLockModal();
+
+            render();
+
+        }
+    );
+
+
+function openLockModal(index) {
+
+    const user =
+        users[index];
+
+
+    if (!user) return;
+
+
+    if (
+        user.isCurrentAccount
+    ) {
+
+        alert(
+            "Không khóa tài khoản đang được đánh dấu là tài khoản hiện tại."
+        );
+
+        return;
+    }
+
+
+    document.getElementById(
+        "lockUserIndex"
+    ).value =
+        String(index);
+
+
+    document.getElementById(
+        "lockUserName"
+    ).textContent =
+        user.name;
+
+
+    document.getElementById(
+        "lockError"
+    ).textContent = "";
+
+
+    document.getElementById(
+        "transferReason"
+    ).value = "";
+
+
+    const select =
+        document.getElementById(
+            "transferUser"
+        );
+
+
+    select.innerHTML =
+        '<option value="">Chọn người nhận</option>';
+
+
+    users.forEach(
+        (item,itemIndex) => {
+
+            if (
+                itemIndex !== index
+                &&
+                item.status === "active"
+            ) {
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    item.email;
+
+
+                option.textContent =
+                    item.name
+                    +
+                    " — "
+                    +
+                    item.email;
+
+
+                select.appendChild(
+                    option
+                );
+            }
+
+        }
+    );
+
+
+    lockModal.classList.add(
+        "open"
+    );
+
+    lockOverlay.classList.add(
+        "open"
+    );
+
+}
+
+
+function closeLockModal() {
+
+    lockModal.classList.remove(
+        "open"
+    );
+
+    lockOverlay.classList.remove(
+        "open"
+    );
+
+}
+
+
+/* =============================
+   RENDER
+============================= */
+
+function filteredUsers() {
+
+    const query =
+        searchInput
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    const role =
+        roleFilter.value;
+
+
+    const status =
+        statusFilter.value;
+
+
+    return users
+        .map(
+            (user,index) => ({
+                user,
+                index
+            })
+        )
+        .filter(entry => {
+
+            const haystack =
+                (
+                    entry.user.name
+                    +
+                    " "
+                    +
+                    entry.user.email
+                    +
+                    " "
+                    +
+                    entry.user.team
+                )
+                .toLowerCase();
+
+
+            return (
+                (
+                    !query
+                    ||
+                    haystack.includes(
+                        query
+                    )
+                )
+                &&
+                (
+                    !role
+                    ||
+                    entry.user.roles
+                        .includes(role)
+                )
+                &&
+                (
+                    !status
+                    ||
+                    entry.user.status
+                        === status
+                )
+            );
+
+        });
+}
+
+
+function render() {
+
+    const filtered =
+        filteredUsers();
+
+
+    const totalPages =
+        Math.max(
+            1,
+            Math.ceil(
+                filtered.length
+                /
+                PAGE_SIZE
+            )
+        );
+
+
+    if (
+        currentPage
+        >
+        totalPages
+    ) {
+        currentPage =
+            totalPages;
+    }
+
+
+    const start =
+        (
+            currentPage - 1
+        )
+        *
+        PAGE_SIZE;
+
+
+    const pageData =
+        filtered.slice(
+            start,
+            start + PAGE_SIZE
+        );
+
+
+    tableBody.innerHTML = "";
+
+
+    empty.style.display =
+        pageData.length
+            ? "none"
+            : "flex";
+
+
+    for (
+        const entry
+        of pageData
+    ) {
+
+        const user =
+            entry.user;
+
+
+        const tr =
+            document.createElement(
+                "tr"
+            );
+
+
+        tr.innerHTML = `
+            <td>
+
+                <div class="user-cell">
+
+                    <div class="table-avatar">
+                        ${initials(user.name)}
+                    </div>
+
+                    <div>
+                        <strong>
+                            ${escapeHtml(user.name)}
+                        </strong>
+
+                        ${
+                            user.isCurrentAccount
+                            ?
+                            '<span>Tài khoản hiện tại</span>'
+                            :
+                            ""
+                        }
+                    </div>
+
+                </div>
+
+            </td>
+
+            <td>
+                ${escapeHtml(user.email)}
+            </td>
+
+            <td>
+
+                <div class="role-list">
+
+                    ${
+                        user.roles.length
+                        ?
+                        user.roles
+                            .map(
+                                role =>
+                                    `
+                                    <span class="role-pill">
+                                        ${escapeHtml(role)}
+                                    </span>
+                                    `
+                            )
+                            .join("")
+                        :
+                        "—"
+                    }
+
+                </div>
+
+            </td>
+
+            <td>
+                ${escapeHtml(user.team || "—")}
+            </td>
+
+            <td>
+
+                <span class="user-status ${user.status}">
+
+                    ${
+                        user.status === "active"
+                        ?
+                        "Đang hoạt động"
+                        :
+                        "Đã khóa"
+                    }
+
+                </span>
+
+            </td>
+
+            <td>
+
+                <div class="user-actions">
+
+                    <button
+                        class="user-action"
+                        data-edit-user="${entry.index}"
+                        type="button"
+                    >
+                        Sửa
+                    </button>
+
+                    ${
+                        user.status === "active"
+                        ?
+                        `
+                        <button
+                            class="user-action lock"
+                            data-lock-user="${entry.index}"
+                            type="button"
+                        >
+                            Khóa
+                        </button>
+                        `
+                        :
+                        `
+                        <button
+                            class="user-action unlock"
+                            data-unlock-user="${entry.index}"
+                            type="button"
+                        >
+                            Mở khóa
+                        </button>
+                        `
+                    }
+
+                </div>
+
+            </td>
+        `;
+
+
+        tableBody.appendChild(
+            tr
+        );
+
+    }
+
+
+    document.getElementById(
+        "paginationInfo"
+    ).textContent =
+        `${filtered.length} bản ghi · tối đa 20 dòng/trang`;
+
+
+    document.getElementById(
+        "pageNumber"
+    ).textContent =
+        currentPage;
+
+
+    document.getElementById(
+        "prevPage"
+    ).disabled =
+        currentPage <= 1;
+
+
+    document.getElementById(
+        "nextPage"
+    ).disabled =
+        currentPage
+        >=
+        totalPages;
+
+}
+
+
+function clearErrors() {
+
+    document.getElementById(
+        "emailError"
+    ).textContent = "";
+
+    document.getElementById(
+        "teamError"
+    ).textContent = "";
+
+    document.getElementById(
+        "userFormError"
+    ).textContent = "";
+
+}
+
+
+/* =============================
+   STORAGE
+============================= */
+
+function loadUsers() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "crm_ui_users"
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+    }
+
+}
+
+
+function saveUsers() {
+
+    localStorage.setItem(
+        "crm_ui_users",
+        JSON.stringify(
+            users
+        )
+    );
+
+}
+
+
+/* =============================
+   HELPERS
+============================= */
+
+function value(id) {
+
+    return document
+        .getElementById(id)
+        .value
+        .trim();
+
+}
+
+
+function setValue(
+    id,
+    value
+) {
+
+    document
+        .getElementById(id)
+        .value =
+            value || "";
+
+}
+
+
+function initials(value) {
+
+    const parts =
+        String(value)
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+
+    if (!parts.length) {
+        return "U";
+    }
+
+
+    if (
+        parts.length === 1
+    ) {
+        return parts[0]
+            .slice(0,2)
+            .toUpperCase();
+    }
+
+
+    return (
+        parts[0][0]
+        +
+        parts[
+            parts.length - 1
+        ][0]
+    )
+        .toUpperCase();
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+render();
