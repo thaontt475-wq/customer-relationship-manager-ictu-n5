@@ -3,6 +3,9 @@ package com.crm.controller.customers;
 import com.crm.dto.common.ApiResponse;
 import com.crm.dto.customers.CustomerWriteRequest;
 import com.crm.service.customers.CustomerService;
+import com.crm.service.customers.Customer360Service;
+import com.crm.service.customers.CustomerRelationService;
+import com.crm.service.customers.CustomerCareService;
 import com.crm.util.JsonUtil;
 import com.crm.util.ResponseUtil;
 
@@ -22,6 +25,9 @@ import java.util.NoSuchElementException;
 public class CustomerServlet extends HttpServlet {
 
     private final CustomerService customerService = new CustomerService();
+    private final Customer360Service customer360 = new Customer360Service();
+    private final CustomerRelationService relations = new CustomerRelationService();
+    private final CustomerCareService care = new CustomerCareService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -40,6 +46,26 @@ public class CustomerServlet extends HttpServlet {
                 return;
             }
 
+            if ("/care-list".equals(path)) {
+                int days = intParam(req, "days", 30);
+                int page = intParam(req, "page", 1);
+                int size = intParam(req, "size", 20);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Danh sách cần chăm sóc", care.list(currentUserId, days, page, size)));
+                return;
+            }
+            if (path != null && path.matches("/\\d+/360/?")) {
+                var data = customer360.getCustomer360(currentUserId, parseId(path));
+                if (data == null) ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
+                else ResponseUtil.json(resp, 200, ApiResponse.success("Customer 360", data));
+                return;
+            }
+            if (path != null && path.matches("/\\d+/children/?")) {
+                var data = relations.children(currentUserId, parseId(path));
+                if (data == null) ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
+                else ResponseUtil.json(resp, 200, ApiResponse.success("Danh sách công ty con", data));
+                return;
+            }
+            if (path != null && !path.matches("/\\d+/?")) throw new IllegalArgumentException("Đường dẫn khách hàng không hợp lệ");
             long id = parseId(path);
             var customer = customerService.getById(currentUserId, id);
             if (customer == null) {
@@ -61,6 +87,16 @@ public class CustomerServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             long currentUserId = requireUser(req);
+            String path = req.getPathInfo();
+            if (path != null && path.matches("/\\d+/mark-contacted/?")) {
+                java.util.Map<?,?> body = JsonUtil.getGson().fromJson(req.getReader(), java.util.Map.class);
+                String note = body == null || body.get("note") == null ? null : String.valueOf(body.get("note"));
+                var data = care.markContacted(currentUserId, parseId(path), note);
+                if (data == null) ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
+                else ResponseUtil.json(resp, 201, ApiResponse.success("Đã ghi nhận liên hệ", data));
+                return;
+            }
+            if (path != null && !path.equals("/")) throw new IllegalArgumentException("Đường dẫn không hợp lệ");
             CustomerWriteRequest body = JsonUtil.getGson().fromJson(req.getReader(), CustomerWriteRequest.class);
 
             var created = customerService.create(currentUserId, body);
@@ -78,7 +114,19 @@ public class CustomerServlet extends HttpServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             long currentUserId = requireUser(req);
-            long id = parseId(req.getPathInfo());
+            String path = req.getPathInfo();
+            if (path != null && path.matches("/\\d+/parent/?")) {
+                java.util.Map<?,?> body = JsonUtil.getGson().fromJson(req.getReader(), java.util.Map.class);
+                if (body == null || !body.containsKey("parentCustomerId")) throw new IllegalArgumentException("Thiếu parentCustomerId");
+                Object raw = body.get("parentCustomerId");
+                Long parentId = raw == null ? null : ((Number)raw).longValue();
+                var data = relations.setParent(currentUserId, parseId(path), parentId);
+                if (data == null) ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
+                else ResponseUtil.json(resp, 200, ApiResponse.success("Đã cập nhật công ty mẹ", data));
+                return;
+            }
+            if (path != null && !path.matches("/\\d+/?")) throw new IllegalArgumentException("Đường dẫn không hợp lệ");
+            long id = parseId(path);
             CustomerWriteRequest body = JsonUtil.getGson().fromJson(req.getReader(), CustomerWriteRequest.class);
 
             var updated = customerService.update(currentUserId, id, body);
