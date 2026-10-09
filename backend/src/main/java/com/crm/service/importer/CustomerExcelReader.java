@@ -14,7 +14,7 @@ public class CustomerExcelReader {
     public static final int MAX_ROWS=1000;
     public static final int MAX_BYTES=5*1024*1024;
     public static final List<String> COLUMNS=List.of("name","taxCode","status","email","phone","website","address","industryId","companySizeId");
-    private static final Set<String> STATUSES=Set.of("TIEM_NANG","DANG_GIAO_DICH","CHINH_THUC");
+    private static final Set<String> STATUSES=com.crm.service.customers.CustomerValidation.STATUSES;
     public record ImportRow(int row,Map<String,String> values,List<String> errors) {
         public ImportRow {values=Collections.unmodifiableMap(new LinkedHashMap<>(values));errors=List.copyOf(errors);}
     }
@@ -135,7 +135,7 @@ public class CustomerExcelReader {
         for(var field:lengths.entrySet()) if(v.get(field.getKey()).length()>field.getValue()) errors.add(field.getKey()+": tối đa "+field.getValue()+" ký tự");
         String tax=v.get("taxCode");
         if(!tax.isBlank() && !tax.matches("[0-9]{10}(-?[0-9]{3})?")) errors.add("taxCode phải gồm 10 chữ số hoặc mã chi nhánh 13 chữ số");
-        if(!STATUSES.contains(v.get("status"))) errors.add("status phải là TIEM_NANG, DANG_GIAO_DICH hoặc CHINH_THUC");
+        if(!STATUSES.contains(v.get("status"))) errors.add("status phải là TIEM_NANG, DANG_GIAO_DICH, CHINH_THUC hoặc NGUNG_HOP_TAC");
         String email=v.get("email");
         if(!email.isBlank() && !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) errors.add("email không đúng định dạng");
         String phone=v.get("phone");
