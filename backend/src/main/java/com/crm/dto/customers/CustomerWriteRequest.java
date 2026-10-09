@@ -11,6 +11,8 @@ public class CustomerWriteRequest {
     private String phone;
     private String website;
     private String address;
+    private String region;
+    private transient boolean regionProvided;
     private Long industryId;
     private Long companySizeId;
     private Long ownerUserId;
@@ -79,6 +81,10 @@ public class CustomerWriteRequest {
     public void setAddress(String address) {
         this.address = address;
     }
+
+    public String getRegion() { return region; }
+    public boolean hasRegion() { return regionProvided; }
+    public void setRegion(String region) { this.region = region; this.regionProvided = true; }
 
     public Long getIndustryId() {
         return industryId;

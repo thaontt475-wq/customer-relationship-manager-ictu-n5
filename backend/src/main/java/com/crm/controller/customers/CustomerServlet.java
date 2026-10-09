@@ -2,6 +2,7 @@ package com.crm.controller.customers;
 
 import com.crm.dto.common.ApiResponse;
 import com.crm.dto.customers.CustomerWriteRequest;
+import com.crm.dto.customers.CustomerSearchFilter;
 import com.crm.service.customers.CustomerService;
 import com.crm.service.customers.Customer360Service;
 import com.crm.service.customers.CustomerRelationService;
@@ -24,10 +25,14 @@ import java.util.NoSuchElementException;
 })
 public class CustomerServlet extends HttpServlet {
 
-    private final CustomerService customerService = new CustomerService();
+    private final CustomerService customerService;
     private final Customer360Service customer360 = new Customer360Service();
     private final CustomerRelationService relations = new CustomerRelationService();
     private final CustomerCareService care = new CustomerCareService();
+
+    public CustomerServlet() { this(new CustomerService()); }
+
+    public CustomerServlet(CustomerService customerService) { this.customerService = customerService; }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -35,13 +40,26 @@ public class CustomerServlet extends HttpServlet {
             long currentUserId = requireUser(req);
             String path = req.getPathInfo();
 
-            if (path == null || path.equals("/")) {
-                String keyword = req.getParameter("keyword");
-                String status = req.getParameter("status");
-                int page = intParam(req, "page", 1);
-                int size = intParam(req, "size", 20);
+            if (path == null || path.equals("/") || path.equals("/search") || path.equals("/search/")) {
+                String search = req.getParameter("keyword");
+                if (search == null || search.isBlank()) search = req.getParameter("search");
+                String industry = CustomerSearchFilter.text(req.getParameter("industry"), "industry", 100);
+                Long industryId = CustomerSearchFilter.id(req.getParameter("industryId"), "industryId");
+                // Accept existing ID-based controls as well as the master_data industry code.
+                if (industry != null && industry.matches("[0-9]+")) {
+                    Long contractId = CustomerSearchFilter.id(industry, "industry");
+                    if (industryId != null && !industryId.equals(contractId)) throw new IllegalArgumentException("industry và industryId mâu thuẫn");
+                    industryId = contractId;
+                    industry = null;
+                }
+                CustomerSearchFilter filter = new CustomerSearchFilter(search, req.getParameter("status"),
+                        industryId,
+                        CustomerSearchFilter.id(req.getParameter("companySizeId"), "companySizeId"),
+                        req.getParameter("region"), CustomerSearchFilter.id(req.getParameter("ownerId"), "ownerId"), industry);
+                int page = searchIntParam(req, "page", 1);
+                int size = searchIntParam(req, "size", 20);
 
-                var result = customerService.search(currentUserId, keyword, status, page, size);
+                var result = customerService.search(currentUserId, filter, page, size);
                 ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách khách hàng thành công", result));
                 return;
             }
@@ -79,7 +97,8 @@ public class CustomerServlet extends HttpServlet {
         } catch (IllegalArgumentException e) {
             ResponseUtil.json(resp, 400, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {
-            ResponseUtil.json(resp, 500, ApiResponse.error("Lỗi máy chủ: " + e.getMessage(), null));
+            log("Customer read/search failed", e);
+            ResponseUtil.json(resp, 500, ApiResponse.error("Không thể lấy dữ liệu khách hàng", null));
         }
     }
 
@@ -97,7 +116,7 @@ public class CustomerServlet extends HttpServlet {
                 return;
             }
             if (path != null && !path.equals("/")) throw new IllegalArgumentException("Đường dẫn không hợp lệ");
-            CustomerWriteRequest body = JsonUtil.getGson().fromJson(req.getReader(), CustomerWriteRequest.class);
+            CustomerWriteRequest body = readCustomer(req);
 
             var created = customerService.create(currentUserId, body);
             ResponseUtil.json(resp, 201, ApiResponse.success("Tạo khách hàng thành công", created));
@@ -127,7 +146,7 @@ public class CustomerServlet extends HttpServlet {
             }
             if (path != null && !path.matches("/\\d+/?")) throw new IllegalArgumentException("Đường dẫn không hợp lệ");
             long id = parseId(path);
-            CustomerWriteRequest body = JsonUtil.getGson().fromJson(req.getReader(), CustomerWriteRequest.class);
+            CustomerWriteRequest body = readCustomer(req);
 
             var updated = customerService.update(currentUserId, id, body);
             if (updated == null) {
@@ -190,5 +209,29 @@ public class CustomerServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             return fallback;
         }
+    }
+
+    private CustomerWriteRequest readCustomer(HttpServletRequest req) throws IOException {
+        try {
+            com.google.gson.JsonObject json = JsonUtil.getGson().fromJson(req.getReader(), com.google.gson.JsonObject.class);
+            CustomerWriteRequest body = JsonUtil.getGson().fromJson(json, CustomerWriteRequest.class);
+            if (json != null && json.has("region")) {
+                var region = json.get("region");
+                if (!region.isJsonNull() && (!region.isJsonPrimitive() || !region.getAsJsonPrimitive().isString()))
+                    throw new IllegalArgumentException("region must be a string or null");
+                body.setRegion(region.isJsonNull() ? null : region.getAsString());
+            }
+            return body;
+        } catch (com.google.gson.JsonParseException e) {
+            throw new IllegalArgumentException("Invalid Customer JSON");
+        }
+    }
+
+    private int searchIntParam(HttpServletRequest req, String name, int fallback) {
+        String value = req.getParameter(name);
+        if (value == null || value.isBlank()) return fallback;
+        if (!value.trim().matches("[1-9][0-9]*")) throw new IllegalArgumentException(name + " phải là số nguyên dương");
+        try { return Integer.parseInt(value.trim()); }
+        catch (NumberFormatException e) { throw new IllegalArgumentException(name + " vượt giới hạn số nguyên"); }
     }
 }
