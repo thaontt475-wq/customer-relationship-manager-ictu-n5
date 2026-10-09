@@ -40,6 +40,7 @@
 <link rel="stylesheet" href="css/pages/customer-360.css">
 <link rel="stylesheet" href="css/pages/support-tickets.css">
 <link rel="stylesheet" href="css/pages/contacts.css">
+<link rel="stylesheet" href="css/pages/corporate-hierarchy.css">
 
 <link rel="stylesheet" href="css/animations.css">
 </head>
@@ -207,12 +208,28 @@
                 <span>Ghi chú</span>
             </button>
 
+            <!-- CRM-65: Quick Corporate Group Management -->
+            <button
+                type="button"
+                class="quick-btn"
+                id="btnQuickCorporate"
+                onclick="window.CorporateHierarchyManager && window.CorporateHierarchyManager.openHierarchyModal(new URLSearchParams(window.location.search).get('id'))"
+                style="background:rgba(37,99,235,0.08); color:var(--crm-primary); border:1px solid rgba(37,99,235,0.25);"
+                title="Quản lý Phân cấp & Tập đoàn Mẹ - Con (CRM-65)"
+            >
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M3 7v14M21 7v14M6 18h2v3H6zm8 0h2v3h-2zm-4 0h2v3h-2zm4-6h2v3h-2zm-4 0h2v3h-2zm-4 0h2v3H6zm12-5V3H6v4"/></svg>
+                <span>Tập đoàn (CRM-65)</span>
+            </button>
+
         </div>
 
     </section>
 
     <!-- CRM-68: CHURN RISK & SALES ALERT BANNER -->
     <div id="customer360ChurnBanner"></div>
+
+    <!-- CRM-65: CONSOLIDATED GROUP REVENUE & HIERARCHY BANNER -->
+    <div id="customer360HierarchyBanner"></div>
 
     <section class="customer360-grid">
 
@@ -242,6 +259,11 @@
                 <div>
                     <dt>Tên công ty</dt>
                     <dd id="company360Name">—</dd>
+                </div>
+
+                <div>
+                    <dt>Trực thuộc tập đoàn</dt>
+                    <dd id="company360Parent">—</dd>
                 </div>
 
                 <div>
@@ -377,6 +399,15 @@
                         Phiếu hỗ trợ (<span id="ticketCountBadge">0</span>)
                     </button>
 
+                    <button
+                        type="button"
+                        class="right-tab"
+                        data-tab="hierarchy"
+                        id="tabHierarchy"
+                    >
+                        Tập đoàn (<span id="hierarchyBadgeCount">0</span>)
+                    </button>
+
                 </div>
 
 
@@ -436,6 +467,14 @@
                     <a href="support-tickets.html" class="crm-btn crm-btn-secondary full-button" style="text-decoration:none; text-align:center; display:block; margin-top:8px;">
                         + Tạo phiếu hỗ trợ mới
                     </a>
+                </div>
+
+                <div
+                    id="hierarchyPanel"
+                    class="right-content"
+                    hidden
+                >
+                    <div class="empty-small">Đang tải phân cấp tập đoàn...</div>
                 </div>
 
             </section>
@@ -876,6 +915,7 @@
 
 <script src="js/pages/support-tickets.js"></script>
 <script src="js/pages/contacts.js"></script>
+<script src="js/pages/corporate-hierarchy.js"></script>
 <script src="js/pages/customer-360.js"></script>
 
 <script src="js/theme.js"></script>

@@ -704,6 +704,18 @@
                         <a href="customer-360.html?id=${record.id}" class="customer-name-link" title="Xem 360 độ khách hàng">
                             ${escapeHtml(record.companyName || record.name)}
                         </a>
+                        ${(function() {
+                            if (!window.CorporateHierarchyManager) return "";
+                            const hier = window.CorporateHierarchyManager.getHierarchyStorage();
+                            if (hier.parents && hier.parents[record.id]) {
+                                return `<button type="button" class="corporate-role-badge corporate-role-child" style="cursor:pointer; border:none; font-size:10.5px; padding:2px 7px;" onclick="window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Thuộc tập đoàn - Nhấp để xem cây phân cấp (CRM-65)">🏢 Công ty con</button>`;
+                            }
+                            const hasChildren = Object.values(hier.parents || {}).some(pId => Number(pId) === Number(record.id));
+                            if (hasChildren) {
+                                return `<button type="button" class="corporate-role-badge corporate-role-parent" style="cursor:pointer; border:none; font-size:10.5px; padding:2px 7px;" onclick="window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Tập đoàn mẹ - Nhấp để xem cây phân cấp (CRM-65)">👑 Tập đoàn mẹ</button>`;
+                            }
+                            return "";
+                        })()}
                         ${churnBadge}
     ${duplicateBadgeHtml}
 </div>
@@ -781,6 +793,9 @@
                 <td class="col-actions">
                     <div class="row-action-btn-group">
                         ${mergeActionBtnHtml}
+                        <button type="button" class="action-icon-btn btn-corporate-tree" onclick="window.CorporateHierarchyManager && window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Cây phân cấp & Tập đoàn Mẹ - Con (CRM-65)" style="color:#7c3aed;">
+                            <svg viewBox="0 0 24 24"><path d="M3 21h18M3 7v14M21 7v14M6 18h2v3H6zm8 0h2v3h-2zm-4 0h2v3h-2zm4-6h2v3h-2zm-4 0h2v3h-2zm-4 0h2v3H6zm12-5V3H6v4"/></svg>
+                        </button>
                         <a href="contacts.html?customerId=${record.id}" class="action-icon-btn" title="Quản lý Người liên hệ & Vai trò mua (CRM-62)" style="color:var(--crm-primary);">
                             <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                         </a>
@@ -885,6 +900,7 @@
         resetDrawerForm();
 
         if (customerId) {
+            window.currentEditingCustomerId = Number(customerId);
             const customer = customersList.find(c => Number(c.id) === Number(customerId));
             if (customer) {
                 if (drawerTitle) drawerTitle.textContent = "Chỉnh sửa Hồ sơ Khách hàng Doanh nghiệp";
@@ -901,10 +917,18 @@
                 setVal("ownerSelect", customer.ownerUserId);
             }
         } else {
+            window.currentEditingCustomerId = null;
             if (drawerTitle) drawerTitle.textContent = "Khai báo Hồ sơ Khách hàng Doanh nghiệp";
             if (currentSessionUser?.id) {
                 setVal("ownerSelect", currentSessionUser.id);
             }
+        }
+
+        // CRM-65: Sync Parent Selector in Drawer
+        const parentSelect = document.getElementById("customerParentSelect");
+        if (parentSelect && window.CorporateHierarchyManager) {
+            const hier = window.CorporateHierarchyManager.getHierarchyStorage();
+            parentSelect.value = (customerId && hier.parents && hier.parents[customerId]) ? String(hier.parents[customerId]) : "";
         }
 
         drawer?.classList.add("open");
@@ -1155,6 +1179,16 @@
                     window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
                     showToast("Cập nhật thông tin khách hàng thành công!", "success");
                 }
+            }
+
+            // CRM-65: Synchronize Parent Association
+            const parentSelect = document.getElementById("customerParentSelect");
+            if (parentSelect && window.CorporateHierarchyManager) {
+                const targetCustId = id ? Number(id) : (customersList[0]?.id || 1);
+                const pVal = parentSelect.value ? Number(parentSelect.value) : null;
+                try {
+                    await window.CorporateHierarchyManager.apiUpdateParent(targetCustId, pVal);
+                } catch (_) {}
             }
 
             closeDrawer();
