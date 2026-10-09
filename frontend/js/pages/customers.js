@@ -1899,7 +1899,9 @@
         // Export Excel
         document.getElementById("btnExportExcel")?.addEventListener("click", exportToExcel);
         document.getElementById("btnImportExcel")?.addEventListener("click", () => {
-            alert("Tính năng Nhập dữ liệu khách hàng từ Excel đang sử dụng bộ mẫu chuẩn. Bạn có thể chuyển sang màn hình Nhập người dùng/Khách hàng để tải file mẫu.");
+            if (window.CustomerImportEngine) {
+                window.CustomerImportEngine.open();
+            }
         });
 
         // Logout
