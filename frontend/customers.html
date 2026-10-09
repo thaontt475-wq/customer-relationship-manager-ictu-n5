@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="css/pages/support-tickets.css">
 <link rel="stylesheet" href="css/pages/contacts.css">
 <link rel="stylesheet" href="css/pages/corporate-hierarchy.css">
+<link rel="stylesheet" href="css/pages/customer-import.css">
 <link rel="stylesheet" href="css/animations.css">
 </head>
 
@@ -800,12 +801,323 @@
     </footer>
 </div>
 
+<!-- ================= MODAL NHẬP KHÁCH HÀNG TỪ EXCEL (CRM-66 / TASK S3-06) ================= -->
+<div id="customerImportModalOverlay" class="crm-import-modal-overlay">
+    <div id="customerImportModal" class="crm-import-modal" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
+        <!-- 1. Header -->
+        <header class="crm-import-modal-head">
+            <div class="crm-import-title-group">
+                <div class="crm-import-icon-badge">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                <div>
+                    <h2 id="importModalTitle" class="crm-import-modal-title">Nhập danh sách Khách hàng từ Excel (CRM-66)</h2>
+                    <p class="crm-import-modal-sub">Hỗ trợ tệp .xlsx và .csv, kiểm tra lỗi tự động và xử lý trùng lặp thông minh</p>
+                </div>
+            </div>
+            <button type="button" class="crm-import-close-btn crm-import-close-trigger" aria-label="Đóng cửa sổ">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </header>
+
+        <!-- 2. Stepper Wizard Bar -->
+        <div class="crm-import-stepper">
+            <div class="import-step-item active" data-step="1">
+                <div class="import-step-circle">1</div>
+                <div class="import-step-text">
+                    <strong>Tải tệp & File mẫu</strong>
+                    <span>Chọn file hoặc thử mẫu</span>
+                </div>
+            </div>
+            <div class="import-step-divider"></div>
+            <div class="import-step-item" data-step="2">
+                <div class="import-step-circle">2</div>
+                <div class="import-step-text">
+                    <strong>Đối soát & Xử lý trùng</strong>
+                    <span>Kiểm tra lỗi & chọn SKIP/UPDATE</span>
+                </div>
+            </div>
+            <div class="import-step-divider"></div>
+            <div class="import-step-item" data-step="3">
+                <div class="import-step-circle">3</div>
+                <div class="import-step-text">
+                    <strong>Hoàn tất & Báo cáo</strong>
+                    <span>Tiến hành nhập & báo cáo</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Modal Body -->
+        <div class="crm-import-modal-body">
+            <!-- PANE 1: Upload & File Selection -->
+            <div class="import-step-pane active" data-step="1">
+                <div class="crm-upload-container">
+                    <!-- Template Toolbar -->
+                    <div class="crm-template-toolbar">
+                        <div class="crm-template-info">
+                            <div class="crm-template-info-icon">📥</div>
+                            <div>
+                                <strong>Tệp mẫu Excel chuẩn hệ thống</strong>
+                                <p>Tải file mẫu để điền đầy đủ các cột bắt buộc: Tên công ty, MST, Trạng thái, Email, SĐT...</p>
+                            </div>
+                        </div>
+                        <button id="btnDownloadTemplate" type="button" class="crm-btn crm-btn-secondary" title="Tải tệp mẫu Excel">
+                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Tải tệp mẫu Excel
+                        </button>
+                    </div>
+
+                    <!-- Drag & Drop Zone -->
+                    <input id="importFileInput" type="file" accept=".xlsx,.xls,.csv" hidden>
+                    <div id="importDropZone" class="crm-drop-zone">
+                        <div class="crm-drop-icon">
+                            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        </div>
+                        <div class="crm-drop-prompt-main">Kéo & thả tệp Excel hoặc CSV vào đây</div>
+                        <div class="crm-drop-prompt-sub">hoặc nhấn vào khung để duyệt tệp từ máy tính của bạn</div>
+                        <div class="crm-drop-badge-list">
+                            <span class="crm-drop-format-badge">.XLSX</span>
+                            <span class="crm-drop-format-badge">.CSV</span>
+                            <span class="crm-drop-format-badge">Tối đa 5MB</span>
+                            <span class="crm-drop-format-badge">Tối đa 1.000 dòng</span>
+                        </div>
+                    </div>
+
+                    <!-- Selected File Info Card -->
+                    <div id="importFileCard" class="crm-file-card">
+                        <div class="crm-file-meta">
+                            <div class="crm-file-icon">📊</div>
+                            <div>
+                                <div id="importFileName" class="crm-file-name">ten_file.xlsx</div>
+                                <div id="importFileSize" class="crm-file-size">0 KB</div>
+                            </div>
+                        </div>
+                        <button id="btnRemoveFile" type="button" class="crm-file-remove-btn">
+                            Đổi tệp khác
+                        </button>
+                    </div>
+
+                    <!-- Sandbox Quick Demo Cards -->
+                    <div>
+                        <div style="font-size:13px; font-weight:700; color:var(--crm-text); margin-bottom:8px;">
+                            Thử nghiệm nhanh (Demo tức thì không cần chuẩn bị tệp):
+                        </div>
+                        <div class="crm-demo-sandbox-grid">
+                            <div class="crm-demo-card">
+                                <div>
+                                    <h4>✨ Nạp mẫu Hợp lệ (Demo)</h4>
+                                    <p>Tải 5 khách hàng doanh nghiệp chuẩn (Viettel, VNPAY, Tiki, DHG, REE) sẵn sàng nhập mới ngay.</p>
+                                </div>
+                                <button id="btnLoadValidDemo" type="button" class="crm-btn crm-btn-secondary" style="font-size:12.5px;">
+                                    Nạp dữ liệu Hợp lệ
+                                </button>
+                            </div>
+
+                            <div class="crm-demo-card">
+                                <div>
+                                    <h4>⚡ Nạp mẫu Có lỗi & Trùng lặp (Demo)</h4>
+                                    <p>Bao gồm trường hợp thiếu Tên, sai MST, sai Email và các dòng trùng lặp với hệ thống (FPT, VNG) để thử nghiệm cơ chế SKIP/UPDATE.</p>
+                                </div>
+                                <button id="btnLoadMixedDemo" type="button" class="crm-btn crm-btn-secondary" style="font-size:12.5px; border-color:#f59e0b; color:#b45309;">
+                                    Nạp dữ liệu Lỗi & Trùng lặp
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANE 2: Preview, Validation Grid & Conflict Resolution -->
+            <div class="import-step-pane" data-step="2">
+                <div class="crm-preview-container">
+                    <!-- KPI Summary Stats -->
+                    <div class="crm-import-kpi-bar">
+                        <div class="crm-import-kpi-card kpi-total active" data-filter="ALL" title="Hiển thị tất cả bản ghi">
+                            <div class="import-kpi-icon">📋</div>
+                            <div class="import-kpi-info">
+                                <span>Tổng số dòng</span>
+                                <strong id="previewStatTotal">0</strong>
+                            </div>
+                        </div>
+                        <div class="crm-import-kpi-card kpi-valid" data-filter="VALID" title="Lọc các dòng hợp lệ">
+                            <div class="import-kpi-icon">✓</div>
+                            <div class="import-kpi-info">
+                                <span>Hợp lệ</span>
+                                <strong id="previewStatValid" style="color:var(--crm-success);">0</strong>
+                            </div>
+                        </div>
+                        <div class="crm-import-kpi-card kpi-error" data-filter="ERROR" title="Lọc các dòng bị lỗi xác thực">
+                            <div class="import-kpi-icon">✕</div>
+                            <div class="import-kpi-info">
+                                <span>Lỗi xác thực</span>
+                                <strong id="previewStatError" style="color:var(--crm-danger);">0</strong>
+                            </div>
+                        </div>
+                        <div class="crm-import-kpi-card kpi-duplicate" data-filter="DUPLICATE" title="Lọc các dòng bị trùng lặp">
+                            <div class="import-kpi-icon">⚠️</div>
+                            <div class="import-kpi-info">
+                                <span>Trùng lặp</span>
+                                <strong id="previewStatDuplicate" style="color:var(--crm-warning);">0</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Global Conflict Resolution Toolbar -->
+                    <div class="crm-conflict-toolbar">
+                        <div class="crm-conflict-text">
+                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <span><strong>Xử lý bản ghi trùng lặp:</strong> Phát hiện khách hàng có cùng Mã số thuế hoặc Tên trong hệ thống/tệp tin.</span>
+                        </div>
+                        <div class="crm-conflict-actions">
+                            <label for="globalConflictSelect">Hành động:</label>
+                            <select id="globalConflictSelect" class="crm-conflict-select">
+                                <option value="SKIP">Bỏ qua tất cả (SKIP)</option>
+                                <option value="UPDATE">Cập nhật tất cả (UPDATE)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Filter Strip & Search -->
+                    <div class="crm-grid-filter-strip">
+                        <div class="crm-filter-pills">
+                            <button type="button" class="crm-pill-btn active" data-filter="ALL">Tất cả</button>
+                            <button type="button" class="crm-pill-btn" data-filter="VALID">Hợp lệ</button>
+                            <button type="button" class="crm-pill-btn" data-filter="ERROR">Bị lỗi</button>
+                            <button type="button" class="crm-pill-btn" data-filter="DUPLICATE">Bị trùng lặp</button>
+                        </div>
+                        <input id="importSearchInput" type="search" class="crm-input crm-grid-search-input" placeholder="Tìm kiếm trong danh sách xem trước...">
+                    </div>
+
+                    <!-- Interactive Data Table -->
+                    <div class="crm-import-table-wrapper">
+                        <table class="crm-import-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:45px;">#</th>
+                                    <th>Tên khách hàng</th>
+                                    <th>Mã số thuế</th>
+                                    <th>Trạng thái</th>
+                                    <th>Email</th>
+                                    <th>SĐT</th>
+                                    <th>Đánh giá</th>
+                                    <th style="width:160px;">Xử lý trùng lặp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="importPreviewTbody">
+                                <!-- Populated dynamically by customer-import.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANE 3: Execution Progress & Summary Report -->
+            <div class="import-step-pane" data-step="3">
+                <div class="crm-report-container">
+                    <!-- Progress Bar during Import -->
+                    <div id="importProgressWrapper" class="crm-progress-wrapper">
+                        <div class="crm-progress-track">
+                            <div id="importProgressBar" class="crm-progress-bar"></div>
+                        </div>
+                        <div id="importProgressStatus" class="crm-progress-status">Đang xử lý nhập dữ liệu...</div>
+                    </div>
+
+                    <!-- Summary Report Card -->
+                    <div id="importReportCard" class="crm-summary-report-card" style="display:none;">
+                        <div class="crm-report-header">
+                            <div class="crm-report-badge-icon">✓</div>
+                            <div class="crm-report-title">
+                                <h3>Hoàn tất Xử lý Nhập dữ liệu Khách hàng</h3>
+                                <p>Hệ thống đã phân loại và lưu trữ thành công các bản ghi vào cơ sở dữ liệu CRM.</p>
+                            </div>
+                        </div>
+
+                        <!-- 4 Report Metrics -->
+                        <div class="crm-report-metrics-grid">
+                            <div class="crm-metric-box">
+                                <span>Tổng số dòng</span>
+                                <strong id="reportTotalCount">0</strong>
+                            </div>
+                            <div class="crm-metric-box metric-created">
+                                <span>Tạo mới thành công</span>
+                                <strong id="reportCreatedCount">0</strong>
+                            </div>
+                            <div class="crm-metric-box metric-updated">
+                                <span>Cập nhật thành công</span>
+                                <strong id="reportUpdatedCount">0</strong>
+                            </div>
+                            <div class="crm-metric-box metric-skipped">
+                                <span>Đã bỏ qua (Trùng)</span>
+                                <strong id="reportSkippedCount">0</strong>
+                            </div>
+                        </div>
+
+                        <!-- Error Logs Table (if any) -->
+                        <div id="reportErrorSection" class="crm-error-log-section" style="display:none;">
+                            <div class="crm-error-log-head">
+                                <div class="crm-error-log-title">
+                                    <span>⚠️ Danh sách các dòng bị lỗi không thể nhập (<span id="reportErrorCount">0</span> dòng):</span>
+                                </div>
+                                <button id="btnDownloadErrorLog" type="button" class="crm-btn crm-btn-secondary" style="font-size:12px; padding:4px 10px;">
+                                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Tải danh sách dòng lỗi (.csv)
+                                </button>
+                            </div>
+
+                            <div class="crm-import-table-wrapper" style="max-height:220px;">
+                                <table class="crm-import-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:70px;">Vị trí</th>
+                                            <th>Tên khách hàng</th>
+                                            <th>Mã số thuế</th>
+                                            <th>Nguyên nhân lỗi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reportErrorTbody">
+                                        <!-- Error logs inserted here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Modal Footer -->
+        <footer class="crm-import-modal-footer">
+            <div id="importFooterStatus" class="crm-footer-status">
+                Bước 1 / 3: Chọn tệp Excel hoặc CSV để bắt đầu.
+            </div>
+            <div class="crm-footer-actions">
+                <button id="btnImportCancel" type="button" class="crm-btn crm-btn-secondary crm-import-close-trigger">Hủy bỏ</button>
+                <button id="btnImportBack" type="button" class="crm-btn crm-btn-secondary" style="display:none;">
+                    Quay lại tải file
+                </button>
+                <button id="btnImportNext" type="button" class="crm-btn crm-btn-primary" style="display:none;">
+                    Tiếp tục kiểm tra
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </button>
+                <button id="btnImportExecute" type="button" class="crm-btn crm-btn-primary" style="display:none;">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    Tiến hành nhập dữ liệu
+                </button>
+                <button id="btnImportFinish" type="button" class="crm-btn crm-btn-primary" style="display:none;">
+                    Hoàn tất & Xem danh sách
+                </button>
+            </div>
+        </footer>
+    </div>
+</div>
+
 <!-- Scripts -->
 <script src="js/pages/duplicate-merge.js"></script>
 <script src="js/pages/customer-filter.js"></script>
 <script src="js/pages/support-tickets.js"></script>
 <script src="js/pages/contacts.js"></script>
 <script src="js/pages/corporate-hierarchy.js"></script>
+<script src="js/pages/customer-import.js"></script>
 <script src="js/customers/customers.js"></script>
 <script src="js/pages/customers.js"></script>
 <script src="js/page-transition.js"></script>
