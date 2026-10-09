@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<script>
+(function () {
+    try {
+        var theme = localStorage.getItem("crm_ui_theme");
+        document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+        document.documentElement.removeAttribute("data-crm-theme");
+    } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="Danh sách khách hàng cần chăm sóc định kỳ, quản lý lịch tương tác và chống bỏ quên khách hàng sau ký kết CRM B2B">
+
+<title>Khách hàng Cần Chăm sóc Định kỳ | Corporate CRM</title>
+
+<link rel="stylesheet" href="css/design-system.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/pages/customers.css">
+<link rel="stylesheet" href="css/pages/periodic-care.css">
+<link rel="stylesheet" href="css/animations.css">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="periodic-care.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+            <span class="crm-nav-label">Chăm sóc định kỳ</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="crm-nav-label">Người liên hệ</span>
+        </a>
+
+        <a href="support-tickets.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg></span>
+            <span class="crm-nav-label">Chăm sóc & Hỗ trợ</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản lý</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-4 2.7-7 6-7s6 3 6 7"/><path d="M15 14c3 0 5 2 5 5"/></svg></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm khách hàng, hợp đồng, MST...">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">CS</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Đang tải...</span>
+                    <span class="crm-user-role" id="topUserRole">Chăm sóc khách hàng</span>
+                </div>
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogout">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main periodic-care-page">
+
+    <!-- 1. HEADER & ACTIONS -->
+    <section class="care-page-head">
+        <div>
+            <p class="care-kicker">CRM-69 / DỊCH VỤ SAU BÁN HÀNG & CHĂM SÓC KHÁCH HÀNG (TASK S3-09)</p>
+            <h1>Khách hàng Cần Chăm sóc Định kỳ</h1>
+            <p>Theo dõi khách hàng đã ký hợp đồng nhưng chưa được tương tác gần đây. Chủ động gắn kết định kỳ, ngăn ngừa nguy cơ bỏ quên khách hàng trước thời điểm tái ký và gia hạn hợp đồng.</p>
+        </div>
+
+        <div class="care-head-actions">
+            <button id="btnRefreshCare" class="crm-btn crm-btn-secondary" type="button" title="Làm mới dữ liệu từ máy chủ">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Làm mới
+            </button>
+
+            <button id="btnExportCareList" class="crm-btn crm-btn-secondary" type="button" title="Xuất danh sách khách hàng cần chăm sóc ra file CSV / Excel">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Xuất Báo Cáo
+            </button>
+
+            <a href="customers.html" class="crm-btn crm-btn-primary" style="text-decoration:none;" title="Xem toàn bộ danh mục khách hàng doanh nghiệp">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                Hồ sơ Khách hàng
+            </a>
+        </div>
+    </section>
+
+    <!-- 2. ENTERPRISE KPI CARDS -->
+    <section class="care-kpi-grid">
+        <!-- KPI 1: Tổng khách cần chăm sóc -->
+        <div class="care-kpi-card kpi-border-amber">
+            <div class="care-kpi-icon kpi-icon-amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="care-kpi-body">
+                <div class="care-kpi-label">Tổng khách cần chăm sóc</div>
+                <div class="care-kpi-val" id="kpiTotalCare">0</div>
+                <div class="care-kpi-sub" id="kpiTotalCareSub">Quá hạn ≥ 30 ngày chưa tương tác</div>
+            </div>
+        </div>
+
+        <!-- KPI 2: Khách VIP nguy cơ bỏ quên (>50M) -->
+        <div class="care-kpi-card kpi-border-red">
+            <div class="care-kpi-icon kpi-icon-red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="care-kpi-body">
+                <div class="care-kpi-label">Khách VIP nguy cơ bỏ quên</div>
+                <div class="care-kpi-val" id="kpiVipRisk" style="color:var(--crm-danger);">0</div>
+                <div class="care-kpi-sub">Hợp đồng &gt; 50 triệu VNĐ cần liên hệ gấp</div>
+            </div>
+        </div>
+
+        <!-- KPI 3: Giá trị hợp đồng đang rủi ro -->
+        <div class="care-kpi-card kpi-border-purple">
+            <div class="care-kpi-icon kpi-icon-purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="care-kpi-body">
+                <div class="care-kpi-label">Giá trị hợp đồng đang rủi ro</div>
+                <div class="care-kpi-val" id="kpiContractValueAtRisk" style="font-size:20px;">0 ₫</div>
+                <div class="care-kpi-sub">Tổng giá trị khách hàng chậm tương tác</div>
+            </div>
+        </div>
+
+        <!-- KPI 4: Đã liên hệ hôm nay / gần đây -->
+        <div class="care-kpi-card kpi-border-green">
+            <div class="care-kpi-icon kpi-icon-green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="care-kpi-body">
+                <div class="care-kpi-label">Đã chăm sóc gần đây</div>
+                <div class="care-kpi-val" id="kpiContactedRecently" style="color:var(--crm-success);">0</div>
+                <div class="care-kpi-sub" id="kpiContactedRateSub">Ghi nhận liên hệ thành công</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. CONFIGURATION & SMART FILTER TOOLBAR -->
+    <section class="care-toolbar-card">
+        <!-- Row 1: Days Threshold Configuration -->
+        <div class="care-threshold-row">
+            <div class="threshold-label-wrap">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" style="color:var(--crm-primary);"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Cấu hình số ngày chưa tương tác (N):</span>
+            </div>
+
+            <div class="threshold-input-group">
+                <input type="number" id="inputDaysThreshold" class="threshold-number-input" value="30" min="1" max="365" aria-label="Số ngày chưa tương tác">
+                <span style="font-size:13.5px; font-weight:600; color:var(--crm-text-2);">ngày</span>
+            </div>
+
+            <div class="threshold-chips" id="presetChipsContainer">
+                <button type="button" class="threshold-chip" data-days="15">15 ngày</button>
+                <button type="button" class="threshold-chip active" data-days="30">30 ngày</button>
+                <button type="button" class="threshold-chip" data-days="45">45 ngày</button>
+                <button type="button" class="threshold-chip" data-days="60">60 ngày</button>
+                <button type="button" class="threshold-chip" data-days="90">90 ngày</button>
+            </div>
+        </div>
+
+        <!-- Row 2: Search, Filters & Sorting -->
+        <div class="care-filters-row">
+            <!-- Search Input -->
+            <div class="care-search-box">
+                <svg class="care-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                <input type="search" id="careSearchInput" class="crm-input care-search-input" placeholder="Tìm kiếm tên công ty, MST, người phụ trách, số điện thoại...">
+            </div>
+
+            <!-- Contract Value Filter -->
+            <select id="filterContractValue" class="crm-input care-select-filter" aria-label="Lọc theo giá trị hợp đồng">
+                <option value="ALL">Tất cả mức hợp đồng</option>
+                <option value="VIP_PRIORITY">Khách VIP ưu tiên (&gt; 50M)</option>
+                <option value="MEGA_VIP">Tập đoàn / Ultra VIP (&gt; 200M)</option>
+                <option value="LARGE">Doanh nghiệp lớn (50M - 200M)</option>
+                <option value="SME">Doanh nghiệp vừa & nhỏ (&lt; 50M)</option>
+            </select>
+
+            <!-- Owner Filter -->
+            <select id="filterOwner" class="crm-input care-select-filter" aria-label="Lọc theo nhân viên phụ trách">
+                <option value="ALL">Tất cả nhân viên phụ trách</option>
+                <!-- Populated dynamically via JS -->
+            </select>
+
+            <!-- Sorting Select -->
+            <select id="careSortSelect" class="crm-input care-select-filter" aria-label="Sắp xếp danh sách">
+                <option value="contract_desc" selected>Hợp đồng: Cao đến Thấp (VIP trước)</option>
+                <option value="contract_asc">Hợp đồng: Thấp đến Cao</option>
+                <option value="days_desc">Số ngày quá hạn: Nhiều nhất đến Ít nhất</option>
+                <option value="last_asc">Lần tương tác cuối: Xa nhất đến Gần nhất</option>
+                <option value="name_asc">Tên doanh nghiệp: A → Z</option>
+            </select>
+
+            <!-- Reset Button -->
+            <button type="button" id="btnResetCareFilters" class="crm-btn crm-btn-secondary btn-reset-filters" title="Xóa toàn bộ bộ lọc về mặc định">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Đặt lại
+            </button>
+        </div>
+    </section>
+
+    <!-- 4. VIEW TABS NAVIGATION -->
+    <div class="care-view-tabs">
+        <div class="care-tabs-left">
+            <button type="button" id="tabDueCare" class="care-tab-btn active" data-tab="due">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:17px; height:17px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>Cần chăm sóc ngay</span>
+                <span class="care-tab-badge" id="badgeDueCount">0</span>
+            </button>
+
+            <button type="button" id="tabDoneCare" class="care-tab-btn" data-tab="done">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:17px; height:17px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <span>Đã chăm sóc gần đây</span>
+                <span class="care-tab-badge" id="badgeDoneCount">0</span>
+            </button>
+        </div>
+
+        <div class="care-tabs-right">
+            <span id="careRecordSummary" style="font-size:12.5px; color:var(--crm-muted); font-weight:600;">Hiển thị: 0 khách hàng</span>
+        </div>
+    </div>
+
+    <!-- 5. PERIODIC CARE DATA TABLE -->
+    <section class="care-table-card">
+        <div class="care-table-responsive">
+            <table class="care-table" id="careTable">
+                <thead>
+                    <tr>
+                        <th style="width:40px; text-align:center;">#</th>
+                        <th style="min-width:260px;">Tên Khách Hàng / Doanh Nghiệp</th>
+                        <th style="min-width:180px;">Người Phụ Trách</th>
+                        <th style="min-width:190px;">Lần Tương Tác Gần Nhất</th>
+                        <th style="min-width:170px;">Số Ngày Chưa Tương Tác</th>
+                        <th style="min-width:170px;">Tổng Giá Trị Hợp Đồng</th>
+                        <th style="min-width:190px; text-align:right;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody id="careTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="careEmptyState" class="care-empty-state" style="display:none;">
+            <div class="care-empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <h3 class="care-empty-title" id="emptyStateTitle">Không có khách hàng nào bị bỏ quên!</h3>
+            <p class="care-empty-desc" id="emptyStateDesc">Tất cả khách hàng đã ký hợp đồng đều được tương tác đúng lịch trong ngưỡng ngày đã cấu hình.</p>
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnEmptyResetFilter">
+                Xem lại danh sách mở rộng
+            </button>
+        </div>
+
+        <!-- Table Pagination Footer -->
+        <div class="care-table-footer" id="careTableFooter">
+            <div id="carePaginationInfo">Đang hiển thị dòng 1 - 10 / 10</div>
+
+            <div class="care-pagination-controls">
+                <label for="selectPageSize" style="font-size:12.5px; margin-right:4px;">Hiển thị:</label>
+                <select id="selectPageSize" class="crm-input" style="width:75px; min-height:32px; height:32px; padding:0 6px; font-size:12.5px;" aria-label="Số dòng mỗi trang">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                </select>
+
+                <button type="button" id="btnPrevPage" class="care-page-btn" title="Trang trước" aria-label="Trang trước">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+
+                <span id="pageIndicator" style="font-weight:700; color:var(--crm-text); padding:0 4px;">1 / 1</span>
+
+                <button type="button" id="btnNextPage" class="care-page-btn" title="Trang sau" aria-label="Trang sau">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ================= MODAL: GHI NHẬN LIÊN HỆ NHANH (MARK CONTACTED) ================= -->
+<div id="careModalOverlay" class="care-modal-overlay"></div>
+
+<div id="markContactedModal" class="care-modal" role="dialog" aria-modal="true" aria-labelledby="modalCareTitle">
+    <div class="care-modal-header">
+        <h3 class="care-modal-title" id="modalCareTitle">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" style="color:var(--crm-primary);"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Ghi nhận Chăm sóc & Đã liên hệ
+        </h3>
+        <button type="button" id="btnCloseCareModal" class="care-modal-close" aria-label="Đóng modal">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+
+    <form id="formMarkContacted">
+        <div class="care-modal-body">
+            <!-- Customer Context Preview Box -->
+            <div class="modal-customer-info-box">
+                <div>
+                    <h4 class="modal-cust-name" id="modalCustName">Tên Doanh Nghiệp</h4>
+                    <div class="modal-cust-meta" id="modalCustMeta">MST: — • Người phụ trách: —</div>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-size:11px; font-weight:700; color:var(--crm-muted); text-transform:uppercase;">Giá trị hợp đồng</span>
+                    <div id="modalCustContractValue" style="font-size:15px; font-weight:800; color:var(--crm-text);">0 ₫</div>
+                </div>
+            </div>
+
+            <!-- Field 1: Hình thức tương tác -->
+            <div class="form-group-care">
+                <label class="form-label-care">Hình thức liên hệ: <span class="required-star">*</span></label>
+                <div class="interaction-type-grid" id="modalChannelSelector">
+                    <div class="type-select-card active" data-type="call">
+                        <span class="type-icon-lg">📞</span>
+                        <span class="type-card-label">Cuộc gọi định kỳ</span>
+                    </div>
+                    <div class="type-select-card" data-type="meeting">
+                        <span class="type-icon-lg">🤝</span>
+                        <span class="type-card-label">Gặp mặt / Họp</span>
+                    </div>
+                    <div class="type-select-card" data-type="email">
+                        <span class="type-icon-lg">✉️</span>
+                        <span class="type-card-label">Gửi Email CSKH</span>
+                    </div>
+                    <div class="type-select-card" data-type="support">
+                        <span class="type-icon-lg">🛠️</span>
+                        <span class="type-card-label">Hỗ trợ kỹ thuật</span>
+                    </div>
+                </div>
+                <input type="hidden" id="modalInteractionType" value="call">
+            </div>
+
+            <!-- Field 2: Thời gian tương tác -->
+            <div class="form-group-care">
+                <label for="modalContactDate" class="form-label-care">Thời gian liên hệ: <span class="required-star">*</span></label>
+                <input type="datetime-local" id="modalContactDate" class="crm-input" required>
+            </div>
+
+            <!-- Field 3: Nội dung trao đổi vắn tắt -->
+            <div class="form-group-care">
+                <label for="modalContactNotes" class="form-label-care">Nội dung trao đổi / Ghi chú chăm sóc: <span class="required-star">*</span></label>
+                <textarea id="modalContactNotes" class="crm-input textarea-note" placeholder="Ví dụ: Gọi điện thăm hỏi tình hình vận hành hệ thống, khách hàng phản hồi hài lòng. Đã tư vấn thêm tính năng mới và thống nhất gia hạn quý 4..." required></textarea>
+
+                <!-- Quick Template Chips -->
+                <div class="template-quick-chips">
+                    <span style="font-size:11px; color:var(--crm-muted); font-weight:600;">Mẫu nhanh:</span>
+                    <button type="button" class="template-chip" data-tpl="Gọi điện thăm hỏi vận hành, hệ thống ổn định, khách hàng hài lòng và sẵn sàng gia hạn đúng hạn.">Hài lòng & gia hạn</button>
+                    <button type="button" class="template-chip" data-tpl="Khách hàng yêu cầu hỗ trợ kiểm tra thêm tài liệu kỹ thuật và đào tạo người dùng mới.">Cần hỗ trợ kỹ thuật</button>
+                    <button type="button" class="template-chip" data-tpl="Đã gặp mặt trực tiếp trao đổi kế hoạch mở rộng hợp đồng thêm 50 tài khoản trong tháng tới.">Mở rộng hợp đồng</button>
+                </div>
+            </div>
+
+            <!-- Field 4: Đánh giá trạng thái khách hàng -->
+            <div class="form-group-care">
+                <label for="modalSatisfaction" class="form-label-care">Mức độ tương tác & hài lòng:</label>
+                <select id="modalSatisfaction" class="crm-input">
+                    <option value="VERY_SATISFIED">🟢 Rất hài lòng - Khách hàng thân thiết</option>
+                    <option value="SATISFIED" selected>🔵 Ổn định - Tương tác bình thường</option>
+                    <option value="NEUTRAL">🟡 Trung lập - Cần chăm sóc đều đặn hơn</option>
+                    <option value="RISK">🔴 Có thắc mắc / Cần lưu tâm rủi ro</option>
+                </select>
+            </div>
+
+            <!-- Field 5: Ngày hẹn tiếp theo -->
+            <div class="form-group-care">
+                <label for="modalNextFollowUp" class="form-label-care">Lịch hẹn chăm sóc tiếp theo:</label>
+                <input type="date" id="modalNextFollowUp" class="crm-input">
+            </div>
+
+            <!-- Field 6: Checkbox Reminder -->
+            <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                <input type="checkbox" id="modalCreateReminder" checked style="width:16px; height:16px; cursor:pointer;">
+                <label for="modalCreateReminder" style="font-size:13px; color:var(--crm-text-2); cursor:pointer;">
+                    Đồng thời tạo lịch nhắc việc cho buổi tương tác tiếp theo trong hệ thống
+                </label>
+            </div>
+        </div>
+
+        <div class="care-modal-footer">
+            <button type="button" id="btnCancelCareModal" class="crm-btn crm-btn-secondary">Hủy bỏ</button>
+            <button type="submit" id="btnSaveContacted" class="crm-btn crm-btn-primary">
+                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Xác nhận & Lưu liên hệ
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- ================= TOAST NOTIFICATION REGION ================= -->
+<div id="careToastRegion" class="crm-toast-region"></div>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="js/pages/periodic-care.js"></script>
+<script src="js/page-transition.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/shared-shell.js"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
+</body>
+</html>
