@@ -5,7 +5,7 @@
  * CRM-63 / S3-03: ENTERPRISE CUSTOMER 360 VIEW CLIENT ENGINE
  * Module: frontend/js/pages/customer-360.js
  * Author: Senior Frontend Developer
- * 
+ *
  * Capabilities:
  *  1. Unified API Client for GET /api/customers/{id}/360
  *  2. Pure In-Memory Mock Fallback & HTTP/JSON Client Architecture
@@ -411,7 +411,7 @@ function normalizePayload(raw) {
     const cust = raw.customer || raw;
     const oppsOpen = raw.openOpportunities || (Array.isArray(raw.opportunities) ? raw.opportunities.filter(o => o.status === "OPEN") : (raw.opportunities?.open || []));
     const oppsClosed = raw.closedOpportunities || (Array.isArray(raw.opportunities) ? raw.opportunities.filter(o => o.status !== "OPEN") : (raw.opportunities?.closed || []));
-    
+
     // Financial KPIs calculation
     const wonSum = raw.kpis?.totalWon ?? raw.totalContractValue ?? oppsClosed.filter(o => o.status === "WON").reduce((s, o) => s + (Number(o.amount) || 0), 0);
     const pipelineSum = raw.kpis?.openPipeline ?? raw.openOpportunityValue ?? oppsOpen.reduce((s, o) => s + (Number(o.amount) || 0), 0);
@@ -578,7 +578,7 @@ function renderPrimaryContactCard() {
 ========================================================= */
 function applyTimelineFilter() {
     const q = timelineSearchQuery.toLowerCase().trim();
-    
+
     filteredTimeline = timelineData.filter(item => {
         const matchesType = timelineFilterType === "all" || item.type === timelineFilterType;
         const matchesQuery = !q || item.text.toLowerCase().includes(q) || item.subject.toLowerCase().includes(q) || item.author.toLowerCase().includes(q);

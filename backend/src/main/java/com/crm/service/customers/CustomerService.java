@@ -4,6 +4,7 @@ import com.crm.dao.customers.CustomerDAO;
 import com.crm.dao.customers.CustomerImportDAO;
 import com.crm.dao.customfields.CustomFieldValueDAO;
 import com.crm.dto.customers.CustomerWriteRequest;
+import com.crm.dto.customers.CustomerSearchFilter;
 import com.crm.service.permissions.DataScopeContext;
 import com.crm.service.permissions.DataScopeService;
 
@@ -30,6 +31,9 @@ public class CustomerService {
         this.references = references;
     }
 
+    public CustomerService(CustomerDAO customerDAO, DataScopeService dataScopeService) {
+        this(customerDAO, new CustomFieldValueDAO(), dataScopeService, new CustomerImportDAO());
+    }
     public Map<String, Object> search(
             long currentUserId,
             String keyword,
@@ -37,24 +41,33 @@ public class CustomerService {
             int page,
             int size
     ) throws Exception {
+        return search(currentUserId, new CustomerSearchFilter(keyword, status, null, null, null, null), page, size);
+    }
+
+    public Map<String, Object> search(long currentUserId, CustomerSearchFilter filter, int page, int size) throws Exception {
+        CustomerSearchFilter.pagination(page, size);
         DataScopeContext scope = dataScopeService.resolve(currentUserId, "customer", "read");
-        if (page < 1 || size < 1 || size > 100) {
-            throw new IllegalArgumentException("page phải >= 1; size phải từ 1 đến 100");
+        try (Connection conn = customerDAO.open()) {
+            conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+            conn.setAutoCommit(false);
+            try {
+                // A single snapshot keeps COUNT and the current page consistent during concurrent writes.
+                long total = customerDAO.count(conn, scope, filter);
+                List<Map<String, Object>> items = customerDAO.search(conn, scope, filter, page, size);
+                Map<String, Object> result = new LinkedHashMap<>();
+                result.put("items", items);
+                result.put("page", page);
+                result.put("size", size);
+                result.put("totalItems", total);
+                result.put("totalPages", (int) Math.ceil((double) total / size));
+                result.put("scope", scope.scopeType().name());
+                conn.commit();
+                return result;
+            } catch (Exception e) {
+                try { conn.rollback(); } catch (SQLException rollback) { e.addSuppressed(rollback); }
+                throw e;
+            }
         }
-        status = CustomerValidation.status(status);
-        long total = customerDAO.count(scope, keyword, status);
-        int totalPages = (int) Math.ceil((double) total / size);
-
-        List<Map<String, Object>> items = customerDAO.search(scope, keyword, status, page, size);
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("items", items);
-        result.put("page", page);
-        result.put("size", size);
-        result.put("totalItems", total);
-        result.put("totalPages", totalPages);
-        result.put("scope", scope.scopeType().name());
-        return result;
     }
 
     public Map<String, Object> getById(long currentUserId, long id) throws Exception {
@@ -88,6 +101,7 @@ public class CustomerService {
 
     public Map<String, Object> create(long currentUserId, CustomerWriteRequest req) throws Exception {
         DataScopeContext scope = dataScopeService.resolve(currentUserId, "customer", "create");
+        validateRegion(req);
         CustomerValidation.normalize(req);
         long owner = req.getOwnerUserId() == null ? currentUserId : req.getOwnerUserId();
         requireOwner(scope, owner);
@@ -112,6 +126,7 @@ public class CustomerService {
     public Map<String, Object> update(long currentUserId, long id, CustomerWriteRequest req) throws Exception {
         requireId(id);
         DataScopeContext scope = dataScopeService.resolve(currentUserId, "customer", "update");
+        validateRegion(req);
         CustomerValidation.normalize(req);
         DataScopeContext read = dataScopeService.resolve(currentUserId, "customer", "read");
         try (Connection conn = customerDAO.open()) {
@@ -136,6 +151,10 @@ public class CustomerService {
                 throw e;
             }
         }
+    }
+
+    private void validateRegion(CustomerWriteRequest req) {
+        if (req.hasRegion()) req.setRegion(CustomerSearchFilter.text(req.getRegion(), "region", 20));
     }
 
     public void delete(long currentUserId, long id) throws Exception {
