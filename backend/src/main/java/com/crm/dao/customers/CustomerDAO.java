@@ -99,6 +99,10 @@ public class CustomerDAO {
     }
 
     public Map<String, Object> findById(long id) throws SQLException {
+        try (Connection conn = open()) { return findById(conn, id, false); }
+    }
+
+    public Map<String, Object> findById(Connection conn, long id, boolean lock) throws SQLException {
         String sql = """
                 SELECT
                     c.id,
@@ -120,8 +124,7 @@ public class CustomerDAO {
                 WHERE c.id = ? AND c.is_deleted = 0
                 """;
 
-        try (Connection conn = open();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql + (lock ? " FOR UPDATE" : ""))) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -133,6 +136,10 @@ public class CustomerDAO {
     }
 
     public long create(CustomerWriteRequest req, long defaultOwnerId) throws SQLException {
+        try (Connection conn = open()) { return create(conn, req, defaultOwnerId); }
+    }
+
+    public long create(Connection conn, CustomerWriteRequest req, long ownerId) throws SQLException {
         String sql = """
                 INSERT INTO customers (
                     name, tax_code, status, email, phone, website, address,
@@ -140,9 +147,7 @@ public class CustomerDAO {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
-        long ownerId = req.getOwnerUserId() != null ? req.getOwnerUserId() : defaultOwnerId;
-        try (Connection conn = open();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, req.getName());
             stmt.setString(2, req.getTaxCode());
             stmt.setString(3, req.getStatus());
@@ -166,6 +171,10 @@ public class CustomerDAO {
     }
 
     public void update(long id, CustomerWriteRequest req) throws SQLException {
+        try (Connection conn = open()) { update(conn, id, req); }
+    }
+
+    public void update(Connection conn, long id, CustomerWriteRequest req) throws SQLException {
         String sql = """
                 UPDATE customers SET
                     name = ?, tax_code = ?, status = ?, email = ?, phone = ?,
@@ -175,8 +184,7 @@ public class CustomerDAO {
                 WHERE id = ? AND is_deleted = 0
                 """;
 
-        try (Connection conn = open();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, req.getName());
             stmt.setString(2, req.getTaxCode());
             stmt.setString(3, req.getStatus());
@@ -196,11 +204,22 @@ public class CustomerDAO {
     }
 
     public void softDelete(long id) throws SQLException {
-        String sql = "UPDATE customers SET is_deleted = 1 WHERE id = ?";
-        try (Connection conn = open();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = open()) { softDelete(conn, id); }
+    }
+
+    public void softDelete(Connection conn, long id) throws SQLException {
+        String sql = "UPDATE customers SET is_deleted = 1 WHERE id = ? AND is_deleted = 0";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             stmt.executeUpdate();
+        }
+    }
+
+    public boolean activeOwner(Connection conn, long id) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(
+                "SELECT id FROM users WHERE id = ? AND status = 'ACTIVE' FOR SHARE")) {
+            stmt.setLong(1, id);
+            try (ResultSet rs = stmt.executeQuery()) { return rs.next(); }
         }
     }
 

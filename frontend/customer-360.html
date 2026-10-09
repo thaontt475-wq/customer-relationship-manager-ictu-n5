@@ -40,6 +40,7 @@
 <link rel="stylesheet" href="css/pages/customer-360.css">
 <link rel="stylesheet" href="css/pages/support-tickets.css">
 <link rel="stylesheet" href="css/pages/contacts.css">
+<link rel="stylesheet" href="css/pages/corporate-hierarchy.css">
 
 <link rel="stylesheet" href="css/animations.css">
 </head>
@@ -162,7 +163,7 @@
 
     <section class="customer360-head">
 
-        <div>
+        <div class="customer360-head-main">
 
             <a
                 href="customers.html"
@@ -171,9 +172,17 @@
                 ← Danh sách khách hàng
             </a>
 
-            <h1>
-                Khách hàng 360
-            </h1>
+            <div class="c360-title-row">
+                <h1 id="pageCustomerTitle">
+                    Khách hàng 360
+                </h1>
+                <span id="customer360StatusBadge" class="c360-status-pill c360-status-active">
+                    ĐANG HỢP TÁC
+                </span>
+                <span id="customer360TypeBadge" class="c360-status-pill c360-status-prospect">
+                    DOANH NGHIỆP B2B
+                </span>
+            </div>
 
         </div>
 
@@ -207,6 +216,30 @@
                 <span>Ghi chú</span>
             </button>
 
+            <!-- CRM-65: Quick Corporate Group Management -->
+            <button
+                type="button"
+                class="quick-btn"
+                id="btnQuickCorporate"
+                onclick="window.CorporateHierarchyManager && window.CorporateHierarchyManager.openHierarchyModal(new URLSearchParams(window.location.search).get('id'))"
+                style="background:rgba(37,99,235,0.08); color:var(--crm-primary); border:1px solid rgba(37,99,235,0.25);"
+                title="Quản lý Phân cấp & Tập đoàn Mẹ - Con (CRM-65)"
+            >
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M3 7v14M21 7v14M6 18h2v3H6zm8 0h2v3h-2zm-4 0h2v3h-2zm4-6h2v3h-2zm-4 0h2v3h-2zm-4 0h2v3H6zm12-5V3H6v4"/></svg>
+                <span>Tập đoàn (CRM-65)</span>
+            </button>
+
+            <button
+                type="button"
+                class="quick-btn"
+                id="btnRefresh360"
+                style="background:var(--crm-surface); color:var(--crm-text); border:1px solid var(--crm-border);"
+                title="Làm mới dữ liệu 360"
+            >
+                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+                <span>Làm mới</span>
+            </button>
+
         </div>
 
     </section>
@@ -214,241 +247,438 @@
     <!-- CRM-68: CHURN RISK & SALES ALERT BANNER -->
     <div id="customer360ChurnBanner"></div>
 
+    <!-- CRM-65: CONSOLIDATED GROUP REVENUE & HIERARCHY BANNER -->
+    <div id="customer360HierarchyBanner"></div>
+
+    <!-- ===================================================================
+         CRM-63 / S3-03: FINANCIAL & OPERATIONS KPI CARDS SECTION
+    =================================================================== -->
+    <section class="c360-kpis-grid" id="c360KpisSection" aria-label="Chỉ số hiệu quả tài chính và quan hệ">
+
+        <!-- Card 1: Won Deals (Tổng giá trị đã ký) -->
+        <article class="c360-kpi-card kpi-won">
+            <div class="c360-kpi-icon-wrap" aria-hidden="true">
+                💰
+            </div>
+            <div class="c360-kpi-body">
+                <span class="c360-kpi-label">Tổng giá trị đã ký</span>
+                <div id="kpiTotalWonValue" class="c360-kpi-value">— ₫</div>
+                <div class="c360-kpi-meta">
+                    <span>Hợp đồng hoàn tất:</span>
+                    <strong id="kpiTotalWonCount">—</strong>
+                </div>
+            </div>
+        </article>
+
+        <!-- Card 2: Open Pipeline (Giá trị cơ hội đang mở) -->
+        <article class="c360-kpi-card kpi-pipeline">
+            <div class="c360-kpi-icon-wrap" aria-hidden="true">
+                🎯
+            </div>
+            <div class="c360-kpi-body">
+                <span class="c360-kpi-label">Cơ hội đang mở (Pipeline)</span>
+                <div id="kpiOpenPipelineValue" class="c360-kpi-value">— ₫</div>
+                <div class="c360-kpi-meta">
+                    <span>Đang theo đuổi:</span>
+                    <strong id="kpiOpenPipelineCount">—</strong>
+                </div>
+            </div>
+        </article>
+
+        <!-- Card 3: Key Contacts & Decision Makers -->
+        <article class="c360-kpi-card kpi-contacts">
+            <div class="c360-kpi-icon-wrap" aria-hidden="true">
+                👥
+            </div>
+            <div class="c360-kpi-body">
+                <span class="c360-kpi-label">Người liên hệ & Ra quyết định</span>
+                <div id="kpiContactsCount" class="c360-kpi-value">—</div>
+                <div class="c360-kpi-meta">
+                    <span id="kpiContactsMeta">Đang tải nhân sự...</span>
+                </div>
+            </div>
+        </article>
+
+        <!-- Card 4: Activity Stream & Account Health -->
+        <article class="c360-kpi-card kpi-health">
+            <div class="c360-kpi-icon-wrap" aria-hidden="true">
+                ⚡
+            </div>
+            <div class="c360-kpi-body">
+                <span class="c360-kpi-label">Hoạt động tương tác</span>
+                <div id="kpiActivitiesCount" class="c360-kpi-value">—</div>
+                <div class="c360-kpi-meta">
+                    <span id="kpiHealthMeta">Hoạt động gần nhất</span>
+                </div>
+            </div>
+        </article>
+
+    </section>
+
+    <!-- ===================================================================
+         CRM-63: ENTERPRISE TWO-COLUMN WORKSPACE
+         LEFT: Company Legal Profile Card & Primary Contact
+         RIGHT: Unified 6-Tab Workspace
+    =================================================================== -->
     <section class="customer360-grid">
 
-        <!-- COMPANY -->
+        <!-- CỘT TRÁI: HỒ SƠ PHÁP NHÂN CÔNG TY -->
+        <aside class="company-panel" aria-label="Thông tin pháp nhân công ty">
 
-        <aside class="crm-card company-panel">
+            <div class="panel-header" style="margin-bottom:12px;">
 
-            <div class="panel-header">
-
-                <h2>
-                    Company
+                <h2 style="font-size:15px; font-weight:750; color:var(--crm-text); display:flex; align-items:center; gap:8px;">
+                    <svg class="crm-inline-icon" viewBox="0 0 24 24" style="color:var(--crm-primary);"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+                    Hồ sơ Pháp nhân
                 </h2>
 
                 <button
                     id="editCompanyButton"
                     type="button"
                     class="edit-icon"
+                    title="Chỉnh sửa thông tin công ty"
                 >
                     <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6L16 3ZM14 5l5 5"/></svg>
                 </button>
 
             </div>
 
-
-            <dl class="company-info">
+            <dl class="company-info c360-company-detail-list">
 
                 <div>
-                    <dt>Tên công ty</dt>
+                    <dt>Tên công ty / Pháp nhân</dt>
                     <dd id="company360Name">—</dd>
                 </div>
 
                 <div>
-                    <dt>Mã số thuế</dt>
+                    <dt>Trực thuộc tập đoàn (CRM-65)</dt>
+                    <dd id="company360Parent">—</dd>
+                </div>
+
+                <div>
+                    <dt>Mã số thuế (MST)</dt>
                     <dd id="company360Tax">—</dd>
                 </div>
 
                 <div>
-                    <dt>Ngành nghề</dt>
+                    <dt>Ngành nghề kinh doanh</dt>
                     <dd id="company360Industry">—</dd>
                 </div>
 
                 <div>
-                    <dt>Số điện thoại</dt>
+                    <dt>Quy mô doanh nghiệp</dt>
+                    <dd id="company360Scale">—</dd>
+                </div>
+
+                <div>
+                    <dt>Địa chỉ trụ sở chính</dt>
+                    <dd id="company360Address">—</dd>
+                </div>
+
+                <div>
+                    <dt>Phụ trách kinh doanh (Sales Rep)</dt>
+                    <dd id="company360Owner">—</dd>
+                </div>
+
+                <div>
+                    <dt>Số điện thoại liên hệ</dt>
                     <dd id="company360Phone">—</dd>
                 </div>
 
                 <div>
-                    <dt>Website</dt>
+                    <dt>Email doanh nghiệp</dt>
+                    <dd id="company360Email">—</dd>
+                </div>
+
+                <div>
+                    <dt>Website chính thức</dt>
                     <dd id="company360Website">—</dd>
                 </div>
 
             </dl>
 
+            <!-- TÓM TẮT ĐẦU MỐI LIÊN HỆ CHÍNH (PRIMARY CONTACT QUICK CARD) -->
+            <div id="primaryContactQuickBox" style="margin-top:4px;">
+                <div class="c360-primary-contact-card">
+                    <div class="c360-primary-contact-head">
+                        <span>⭐ Đầu mối chính (Primary)</span>
+                        <span id="primaryContactRoleBadge"></span>
+                    </div>
+                    <div style="font-weight:700; font-size:14px; color:var(--crm-text);" id="primaryContactName">
+                        Đang cập nhật...
+                    </div>
+                    <div style="font-size:12px; color:var(--crm-muted);" id="primaryContactTitle">
+                        —
+                    </div>
+                    <div style="font-size:12px; color:var(--crm-text-2); display:flex; flex-direction:column; gap:3px; margin-top:2px;">
+                        <span id="primaryContactEmail">✉ —</span>
+                        <span id="primaryContactPhone">☎ —</span>
+                    </div>
+                </div>
+            </div>
+
         </aside>
 
+        <!-- CỘT PHẢI: KHÔNG GIAN TABS DOANH NGHIỆP TOÀN DIỆN -->
+        <section class="c360-tabs-workspace" aria-label="Phân hệ nghiệp vụ chi tiết">
 
-        <!-- TIMELINE -->
-
-        <section class="crm-card timeline-panel">
-
-            <div class="panel-header">
-
-                <h2>
-                    Activity Timeline
-                </h2>
-
-            </div>
-
-
-            <form
-                id="activityComposer"
-                class="activity-composer"
-            >
-
-                <textarea
-                    id="activityNote"
-                    placeholder="Ghi chú / Log cuộc gọi"
-                ></textarea>
-
-                <div class="composer-actions">
-
-                    <select
-                        id="activityType"
-                        class="crm-input"
-                    >
-                        <option value="note">
-                            Ghi chú
-                        </option>
-
-                        <option value="call">
-                            Cuộc gọi
-                        </option>
-
-                        <option value="email">
-                            Email
-                        </option>
-
-                        <option value="meeting">
-                            Cuộc gặp
-                        </option>
-                    </select>
-
-                    <button
-                        class="crm-btn crm-btn-primary"
-                        type="submit"
-                    >
-                        Thêm
-                    </button>
-
-                </div>
-
-            </form>
-
-
-            <div
-                id="timelineList"
-                class="timeline-list"
-            >
-
-                <div
-                    id="timelineEmpty"
-                    class="timeline-empty"
-                >
-                    Chưa có hoạt động.
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- RIGHT -->
-
-        <aside class="right-column">
-
-            <section class="crm-card compact-panel">
-
-                <div class="right-tabs">
+            <!-- THANH ĐIỀU HƯỚNG 6 TABS -->
+            <header class="c360-tabs-header">
+                <nav class="c360-tabs-nav" role="tablist">
 
                     <button
                         type="button"
-                        class="right-tab active"
+                        class="c360-tab-btn active"
+                        data-tab="timeline"
+                        id="tabTimeline"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="timelinePanel"
+                    >
+                        <span>🕒 Dòng thời gian</span>
+                        <span class="c360-tab-badge" id="badgeTimelineCount">0</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="c360-tab-btn"
                         data-tab="contacts"
+                        id="tabContacts"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="contactsPanel"
                     >
-                        Người liên hệ
+                        <span>👥 Người liên hệ</span>
+                        <span class="c360-tab-badge" id="badgeContactsCount">0</span>
                     </button>
 
                     <button
                         type="button"
-                        class="right-tab"
+                        class="c360-tab-btn"
                         data-tab="opportunities"
+                        id="tabOpportunities"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="opportunitiesPanel"
                     >
-                        Cơ hội
+                        <span>💼 Cơ hội bán hàng</span>
+                        <span class="c360-tab-badge" id="badgeOpportunitiesCount">0</span>
                     </button>
 
                     <button
                         type="button"
-                        class="right-tab"
+                        class="c360-tab-btn"
+                        data-tab="attachments"
+                        id="tabAttachments"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="attachmentsPanel"
+                    >
+                        <span>📎 Tệp đính kèm</span>
+                        <span class="c360-tab-badge" id="badgeAttachmentsCount">0</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        class="c360-tab-btn"
                         data-tab="tickets"
                         id="tabTickets"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="ticketsPanel"
                     >
-                        Phiếu hỗ trợ (<span id="ticketCountBadge">0</span>)
+                        <span>🎫 Phiếu hỗ trợ</span>
+                        <span class="c360-tab-badge" id="ticketCountBadge">0</span>
                     </button>
-
-                </div>
-
-
-                <div
-                    id="contactsPanel"
-                    class="right-content"
-                >
-
-                    <div class="empty-small">
-                        Chưa có người liên hệ.
-                    </div>
 
                     <button
-                        id="addContact"
-                        class="crm-btn crm-btn-secondary full-button"
                         type="button"
+                        class="c360-tab-btn"
+                        data-tab="hierarchy"
+                        id="tabHierarchy"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="hierarchyPanel"
                     >
-                        + Thêm người liên hệ
+                        <span>🏢 Tập đoàn</span>
+                        <span class="c360-tab-badge" id="hierarchyBadgeCount">0</span>
                     </button>
 
+                </nav>
+            </header>
+
+            <!-- ================= TAB PANE 1: DÒNG THỜI GIAN HOẠT ĐỘNG (TIMELINE) ================= -->
+            <div id="timelinePanel" class="c360-tab-pane" role="tabpanel" aria-labelledby="tabTimeline">
+
+                <!-- ACTIVITY COMPOSER FORM -->
+                <form id="activityComposer" class="activity-composer">
+                    <textarea
+                        id="activityNote"
+                        placeholder="Soạn nội dung ghi chú / nhật ký cuộc gọi / biên bản làm việc..."
+                    ></textarea>
+
+                    <div class="composer-actions">
+                        <select id="activityType" class="crm-input">
+                            <option value="note">✎ Ghi chú</option>
+                            <option value="call">☎ Cuộc gọi</option>
+                            <option value="meeting">▣ Cuộc gặp / Họp</option>
+                            <option value="email">✉ Email</option>
+                        </select>
+
+                        <button class="crm-btn crm-btn-primary" type="submit">
+                            Ghi nhận hoạt động
+                        </button>
+                    </div>
+                </form>
+
+                <!-- TOOLBAR BỘ LỌC VÀ TÌM KIẾM CHO 500 DÒNG TIMELINE -->
+                <div class="timeline-toolbar">
+                    <div class="timeline-filter-chips" role="group" aria-label="Lọc loại hoạt động">
+                        <button type="button" class="timeline-chip active" data-filter="all">Tất cả (<span id="countFilterAll">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="call">☎ Cuộc gọi (<span id="countFilterCall">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="meeting">▣ Họp (<span id="countFilterMeeting">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="email">✉ Email (<span id="countFilterEmail">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="note">✎ Ghi chú (<span id="countFilterNote">0</span>)</button>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="timeline-search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            <input id="timelineSearchInput" type="search" class="timeline-search-input" placeholder="Tìm theo từ khóa...">
+                        </div>
+
+                        <span id="timelinePerfBadge" class="timeline-perf-badge" title="Đo lường thời gian DOM render thực tế">
+                            ⚡ Render: 0ms
+                        </span>
+                    </div>
                 </div>
 
-
-                <div
-                    id="opportunitiesPanel"
-                    class="right-content"
-                    hidden
-                >
-
-                    <div class="empty-small">
-                        Chưa có cơ hội.
+                <!-- DANH SÁCH DÒNG THỜI GIAN -->
+                <div id="timelineList" class="timeline-list">
+                    <div id="timelineEmpty" class="timeline-empty">
+                        Chưa có hoạt động tương tác nào được ghi nhận.
                     </div>
-
-                    <button
-                        class="crm-btn crm-btn-secondary full-button"
-                        type="button"
-                    >
-                        + Thêm cơ hội
-                    </button>
-
                 </div>
 
-                <div
-                    id="ticketsPanel"
-                    class="right-content"
-                    hidden
+                <!-- THANH PHÂN TRANG TỐI ƯU DOM (HỖ TRỢ 500+ ITEMS DƯỚI 1.5S) -->
+                <footer id="timelinePaginationBar" class="timeline-pagination-bar" style="display:none;">
+                    <div id="timelinePageInfo" class="timeline-page-info">
+                        Hiển thị 1 - 20 trong tổng số 500 hoạt động
+                    </div>
+                    <div class="timeline-pagination-controls" id="timelinePaginationControls">
+                        <!-- Nút phân trang được render động -->
+                    </div>
+                </footer>
+
+            </div>
+
+            <!-- ================= TAB PANE 2: NGƯỜI LIÊN HỆ (CONTACTS - CRM-62) ================= -->
+            <div id="contactsPanel" class="c360-tab-pane" role="tabpanel" aria-labelledby="tabContacts" hidden>
+                <div class="empty-small">
+                    Đang tải danh sách người liên hệ...
+                </div>
+                <button
+                    id="addContact"
+                    class="crm-btn crm-btn-secondary full-button"
+                    type="button"
                 >
-                    <div style="padding:10px 12px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--crm-border);">
-                        <span style="font-size:12.5px; font-weight:600; color:var(--crm-text-muted);">Phiếu hỗ trợ sau bán</span>
-                        <a href="support-tickets.html" class="crm-btn crm-btn-secondary" style="font-size:11.5px; padding:3px 8px; text-decoration:none;">Xem tất cả</a>
+                    + Thêm người liên hệ
+                </button>
+            </div>
+
+            <!-- ================= TAB PANE 3: CƠ HỘI BÁN HÀNG (DEALS) ================= -->
+            <div id="opportunitiesPanel" class="c360-tab-pane" role="tabpanel" aria-labelledby="tabOpportunities" hidden>
+
+                <!-- DEALS SUMMARY TIÊU CHUẨN ENTERPRISE -->
+                <div class="deals-summary-row">
+                    <div class="deals-stat-box">
+                        <div class="label">Tổng giá trị đang mở</div>
+                        <div class="num" id="dealsStatOpenAmount" style="color:var(--crm-primary);">0 ₫</div>
+                    </div>
+                    <div class="deals-stat-box">
+                        <div class="label">Tổng giá trị đã ký (Won)</div>
+                        <div class="num" id="dealsStatWonAmount" style="color:var(--crm-success);">0 ₫</div>
+                    </div>
+                    <div class="deals-stat-box">
+                        <div class="label">Tỷ lệ chốt thành công</div>
+                        <div class="num" id="dealsStatWinRate" style="color:var(--crm-purple);">0%</div>
+                    </div>
+                </div>
+
+                <!-- FILTER BAR CHO DEALS -->
+                <div class="deals-filter-bar">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button type="button" class="crm-btn crm-btn-secondary active" id="filterDealsAll" style="font-size:12px; min-height:32px; padding:0 10px;">Tất cả (<span id="dealCountAll">0</span>)</button>
+                        <button type="button" class="crm-btn crm-btn-secondary" id="filterDealsOpen" style="font-size:12px; min-height:32px; padding:0 10px;">Đang mở (<span id="dealCountOpen">0</span>)</button>
+                        <button type="button" class="crm-btn crm-btn-secondary" id="filterDealsWon" style="font-size:12px; min-height:32px; padding:0 10px;">Đã ký kết (Won) (<span id="dealCountWon">0</span>)</button>
+                        <button type="button" class="crm-btn crm-btn-secondary" id="filterDealsLost" style="font-size:12px; min-height:32px; padding:0 10px;">Thất bại (Lost) (<span id="dealCountLost">0</span>)</button>
                     </div>
 
-                    <div id="customerTicketsList" style="max-height:360px; overflow-y:auto; padding:6px 0;">
-                        <div class="empty-small">Chưa có phiếu hỗ trợ nào.</div>
-                    </div>
-
-                    <a href="support-tickets.html" class="crm-btn crm-btn-secondary full-button" style="text-decoration:none; text-align:center; display:block; margin-top:8px;">
-                        + Tạo phiếu hỗ trợ mới
+                    <a href="pipeline.html" class="crm-btn crm-btn-primary" style="font-size:12px; min-height:32px; padding:0 12px; text-decoration:none;">
+                        + Tạo cơ hội mới
                     </a>
                 </div>
 
-            </section>
+                <!-- BẢNG CƠ HỘI CHI TIẾT -->
+                <div id="dealsListContainer" class="deals-table-wrap">
+                    <div class="empty-small">Đang tải danh sách cơ hội bán hàng...</div>
+                </div>
 
-        </aside>
+            </div>
+
+            <!-- ================= TAB PANE 4: TỆP ĐÍNH KÈM (ATTACHMENTS) ================= -->
+            <div id="attachmentsPanel" class="c360-tab-pane" role="tabpanel" aria-labelledby="tabAttachments" hidden>
+
+                <div class="attachments-toolbar">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:13px; font-weight:700; color:var(--crm-text);">Tài liệu & Hợp đồng đính kèm</span>
+                        <span class="c360-tab-badge" id="attachmentsCountHeader">0 tệp</span>
+                    </div>
+
+                    <button type="button" id="btnOpenUploadAttachment" class="crm-btn crm-btn-primary" style="font-size:12.5px; min-height:34px;">
+                        <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        Tải lên tài liệu mới
+                    </button>
+                </div>
+
+                <!-- DANH SÁCH TỆP ĐÍNH KÈM -->
+                <div id="attachmentsListContainer" class="attachments-grid">
+                    <div class="empty-small" style="grid-column:1/-1;">Chưa có tệp đính kèm nào cho khách hàng này.</div>
+                </div>
+
+            </div>
+
+            <!-- ================= TAB PANE 5: PHIẾU HỖ TRỢ (CRM-68) ================= -->
+            <div id="ticketsPanel" class="c360-tab-pane" role="tabpanel" aria-labelledby="tabTickets" hidden>
+                <div style="padding:10px 12px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--crm-border); margin-bottom:10px;">
+                    <span style="font-size:12.5px; font-weight:700; color:var(--crm-text);">Phiếu hỗ trợ & Khiếu nại sau bán (CRM-68)</span>
+                    <a href="support-tickets.html" class="crm-btn crm-btn-secondary" style="font-size:11.5px; padding:3px 8px; text-decoration:none;">Xem tất cả</a>
+                </div>
+
+                <div id="customerTicketsList" style="max-height:500px; overflow-y:auto; padding:6px 0;">
+                    <div class="empty-small">Chưa có phiếu hỗ trợ nào.</div>
+                </div>
+
+                <a href="support-tickets.html" class="crm-btn crm-btn-secondary full-button" style="text-decoration:none; text-align:center; display:block; margin-top:12px;">
+                    + Tạo phiếu hỗ trợ mới
+                </a>
+            </div>
+
+            <!-- ================= TAB PANE 6: TẬP ĐOÀN MẸ - CON (CRM-65) ================= -->
+            <div id="hierarchyPanel" class="c360-tab-pane" role="tabpanel" aria-labelledby="tabHierarchy" hidden>
+                <div class="empty-small">Đang tải phân cấp tập đoàn...</div>
+            </div>
+
+        </section>
 
     </section>
 
 </main>
 
 
-<!-- COMPANY MODAL -->
-
+<!-- ===================================================================
+     MODAL: CHỈNH SỬA THÔNG TIN CÔNG TY (ENHANCED ENTERPRISE)
+=================================================================== -->
 <div
     id="companyModalOverlay"
     class="modal-overlay"
@@ -457,74 +687,121 @@
 <section
     id="companyModal"
     class="company-modal crm-card"
+    role="dialog"
+    aria-labelledby="modalCompanyTitle"
+    aria-modal="true"
 >
 
     <header class="modal-head">
-
-        <strong>
-            Chỉnh sửa thông tin công ty
+        <strong id="modalCompanyTitle">
+            Chỉnh sửa thông tin pháp nhân
         </strong>
-
         <button
             id="closeCompanyModal"
             type="button"
+            aria-label="Đóng"
         >
             <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
         </button>
-
     </header>
 
-
-    <form id="company360Form">
+    <form id="company360Form" novalidate>
 
         <label>
-            Tên công ty
+            Tên công ty / Doanh nghiệp <span style="color:var(--crm-danger);">*</span>
             <input
                 id="edit360Name"
                 class="crm-input"
                 type="text"
+                required
             >
         </label>
 
         <label>
-            Mã số thuế
+            Mã số thuế (MST)
             <input
                 id="edit360Tax"
                 class="crm-input"
                 type="text"
+                placeholder="Ví dụ: 0108923456"
             >
         </label>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <label>
+                Ngành nghề
+                <input
+                    id="edit360Industry"
+                    class="crm-input"
+                    type="text"
+                    placeholder="Ví dụ: Công nghệ thông tin"
+                >
+            </label>
+
+            <label>
+                Quy mô nhân sự
+                <input
+                    id="edit360Scale"
+                    class="crm-input"
+                    type="text"
+                    placeholder="Ví dụ: 200 - 500 nhân sự"
+                >
+            </label>
+        </div>
 
         <label>
-            Ngành nghề
+            Địa chỉ trụ sở
             <input
-                id="edit360Industry"
+                id="edit360Address"
                 class="crm-input"
                 type="text"
+                placeholder="Địa chỉ trụ sở doanh nghiệp..."
             >
         </label>
 
-        <label>
-            Số điện thoại
-            <input
-                id="edit360Phone"
-                class="crm-input"
-                type="text"
-            >
-        </label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <label>
+                Số điện thoại
+                <input
+                    id="edit360Phone"
+                    class="crm-input"
+                    type="text"
+                >
+            </label>
 
-        <label>
-            Website
-            <input
-                id="edit360Website"
-                class="crm-input"
-                type="text"
-            >
-        </label>
+            <label>
+                Email doanh nghiệp
+                <input
+                    id="edit360Email"
+                    class="crm-input"
+                    type="email"
+                >
+            </label>
+        </div>
 
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <label>
+                Website
+                <input
+                    id="edit360Website"
+                    class="crm-input"
+                    type="text"
+                    placeholder="https://..."
+                >
+            </label>
+
+            <label>
+                Phụ trách (Sales Rep)
+                <input
+                    id="edit360Owner"
+                    class="crm-input"
+                    type="text"
+                    placeholder="Tên nhân sự phụ trách..."
+                >
+            </label>
+        </div>
 
         <footer class="modal-footer">
-
             <button
                 id="cancelCompanyEdit"
                 type="button"
@@ -537,14 +814,68 @@
                 type="submit"
                 class="crm-btn crm-btn-primary"
             >
-                Lưu
+                Lưu thay đổi
             </button>
-
         </footer>
 
     </form>
 
 </section>
+
+
+<!-- ===================================================================
+     MODAL: TẢI LÊN TÀI LIỆU & HỢP ĐỒNG MỚI (CRM-63)
+=================================================================== -->
+<div id="attachmentModalOverlay" class="modal-overlay"></div>
+<section id="attachmentUploadModal" class="company-modal crm-card" role="dialog" aria-labelledby="modalAttachTitle" aria-modal="true">
+    <header class="modal-head">
+        <strong id="modalAttachTitle">
+            📎 Tải lên tệp đính kèm mới
+        </strong>
+        <button id="closeAttachmentModal" type="button" aria-label="Đóng">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+    </header>
+
+    <form id="attachmentUploadForm">
+        <label>
+            Tên tài liệu / Tiêu đề <span style="color:var(--crm-danger);">*</span>
+            <input id="attachFileName" class="crm-input" type="text" placeholder="Ví dụ: Hop_dong_nguyen_tac_2026.pdf" required>
+        </label>
+
+        <label>
+            Phân loại tài liệu
+            <select id="attachCategory" class="crm-input">
+                <option value="Hợp đồng">📜 Hợp đồng kinh tế</option>
+                <option value="Báo giá">📊 Báo giá & Dự toán</option>
+                <option value="Biên bản">📝 Biên bản nghiệm thu</option>
+                <option value="Tài liệu kỹ thuật">⚙️ Tài liệu giải pháp / Kiến trúc</option>
+                <option value="Pháp lý">⚖️ Giấy phép & Pháp lý</option>
+                <option value="Khác">📁 Tài liệu khác</option>
+            </select>
+        </label>
+
+        <label>
+            Chọn tệp từ máy tính
+            <input id="attachFileInput" class="crm-input" type="file" style="padding:6px;">
+        </label>
+
+        <label>
+            Ghi chú nội dung tệp
+            <textarea id="attachNotes" class="crm-input" style="height:60px; padding:8px 12px; resize:vertical;" placeholder="Mô tả tóm tắt nội dung file..."></textarea>
+        </label>
+
+        <footer class="modal-footer">
+            <button id="cancelAttachUpload" type="button" class="crm-btn crm-btn-secondary">
+                Hủy bỏ
+            </button>
+            <button type="submit" class="crm-btn crm-btn-primary">
+                Tải lên & Lưu
+            </button>
+        </footer>
+    </form>
+</section>
+
 
 
 <!-- MOBILE SHELL -->
@@ -876,6 +1207,7 @@
 
 <script src="js/pages/support-tickets.js"></script>
 <script src="js/pages/contacts.js"></script>
+<script src="js/pages/corporate-hierarchy.js"></script>
 <script src="js/pages/customer-360.js"></script>
 
 <script src="js/theme.js"></script>
