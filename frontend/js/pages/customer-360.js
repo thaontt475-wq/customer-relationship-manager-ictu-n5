@@ -320,9 +320,11 @@ document.querySelectorAll(".right-tab").forEach(tab => {
         const cPanel = document.getElementById("contactsPanel");
         const oPanel = document.getElementById("opportunitiesPanel");
         const tPanel = document.getElementById("ticketsPanel");
+        const hPanel = document.getElementById("hierarchyPanel");
         if (cPanel) cPanel.hidden = target !== "contacts";
         if (oPanel) oPanel.hidden = target !== "opportunities";
         if (tPanel) tPanel.hidden = target !== "tickets";
+        if (hPanel) hPanel.hidden = target !== "hierarchy";
     });
 });
 
