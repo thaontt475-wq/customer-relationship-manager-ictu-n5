@@ -1,0 +1,828 @@
+/**
+ * ===================================================================
+ * ENTERPRISE CORPORATE GROUP & HIERARCHY STYLESHEET (CRM-65 / S3-05)
+ * - Khai báo quan hệ Công ty Mẹ - Con & Quản lý Phân cấp Tập đoàn
+ * - Thẻ KPI Tổng giá trị Tập đoàn & Bảng phân rã doanh thu (%)
+ * - Sơ đồ cây tổ chức trực quan (Interactive Hierarchy Tree View)
+ * - Tương thích chuẩn xác Design System (Dark/Light mode & Mobile 360px)
+ * ===================================================================
+ */
+
+/* =========================================================
+   1. KPI CONSOLIDATED GROUP REVENUE BANNER (CRM-65)
+========================================================= */
+.corporate-hierarchy-banner {
+    margin-bottom: 24px;
+    animation: fadeIn 0.3s ease;
+}
+
+.group-kpi-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.07) 0%, rgba(124, 58, 237, 0.05) 50%, rgba(8, 145, 178, 0.06) 100%);
+    border: 1.5px solid rgba(37, 99, 235, 0.28);
+    border-radius: var(--crm-radius-lg);
+    padding: 22px 26px;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .group-kpi-card {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(124, 58, 237, 0.12) 50%, rgba(15, 23, 42, 0.7) 100%);
+    border-color: rgba(96, 165, 250, 0.3);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+.group-kpi-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--crm-primary), var(--crm-purple));
+    border-radius: var(--crm-radius-lg) 0 0 var(--crm-radius-lg);
+}
+
+.group-kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.group-kpi-title-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.group-kpi-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    flex-shrink: 0;
+}
+
+.group-kpi-icon-badge svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+}
+
+.group-kpi-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--crm-primary);
+    background: rgba(37, 99, 235, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+[data-theme="dark"] .group-kpi-tag {
+    background: rgba(96, 165, 250, 0.18);
+    color: #93c5fd;
+}
+
+.group-kpi-main-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.group-kpi-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* KPI Metrics Grid */
+.group-kpi-metrics-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 960px) {
+    .group-kpi-metrics-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 580px) {
+    .group-kpi-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.group-metric-tile {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    padding: 14px 16px;
+    box-shadow: var(--crm-shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+[data-theme="dark"] .group-metric-tile {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(71, 85, 105, 0.5);
+}
+
+.group-metric-tile.highlight {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    border-color: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(30, 64, 175, 0.25);
+}
+
+.group-metric-tile.highlight .group-metric-label {
+    color: #93c5fd;
+}
+
+.group-metric-tile.highlight .group-metric-value {
+    color: #ffffff;
+}
+
+.group-metric-tile.highlight .group-metric-sub {
+    color: #bfdbfe;
+}
+
+.group-metric-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--crm-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.group-metric-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--crm-text);
+    line-height: 1.2;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+}
+
+.group-metric-sub {
+    font-size: 12px;
+    color: var(--crm-muted);
+}
+
+/* =========================================================
+   2. CORPORATE BREAKDOWN TABLE (REVENUE BREAKDOWN)
+========================================================= */
+.corporate-breakdown-card {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    overflow: hidden;
+    box-shadow: var(--crm-shadow-sm);
+    margin-bottom: 24px;
+}
+
+.corporate-card-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--crm-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: var(--crm-surface-soft);
+}
+
+.corporate-card-head h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.corporate-table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+}
+
+.corporate-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    text-align: left;
+}
+
+.corporate-table th {
+    background: var(--crm-surface-soft);
+    color: var(--crm-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--crm-border);
+    white-space: nowrap;
+}
+
+.corporate-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--crm-border);
+    color: var(--crm-text);
+    vertical-align: middle;
+}
+
+.corporate-table tr:last-child td {
+    border-bottom: none;
+}
+
+.corporate-table tr:hover td {
+    background: rgba(37, 99, 235, 0.03);
+}
+
+[data-theme="dark"] .corporate-table tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Role Badges */
+.corporate-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.corporate-role-parent {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+[data-theme="dark"] .corporate-role-parent {
+    background: rgba(217, 119, 6, 0.2);
+    color: #fcd34d;
+    border-color: rgba(217, 119, 6, 0.4);
+}
+
+.corporate-role-child {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+[data-theme="dark"] .corporate-role-child {
+    background: rgba(2, 132, 199, 0.2);
+    color: #7dd3fc;
+    border-color: rgba(2, 132, 199, 0.4);
+}
+
+.corporate-role-grandchild {
+    background: #f3e8ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+
+[data-theme="dark"] .corporate-role-grandchild {
+    background: rgba(147, 51, 234, 0.2);
+    color: #d8b4fe;
+    border-color: rgba(147, 51, 234, 0.4);
+}
+
+/* Progress bar for contribution */
+.contribution-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 140px;
+}
+
+.contribution-progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--crm-border);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.contribution-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.contribution-percentage {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+    min-width: 48px;
+    text-align: right;
+}
+
+/* =========================================================
+   3. INTERACTIVE HIERARCHY TREE VIEW (CRM-65)
+========================================================= */
+.corporate-tree-container {
+    padding: 24px;
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow-sm);
+    overflow-x: auto;
+    min-height: 380px;
+}
+
+.tree-view-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: fit-content;
+    margin: 0 auto;
+    padding: 10px 20px 30px;
+}
+
+/* Tree Nodes */
+.tree-node-card {
+    background: var(--crm-surface);
+    border: 1.5px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    padding: 14px 18px;
+    width: 290px;
+    box-shadow: var(--crm-shadow-sm);
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+    cursor: default;
+}
+
+.tree-node-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--crm-shadow);
+    border-color: var(--crm-primary);
+}
+
+.tree-node-card.is-current {
+    border: 2px solid var(--crm-primary);
+    background: rgba(37, 99, 235, 0.03);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+[data-theme="dark"] .tree-node-card.is-current {
+    background: rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25);
+}
+
+.tree-node-card.is-parent {
+    border-top: 4px solid #d97706;
+}
+
+.tree-node-card.is-child {
+    border-top: 4px solid #2563eb;
+}
+
+.tree-node-card.is-grandchild {
+    border-top: 4px solid #7c3aed;
+}
+
+.tree-node-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.tree-node-company-name {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+    margin: 0 0 6px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tree-node-company-name a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.tree-node-company-name a:hover {
+    color: var(--crm-primary);
+    text-decoration: underline;
+}
+
+.tree-node-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--crm-muted);
+    margin-bottom: 4px;
+}
+
+.tree-node-revenue-box {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--crm-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tree-node-revenue-val {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--crm-success);
+}
+
+.tree-node-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--crm-border);
+}
+
+/* Tree Connecting Lines (CSS Branch System) */
+.tree-node-branch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.tree-stem-vertical {
+    width: 2px;
+    height: 28px;
+    background: var(--crm-border-strong);
+    position: relative;
+}
+
+.tree-children-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    position: relative;
+    padding-top: 28px;
+}
+
+.tree-children-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: calc(290px / 2);
+    right: calc(290px / 2);
+    height: 2px;
+    background: var(--crm-border-strong);
+}
+
+/* Handle single child connector horizontal bar removal */
+.tree-children-row.single-child::before {
+    display: none;
+}
+
+.tree-child-stem {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 28px;
+    background: var(--crm-border-strong);
+}
+
+/* Expand / Collapse Button */
+.tree-toggle-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--crm-surface);
+    border: 1.5px solid var(--crm-border-strong);
+    color: var(--crm-text);
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    z-index: 2;
+    position: absolute;
+    bottom: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tree-toggle-btn:hover {
+    background: var(--crm-primary);
+    border-color: var(--crm-primary);
+    color: #ffffff;
+    transform: translateX(-50%) scale(1.1);
+}
+
+/* =========================================================
+   4. MODALS (ASSIGN PARENT, SUBSIDIARIES & FULLSCREEN TREE)
+========================================================= */
+.corporate-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1060;
+    display: none;
+    animation: fadeIn 0.2s ease;
+}
+
+.corporate-modal-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(800px, 94vw);
+    max-height: 90vh;
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-lg);
+    box-shadow: var(--crm-shadow);
+    z-index: 1070;
+    display: none;
+    flex-direction: column;
+    animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+.corporate-modal-dialog.modal-xl {
+    width: min(1120px, 96vw);
+}
+
+.corporate-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--crm-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: var(--crm-surface-soft);
+}
+
+.corporate-modal-header h2 {
+    margin: 0 0 4px;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--crm-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.corporate-modal-header p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--crm-muted);
+}
+
+.corporate-modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--crm-muted);
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.corporate-modal-close:hover {
+    background: var(--crm-border);
+    color: var(--crm-text);
+}
+
+.corporate-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.corporate-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--crm-border);
+    background: var(--crm-surface-soft);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Search Autocomplete Box for Parent selection */
+.corporate-search-wrap {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.corporate-search-input-box {
+    position: relative;
+}
+
+.corporate-search-input-box input {
+    padding-left: 38px;
+    height: 42px;
+}
+
+.corporate-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--crm-muted);
+    pointer-events: none;
+}
+
+.corporate-dropdown-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border-strong);
+    border-radius: var(--crm-radius-md);
+    box-shadow: var(--crm-shadow);
+    max-height: 280px;
+    overflow-y: auto;
+    z-index: 1080;
+    display: none;
+}
+
+.corporate-dropdown-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--crm-border);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.15s ease;
+}
+
+.corporate-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.corporate-dropdown-item:hover:not(.disabled) {
+    background: var(--crm-surface-soft);
+}
+
+.corporate-dropdown-item.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: var(--crm-bg);
+}
+
+.corporate-item-title {
+    font-weight: 700;
+    color: var(--crm-text);
+    font-size: 13.5px;
+    margin-bottom: 3px;
+}
+
+.corporate-item-meta {
+    font-size: 12px;
+    color: var(--crm-muted);
+    display: flex;
+    gap: 10px;
+}
+
+/* Current Association Info Card */
+.current-association-box {
+    background: var(--crm-surface-soft);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-md);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.current-assoc-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.current-assoc-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #d97706, #b45309);
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+/* Cycle Validation Alert Box */
+.cycle-warning-banner {
+    padding: 14px 18px;
+    background: #fef2f2;
+    border: 1.5px solid #f87171;
+    border-radius: var(--crm-radius-md);
+    color: #991b1b;
+    font-size: 13px;
+    display: none;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+[data-theme="dark"] .cycle-warning-banner {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
+/* =========================================================
+   5. CUSTOMER 360 RIGHT PANEL TAB STYLING
+========================================================= */
+.hierarchy-side-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+.hierarchy-side-item {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: var(--crm-radius-sm);
+    padding: 12px 14px;
+    transition: all 0.15s ease;
+}
+
+.hierarchy-side-item:hover {
+    border-color: var(--crm-primary);
+    box-shadow: var(--crm-shadow-sm);
+}
+
+.hierarchy-side-item.is-parent {
+    border-left: 3px solid #d97706;
+}
+
+.hierarchy-side-item.is-child {
+    border-left: 3px solid #2563eb;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+    .group-kpi-card {
+        padding: 18px;
+    }
+
+    .group-kpi-main-title {
+        font-size: 16px;
+    }
+
+    .tree-children-row {
+        gap: 14px;
+    }
+
+    .tree-node-card {
+        width: 260px;
+        padding: 12px 14px;
+    }
+}

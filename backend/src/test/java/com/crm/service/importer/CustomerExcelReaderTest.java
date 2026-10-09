@@ -54,6 +54,15 @@ class CustomerExcelReaderTest {
         assertEquals(1,rows.size());assertEquals(3,rows.getFirst().row());
         assertNull(reader.request(rows.getFirst()).getTaxCode());
     }
+    @Test void acceptsStoppedCooperationAlongsideExistingStatusCodes() throws Exception {
+        List<List<String>> values=new ArrayList<>();
+        for(String status:List.of("TIEM_NANG","DANG_GIAO_DICH","CHINH_THUC","NGUNG_HOP_TAC")) {
+            var row=new ArrayList<>(valid("Customer",""));row.set(2,status);values.add(row);
+        }
+        var rows=reader.read(new ByteArrayInputStream(workbook(CustomerExcelReader.COLUMNS,values)));
+        assertEquals(4,rows.size());assertTrue(rows.stream().allMatch(row->row.errors().isEmpty()));
+        assertEquals("NGUNG_HOP_TAC",reader.request(rows.getLast()).getStatus());
+    }
     @Test void acceptsReorderedHeadersButRejectsMissingAndRepeatedHeaders() throws Exception {
         var columns=new ArrayList<>(CustomerExcelReader.COLUMNS);Collections.reverse(columns);
         var values=new ArrayList<>(valid("A","0123456789"));Collections.reverse(values);

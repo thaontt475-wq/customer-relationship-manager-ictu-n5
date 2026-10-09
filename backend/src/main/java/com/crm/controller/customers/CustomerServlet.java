@@ -1,5 +1,4 @@
 package com.crm.controller.customers;
-
 import com.crm.dto.common.ApiResponse;
 import com.crm.dto.customers.CustomerWriteRequest;
 import com.crm.dto.customers.CustomerSearchFilter;
@@ -9,37 +8,33 @@ import com.crm.service.customers.CustomerRelationService;
 import com.crm.service.customers.CustomerCareService;
 import com.crm.util.JsonUtil;
 import com.crm.util.ResponseUtil;
-
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
 import java.io.IOException;
+import java.sql.SQLException;
+import com.google.gson.JsonParseException;
+import jakarta.servlet.ServletException;
+import com.crm.service.permissions.AuthorizationService;
 import java.util.NoSuchElementException;
-
 @WebServlet({
         "/api/customers",
         "/api/customers/*"
 })
 public class CustomerServlet extends HttpServlet {
-
     private final CustomerService customerService;
     private final Customer360Service customer360 = new Customer360Service();
     private final CustomerRelationService relations = new CustomerRelationService();
     private final CustomerCareService care = new CustomerCareService();
-
     public CustomerServlet() { this(new CustomerService()); }
-
     public CustomerServlet(CustomerService customerService) { this.customerService = customerService; }
-
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             long currentUserId = requireUser(req);
             String path = req.getPathInfo();
-
             if (path == null || path.equals("/") || path.equals("/search") || path.equals("/search/")) {
                 String search = req.getParameter("keyword");
                 if (search == null || search.isBlank()) search = req.getParameter("search");
@@ -58,12 +53,10 @@ public class CustomerServlet extends HttpServlet {
                         req.getParameter("region"), CustomerSearchFilter.id(req.getParameter("ownerId"), "ownerId"), industry);
                 int page = searchIntParam(req, "page", 1);
                 int size = searchIntParam(req, "size", 20);
-
                 var result = customerService.search(currentUserId, filter, page, size);
                 ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách khách hàng thành công", result));
                 return;
             }
-
             if ("/care-list".equals(path)) {
                 int days = intParam(req, "days", 30);
                 int page = intParam(req, "page", 1);
@@ -90,18 +83,18 @@ public class CustomerServlet extends HttpServlet {
                 ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
                 return;
             }
-
             ResponseUtil.json(resp, 200, ApiResponse.success("Lấy thông tin khách hàng thành công", customer));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
-        } catch (IllegalArgumentException e) {
+        } catch (JsonParseException | IllegalArgumentException e) {
             ResponseUtil.json(resp, 400, ApiResponse.error(e.getMessage(), null));
+        } catch (SQLException e) {
+            databaseError(resp, e);
         } catch (Exception e) {
             log("Customer read/search failed", e);
             ResponseUtil.json(resp, 500, ApiResponse.error("Không thể lấy dữ liệu khách hàng", null));
         }
     }
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
@@ -117,18 +110,19 @@ public class CustomerServlet extends HttpServlet {
             }
             if (path != null && !path.equals("/")) throw new IllegalArgumentException("Đường dẫn không hợp lệ");
             CustomerWriteRequest body = readCustomer(req);
-
             var created = customerService.create(currentUserId, body);
             ResponseUtil.json(resp, 201, ApiResponse.success("Tạo khách hàng thành công", created));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
-        } catch (IllegalArgumentException e) {
+        } catch (JsonParseException | IllegalArgumentException e) {
             ResponseUtil.json(resp, 400, ApiResponse.error(e.getMessage(), null));
+        } catch (SQLException e) {
+            databaseError(resp, e);
         } catch (Exception e) {
-            ResponseUtil.json(resp, 500, ApiResponse.error("Lỗi máy chủ: " + e.getMessage(), null));
+            log("Customer request failed", e);
+            ResponseUtil.json(resp, 500, ApiResponse.error("Không thể xử lý dữ liệu khách hàng", null));
         }
     }
-
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
@@ -147,50 +141,71 @@ public class CustomerServlet extends HttpServlet {
             if (path != null && !path.matches("/\\d+/?")) throw new IllegalArgumentException("Đường dẫn không hợp lệ");
             long id = parseId(path);
             CustomerWriteRequest body = readCustomer(req);
-
             var updated = customerService.update(currentUserId, id, body);
             if (updated == null) {
                 ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
                 return;
             }
-
             ResponseUtil.json(resp, 200, ApiResponse.success("Cập nhật khách hàng thành công", updated));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
-        } catch (IllegalArgumentException e) {
+        } catch (JsonParseException | IllegalArgumentException e) {
             ResponseUtil.json(resp, 400, ApiResponse.error(e.getMessage(), null));
+        } catch (SQLException e) {
+            databaseError(resp, e);
         } catch (Exception e) {
-            ResponseUtil.json(resp, 500, ApiResponse.error("Lỗi máy chủ: " + e.getMessage(), null));
+            log("Customer request failed", e);
+            ResponseUtil.json(resp, 500, ApiResponse.error("Không thể xử lý dữ liệu khách hàng", null));
         }
     }
-
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             long currentUserId = requireUser(req);
-            long id = parseId(req.getPathInfo());
-
+            String path = req.getPathInfo();
+            if (path == null || !path.matches("/\\d+/?")) throw new IllegalArgumentException("Đường dẫn khách hàng không hợp lệ");
+            long id = parseId(path);
             customerService.delete(currentUserId, id);
             ResponseUtil.json(resp, 200, ApiResponse.success("Xóa khách hàng thành công", null));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
         } catch (NoSuchElementException e) {
             ResponseUtil.json(resp, 404, ApiResponse.error(e.getMessage(), null));
-        } catch (IllegalArgumentException e) {
+        } catch (JsonParseException | IllegalArgumentException e) {
             ResponseUtil.json(resp, 400, ApiResponse.error(e.getMessage(), null));
+        } catch (SQLException e) {
+            databaseError(resp, e);
         } catch (Exception e) {
-            ResponseUtil.json(resp, 500, ApiResponse.error("Lỗi máy chủ: " + e.getMessage(), null));
+            log("Customer request failed", e);
+            ResponseUtil.json(resp, 500, ApiResponse.error("Không thể xử lý dữ liệu khách hàng", null));
         }
     }
-
-    private long requireUser(HttpServletRequest req) {
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
-            throw new SecurityException("Phiên đăng nhập không hợp lệ hoặc đã hết hạn.");
+        if (session == null || !(session.getAttribute("userId") instanceof Number)) {
+            ResponseUtil.json(resp, 401, ApiResponse.error("Chưa đăng nhập", null));
+            return;
         }
-        return (Long) session.getAttribute("userId");
+        super.service(req, resp);
     }
-
+    private long requireUser(HttpServletRequest req) {
+        return AuthorizationService.currentUserId(req);
+    }
+    private void databaseError(HttpServletResponse resp, SQLException failure) throws IOException {
+        log("Customer database operation failed", failure);
+        boolean duplicate = false;
+        boolean conflict = false;
+        for (SQLException error = failure; error != null; error = error.getNextException()) {
+            duplicate |= error.getErrorCode() == 1062;
+            conflict |= "23000".equals(error.getSQLState()) || "40001".equals(error.getSQLState())
+                    || error.getErrorCode() == 1205;
+        }
+        ResponseUtil.json(resp, duplicate || conflict ? 409 : 500,
+                ApiResponse.error(duplicate ? "Mã số thuế đã tồn tại; vui lòng dùng mã số thuế khác"
+                        : conflict ? "Dữ liệu xung đột; vui lòng tải lại và thử lại"
+                        : "Không thể xử lý dữ liệu khách hàng", null));
+    }
     private long parseId(String pathInfo) {
         if (pathInfo == null || pathInfo.equals("/")) {
             throw new IllegalArgumentException("Thiếu customer id");
@@ -198,22 +213,22 @@ public class CustomerServlet extends HttpServlet {
         String clean = pathInfo.startsWith("/") ? pathInfo.substring(1) : pathInfo;
         int slash = clean.indexOf('/');
         String idStr = slash >= 0 ? clean.substring(0, slash) : clean;
+        if (!idStr.matches("[1-9][0-9]*")) throw new IllegalArgumentException("Customer ID phải là số nguyên dương");
         return Long.parseLong(idStr);
     }
-
     private int intParam(HttpServletRequest req, String name, int fallback) {
         String val = req.getParameter(name);
         if (val == null || val.isBlank()) return fallback;
         try {
             return Integer.parseInt(val.trim());
         } catch (NumberFormatException e) {
-            return fallback;
+            throw new IllegalArgumentException(name + " phải là số nguyên");
         }
     }
-
     private CustomerWriteRequest readCustomer(HttpServletRequest req) throws IOException {
         try {
             com.google.gson.JsonObject json = JsonUtil.getGson().fromJson(req.getReader(), com.google.gson.JsonObject.class);
+            if (json == null || !json.isJsonObject()) throw new IllegalArgumentException("Thiếu dữ liệu khách hàng");
             CustomerWriteRequest body = JsonUtil.getGson().fromJson(json, CustomerWriteRequest.class);
             if (json != null && json.has("region")) {
                 var region = json.get("region");
@@ -226,7 +241,6 @@ public class CustomerServlet extends HttpServlet {
             throw new IllegalArgumentException("Invalid Customer JSON");
         }
     }
-
     private int searchIntParam(HttpServletRequest req, String name, int fallback) {
         String value = req.getParameter(name);
         if (value == null || value.isBlank()) return fallback;
