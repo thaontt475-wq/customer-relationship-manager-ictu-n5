@@ -745,6 +745,23 @@
                 }
             }
 
+            // CRM-69: Ensure Periodic Customer Care item is in workspace menu
+            if (!currentMenu.some(m => m.path === "periodic-care.html" || m.name === "PERIODIC_CARE")) {
+                const supportIndex = currentMenu.findIndex(m => m.path === "support-tickets.html");
+                const careItem = {
+                    name: "PERIODIC_CARE",
+                    label: "Chăm sóc định kỳ",
+                    path: "periodic-care.html",
+                    icon: "calendar",
+                    section: "workspace"
+                };
+                if (supportIndex !== -1) {
+                    currentMenu.splice(supportIndex + 1, 0, careItem);
+                } else {
+                    currentMenu.push(careItem);
+                }
+            }
+
             renderUser();
 
 
