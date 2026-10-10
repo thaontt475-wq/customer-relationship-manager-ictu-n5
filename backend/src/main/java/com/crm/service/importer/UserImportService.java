@@ -160,13 +160,7 @@ public class UserImportService {
     }
 
     private List<RowData> readRows(InputStream input) throws Exception {
-        XSSFWorkbook workbook;
-        try {
-            workbook = new XSSFWorkbook(input);
-        } catch (Exception e) {
-            throw new InvalidWorkbookException("File .xlsx không hợp lệ hoặc bị hỏng");
-        }
-        try (workbook) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook(input)) {
             if (workbook.getNumberOfSheets() == 0) throw new InvalidWorkbookException("File không có worksheet");
             Sheet sheet = workbook.getSheetAt(0);
             DataFormatter formatter = new DataFormatter(Locale.ROOT);

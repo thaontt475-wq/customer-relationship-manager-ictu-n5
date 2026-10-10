@@ -138,7 +138,7 @@ public class AuditLogServlet
                     com.crm.util.JsonUtil.getGson()
                             .fromJson(
                                     request.getReader(),
-                                    java.util.Map.class
+                                    new com.google.gson.reflect.TypeToken<java.util.Map<String, Object>>() {}.getType()
                             );
 
             if (body == null) {

@@ -78,7 +78,7 @@ public class OpportunityServlet extends HttpServlet {
                 String action = segments[1];
 
                 if ("stage".equals(action)) {
-                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), Map.class);
+                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
                     if (body == null || body.get("stageId") == null) {
                         throw new IllegalArgumentException("Thiếu stageId");
                     }
@@ -89,7 +89,7 @@ public class OpportunityServlet extends HttpServlet {
                 }
 
                 if ("close".equals(action)) {
-                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), Map.class);
+                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
                     if (body == null || body.get("status") == null) {
                         throw new IllegalArgumentException("Thiếu trạng thái đóng cơ hội (WON/LOST)");
                     }

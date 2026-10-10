@@ -4,7 +4,6 @@ import com.crm.config.DatabaseConfig;
 import com.crm.dto.pipeline.OpportunityWriteRequest;
 import com.crm.service.permissions.DataScopeContext;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 
