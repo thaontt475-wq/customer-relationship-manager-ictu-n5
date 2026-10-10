@@ -313,14 +313,31 @@
     }
 
     /* =========================================================
-       2. INITIALIZATION
+       2. INITIALIZATION (CACHE-FIRST INSTANT RENDER)
     ========================================================= */
-    async function init() {
+    function init() {
         populateSelectOptions();
         bindEvents();
-        await loadSession();
-        await loadUsers();
-        await loadCustomers();
+
+        // 1. Render Cache-First tức thì (0ms) từ LocalStorage
+        if (window.DuplicateMergeEngine) {
+            customersList = window.DuplicateMergeEngine.getStoredCustomers();
+        } else {
+            customersList = getLocalCustomers();
+        }
+
+        state.totalItems = Number(customersList.length);
+        state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
+        currentScope = "ALL";
+
+        scanDuplicates();
+        filterAndRenderTable();
+        updateKpiStats();
+
+        // 2. Chạy ngầm session & users và sync backend (non-blocking)
+        loadSession().catch(() => {});
+        loadUsers().catch(() => {});
+        syncBackendCustomers().catch(() => {});
     }
 
     function populateSelectOptions() {
@@ -420,42 +437,38 @@
     /* =========================================================
        3. LOAD & RENDER CUSTOMERS (WITH DUPLICATE SCANNING)
     ========================================================= */
+    async function syncBackendCustomers() {
+        try {
+            const params = new URLSearchParams();
+            params.set("page", String(state.page));
+            params.set("size", String(state.pageSize));
+            if (state.keyword) params.set("keyword", state.keyword);
+            if (state.status) params.set("status", state.status);
+            const data = await apiRequest(`/api/customers?${params.toString()}`);
+            if (data && Array.isArray(data.items) && data.items.length > 0) {
+                customersList = data.items;
+                saveLocalCustomers(customersList);
+                state.totalItems = Number(customersList.length);
+                state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
+                scanDuplicates();
+                filterAndRenderTable();
+                updateKpiStats();
+            }
+        } catch (_) {
+            // Không kết nối được API Backend -> tiếp tục sử dụng dữ liệu bền vững từ LocalStorage
+        }
+    }
+
     async function loadCustomers() {
         setLoading(true);
         try {
-            // 1. Kiểm tra LocalStorage CRM_CUSTOMERS_DATA
+            // 1. Nạp từ LocalStorage CRM_CUSTOMERS_DATA
             if (window.DuplicateMergeEngine) {
                 customersList = window.DuplicateMergeEngine.getStoredCustomers();
             } else {
-                try {
-                    const params = new URLSearchParams();
-                    params.set("page", String(state.page));
-                    params.set("size", String(state.pageSize));
-                    if (state.keyword) params.set("keyword", state.keyword);
-                    if (state.status) params.set("status", state.status);
-                    const data = await apiRequest(`/api/customers?${params.toString()}`);
-                    customersList = data?.items || [];
-                } catch (_) {
-                    customersList = [];
-                }
+                customersList = getLocalCustomers();
             }
 
-            if (state.keyword) params.set("keyword", state.keyword);
-            if (state.status) params.set("status", state.status);
-
-            let items = [];
-            try {
-                const data = await apiRequest(`/api/customers?${params.toString()}`);
-                items = data?.items || [];
-            } catch (_) {}
-
-            if (items.length === 0) {
-                items = getLocalCustomers();
-            } else {
-                saveLocalCustomers(items);
-            }
-
-            customersList = items;
             state.totalItems = Number(customersList.length);
             state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
             currentScope = "ALL";
@@ -472,6 +485,9 @@
 
             filterAndRenderTable();
             updateKpiStats();
+
+            // Thử đồng bộ Backend nếu trực tuyến
+            await syncBackendCustomers();
         } catch (err) {
             console.error("Lỗi tải khách hàng:", err);
             customersList = getLocalCustomers();
