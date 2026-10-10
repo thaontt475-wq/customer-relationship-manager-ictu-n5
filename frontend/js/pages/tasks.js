@@ -1,5 +1,7 @@
 "use strict";
 
+const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+
 let activities =
     loadActivities();
 
@@ -107,7 +109,7 @@ document.addEventListener(
                 saveActivities();
                 render();
                 if (!String(task.id).startsWith("act_")) {
-                    fetch(`http://localhost:8080/crm/api/activities/${task.id}`, {
+                    fetch(`${API_BASE}/api/activities/${task.id}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         credentials: "include",
@@ -259,7 +261,7 @@ function saveTask() {
         try {
             const dueDate = record.date ? (record.date + " 00:00:00") : null;
             if (editingId && !String(editingId).startsWith("act_")) {
-                await fetch(`http://localhost:8080/crm/api/activities/${editingId}`, {
+                await fetch(`${API_BASE}/api/activities/${editingId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -272,7 +274,7 @@ function saveTask() {
                     })
                 });
             } else {
-                const res = await fetch("http://localhost:8080/crm/api/activities", {
+                const res = await fetch(`${API_BASE}/api/activities`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -773,7 +775,7 @@ render();
 
 (async function syncBackendActivities() {
     try {
-        const res = await fetch("http://localhost:8080/crm/api/activities", { credentials: "include" });
+        const res = await fetch(`${API_BASE}/api/activities`, { credentials: "include" });
         const json = await res.json();
         if (json?.success && Array.isArray(json.data)) {
             activities = json.data.map(item => {

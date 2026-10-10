@@ -12,7 +12,7 @@
 "use strict";
 
 (function () {
-    const API_BASE = "http://localhost:8080/crm";
+    const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
     // Master Catalogues (Categories)
     const INDUSTRIES = [
@@ -36,7 +36,8 @@
 
     const STORAGE_KEY_CUSTOMERS = "CRM_CUSTOMERS_DATA";
 
-    const DEFAULT_MOCK_CUSTOMERS = [
+    const DEFAULT_MOCK_CUSTOMERS = [];
+    const _UNUSED_DEFAULT_MOCK_CUSTOMERS = [
         {
             id: 1,
             companyName: "Tập đoàn Công nghệ FPT",
@@ -204,7 +205,11 @@
             if (raw !== null && raw !== undefined) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed)) {
-                    // Dữ liệu cache hợp lệ của tài khoản (kể cả mảng rỗng [])
+                    if (parsed.some(c => c.companyName === "Tập đoàn Công nghệ FPT" || c.name === "Tập đoàn Công nghệ FPT")) {
+                        localStorage.removeItem(key);
+                        localStorage.removeItem(STORAGE_KEY_CUSTOMERS);
+                        return null;
+                    }
                     return parsed;
                 }
             }
@@ -214,7 +219,13 @@
             const legacyRaw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
             if (legacyRaw !== null && legacyRaw !== undefined) {
                 const legacyParsed = JSON.parse(legacyRaw);
-                if (Array.isArray(legacyParsed)) return legacyParsed;
+                if (Array.isArray(legacyParsed)) {
+                    if (legacyParsed.some(c => c.companyName === "Tập đoàn Công nghệ FPT" || c.name === "Tập đoàn Công nghệ FPT")) {
+                        localStorage.removeItem(STORAGE_KEY_CUSTOMERS);
+                        return null;
+                    }
+                    return legacyParsed;
+                }
             }
         } catch (_) {}
         return null;

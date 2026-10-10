@@ -3,7 +3,7 @@
 (function () {
 
     const API_BASE =
-        "http://localhost:8080/crm";
+        `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
 
     const currentPage =
@@ -557,7 +557,7 @@
     function absoluteAvatarUrl(url) {
         if (!url) return "";
         if (/^https?:\/\//i.test(url)) return url;
-        const origin = "http://localhost:8080";
+        const origin = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080`;
         return origin + (url.startsWith("/") ? url : "/" + url);
     }
 

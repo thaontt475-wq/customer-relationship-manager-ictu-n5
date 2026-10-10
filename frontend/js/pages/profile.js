@@ -1,7 +1,7 @@
 "use strict";
 
-const API_BASE = "http://localhost:8080/crm";
-const BACKEND_ORIGIN = "http://localhost:8080";
+const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+const BACKEND_ORIGIN = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080`;
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
 
 /* =========================================================
