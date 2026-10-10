@@ -1,131 +1,548 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
-
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
-
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem("crm_ui_theme");
+                document.documentElement.setAttribute(
+                    "data-theme",
+                    theme === "dark" ? "dark" : "light"
+                );
+                document.documentElement.removeAttribute("data-crm-theme");
+            } catch (e) {
+                document.documentElement.setAttribute("data-theme", "light");
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập | Corporate CRM - Hệ thống Quản trị Quan hệ Khách hàng Doanh nghiệp</title>
+    <meta name="description" content="Hệ thống Quản trị Quan hệ Khách hàng Doanh nghiệp B2B (Corporate CRM) - Quản lý hồ sơ khách hàng 360°, theo dõi phễu bán hàng và tối ưu doanh thu.">
 
-    <title>Đăng nhập - CRM</title>
-
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
 
 <body>
+    <main class="login-universe">
+        <!-- Interactive Constellation Canvas (CRM Customer & Deal Network) -->
+        <canvas id="crmConstellationCanvas" aria-hidden="true"></canvas>
 
-    <main class="login-page">
+        <!-- Ambient Matrix Grid Overlay -->
+        <div class="ambient-grid-overlay" aria-hidden="true"></div>
 
-        <section class="login-card">
+        <!-- Ambient Glowing Orbs -->
+        <div class="ambient-glow-orb orb-primary" aria-hidden="true"></div>
+        <div class="ambient-glow-orb orb-cyan" aria-hidden="true"></div>
+        <div class="ambient-glow-orb orb-purple" aria-hidden="true"></div>
 
-            <div class="brand-logo" aria-hidden="true">
-                <span class="swirl swirl-one"></span>
-                <span class="swirl swirl-two"></span>
-            </div>
-
-            <h1>Màn hình Đăng nhập</h1>
-
-            <form id="loginForm" novalidate>
-
-                <div class="form-group">
-                    <label for="email">
-                        Email
-                    </label>
-
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="name@company.com"
-                        autocomplete="email"
-                    >
-                </div>
-
-
-                <div class="form-group">
-                    <label for="password">
-                        Mật khẩu
-                    </label>
-
-                    <div class="password-field">
-
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            placeholder="Nhập mật khẩu"
-                            autocomplete="current-password"
-                        >
-
-                        <button
-                            id="togglePassword"
-                            class="password-toggle"
-                            type="button"
-                            aria-label="Hiện mật khẩu"
-                        >
-                            <svg
-                                id="eyeIcon"
-                                viewBox="0 0 24 24"
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z"
-                                />
-                                <circle cx="12" cy="12" r="2.8"/>
-                                <path
-                                    id="eyeSlash"
-                                    d="M4 4l16 16"
-                                />
-                            </svg>
-                        </button>
-
+        <!-- Main Login Stage: Two-Column Split Architecture -->
+        <div class="login-stage">
+            
+            <!-- ========================================================
+                 LEFT COLUMN: CORPORATE BRANDING & CRM ENTERPRISE SUITE
+                 ======================================================== -->
+            <section class="showcase-column" aria-label="Giới thiệu Hệ thống Quản trị Quan hệ Khách hàng">
+                
+                <!-- Enterprise Brand Identity -->
+                <div class="brand-badge-bar">
+                    <div class="brand-emblem" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <div class="brand-names">
+                        <div class="brand-company">
+                            Corporate CRM
+                            <span class="brand-edition-pill">Enterprise B2B</span>
+                        </div>
+                        <div class="brand-tagline">Hệ thống Quản trị Quan hệ Khách hàng Doanh nghiệp</div>
                     </div>
                 </div>
 
+                <!-- Main Value Proposition Typography -->
+                <div class="showcase-hero">
+                    <div class="hero-pill-tag">
+                        <svg class="hero-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                        <span>Giải pháp Quản trị & Phát triển Khách hàng Toàn diện</span>
+                    </div>
+                    <h1 class="hero-title">
+                        Hợp nhất Dữ liệu Khách hàng & <span class="hero-title-gradient">Tối ưu Doanh thu B2B</span>
+                    </h1>
+                    <p class="hero-description">
+                        Hệ sinh thái số hóa giúp tổ chức quản trị hồ sơ đối tác 360°, chuẩn hóa phễu cơ hội kinh doanh, kiểm soát tiến độ hợp đồng và nâng cao chất lượng dịch vụ chăm sóc khách hàng định kỳ.
+                    </p>
+                </div>
 
-                <button
-                    class="login-button"
-                    type="submit"
-                >
-                    Đăng nhập hệ thống
-                </button>
+                <!-- 3 Core Enterprise Feature Pillars -->
+                <div class="showcase-features-list">
+                    <div class="feature-pillar-card">
+                        <div class="tab-icon-box tab-icon-cyan" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <div class="tab-content-text">
+                            <h3 class="tab-title">Hồ sơ Đối tác & Khách hàng 360°</h3>
+                            <p class="tab-desc">Quản lý tập trung thông tin tổ chức, người đại diện mua hàng, phân khúc khách hàng chiến lược và toàn bộ lịch sử tương tác đa kênh.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-pillar-card">
+                        <div class="tab-icon-box tab-icon-purple" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <div class="tab-content-text">
+                            <h3 class="tab-title">Phễu Bán hàng & Quản lý Hợp đồng B2B</h3>
+                            <p class="tab-desc">Giám sát tiến độ từng cơ hội kinh doanh từ tiếp cận, thẩm định, báo giá đến đàm phán hợp đồng; đo lường tỷ lệ chốt và dự phóng doanh thu.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature-pillar-card">
+                        <div class="tab-icon-box tab-icon-emerald" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="tab-content-text">
+                            <h3 class="tab-title">Chăm sóc Định kỳ & Giữ chân Đối tác</h3>
+                            <p class="tab-desc">Theo dõi chỉ số sức khỏe quan hệ khách hàng, tự động nhắc lịch chăm sóc định kỳ và cảnh báo sớm nguy cơ rời bỏ để can thiệp kịp thời.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Executive CRM System Overview Card -->
+                <div class="live-crm-widget">
+                    <div class="widget-top-row">
+                        <div class="widget-client-info">
+                            <div class="widget-client-logo" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                                    <line x1="6" y1="6" x2="6.01" y2="6"/>
+                                    <line x1="6" y1="18" x2="6.01" y2="18"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="widget-client-name">Trung tâm Vận hành CRM Doanh nghiệp</div>
+                                <div class="widget-client-meta">
+                                    <span>Hệ thống trực tuyến</span> • <span>SLA 99.9% Uptime</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="widget-kpi-badge">1.250+ Khách hàng B2B</div>
+                    </div>
+
+                    <div class="widget-pipeline-progress">
+                        <div class="pipeline-labels">
+                            <span class="pipeline-stage-name">Tiến độ chỉ tiêu kinh doanh toàn bộ hệ thống</span>
+                            <span>92% Hoàn thành</span>
+                        </div>
+                        <div class="pipeline-bar-track">
+                            <div class="pipeline-bar-fill" style="width: 92%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="widget-live-ticker">
+                        <div class="ticker-pulse-led" aria-hidden="true"></div>
+                        <div class="ticker-text">
+                            <strong>Trạng thái bảo mật:</strong> Dữ liệu khách hàng được mã hóa cấp quân sự AES-256 và phân quyền đa tầng RBAC
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trust Statistics Row -->
+                <div class="showcase-stats-row">
+                    <div class="stat-item">
+                        <span class="stat-value">100%</span>
+                        <span class="stat-label">Dữ liệu số hóa tập trung</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">+35%</span>
+                        <span class="stat-label">Hiệu suất chốt hợp đồng</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">360°</span>
+                        <span class="stat-label">Góc nhìn quan hệ khách hàng</span>
+                    </div>
+                </div>
+
+            </section>
 
 
-                <a
-                    class="forgot-link"
-                    href="forgot-password.html"
-                >
-                    Quên mật khẩu?
-                </a>
+            <!-- ========================================================
+                 RIGHT COLUMN: FROSTED GLASS ENTERPRISE LOGIN CONSOLE
+                 ======================================================== -->
+            <section class="auth-column" aria-label="Bảng điều khiển đăng nhập">
+                <div class="auth-card">
+                    
+                    <!-- Card Header -->
+                    <div class="auth-header">
+                        <div class="system-status-chip">
+                            <span class="status-dot-pulse" aria-hidden="true"></span>
+                            <span>Cổng đăng nhập hệ thống: Sẵn sàng</span>
+                        </div>
+                        <h2 class="auth-title">Đăng nhập tài khoản</h2>
+                        <p class="auth-subtitle">
+                            Nhập thông tin xác thực định danh để truy cập không gian làm việc quản trị quan hệ khách hàng.
+                        </p>
+                    </div>
 
-            </form>
+                    <!-- Alert message box (Maintained for login.js) -->
+                    <div id="loginError" class="auth-alert-box alert-danger" hidden role="alert" aria-live="polite"></div>
 
-        </section>
+                    <!-- Caps Lock Alert -->
+                    <div id="capsLockAlert" class="auth-alert-box alert-warning" style="display: none;" role="status">
+                        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        <span>Phím Caps Lock đang bật. Hãy kiểm tra lại bàn phím.</span>
+                    </div>
 
+                    <!-- Main Login Form (Preserving all native JS IDs) -->
+                    <form id="loginForm" class="auth-form" novalidate>
+                        
+                        <!-- Email Input Group -->
+                        <div class="input-field-group">
+                            <div class="input-label-row">
+                                <label for="email" class="input-label">
+                                    Email công vụ <span class="required-star">*</span>
+                                </label>
+                            </div>
+                            <div class="input-control-box" id="emailControlBox">
+                                <div class="input-leading-icon" aria-hidden="true">
+                                    <!-- High-precision Corporate Mail SVG Icon -->
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="20" height="16" x="2" y="4" rx="3"/>
+                                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                    </svg>
+                                </div>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    class="native-form-input"
+                                    placeholder="name@corporate-crm.vn"
+                                    autocomplete="email"
+                                    required
+                                >
+                                <div class="input-validation-badge" id="emailValidBadge" title="Định dạng email hợp lệ" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <path d="M20 6L9 17l-5-5"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password Input Group -->
+                        <div class="input-field-group">
+                            <div class="input-label-row">
+                                <label for="password" class="input-label">
+                                    Mật khẩu bảo mật <span class="required-star">*</span>
+                                </label>
+                                <a href="forgot-password.html" class="link-forgot-password" tabindex="4">
+                                    Quên mật khẩu?
+                                </a>
+                            </div>
+                            <div class="input-control-box" id="passwordControlBox">
+                                <div class="input-leading-icon" aria-hidden="true">
+                                    <!-- High-precision Security Shield Lock SVG Icon -->
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                        <circle cx="12" cy="16" r="1"/>
+                                    </svg>
+                                </div>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    class="native-form-input"
+                                    placeholder="••••••••••••"
+                                    autocomplete="current-password"
+                                    required
+                                >
+                                <button
+                                    id="togglePassword"
+                                    class="password-toggle-btn"
+                                    type="button"
+                                    aria-label="Hiện mật khẩu"
+                                    title="Hiện/ẩn mật khẩu"
+                                    tabindex="-1"
+                                >
+                                    <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z"/>
+                                        <circle cx="12" cy="12" r="2.8"/>
+                                        <path id="eyeSlash" d="M4 4l16 16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Options: Remember Me -->
+                        <div class="form-options-row">
+                            <label class="custom-checkbox-label">
+                                <input type="checkbox" id="rememberMe" checked>
+                                <span>Ghi nhớ phiên đăng nhập trên trình duyệt này</span>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button class="btn-submit-login" type="submit">
+                            <span class="btn-text">Đăng nhập hệ thống</span>
+                            <svg class="btn-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                                <polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+                    </form>
+
+                    <!-- Security Disclaimer Footer -->
+                    <footer class="auth-footer">
+                        <div class="security-trust-badges">
+                            <div class="trust-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                <span>SSL 256-bit AES</span>
+                            </div>
+                            <span>•</span>
+                            <div class="trust-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                                <span>ISO 27001</span>
+                            </div>
+                            <span>•</span>
+                            <div class="trust-item">
+                                <span>Phiên bản Enterprise 2.6.4</span>
+                            </div>
+                        </div>
+                        <div class="copyright-text">
+                            © 2026 Corporate CRM ICTU • Bản quyền giải pháp Quản trị Khách hàng B2B
+                        </div>
+                    </footer>
+
+                </div>
+            </section>
+
+        </div>
     </main>
 
+    <!-- Core Authentication Logic -->
     <script src="js/login.js"></script>
 
+    <!-- Interactive Dynamic Page Controller: Constellation Network, Input Validation & Caps Lock -->
+    <script>
+        /* ===================================================================
+           1. INTERACTIVE CONSTELLATION NETWORK (CANVAS 2D)
+           Renders nodes and dynamic data connections responding to cursor
+           =================================================================== */
+        (function initConstellationNetwork() {
+            const canvas = document.getElementById("crmConstellationCanvas");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            let width, height;
+            let particles = [];
+            const particleCount = 45;
+            const maxDistance = 140;
+            const mouse = { x: null, y: null, radius: 170 };
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+
+            window.addEventListener("resize", resize);
+            resize();
+
+            window.addEventListener("mousemove", (e) => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+
+            window.addEventListener("mouseleave", () => {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * width;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.65;
+                    this.vy = (Math.random() - 0.5) * 0.65;
+                    this.radius = Math.random() * 2 + 1.2;
+                    // Color variety: Cyan, Sapphire, Violet
+                    const colors = [
+                        "rgba(56, 189, 248, 0.75)",
+                        "rgba(37, 99, 235, 0.8)",
+                        "rgba(168, 85, 247, 0.7)"
+                    ];
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+
+                    if (this.x < 0 || this.x > width) this.vx *= -1;
+                    if (this.y < 0 || this.y > height) this.vy *= -1;
+
+                    // Mouse attraction / repulsion subtle inertia
+                    if (mouse.x !== null && mouse.y !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < mouse.radius) {
+                            const force = (mouse.radius - dist) / mouse.radius;
+                            this.x -= (dx / dist) * force * 1.5;
+                            this.y -= (dy / dist) * force * 1.5;
+                        }
+                    }
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = this.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < maxDistance) {
+                            const alpha = 1 - (dist / maxDistance);
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(59, 130, 246, ${alpha * 0.22})`;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
+                        }
+                    }
+
+                    // Connect with mouse position
+                    if (mouse.x !== null && mouse.y !== null) {
+                        const dx = particles[i].x - mouse.x;
+                        const dy = particles[i].y - mouse.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < mouse.radius) {
+                            const alpha = 1 - (dist / mouse.radius);
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(mouse.x, mouse.y);
+                            ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.45})`;
+                            ctx.lineWidth = 1.2;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            let animId;
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                connectParticles();
+                animId = requestAnimationFrame(animate);
+            }
+
+            // Pause loop when page is hidden to conserve GPU/CPU
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(animId);
+                } else {
+                    animate();
+                }
+            });
+
+            animate();
+        })();
+
+
+        /* ===================================================================
+           2. REAL-TIME INPUT DYNAMICS & FOCUS CONTROL
+           Adds focus styling, Caps Lock alert, and live email validation
+           =================================================================== */
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const emailControlBox = document.getElementById("emailControlBox");
+        const passwordControlBox = document.getElementById("passwordControlBox");
+        const emailValidBadge = document.getElementById("emailValidBadge");
+        const capsLockAlert = document.getElementById("capsLockAlert");
+
+        function setupInputFocus(input, box) {
+            if (!input || !box) return;
+            input.addEventListener("focus", () => box.classList.add("has-focus"));
+            input.addEventListener("blur", () => box.classList.remove("has-focus"));
+        }
+
+        setupInputFocus(emailInput, emailControlBox);
+        setupInputFocus(passwordInput, passwordControlBox);
+
+        // Real-time Email format validator badge
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        function validateEmailFormat() {
+            if (!emailInput || !emailValidBadge) return;
+            const val = emailInput.value.trim();
+            if (emailRegex.test(val)) {
+                emailValidBadge.classList.add("valid");
+            } else {
+                emailValidBadge.classList.remove("valid");
+            }
+        }
+
+        if (emailInput) {
+            emailInput.addEventListener("input", validateEmailFormat);
+            // Run on load in case of autofill
+            setTimeout(validateEmailFormat, 300);
+        }
+
+        // Caps Lock Warning Indicator
+        if (passwordInput && capsLockAlert) {
+            function checkCapsLock(event) {
+                if (event.getModifierState && event.getModifierState("CapsLock")) {
+                    capsLockAlert.style.display = "flex";
+                } else {
+                    capsLockAlert.style.display = "none";
+                }
+            }
+            passwordInput.addEventListener("keydown", checkCapsLock);
+            passwordInput.addEventListener("keyup", checkCapsLock);
+            passwordInput.addEventListener("blur", () => {
+                capsLockAlert.style.display = "none";
+            });
+        }
+    </script>
 </body>
 </html>

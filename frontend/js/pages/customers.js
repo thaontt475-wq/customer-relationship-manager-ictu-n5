@@ -175,22 +175,145 @@
         }
     ];
 
-    function getLocalCustomers() {
+    const STORAGE_KEY_CUSTOMERS_PREFIX = "CRM_CUSTOMERS_DATA";
+
+    function getCachedSessionUser() {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
+            const raw = localStorage.getItem("crm_ui_session");
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (parsed && (parsed.id || parsed.userId)) return parsed;
             }
         } catch (_) {}
-        saveLocalCustomers(DEFAULT_MOCK_CUSTOMERS);
-        return [...DEFAULT_MOCK_CUSTOMERS];
+        return null;
     }
 
-    function saveLocalCustomers(list) {
+    function getUserId(user) {
+        if (!user) return null;
+        return user.id || user.userId || null;
+    }
+
+    function getAccountStorageKey(userId) {
+        return userId ? `${STORAGE_KEY_CUSTOMERS_PREFIX}_USER_${userId}` : `${STORAGE_KEY_CUSTOMERS_PREFIX}_ANON`;
+    }
+
+    function getLocalCustomers(userId) {
+        const key = getAccountStorageKey(userId);
         try {
-            localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(list));
+            const raw = localStorage.getItem(key);
+            if (raw !== null && raw !== undefined) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    // Dữ liệu cache hợp lệ của tài khoản (kể cả mảng rỗng [])
+                    return parsed;
+                }
+            }
         } catch (_) {}
+        // Dự phòng tương thích legacy storage key
+        try {
+            const legacyRaw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
+            if (legacyRaw !== null && legacyRaw !== undefined) {
+                const legacyParsed = JSON.parse(legacyRaw);
+                if (Array.isArray(legacyParsed)) return legacyParsed;
+            }
+        } catch (_) {}
+        return null;
+    }
+
+    function saveLocalCustomers(list, userId) {
+        const key = getAccountStorageKey(userId);
+        try {
+            localStorage.setItem(key, JSON.stringify(list || []));
+            localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(list || []));
+        } catch (_) {}
+    }
+
+    /**
+     * Xác định phạm vi dữ liệu tối đa của người dùng: SELF, TEAM, hoặc ALL
+     * Ngăn chặn hoàn toàn hiển thị dữ liệu vượt quyền
+     */
+    function resolveEffectiveScope(user) {
+        if (!user) return "SELF";
+        const explicit = String(user.dataScope || "").toUpperCase();
+        if (explicit === "ALL" || explicit === "TEAM" || explicit === "SELF") {
+            return explicit;
+        }
+        const roles = Array.isArray(user.roles) ? user.roles : [];
+        const roleString = (String(user.role || "") + " " + roles.map(r => r.name || r.code || r).join(" ")).toUpperCase();
+        if (roleString.includes("ADMIN") || roleString.includes("DIRECTOR") || roleString.includes("GIÁM ĐỐC")) {
+            return "ALL";
+        }
+        if (roleString.includes("LEAD") || roleString.includes("TRƯỞNG NHÓM") || roleString.includes("MANAGER")) {
+            return "TEAM";
+        }
+        return "SELF";
+    }
+
+    /**
+     * Lọc danh sách khách hàng đảm bảo không vượt quá phạm vi SELF/TEAM/ALL của người dùng
+     */
+    function filterCustomersByScope(list, user) {
+        if (!Array.isArray(list)) return [];
+        const scope = resolveEffectiveScope(user);
+        if (scope === "SELF") {
+            if (!user?.id) return [];
+            return list.filter(item => {
+                const ownerId = item.ownerUserId ?? item.ownerId;
+                return Number(ownerId) === Number(user.id);
+            });
+        }
+        if (scope === "TEAM") {
+            return list.filter(item => {
+                const ownerId = item.ownerUserId ?? item.ownerId;
+                const isSelf = user?.id && Number(ownerId) === Number(user.id);
+                const isSameTeam = user?.teamId && item.teamId && Number(item.teamId) === Number(user.teamId);
+                return isSelf || isSameTeam;
+            });
+        }
+        return list; // Scope ALL
+    }
+
+    /**
+     * Đồng bộ giao diện phân quyền phạm vi: khóa các option vượt quyền
+     */
+    function applyUserScopePermissions(user) {
+        const maxScope = resolveEffectiveScope(user);
+        currentScope = maxScope;
+
+        // Cập nhật thẻ hiển thị phạm vi toàn cục
+        const scopeGlobalBadge = document.getElementById("scopeGlobalBadge");
+        if (scopeGlobalBadge) {
+            scopeGlobalBadge.textContent = `Phạm vi: ${maxScope}`;
+            scopeGlobalBadge.className = `scope-badge scope-${maxScope.toLowerCase()}`;
+        }
+
+        // Khóa các tùy chọn phạm vi vượt quá quyền người dùng
+        const scopeSelect = document.getElementById("scopeFilter");
+        if (scopeSelect) {
+            Array.from(scopeSelect.options).forEach(opt => {
+                const val = opt.value;
+                if (maxScope === "SELF") {
+                    opt.disabled = val !== "SELF";
+                } else if (maxScope === "TEAM") {
+                    opt.disabled = val === "ALL";
+                } else {
+                    opt.disabled = false;
+                }
+            });
+
+            if (maxScope === "SELF") {
+                scopeSelect.value = "SELF";
+                state.scopeFilter = "SELF";
+            } else if (maxScope === "TEAM") {
+                if (state.scopeFilter === "ALL") state.scopeFilter = "TEAM";
+                scopeSelect.value = state.scopeFilter;
+            } else {
+                scopeSelect.value = state.scopeFilter || "ALL";
+            }
+        } else {
+            if (maxScope === "SELF") state.scopeFilter = "SELF";
+            else if (maxScope === "TEAM" && state.scopeFilter === "ALL") state.scopeFilter = "TEAM";
+        }
     }
 
     // State
@@ -313,14 +436,81 @@
     }
 
     /* =========================================================
-       2. INITIALIZATION
+       2. INITIALIZATION (SCOPE-AWARE INSTANT RENDER & SYNC)
     ========================================================= */
     async function init() {
         populateSelectOptions();
         bindEvents();
-        await loadSession();
-        await loadUsers();
-        await loadCustomers();
+
+        // 1. Phân quyền và nhận diện phiên người dùng an toàn (Security & Scope Check)
+        currentSessionUser = getCachedSessionUser();
+
+        // Nếu chưa có phiên cache trong localStorage, chờ loadSession hoàn tất trước khi render
+        // để không bao giờ hiển thị nhầm dữ liệu vượt quyền SELF/TEAM/ALL
+        if (!currentSessionUser) {
+            setLoading(true);
+            try {
+                await loadSession();
+            } catch (_) {}
+            setLoading(false);
+        } else {
+            applyUserScopePermissions(currentSessionUser);
+        }
+
+        // 2. Nạp dữ liệu cache phân tách theo tài khoản
+        const userId = getUserId(currentSessionUser);
+        const cached = getLocalCustomers(userId);
+        if (cached !== null) {
+            // Có dữ liệu cache hợp lệ của chính tài khoản này (kể cả mảng rỗng [])
+            customersList = filterCustomersByScope(cached, currentSessionUser);
+        } else {
+            // Lần đầu vào tài khoản: nạp seed mock nhưng lọc đúng quyền người dùng
+            const seed = window.DuplicateMergeEngine
+                ? window.DuplicateMergeEngine.getStoredCustomers()
+                : DEFAULT_MOCK_CUSTOMERS;
+            customersList = filterCustomersByScope(seed, currentSessionUser);
+            saveLocalCustomers(customersList, userId);
+        }
+
+        state.totalItems = Number(customersList.length);
+        state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
+
+        scanDuplicates();
+        filterAndRenderTable();
+        updateKpiStats();
+
+        // 3. Chạy ngầm session & users và sync backend (Backend là nguồn chân lý phân quyền)
+        if (currentSessionUser) {
+            loadSession().then(u => {
+                if (u) {
+                    currentSessionUser = u;
+                    applyUserScopePermissions(u);
+                }
+            }).catch(() => {});
+        }
+        loadUsers().catch(() => {});
+        syncBackendCustomers().catch(() => {});
+
+        // Đăng ký hook dọn dẹp khi chuyển trang SPA
+        registerSpaCleanups();
+    }
+
+    function registerSpaCleanups() {
+        const cleanupFn = () => {
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+                debounceTimer = null;
+            }
+            closeDrawer();
+            closeQuickStatus();
+            closeMergeModal();
+        };
+
+        window.__CRM_PAGE_CLEANUP__ = cleanupFn;
+        if (typeof window.crmAddPageCleanup === "function") {
+            window.crmAddPageCleanup(cleanupFn);
+        }
+        window.addEventListener("crmPageDestroy", cleanupFn, { once: true });
     }
 
     function populateSelectOptions() {
@@ -360,21 +550,29 @@
 
     async function loadSession() {
         try {
-            currentSessionUser = await apiRequest("/api/auth/session");
+            const sessionData = await apiRequest("/api/auth/session");
+            if (sessionData) {
+                currentSessionUser = sessionData;
+                localStorage.setItem("crm_ui_session", JSON.stringify(sessionData));
+            }
         } catch (e) {
-            // Default demo user: Nông Quang Tiệp (Trưởng nhóm kinh doanh / Admin)
-            currentSessionUser = {
-                id: 100,
-                fullName: "Nông Quang Tiệp",
-                email: "tiepnq@corporate-crm.vn",
-                roles: [{ id: 1, name: "Trưởng nhóm kinh doanh (Team Lead)" }],
-                role: "TEAM_LEAD",
-                teamId: 10,
-                teamName: "Kinh doanh B2B Miền Bắc"
-            };
+            if (!currentSessionUser) {
+                // Default fallback if no prior session exists: Nông Quang Tiệp (Trưởng nhóm)
+                currentSessionUser = {
+                    id: 100,
+                    fullName: "Nông Quang Tiệp",
+                    email: "tiepnq@corporate-crm.vn",
+                    roles: [{ id: 1, name: "Trưởng nhóm kinh doanh (Team Lead)" }],
+                    role: "TEAM_LEAD",
+                    dataScope: "ALL",
+                    teamId: 10,
+                    teamName: "Kinh doanh B2B Miền Bắc"
+                };
+            }
         }
 
         if (currentSessionUser) {
+            applyUserScopePermissions(currentSessionUser);
             const topUserName = document.getElementById("topUserName");
             const topUserRole = document.getElementById("topUserRole");
             const topAvatar = document.getElementById("topAvatar");
@@ -382,6 +580,7 @@
             if (topUserRole) topUserRole.textContent = (currentSessionUser.roles || []).map(r => r.name).join(", ") || "Trưởng nhóm kinh doanh";
             if (topAvatar) topAvatar.textContent = (currentSessionUser.fullName || "N").charAt(0).toUpperCase();
         }
+        return currentSessionUser;
     }
 
     async function loadUsers() {
@@ -420,61 +619,68 @@
     /* =========================================================
        3. LOAD & RENDER CUSTOMERS (WITH DUPLICATE SCANNING)
     ========================================================= */
+    async function syncBackendCustomers() {
+        try {
+            const params = new URLSearchParams();
+            params.set("page", String(state.page));
+            params.set("size", String(state.pageSize));
+            if (state.keyword) params.set("keyword", state.keyword);
+            if (state.status) params.set("status", state.status);
+            if (state.industryId) params.set("industryId", state.industryId);
+            if (state.companySizeId) params.set("companySizeId", state.companySizeId);
+            if (state.region) params.set("region", state.region);
+            if (state.ownerUserId) params.set("ownerId", state.ownerUserId);
+
+            const data = await apiRequest(`/api/customers?${params.toString()}`);
+            if (data && Array.isArray(data.items)) {
+                // Xử lý cả trường hợp backend trả về danh sách rỗng hợp lệ (items.length === 0)
+                customersList = data.items;
+                const userId = getUserId(currentSessionUser);
+                saveLocalCustomers(customersList, userId);
+
+                if (window.DuplicateMergeEngine?.saveStoredCustomers) {
+                    window.DuplicateMergeEngine.saveStoredCustomers(customersList);
+                }
+
+                state.totalItems = Number(data.totalItems ?? data.total ?? customersList.length);
+                state.totalPages = Math.max(1, Math.ceil(state.totalItems / state.pageSize));
+
+                scanDuplicates();
+                filterAndRenderTable();
+                updateKpiStats();
+            }
+        } catch (_) {
+            // Không kết nối được API Backend -> tiếp tục sử dụng dữ liệu bền vững từ LocalStorage
+        }
+    }
+
     async function loadCustomers() {
         setLoading(true);
         try {
-            // 1. Kiểm tra LocalStorage CRM_CUSTOMERS_DATA
-            if (window.DuplicateMergeEngine) {
-                customersList = window.DuplicateMergeEngine.getStoredCustomers();
+            const userId = getUserId(currentSessionUser);
+            const cached = getLocalCustomers(userId);
+            if (cached !== null) {
+                customersList = filterCustomersByScope(cached, currentSessionUser);
             } else {
-                try {
-                    const params = new URLSearchParams();
-                    params.set("page", String(state.page));
-                    params.set("size", String(state.pageSize));
-                    if (state.keyword) params.set("keyword", state.keyword);
-                    if (state.status) params.set("status", state.status);
-                    const data = await apiRequest(`/api/customers?${params.toString()}`);
-                    customersList = data?.items || [];
-                } catch (_) {
-                    customersList = [];
-                }
+                const seed = window.DuplicateMergeEngine
+                    ? window.DuplicateMergeEngine.getStoredCustomers()
+                    : DEFAULT_MOCK_CUSTOMERS;
+                customersList = filterCustomersByScope(seed, currentSessionUser);
+                saveLocalCustomers(customersList, userId);
             }
 
-            if (state.keyword) params.set("keyword", state.keyword);
-            if (state.status) params.set("status", state.status);
-
-            let items = [];
-            try {
-                const data = await apiRequest(`/api/customers?${params.toString()}`);
-                items = data?.items || [];
-            } catch (_) {}
-
-            if (items.length === 0) {
-                items = getLocalCustomers();
-            } else {
-                saveLocalCustomers(items);
-            }
-
-            customersList = items;
             state.totalItems = Number(customersList.length);
             state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
-            currentScope = "ALL";
 
-            // Update Global Scope Badge
-            const scopeGlobalBadge = document.getElementById("scopeGlobalBadge");
-            if (scopeGlobalBadge) {
-                scopeGlobalBadge.textContent = `Phạm vi: ${currentScope}`;
-                scopeGlobalBadge.className = `scope-badge scope-${currentScope.toLowerCase()}`;
-            }
-
-            // Quét phát hiện trùng lặp tự động (CRM-64)
+            applyUserScopePermissions(currentSessionUser);
             scanDuplicates();
-
             filterAndRenderTable();
             updateKpiStats();
+
+            // Thử đồng bộ Backend nếu trực tuyến (Backend luôn là nguồn kiểm soát phân quyền chuẩn)
+            await syncBackendCustomers();
         } catch (err) {
             console.error("Lỗi tải khách hàng:", err);
-            customersList = getLocalCustomers();
             filterAndRenderTable();
             updateKpiStats();
         } finally {
@@ -560,11 +766,45 @@
             displayList = displayList.filter(item => String(item.ownerUserId) === String(state.ownerUserId));
         }
 
-        // 7. Client-side Scope filter (SELF vs TEAM)
-        if (state.scopeFilter === "SELF" && currentSessionUser?.id) {
-            displayList = displayList.filter(item => Number(item.ownerUserId) === Number(currentSessionUser.id));
-        } else if (state.scopeFilter === "TEAM" && currentSessionUser?.teamId) {
-            displayList = displayList.filter(item => Number(item.ownerUserId) !== Number(currentSessionUser.id));
+        // 7. Mandatory Data Scope Containment & Filter (SELF / TEAM / ALL)
+        const effectiveScope = resolveEffectiveScope(currentSessionUser);
+        if (effectiveScope === "SELF") {
+            // Quyền SELF: Chỉ được phép xem khách hàng do chính mình phụ trách
+            if (currentSessionUser?.id) {
+                displayList = displayList.filter(item => {
+                    const ownerId = item.ownerUserId ?? item.ownerId;
+                    return Number(ownerId) === Number(currentSessionUser.id);
+                });
+            }
+        } else if (effectiveScope === "TEAM") {
+            // Quyền TEAM: Được xem khách hàng của cá nhân hoặc trong cùng nhóm
+            if (state.scopeFilter === "SELF" && currentSessionUser?.id) {
+                displayList = displayList.filter(item => {
+                    const ownerId = item.ownerUserId ?? item.ownerId;
+                    return Number(ownerId) === Number(currentSessionUser.id);
+                });
+            } else if (currentSessionUser?.teamId) {
+                displayList = displayList.filter(item => {
+                    const ownerId = item.ownerUserId ?? item.ownerId;
+                    const isSelf = Number(ownerId) === Number(currentSessionUser.id);
+                    const isSameTeam = item.teamId && Number(item.teamId) === Number(currentSessionUser.teamId);
+                    return isSelf || isSameTeam;
+                });
+            }
+        } else {
+            // Quyền ALL (Admin / Team Lead cấp cao)
+            if (state.scopeFilter === "SELF" && currentSessionUser?.id) {
+                displayList = displayList.filter(item => {
+                    const ownerId = item.ownerUserId ?? item.ownerId;
+                    return Number(ownerId) === Number(currentSessionUser.id);
+                });
+            } else if (state.scopeFilter === "TEAM" && currentSessionUser?.teamId) {
+                displayList = displayList.filter(item => {
+                    const ownerId = item.ownerUserId ?? item.ownerId;
+                    const isSameTeam = item.teamId && Number(item.teamId) === Number(currentSessionUser.teamId);
+                    return isSameTeam || Number(ownerId) === Number(currentSessionUser.id);
+                });
+            }
         }
 
         // Cập nhật số lượng tìm thấy lên Badge (CRM-67)
@@ -1155,6 +1395,7 @@
                 };
 
                 customersList.unshift(newCustomer);
+                saveLocalCustomers(customersList, getUserId(currentSessionUser));
                 window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
                 showToast("Tạo mới hồ sơ khách hàng doanh nghiệp thành công!", "success");
             } else {
@@ -1176,6 +1417,7 @@
                         ownerUserId: ownerUserId,
                         ownerName: ownerName
                     };
+                    saveLocalCustomers(customersList, getUserId(currentSessionUser));
                     window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
                     showToast("Cập nhật thông tin khách hàng thành công!", "success");
                 }
@@ -1231,6 +1473,7 @@
         const idx = customersList.findIndex(c => Number(c.id) === Number(quickActionCustomer.id));
         if (idx !== -1) {
             customersList[idx].status = newStatus;
+            saveLocalCustomers(customersList, getUserId(currentSessionUser));
             window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
             showToast(`Đã chuyển trạng thái sang "${getStatusLabel(newStatus)}"`, "success");
         }
@@ -1248,6 +1491,7 @@
         if (!confirmed) return;
 
         customersList = customersList.filter(c => Number(c.id) !== Number(customerId));
+        saveLocalCustomers(customersList, getUserId(currentSessionUser));
         window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
         showToast(`Đã xóa khách hàng "${customer.companyName || customer.name}" thành công!`, "success");
 
@@ -1664,6 +1908,7 @@
                 closeMergeModal();
                 // Nạp lại danh sách mới nhất từ LocalStorage
                 customersList = window.DuplicateMergeEngine.getStoredCustomers();
+                saveLocalCustomers(customersList, getUserId(currentSessionUser));
                 filterAndRenderTable();
                 updateKpiStats();
             }
@@ -1892,8 +2137,18 @@
 
         // Role Simulator Select
         roleSimulatorSelect?.addEventListener("change", (e) => {
-            window.DuplicateMergeEngine?.setSimulatedRole(e.target.value);
+            const newRole = e.target.value;
+            window.DuplicateMergeEngine?.setSimulatedRole(newRole);
             updateRolePermissionUI();
+
+            // Đồng bộ mô phỏng quyền dữ liệu cho phiên người dùng
+            if (currentSessionUser) {
+                currentSessionUser.role = newRole;
+                currentSessionUser.dataScope = newRole === "SALE" ? "SELF" : "ALL";
+                applyUserScopePermissions(currentSessionUser);
+                filterAndRenderTable();
+                updateKpiStats();
+            }
         });
 
         // Export Excel

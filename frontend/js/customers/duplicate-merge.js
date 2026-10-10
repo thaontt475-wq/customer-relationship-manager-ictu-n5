@@ -483,12 +483,12 @@
     function getStoredCustomers() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
-            if (!raw) {
+            if (raw === null || raw === undefined) {
                 localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(DEFAULT_SEED_CUSTOMERS));
                 return DEFAULT_SEED_CUSTOMERS;
             }
             const parsed = JSON.parse(raw);
-            if (!Array.isArray(parsed) || parsed.length === 0) {
+            if (!Array.isArray(parsed)) {
                 localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(DEFAULT_SEED_CUSTOMERS));
                 return DEFAULT_SEED_CUSTOMERS;
             }
