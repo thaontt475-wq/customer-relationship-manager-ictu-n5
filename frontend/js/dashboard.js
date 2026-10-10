@@ -1250,10 +1250,11 @@ renderDashboard();
 
 (async function syncBackendData() {
     try {
+        const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
         const [oppRes, quoteRes, actRes] = await Promise.all([
-            fetch("http://localhost:8080/crm/api/opportunities", { credentials: "include" }),
-            fetch("http://localhost:8080/crm/api/quotes", { credentials: "include" }),
-            fetch("http://localhost:8080/crm/api/activities", { credentials: "include" })
+            fetch(`${API_BASE}/api/opportunities`, { credentials: "include" }),
+            fetch(`${API_BASE}/api/quotes`, { credentials: "include" }),
+            fetch(`${API_BASE}/api/activities`, { credentials: "include" })
         ]);
 
         const [oppJson, quoteJson, actJson] = await Promise.all([

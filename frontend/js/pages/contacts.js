@@ -74,7 +74,8 @@
     ];
 
     // Seed Mock Contacts (Robust Enterprise Data across B2B clients)
-    const DEFAULT_MOCK_CONTACTS = [
+    const DEFAULT_MOCK_CONTACTS = [];
+    const _UNUSED_DEFAULT_MOCK_CONTACTS = [
         {
             id: 1,
             customerId: 1,
@@ -302,7 +303,8 @@
     ];
 
     // Seed Mock Career History (Audit Trail of Contact Transfers)
-    const DEFAULT_MOCK_HISTORY = [
+    const DEFAULT_MOCK_HISTORY = [];
+    const _UNUSED_DEFAULT_MOCK_HISTORY = [
         {
             id: 101,
             contactId: 3,
