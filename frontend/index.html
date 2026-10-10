@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=login.html">
+    <title>Corporate CRM - Chuyển hướng</title>
+    <script>
+        (function() {
+            try {
+                var session = localStorage.getItem("crm_ui_session");
+                if (session) {
+                    var parsed = JSON.parse(session);
+                    if (parsed && (parsed.authenticated || parsed.email)) {
+                        window.location.replace("dashboard.html");
+                        return;
+                    }
+                }
+            } catch (_) {}
+            window.location.replace("login.html");
+        })();
+    </script>
+</head>
+<body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0f172a; color: #94a3b8;">
+    <p>Đang chuyển hướng đến Corporate CRM...</p>
+</body>
+</html>

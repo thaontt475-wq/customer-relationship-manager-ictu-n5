@@ -16,7 +16,7 @@
  * ===================================================================
  */
 
-const API_BASE = "http://localhost:8080/crm";
+const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
 // Global View States
 let currentCustomer = null;
@@ -401,9 +401,15 @@ async function loadCustomer360Data(cId) {
         console.warn(`[CRM-63] Backend GET /api/customers/${id}/360 chưa sẵn sàng hoặc lỗi (${err.message}). Kích hoạt In-Memory Mock Data:`);
     }
 
-    // 2. Fallback Flow: Comprehensive In-Memory Mock Data
-    const mock = generateComprehensiveMock360(id);
-    return normalizePayload(mock);
+    // 2. Fallback: Return clean empty structure if backend API fails
+    return normalizePayload({
+        customer: { id: id, name: "Không tìm thấy thông tin khách hàng", status: "CHUA_CO_DU_LIEU" },
+        openOpportunities: [],
+        closedOpportunities: [],
+        activities: [],
+        contacts: [],
+        attachments: []
+    });
 }
 
 

@@ -1,7 +1,7 @@
 "use strict";
 
 const API_BASE =
-    "http://localhost:8080/crm";
+    `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
 let products = [];
 
