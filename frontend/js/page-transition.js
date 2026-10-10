@@ -394,17 +394,33 @@
        6. DỌN DẸP SỰ KIỆN VÀ GIAO DIỆN TRANG CŨ
     ========================================================= */
     function addPageCleanup(fn) {
-        pageCleanups.push(fn);
+        if (typeof fn === "function") {
+            pageCleanups.push(fn);
+        }
     }
 
+    // Expose công khai cho các module trang đăng ký dọn dẹp riêng
+    window.crmAddPageCleanup = addPageCleanup;
+
     function runPageCleanups() {
-        // Hủy đăng ký tất cả sự kiện đã ghi nhận
+        // 1. Kích hoạt sự kiện hủy trang trước khi gỡ giao diện (cho các trang tự dọn dẹp)
+        try {
+            window.dispatchEvent(new CustomEvent("crmPageDestroy"));
+        } catch (_) {}
+
+        // 2. Chạy hook dọn dẹp riêng nếu trang đã đăng ký qua window.__CRM_PAGE_CLEANUP__
+        if (typeof window.__CRM_PAGE_CLEANUP__ === "function") {
+            try { window.__CRM_PAGE_CLEANUP__(); } catch (_) {}
+            window.__CRM_PAGE_CLEANUP__ = null;
+        }
+
+        // 3. Hủy đăng ký tất cả sự kiện, intervals, timeouts đã ghi nhận
         while (pageCleanups.length > 0) {
             const fn = pageCleanups.pop();
             try { fn(); } catch (_) {}
         }
 
-        // Đóng toàn bộ drawer, modal, dropdown đang mở
+        // 4. Đóng toàn bộ drawer, modal, dropdown đang mở để tránh kẹt trạng thái
         document.querySelectorAll(".open").forEach(el => el.classList.remove("open"));
         document.body.classList.remove("drawer-open", "modal-open", "sidebar-open");
     }
@@ -482,8 +498,13 @@
         const originalDocRemove = document.removeEventListener;
         const originalWinAdd = window.addEventListener;
         const originalWinRemove = window.removeEventListener;
+        const originalBodyAdd = document.body ? document.body.addEventListener : null;
+        const originalBodyRemove = document.body ? document.body.removeEventListener : null;
+
         const originalSetInterval = window.setInterval;
         const originalClearInterval = window.clearInterval;
+        const originalSetTimeout = window.setTimeout;
+        const originalClearTimeout = window.clearTimeout;
 
         // Ghi nhận và theo dõi tất cả event listener gắn vào document
         document.addEventListener = function (type, listener, options) {
@@ -509,11 +530,30 @@
             });
         };
 
-        // Ghi nhận timers
+        // Ghi nhận event listener gắn vào document.body nếu có
+        if (document.body && originalBodyAdd && originalBodyRemove) {
+            document.body.addEventListener = function (type, listener, options) {
+                originalBodyAdd.call(document.body, type, listener, options);
+                addPageCleanup(() => {
+                    try { originalBodyRemove.call(document.body, type, listener, options); } catch (_) {}
+                });
+            };
+        }
+
+        // Ghi nhận intervals
         window.setInterval = function (handler, timeout, ...args) {
             const id = originalSetInterval.call(window, handler, timeout, ...args);
             addPageCleanup(() => {
                 originalClearInterval.call(window, id);
+            });
+            return id;
+        };
+
+        // Ghi nhận timeouts
+        window.setTimeout = function (handler, timeout, ...args) {
+            const id = originalSetTimeout.call(window, handler, timeout, ...args);
+            addPageCleanup(() => {
+                originalClearTimeout.call(window, id);
             });
             return id;
         };
@@ -529,10 +569,16 @@
                 }
             }
         } finally {
-            // Khôi phục lại native listeners
+            // Khôi phục lại native listeners & timer methods
             document.addEventListener = originalDocAdd;
             window.addEventListener = originalWinAdd;
+            if (document.body && originalBodyAdd) {
+                document.body.addEventListener = originalBodyAdd;
+            }
             window.setInterval = originalSetInterval;
+            window.clearInterval = originalClearInterval;
+            window.setTimeout = originalSetTimeout;
+            window.clearTimeout = originalClearTimeout;
         }
     }
 
