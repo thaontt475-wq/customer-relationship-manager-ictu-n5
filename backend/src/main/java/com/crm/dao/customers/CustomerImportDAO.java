@@ -3,7 +3,6 @@ package com.crm.dao.customers;
 import com.crm.config.DatabaseConfig;
 import com.crm.dto.customers.CustomerWriteRequest;
 import java.sql.*;
-import java.util.*;
 
 /** Import-specific JDBC operations; every write uses the caller's transaction. */
 public class CustomerImportDAO {

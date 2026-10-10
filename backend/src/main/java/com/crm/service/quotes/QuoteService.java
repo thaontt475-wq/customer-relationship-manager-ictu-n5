@@ -7,7 +7,6 @@ import com.crm.service.permissions.DataScopeContext;
 import com.crm.service.permissions.DataScopeService;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.util.*;
 
 public class QuoteService {
