@@ -10,7 +10,7 @@
 "use strict";
 
 (function () {
-    const API_BASE = "http://localhost:8080/crm";
+    const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
     // Required LocalStorage Keys
     const STORAGE_KEY_TICKETS = "CRM_SUPPORT_TICKETS_DATA";
@@ -51,7 +51,8 @@
     ];
 
     // Seed Mock Tickets for Customer Care
-    const DEFAULT_MOCK_TICKETS = [
+    const DEFAULT_MOCK_TICKETS = [];
+    const _UNUSED_DEFAULT_MOCK_TICKETS = [
         {
             id: 1,
             ticketCode: "TCK-2026-001",

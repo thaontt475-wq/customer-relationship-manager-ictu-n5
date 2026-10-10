@@ -18,7 +18,7 @@
 "use strict";
 
 (function () {
-    const API_BASE = "http://localhost:8080/crm";
+    const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
     // Module Global States
     let careCustomers = [];
@@ -41,11 +41,10 @@
        1. INITIAL IN-MEMORY ENTERPRISE SEED DATA (FALLBACK)
     ========================================================= */
     function generateDefaultCareDataset() {
-        const now = new Date();
-        const daysAgo = (d) => new Date(now.getTime() - d * 24 * 60 * 60 * 1000).toISOString();
-
+        return [];
+    }
+    function _unused_generateDefaultCareDataset() {
         return [
-            {
                 id: 4,
                 name: "Công ty Cổ phần Giải pháp Số Nam Á",
                 taxCode: "0108923456",

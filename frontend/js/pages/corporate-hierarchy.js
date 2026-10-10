@@ -15,7 +15,7 @@
 "use strict";
 
 (function () {
-    const API_BASE = "http://localhost:8080/crm";
+    const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
     // Default Seed Hierarchy Relationships (Mapping: childId -> parentId)
     const DEFAULT_HIERARCHY_MAPPING = {
@@ -26,7 +26,8 @@
     };
 
     // Default Mock Contract Values for Enterprises (VND)
-    const DEFAULT_MOCK_CONTRACTS = {
+    const DEFAULT_MOCK_CONTRACTS = {};
+    const _UNUSED_DEFAULT_MOCK_CONTRACTS = {
         1: [
             { id: 101, code: "HD-FPT-01", name: "Hệ thống ERP Doanh nghiệp Toàn diện", amount: 4500000000, status: "ACTIVE", signedDate: "2026-01-20" }
         ],

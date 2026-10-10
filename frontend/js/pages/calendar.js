@@ -552,7 +552,8 @@ render();
 
 (async function syncCalendarActivities() {
     try {
-        const res = await fetch("http://localhost:8080/crm/api/activities", { credentials: "include" });
+        const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+        const res = await fetch(`${API_BASE}/api/activities`, { credentials: "include" });
         const json = await res.json();
         if (json?.success && Array.isArray(json.data)) {
             const list = json.data.map(item => {

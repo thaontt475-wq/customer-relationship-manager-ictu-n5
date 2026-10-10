@@ -33,7 +33,8 @@
     /* =========================================================
        1. INITIAL SEED DATA WITH DELIBERATE DUPLICATES (FOR CRM-64)
     ========================================================= */
-    const DEFAULT_SEED_CUSTOMERS = [
+    const DEFAULT_SEED_CUSTOMERS = [];
+    const _UNUSED_DEFAULT_SEED_CUSTOMERS = [
         // --- Cặp trùng 1: Trùng 100% Mã số thuế (MST: 0101234567) ---
         {
             id: 1,
