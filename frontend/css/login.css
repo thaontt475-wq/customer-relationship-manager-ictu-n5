@@ -303,40 +303,39 @@ html, body {
     max-width: 580px;
 }
 
-/* Dynamic Interactive Feature Switcher (Tabs) */
+/* Dynamic Interactive Feature Switcher & Feature Pillars */
+.showcase-features-list,
 .showcase-tabs-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
+.feature-pillar-card,
 .showcase-tab-btn {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     padding: 16px 20px;
     border-radius: var(--crm-radius-md);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    cursor: pointer;
+    background: rgba(14, 23, 46, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
     text-align: left;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
     overflow: hidden;
 }
 
+.feature-pillar-card:hover,
 .showcase-tab-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(18, 30, 60, 0.85);
+    border-color: rgba(59, 130, 246, 0.35);
     transform: translateX(4px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(37, 99, 235, 0.05);
 }
 
-.showcase-tab-btn.active {
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.16) 0%, rgba(6, 182, 212, 0.08) 100%);
-    border-color: rgba(59, 130, 246, 0.45);
-    box-shadow: 0 10px 30px -10px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(37, 99, 235, 0.05);
-}
-
+.feature-pillar-card::before,
 .showcase-tab-btn.active::before {
     content: '';
     position: absolute;
@@ -346,6 +345,12 @@ html, body {
     width: 3.5px;
     background: linear-gradient(180deg, #38bdf8 0%, #2563eb 100%);
     border-radius: 0 4px 4px 0;
+}
+
+.showcase-tab-btn.active {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.16) 0%, rgba(6, 182, 212, 0.08) 100%);
+    border-color: rgba(59, 130, 246, 0.45);
+    box-shadow: 0 10px 30px -10px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(37, 99, 235, 0.05);
 }
 
 .tab-icon-box {
@@ -781,25 +786,26 @@ html, body {
     text-decoration: underline;
 }
 
-/* Custom Input Container with Icons */
+/* Custom Input Container with Icons - Unified Seamless Dark Background */
 .input-control-box {
     position: relative;
     display: flex;
     align-items: center;
-    background: rgba(10, 16, 32, 0.65);
-    border: 1px solid var(--crm-border-glass);
+    background-color: #0b1329 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: var(--crm-radius-md);
+    overflow: hidden;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .input-control-box:hover {
     border-color: rgba(255, 255, 255, 0.25);
-    background: rgba(10, 16, 32, 0.85);
+    background-color: #0f1833 !important;
 }
 
 .input-control-box.has-focus {
     border-color: var(--crm-border-focus);
-    background: rgba(15, 23, 42, 0.95);
+    background-color: #0f1833 !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.28), 0 8px 20px -4px rgba(37, 99, 235, 0.25);
 }
 
@@ -807,7 +813,9 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
+    width: 46px;
+    height: 48px;
+    background-color: transparent !important;
     color: var(--crm-text-dim);
     transition: color 0.2s ease;
     flex-shrink: 0;
@@ -818,21 +826,21 @@ html, body {
 }
 
 .input-leading-icon svg {
-    width: 19px;
-    height: 19px;
+    width: 20px;
+    height: 20px;
 }
 
 .native-form-input {
     flex: 1;
     height: 48px;
-    background: transparent;
+    background-color: transparent !important;
     border: none;
     outline: none;
-    color: #ffffff;
+    color: #ffffff !important;
     font-family: inherit;
     font-size: 14.5px;
     font-weight: 500;
-    padding-right: 14px;
+    padding-right: 10px;
 }
 
 .native-form-input::placeholder {
@@ -840,11 +848,29 @@ html, body {
     font-weight: 400;
 }
 
+/* Override browser autofill user-agent styling (Chrome / Edge / Firefox) */
+.native-form-input:-webkit-autofill,
+.native-form-input:-webkit-autofill:hover,
+.native-form-input:-webkit-autofill:focus,
+.native-form-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #0b1329 inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff !important;
+    border-radius: 0 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.input-control-box.has-focus .native-form-input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #0f1833 inset !important;
+}
+
 /* Live Validation Status Icon */
 .input-validation-badge {
     padding-right: 14px;
     display: none;
     align-items: center;
+    justify-content: center;
+    background-color: transparent !important;
     color: #10b981;
 }
 
@@ -865,16 +891,17 @@ html, body {
 
 /* Password Toggle Button */
 .password-toggle-btn {
-    background: transparent;
+    background-color: transparent !important;
     border: none;
     padding: 0 14px;
-    height: 100%;
+    height: 48px;
     color: var(--crm-text-dim);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: color 0.15s ease;
+    flex-shrink: 0;
 }
 
 .password-toggle-btn:hover {
