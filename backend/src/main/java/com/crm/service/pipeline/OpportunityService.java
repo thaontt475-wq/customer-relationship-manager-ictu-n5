@@ -7,7 +7,6 @@ import com.crm.dto.pipeline.OpportunityWriteRequest;
 import com.crm.service.permissions.DataScopeContext;
 import com.crm.service.permissions.DataScopeService;
 
-import java.sql.SQLException;
 import java.util.*;
 
 public class OpportunityService {
