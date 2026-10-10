@@ -63,7 +63,7 @@ public class QuoteServlet extends HttpServlet {
             long currentUserId = requireUser(req);
             String path = req.getPathInfo();
 
-            Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), Map.class);
+            Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
             if (body == null) {
                 throw new IllegalArgumentException("Thiếu dữ liệu");
             }
@@ -81,7 +81,7 @@ public class QuoteServlet extends HttpServlet {
             Long customerId = body.get("customerId") != null ? ((Number) body.get("customerId")).longValue() : null;
             Long opportunityId = body.get("opportunityId") != null ? ((Number) body.get("opportunityId")).longValue() : null;
             BigDecimal discountPercent = body.get("discountPercent") != null ? new BigDecimal(String.valueOf(body.get("discountPercent"))) : BigDecimal.ZERO;
-            List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
+            List<Map<String, Object>> items = JsonUtil.getGson().fromJson(JsonUtil.getGson().toJsonTree(body.get("items")), new com.google.gson.reflect.TypeToken<List<Map<String, Object>>>() {}.getType());
 
             var created = quoteService.create(currentUserId, title, customerId, opportunityId, discountPercent, items);
             ResponseUtil.json(resp, 201, ApiResponse.success("Tạo báo giá thành công", created));

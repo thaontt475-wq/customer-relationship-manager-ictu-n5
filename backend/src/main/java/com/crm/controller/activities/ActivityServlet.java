@@ -62,7 +62,7 @@ public class ActivityServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
             long currentUserId = requireUser(req);
-            Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), Map.class);
+            Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
             if (body == null) {
                 throw new IllegalArgumentException("Thiếu dữ liệu body");
             }
@@ -93,7 +93,7 @@ public class ActivityServlet extends HttpServlet {
         try {
             long currentUserId = requireUser(req);
             long id = parseId(req.getPathInfo());
-            Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), Map.class);
+            Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
 
             String subject = (String) body.get("subject");
             String type = (String) body.get("type");
