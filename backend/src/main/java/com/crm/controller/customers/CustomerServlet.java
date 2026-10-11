@@ -64,6 +64,16 @@ public class CustomerServlet extends HttpServlet {
                 ResponseUtil.json(resp, 200, ApiResponse.success("Danh sách cần chăm sóc", care.list(currentUserId, days, page, size)));
                 return;
             }
+            if (path.matches("/\\d+/risk/?")) {
+                var data = new com.crm.service.support.SupportRequestService().risk(currentUserId, parseId(path));
+                ResponseUtil.json(resp, 200, ApiResponse.success("Rủi ro hỗ trợ", data));
+                return;
+            }
+            if (path.matches("/\\d+/hierarchy/?")) {
+                var data=new com.crm.service.customers.CustomerHierarchyService().get(currentUserId,parseId(path));
+                ResponseUtil.json(resp,data==null ? 404 : 200,data==null ? ApiResponse.error("Không tìm thấy khách hàng",null) : ApiResponse.success("Cấu trúc công ty",data));
+                return;
+            }
             if (path != null && path.matches("/\\d+/360/?")) {
                 var data = customer360.getCustomer360(currentUserId, parseId(path));
                 if (data == null) ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
@@ -129,10 +139,8 @@ public class CustomerServlet extends HttpServlet {
             long currentUserId = requireUser(req);
             String path = req.getPathInfo();
             if (path != null && path.matches("/\\d+/parent/?")) {
-                java.util.Map<?,?> body = JsonUtil.getGson().fromJson(req.getReader(), java.util.Map.class);
-                if (body == null || !body.containsKey("parentCustomerId")) throw new IllegalArgumentException("Thiếu parentCustomerId");
-                Object raw = body.get("parentCustomerId");
-                Long parentId = raw == null ? null : ((Number)raw).longValue();
+                var body = JsonUtil.getGson().fromJson(req.getReader(), com.google.gson.JsonObject.class);
+                Long parentId = com.crm.dto.customers.CustomerParentRequest.parentId(body);
                 var data = relations.setParent(currentUserId, parseId(path), parentId);
                 if (data == null) ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy khách hàng", null));
                 else ResponseUtil.json(resp, 200, ApiResponse.success("Đã cập nhật công ty mẹ", data));

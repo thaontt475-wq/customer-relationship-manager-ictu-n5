@@ -8,7 +8,7 @@
  *
  * Capabilities:
  *  1. Unified API Client for GET /api/customers/{id}/360
- *  2. Pure In-Memory Mock Fallback & HTTP/JSON Client Architecture
+ *  2. Authenticated HTTP/JSON Client Architecture
  *  3. Enterprise KPI Cards & Company Profile Representation
  *  4. High-Performance DOM Rendering (< 1.5s for 500 activities) with client pagination
  *  5. Complete 6-Tab Workspace: Timeline, Contacts, Deals, Attachments, Tickets, Hierarchy
@@ -16,7 +16,7 @@
  * ===================================================================
  */
 
-const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
 
 // Global View States
 let currentCustomer = null;
@@ -35,393 +35,45 @@ let timelineSearchQuery = "";
 
 // URL Parameters
 const params = new URLSearchParams(window.location.search);
-const customerId = params.get("id") || "4"; // Default demo to non-deleted customer 4 if omitted
+const customerId = params.get("id");
+let customerLookups = {industries:[], companySizes:[], owners:[]};
 
 /* =========================================================
    1. API CLIENT WITH CREDENTIALS
 ========================================================= */
 async function api(path, options = {}) {
-    const config = {
-        credentials: "include",
-        headers: {
-            "Accept": "application/json",
-            ...(options.body ? { "Content-Type": "application/json" } : {}),
-            ...(options.headers || {})
-        },
-        ...options
-    };
-
-    const response = await fetch(API_BASE + path, config);
-    let result = null;
-    try {
-        result = await response.json();
-    } catch (_) {
-        result = null;
-    }
-
-    if (response.status === 401) {
-        localStorage.removeItem("crm_ui_session");
-        window.location.href = "login.html";
-        throw new Error("Phiên đăng nhập đã hết hạn.");
-    }
-
-    if (!response.ok || !result?.success) {
-        const error = new Error(result?.message || `HTTP ${response.status}`);
-        error.status = response.status;
-        error.data = result?.data;
-        throw error;
-    }
-
-    return result.data;
+    return CrmApi.request(path,options);
 }
 
 /* =========================================================
-   2. IN-MEMORY ENTERPRISE MOCK GENERATOR (500 ACTIVITIES)
+   2. BACKEND DATA SOURCE
 ========================================================= */
-function generateComprehensiveMock360(cId) {
-    const idNum = Number(cId) || 4;
 
-    // Check existing customer record in CRM_CUSTOMERS_DATA
-    let custName = "Công ty Cổ phần Giải pháp Số Nam Á";
-    let custTax = "0108923456";
-    let custIndustry = "Công nghệ thông tin & Viễn thông";
-    let custPhone = "024.3999.8888";
-    let custWebsite = "https://namasolutions.vn";
-    let custAddress = "Tầng 18, Keangnam Landmark 72, Phạm Hùng, Cầu Giấy, Hà Nội";
-    let custScale = "200 - 500 nhân sự";
-    let custOwner = "Nông Quang Tiệp (Trưởng phòng KD)";
-    let custEmail = "contact@namasolutions.vn";
-    let custStatus = "ACTIVE";
-
-    try {
-        const raw = localStorage.getItem("CRM_CUSTOMERS_DATA");
-        if (raw) {
-            const list = JSON.parse(raw);
-            const found = list.find(c => Number(c.id) === idNum);
-            if (found) {
-                custName = found.companyName || found.name || custName;
-                custTax = found.taxCode || custTax;
-                custIndustry = found.industry || custIndustry;
-                custPhone = found.phone || custPhone;
-                custWebsite = found.website || custWebsite;
-                custAddress = found.address || custAddress;
-                custScale = found.scale || custScale;
-                custOwner = found.ownerName || found.owner || custOwner;
-                custEmail = found.email || custEmail;
-                custStatus = found.status || custStatus;
-            }
-        }
-    } catch (_) {}
-
-    // 1. Customer Object
-    const customer = {
-        id: idNum,
-        name: custName,
-        companyName: custName,
-        taxCode: custTax,
-        industry: custIndustry,
-        scale: custScale,
-        address: custAddress,
-        phone: custPhone,
-        email: custEmail,
-        website: custWebsite,
-        ownerName: custOwner,
-        owner: custOwner,
-        ownerEmail: "tiep.nq@crm.vn",
-        ownerPhone: "0912.888.999",
-        status: custStatus,
-        type: "ENTERPRISE",
-        parentName: "Tập đoàn Công nghệ Nam Á Holdings",
-        createdAt: "2026-01-15T08:30:00Z"
-    };
-
-    // 2. Contacts with B2B Decision-Making Roles (CRM-62)
-    const contacts = [
-        {
-            id: 101,
-            customerId: idNum,
-            fullName: "TS. Hoàng Quốc Hùng",
-            jobTitle: "Tổng Giám đốc (CEO)",
-            department: "Ban Điều hành",
-            email: "hung.hq@namasolutions.vn",
-            phone: "0903.111.222",
-            decisionRole: "DECISION_MAKER",
-            isPrimary: true,
-            status: "ACTIVE"
-        },
-        {
-            id: 102,
-            customerId: idNum,
-            fullName: "ThS. Vũ Thùy Linh",
-            jobTitle: "Giám đốc Công nghệ Thông tin (CIO)",
-            department: "Khối Công nghệ & Hạ tầng",
-            email: "linh.vt@namasolutions.vn",
-            phone: "0904.333.444",
-            decisionRole: "INFLUENCER",
-            isPrimary: false,
-            status: "ACTIVE"
-        },
-        {
-            id: 103,
-            customerId: idNum,
-            fullName: "Nguyễn Tuấn Anh",
-            jobTitle: "Trưởng phòng Vận hành Hệ thống",
-            department: "Trung tâm Vận hành NOC",
-            email: "anh.nt@namasolutions.vn",
-            phone: "0915.555.666",
-            decisionRole: "END_USER",
-            isPrimary: false,
-            status: "ACTIVE"
-        },
-        {
-            id: 104,
-            customerId: idNum,
-            fullName: "Đặng Thị Mai",
-            jobTitle: "Kế toán trưởng & Pháp chế hợp đồng",
-            department: "Phòng Tài chính Kế toán",
-            email: "mai.dt@namasolutions.vn",
-            phone: "0936.777.888",
-            decisionRole: "BLOCKER",
-            isPrimary: false,
-            status: "ACTIVE"
-        }
-    ];
-
-    // 3. Opportunities (Deals): Open & Closed
-    const openOpportunities = [
-        {
-            id: 201,
-            name: "Triển khai Hạ tầng Private Cloud & Bảo mật dữ liệu 2026",
-            stage: "NEGOTIATION",
-            stageName: "Đàm phán hợp đồng",
-            amount: 550000000,
-            probability: 80,
-            expectedRevenue: 440000000,
-            closeDate: "2026-11-15",
-            status: "OPEN",
-            ownerName: "Nông Quang Tiệp"
-        },
-        {
-            id: 202,
-            name: "Gói giải pháp Quản trị Dữ liệu BI & AI Dashboard",
-            stage: "PROPOSAL",
-            stageName: "Đề xuất & Báo giá",
-            amount: 300000000,
-            probability: 60,
-            expectedRevenue: 180000000,
-            closeDate: "2026-11-30",
-            status: "OPEN",
-            ownerName: "Nông Quang Tiệp"
-        }
-    ];
-
-    const closedOpportunities = [
-        {
-            id: 198,
-            name: "Hệ thống Quản trị Khách hàng CRM Enterprise Giai đoạn 1",
-            stage: "CLOSED_WON",
-            stageName: "Thành công (Won)",
-            amount: 1200000000,
-            probability: 100,
-            expectedRevenue: 1200000000,
-            closeDate: "2026-06-15",
-            status: "WON",
-            ownerName: "Nông Quang Tiệp"
-        },
-        {
-            id: 199,
-            name: "Bản quyền License CSDL Oracle Enterprise & Đào tạo",
-            stage: "CLOSED_WON",
-            stageName: "Thành công (Won)",
-            amount: 750000000,
-            probability: 100,
-            expectedRevenue: 750000000,
-            closeDate: "2026-08-20",
-            status: "WON",
-            ownerName: "Nông Quang Tiệp"
-        },
-        {
-            id: 200,
-            name: "Dịch vụ Bảo trì định kỳ & Hỗ trợ kỹ thuật 24/7 năm 2026",
-            stage: "CLOSED_WON",
-            stageName: "Thành công (Won)",
-            amount: 500000000,
-            probability: 100,
-            expectedRevenue: 500000000,
-            closeDate: "2026-09-10",
-            status: "WON",
-            ownerName: "Nông Quang Tiệp"
-        },
-        {
-            id: 195,
-            name: "Gói Tư vấn Chuyển đổi số chi nhánh phía Nam",
-            stage: "CLOSED_LOST",
-            stageName: "Thất bại (Lost)",
-            amount: 220000000,
-            probability: 0,
-            expectedRevenue: 0,
-            closeDate: "2026-03-12",
-            status: "LOST",
-            lostReason: "Khách hàng hoãn kế hoạch sang năm sau",
-            ownerName: "Hoàng Trọng Thái"
-        }
-    ];
-
-    // 4. Attachments (Hợp đồng, Báo giá, Tài liệu)
-    const attachments = [
-        {
-            id: 301,
-            fileName: "Hop_dong_kinh_te_CRM_Enterprise_signed.pdf",
-            fileType: "pdf",
-            category: "Hợp đồng",
-            fileSize: "3.4 MB",
-            uploadedBy: "Nông Quang Tiệp",
-            uploadedAt: "2026-06-15 14:20"
-        },
-        {
-            id: 302,
-            fileName: "Bao_gia_ha_tang_Cloud_2026_v2.xlsx",
-            fileType: "xlsx",
-            category: "Báo giá",
-            fileSize: "840 KB",
-            uploadedBy: "Nông Quang Tiệp",
-            uploadedAt: "2026-10-05 09:15"
-        },
-        {
-            id: 303,
-            fileName: "Bien_ban_nghiem_thu_giai_doan_1.docx",
-            fileType: "docx",
-            category: "Biên bản",
-            fileSize: "1.2 MB",
-            uploadedBy: "Hoàng Trọng Thái",
-            uploadedAt: "2026-08-28 16:45"
-        },
-        {
-            id: 304,
-            fileName: "Ho_so_giai_phap_ky_thuat_va_bao_mat.pdf",
-            fileType: "pdf",
-            category: "Tài liệu kỹ thuật",
-            fileSize: "5.8 MB",
-            uploadedBy: "Nguyễn Văn Thắng",
-            uploadedAt: "2026-05-10 11:00"
-        },
-        {
-            id: 305,
-            fileName: "Giay_phep_kinh_doanh_va_MST_cong_chung.pdf",
-            fileType: "pdf",
-            category: "Pháp lý",
-            fileSize: "2.1 MB",
-            uploadedBy: "Nguyễn Đình Toàn",
-            uploadedAt: "2026-04-01 10:30"
-        }
-    ];
-
-    // 5. High-Volume Activity Timeline Dataset (500 Items for Performance Test)
-    const activities = [];
-    const types = ["call", "meeting", "email", "note"];
-    const authors = ["Nông Quang Tiệp", "Hoàng Trọng Thái", "Nguyễn Văn Thắng", "Vũ Thùy Linh"];
-    const actions = [
-        { type: "call", subject: "Cuộc gọi trao đổi tiến độ hợp đồng", text: "Trao đổi với Tổng Giám đốc Hoàng Quốc Hùng về điều khoản thanh toán đợt 2 và kế hoạch triển khai cụm server dự phòng." },
-        { type: "meeting", subject: "Họp rà soát phương án an ninh dữ liệu", text: "Làm việc trực tiếp tại trụ sở Nam Á cùng Giám đốc CNTT ThS. Vũ Thùy Linh. Thống nhất cơ chế phân quyền RBAC và mã hóa dữ liệu đầu cuối." },
-        { type: "email", subject: "Gửi dự thảo phụ lục bổ sung tính năng", text: "Đã gửi email kèm bảng báo giá chi tiết và checklist các tiêu chuẩn an toàn thông tin ISO 27001 cho phòng Pháp chế." },
-        { type: "note", subject: "Ghi chú chiến lược chốt deal Cloud", text: "Khách hàng ưu tiên hoàn tất giải ngân trước ngày 20/11 để kịp quyết toán quý 4. Cần sales rep theo sát phản hồi của Kế toán trưởng." },
-        { type: "call", subject: "Hỗ trợ xác nhận sự cố kết nối API", text: "Gọi điện hỗ trợ Trưởng phòng Vận hành Nguyễn Tuấn Anh kiểm tra webhook đồng bộ tồn kho. Hệ thống đã hoạt động ổn định trở lại." }
-    ];
-
-    const baseTime = Date.now();
-    for (let i = 0; i < 500; i++) {
-        const tpl = actions[i % actions.length];
-        const minutesAgo = i * 28 + (i % 7) * 5;
-        const entryDate = new Date(baseTime - minutesAgo * 60 * 1000);
-        activities.push({
-            id: 5000 + i,
-            type: tpl.type,
-            subject: `#${500 - i}: ${tpl.subject}`,
-            description: tpl.text + ` (Mã giao dịch tương tác: ACT-2026-${String(500 - i).padStart(4, '0')})`,
-            authorName: authors[i % authors.length],
-            createdAt: entryDate.toISOString()
-        });
-    }
-
-    // 6. KPIs
-    const totalWon = closedOpportunities.filter(o => o.status === "WON").reduce((sum, o) => sum + (o.amount || 0), 0);
-    const openPipeline = openOpportunities.reduce((sum, o) => sum + (o.amount || 0), 0);
-
-    return {
-        customer,
-        kpis: {
-            totalWon,
-            wonDealsCount: closedOpportunities.filter(o => o.status === "WON").length,
-            openPipeline,
-            openDealsCount: openOpportunities.length,
-            contactsCount: contacts.length,
-            activitiesCount: activities.length
-        },
-        contacts,
-        openOpportunities,
-        closedOpportunities,
-        opportunities: {
-            open: openOpportunities,
-            closed: closedOpportunities
-        },
-        activities,
-        attachments,
-        totalContractValue: totalWon,
-        openOpportunityValue: openPipeline,
-        churnRisk: {
-            customerId: idNum,
-            customerName: custName,
-            isRisk: false,
-            riskLevel: "NONE",
-            openTicketCount: 0,
-            reasons: []
-        }
-    };
-}
 
 /* =========================================================
    3. DATA FETCHING & NORMALIZATION PIPELINE
 ========================================================= */
 async function loadCustomer360Data(cId) {
-    const id = Number(cId) || 4;
-
-    // Clean up residual demo localStorage key if previously present
-    try {
-        localStorage.removeItem("CRM_CUSTOMER_360_VIEW_DATA");
-    } catch (_) {}
-
-    // 1. Primary Flow: Fetch Backend endpoint GET /api/customers/{id}/360
-    try {
-        const res = await api(`/api/customers/${id}/360`);
-        if (res && res.customer) {
-            console.info("[CRM-63] Tải thành công dữ liệu từ backend GET /api/customers/{id}/360:", res);
-            return normalizePayload(res);
-        }
-    } catch (err) {
-        console.warn(`[CRM-63] Backend GET /api/customers/${id}/360 chưa sẵn sàng hoặc lỗi (${err.message}). Kích hoạt In-Memory Mock Data:`);
-    }
-
-    // 2. Fallback: Return clean empty structure if backend API fails
-    return normalizePayload({
-        customer: { id: id, name: "Không tìm thấy thông tin khách hàng", status: "CHUA_CO_DU_LIEU" },
-        openOpportunities: [],
-        closedOpportunities: [],
-        activities: [],
-        contacts: [],
-        attachments: []
-    });
+    const id=Number(cId);
+    if (!Number.isSafeInteger(id) || id<=0) throw new Error("Mã khách hàng không hợp lệ.");
+    const raw=await CrmApi.request(`/api/customers/${id}/360`);
+    return normalizePayload(raw);
 }
 
 
 function normalizePayload(raw) {
+    if (!raw?.customer || raw.totalContractValue == null || raw.openOpportunityValue == null ||
+        ![raw.contacts, raw.openOpportunities, raw.closedOpportunities, raw.activities, raw.attachments].every(Array.isArray)) {
+        throw new Error("API Customer 360 trả dữ liệu không đầy đủ.");
+    }
     const cust = raw.customer || raw;
     const oppsOpen = raw.openOpportunities || (Array.isArray(raw.opportunities) ? raw.opportunities.filter(o => o.status === "OPEN") : (raw.opportunities?.open || []));
     const oppsClosed = raw.closedOpportunities || (Array.isArray(raw.opportunities) ? raw.opportunities.filter(o => o.status !== "OPEN") : (raw.opportunities?.closed || []));
 
     // Financial KPIs calculation
-    const wonSum = raw.kpis?.totalWon ?? raw.totalContractValue ?? oppsClosed.filter(o => o.status === "WON").reduce((s, o) => s + (Number(o.amount) || 0), 0);
-    const pipelineSum = raw.kpis?.openPipeline ?? raw.openOpportunityValue ?? oppsOpen.reduce((s, o) => s + (Number(o.amount) || 0), 0);
-    const contacts = raw.contacts || [];
+    const wonSum = raw.totalContractValue;
+    const pipelineSum = raw.openOpportunityValue;
+    const contacts = (raw.contacts || []).map(c=>({...c,jobTitle:c.title,decisionRole:c.buyingRole,isPrimary:!!c.isPrimary}));
     const activities = raw.activities || [];
     const attachments = raw.attachments || [];
 
@@ -448,11 +100,21 @@ function normalizePayload(raw) {
    4. INITIALIZATION FLOW
 ========================================================= */
 async function initCustomer360() {
-    if (!customerId) return;
+    window.__CRM_360_READY = false;
+    document.getElementById("pageCustomerTitle").textContent="Đang tải hồ sơ...";
+    document.querySelector("main.customer360")?.setAttribute("aria-busy","true");
+    document.getElementById("crm360Retry")?.remove();
+    for(const id of ["company360Name","company360Tax","company360Industry","company360Scale","company360Address","company360Owner","company360Phone","company360Email","company360Website","company360Parent","primaryContactName","primaryContactTitle","primaryContactEmail","primaryContactPhone"])writeDisplay(id,null);
+    document.querySelectorAll(".c360-kpi-value").forEach(el=>el.textContent="—");
+    document.getElementById("customer360HierarchyBanner").textContent="Đang tải cấu trúc công ty...";
 
     try {
-        customer360Data = await loadCustomer360Data(customerId);
+        const [data,lookups,session] = await Promise.all([loadCustomer360Data(customerId),CrmApi.request("/api/customer-lookups"),CrmApi.session()]);
+        customer360Data=data; customerLookups=lookups;
+        document.getElementById("editCompanyButton").hidden=!session.permissions.includes("customer.update");
+        if (composer) composer.hidden=!session.permissions.includes("activity.create");
         currentCustomer = customer360Data.customer;
+        window.ContactsManager?.ingest(currentCustomer,customer360Data.contacts);
 
 
         // Render UI Sections
@@ -466,8 +128,9 @@ async function initCustomer360() {
             type: (a.type || "note").toLowerCase(),
             subject: a.subject || a.title || "",
             text: a.description || a.content || a.subject || "",
-            author: a.authorName || a.createdBy || currentCustomer?.ownerName || "Hệ thống",
-            time: a.createdAt ? new Date(a.createdAt) : new Date()
+            author: a.authorName || customerLookups.owners.find(owner => Number(owner.id) === Number(a.ownerUserId))?.fullName || (a.ownerUserId ? `Người dùng #${a.ownerUserId}` : "Chưa có thông tin"),
+            status: a.status,
+            time: a.createdAt ? new Date(a.createdAt) : null
         }));
         applyTimelineFilter();
 
@@ -487,16 +150,27 @@ async function initCustomer360() {
 
         // Render CRM-68 Churn Risk Banner & Support Tickets
         renderCustomerChurnRisk360();
-        renderCustomerTickets360();
-
-        // Render CRM-65 Corporate Hierarchy Banner
-        renderCorporateHierarchy360();
+        // Load the tickets and company group concurrently.
+        await Promise.all([renderCustomerTickets360(),renderCorporateHierarchy360()]);
 
         // Update Tab Badges
         updateAllTabBadges();
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+        performance.mark("crm360-ready");
+        window.__CRM_360_READY=true;
+        document.querySelector("main.customer360")?.setAttribute("aria-busy","false");
 
     } catch (err) {
-        console.error("Lỗi khởi tạo Customer 360:", err);
+        const title=document.getElementById("pageCustomerTitle");
+        if (title) title.textContent="Không thể tải hồ sơ: "+err.message;
+        const retry=document.createElement("button"); retry.id="crm360Retry"; retry.textContent="Thử lại"; retry.className="crm-btn crm-btn-secondary";
+        retry.onclick=()=>{retry.remove();initCustomer360();}; title?.after(retry);
+        document.querySelectorAll(".c360-kpi-value").forEach(el=>el.textContent="—");
+        document.getElementById("customer360HierarchyBanner").textContent="Không thể tải dữ liệu.";
+        for(const id of ["timelineList","contactsPanel","dealsListContainer","attachmentsListContainer","customerTicketsList"]) {
+            const container=document.getElementById(id);if(container)container.textContent=err.message;
+        }
+        document.querySelector("main.customer360")?.setAttribute("aria-busy","false");
     }
 }
 
@@ -513,16 +187,16 @@ function renderHeaderAndCompanyProfile() {
     const statusBadge = document.getElementById("customer360StatusBadge");
     if (statusBadge) {
         const isClosed = currentCustomer.status === "INACTIVE" || currentCustomer.status === "CLOSED";
-        statusBadge.textContent = isClosed ? "TẠM NGỪNG" : "ĐANG HỢP TÁC";
+        statusBadge.textContent = ({TIEM_NANG:"TIỀM NĂNG",DANG_GIAO_DICH:"ĐANG GIAO DỊCH",CHINH_THUC:"CHÍNH THỨC",NGUNG_HOP_TAC:"NGỪNG HỢP TÁC"})[currentCustomer.status] || currentCustomer.status;
         statusBadge.className = isClosed ? "c360-status-pill" : "c360-status-pill c360-status-active";
     }
 
     writeDisplay("company360Name", name);
     writeDisplay("company360Tax", currentCustomer.taxCode);
-    writeDisplay("company360Industry", currentCustomer.industry);
-    writeDisplay("company360Scale", currentCustomer.scale || currentCustomer.companySize || "100 - 500 nhân sự");
+    writeDisplay("company360Industry", customerLookups.industries.find(x=>x.id===currentCustomer.industryId)?.name);
+    writeDisplay("company360Scale", customerLookups.companySizes.find(x=>x.id===currentCustomer.companySizeId)?.name);
     writeDisplay("company360Address", currentCustomer.address || "Chưa cập nhật địa chỉ");
-    writeDisplay("company360Owner", currentCustomer.ownerName || currentCustomer.owner || "Nông Quang Tiệp");
+    writeDisplay("company360Owner", customerLookups.owners.find(x=>x.id===currentCustomer.ownerUserId)?.fullName);
     writeDisplay("company360Phone", currentCustomer.phone);
     writeDisplay("company360Email", currentCustomer.email);
     writeDisplay("company360Website", currentCustomer.website);
@@ -537,7 +211,7 @@ function renderKPIs() {
     const wonValEl = document.getElementById("kpiTotalWonValue");
     const wonCountEl = document.getElementById("kpiTotalWonCount");
     if (wonValEl) wonValEl.textContent = formatMoney(kpis.totalWon || 0);
-    if (wonCountEl) wonCountEl.textContent = `${kpis.wonDealsCount || 0} hợp đồng hoàn tất`;
+    if (wonCountEl) wonCountEl.textContent = "Giá trị hợp đồng đã ký";
 
     // Card 2: Open Pipeline (Giá trị cơ hội đang mở)
     const pipeValEl = document.getElementById("kpiOpenPipelineValue");
@@ -550,17 +224,17 @@ function renderKPIs() {
     const contactMetaEl = document.getElementById("kpiContactsMeta");
     const dmCount = (customer360Data.contacts || []).filter(c => c.decisionRole === "DECISION_MAKER").length;
     if (contactCountEl) contactCountEl.textContent = String(kpis.contactsCount || 0);
-    if (contactMetaEl) contactMetaEl.textContent = `${dmCount} Người quyết định (DM) • 1 Đầu mối chính`;
+    if (contactMetaEl) contactMetaEl.textContent = `${dmCount} Người quyết định (DM) • ${(customer360Data.contacts || []).filter(c=>c.isPrimary).length} Đầu mối chính`;
 
     // Card 4: Activity Stream
     const actCountEl = document.getElementById("kpiActivitiesCount");
     const actMetaEl = document.getElementById("kpiHealthMeta");
     if (actCountEl) actCountEl.textContent = String(kpis.activitiesCount || 0);
-    if (actMetaEl) actMetaEl.textContent = "Gần đây: Cuộc gọi hôm nay";
+    if (actMetaEl) actMetaEl.textContent = customer360Data.activities[0]?.subject || "Chưa có hoạt động";
 }
 
 function renderPrimaryContactCard() {
-    const primary = (customer360Data?.contacts || []).find(c => c.isPrimary) || (customer360Data?.contacts || [])[0];
+    const primary = (customer360Data?.contacts || []).find(c => c.isPrimary);
     const nameEl = document.getElementById("primaryContactName");
     const titleEl = document.getElementById("primaryContactTitle");
     const emailEl = document.getElementById("primaryContactEmail");
@@ -569,6 +243,7 @@ function renderPrimaryContactCard() {
 
     if (!primary) {
         if (nameEl) nameEl.textContent = "Chưa có đầu mối liên hệ chính";
+        [titleEl,emailEl,phoneEl,roleBadge].forEach(el=>{if(el)el.textContent="—";});
         return;
     }
 
@@ -640,10 +315,10 @@ function renderTimelineOptimized() {
 
         const typeClass = `timeline-type-${item.type}`;
         const typeName = typeLabel(item.type);
-        const timeFormatted = item.time.toLocaleDateString("vi-VN", {
+        const timeFormatted = item.time && Number.isFinite(item.time.getTime()) ? item.time.toLocaleDateString("vi-VN", {
             day: "2-digit", month: "2-digit", year: "numeric",
             hour: "2-digit", minute: "2-digit"
-        });
+        }) : "Chưa có thời gian";
 
         article.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
@@ -660,7 +335,7 @@ function renderTimelineOptimized() {
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--crm-muted); margin-top:8px; padding-top:6px; border-top:1px dashed var(--crm-border);">
                 <span>👤 Thực hiện bởi: <strong>${escapeHtml(item.author)}</strong></span>
-                <span style="color:var(--crm-success); font-weight:600;">✓ Hoàn tất</span>
+                <span style="font-weight:600;">${escapeHtml(({COMPLETED:"Hoàn tất",PLANNED:"Đã lên kế hoạch",IN_PROGRESS:"Đang thực hiện",CANCELLED:"Đã hủy"})[item.status] || item.status || "—")}</span>
             </div>
         `;
         fragment.appendChild(article);
@@ -772,34 +447,34 @@ function renderDealsTab() {
                 ${displayedDeals.map(deal => {
                     const statusClass = deal.status === "WON" ? "deal-status-won" : (deal.status === "LOST" ? "deal-status-lost" : "deal-status-open");
                     const statusText = deal.status === "WON" ? "✓ Ký thành công" : (deal.status === "LOST" ? "✕ Thất bại" : "● Đang mở");
-                    const prob = Number(deal.probability) || 0;
-                    const expected = (Number(deal.amount) || 0) * (prob / 100);
+                    const prob = deal.probability == null ? null : Number(deal.probability);
+                    const expected = prob == null ? null : Number(deal.amount) * (prob / 100);
 
                     return `
                         <tr>
                             <td>
                                 <strong>${escapeHtml(deal.name)}</strong>
                                 <div style="font-size:11.5px; color:var(--crm-muted); margin-top:2px;">
-                                    Phụ trách: ${escapeHtml(deal.ownerName || currentCustomer?.ownerName || "Sales Rep")}
+                                    Phụ trách: ${escapeHtml(deal.ownerName || customerLookups.owners.find(owner => Number(owner.id) === Number(deal.ownerUserId))?.fullName || "Chưa có thông tin")}
                                 </div>
                             </td>
                             <td>
-                                <span style="font-weight:600; color:var(--crm-text);">${escapeHtml(deal.stageName || deal.stage || "Khám phá")}</span>
+                                <span style="font-weight:600; color:var(--crm-text);">${escapeHtml(deal.stageName || deal.stage || "—")}</span>
                             </td>
                             <td>
                                 <strong style="color:var(--crm-primary); font-size:14px;">${formatMoney(deal.amount || 0)}</strong>
                             </td>
                             <td>
-                                <div style="font-weight:700; font-size:12px;">${prob}%</div>
-                                <div class="prob-bar-wrap">
+                                <div style="font-weight:700; font-size:12px;">${prob == null ? "—" : `${prob}%`}</div>
+                                <div class="prob-bar-wrap" ${prob == null ? "hidden" : ""}>
                                     <div class="prob-bar-fill" style="width:${prob}%;"></div>
                                 </div>
                             </td>
                             <td>
-                                <span style="color:var(--crm-text-2); font-weight:600;">${formatMoney(deal.expectedRevenue || expected)}</span>
+                                <span style="color:var(--crm-text-2); font-weight:600;">${deal.expectedRevenue == null && expected == null ? "—" : formatMoney(deal.expectedRevenue ?? expected)}</span>
                             </td>
                             <td>
-                                <span style="font-size:12px; color:var(--crm-muted);">${deal.closeDate || "—"}</span>
+                                <span style="font-size:12px; color:var(--crm-muted);">${escapeHtml(deal.closeDate || deal.expectedCloseDate || "—")}</span>
                             </td>
                             <td>
                                 <span class="deal-status-pill ${statusClass}">${statusText}</span>
@@ -816,91 +491,21 @@ function renderDealsTab() {
    8. ATTACHMENTS TAB RENDERER & UPLOAD MODAL
 ========================================================= */
 function renderAttachmentsTab() {
-    const container = document.getElementById("attachmentsListContainer");
-    const countHeader = document.getElementById("attachmentsCountHeader");
+    const container=document.getElementById("attachmentsListContainer");
     if (!container) return;
-
-    if (countHeader) countHeader.textContent = `${attachmentsData.length} tệp`;
-
-    if (attachmentsData.length === 0) {
-        container.innerHTML = '<div class="empty-small" style="grid-column:1/-1; padding:24px; text-align:center; color:var(--crm-muted);">Chưa có tệp đính kèm nào. Nhấn "+ Tải lên tài liệu mới" để thêm.</div>';
-        return;
-    }
-
-    container.innerHTML = attachmentsData.map(file => {
-        const ext = (file.fileType || file.fileName.split('.').pop() || "pdf").toLowerCase();
-        const iconClass = `file-type-${ext === "xlsx" || ext === "xls" ? "xlsx" : (ext === "docx" || ext === "doc" ? "docx" : (ext === "zip" || ext === "rar" ? "zip" : (ext === "png" || ext === "jpg" ? "img" : "pdf")))}`;
-        const iconEmoji = ext.includes("xls") ? "📊" : (ext.includes("doc") ? "📝" : (ext.includes("zip") ? "🗄️" : "📄"));
-
-        return `
-            <div class="attachment-card" data-file-id="${file.id}">
-                <div class="attachment-card-top">
-                    <div class="file-type-icon ${iconClass}">
-                        ${iconEmoji}
-                    </div>
-                    <div style="min-width:0; flex:1;">
-                        <div class="attachment-card-title" title="${escapeHtml(file.fileName)}">
-                            ${escapeHtml(file.fileName)}
-                        </div>
-                        <div style="margin-top:4px;">
-                            <span class="status-pill status-new" style="font-size:10.5px; padding:1px 6px;">
-                                ${escapeHtml(file.category || "Tài liệu")}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="attachment-card-meta">
-                    <div>💾 Dung lượng: <strong>${escapeHtml(file.fileSize || "1.0 MB")}</strong></div>
-                    <div>👤 Người tải: ${escapeHtml(file.uploadedBy || "Hệ thống")}</div>
-                    <div>📅 Ngày tải: ${escapeHtml(file.uploadedAt || "Gần đây")}</div>
-                </div>
-
-                <div class="attachment-actions">
-                    <button type="button" class="crm-btn crm-btn-secondary btn-preview-file" data-name="${escapeHtml(file.fileName)}" style="font-size:11.5px; min-height:28px; padding:0 8px;">
-                        👁 Xem
-                    </button>
-                    <button type="button" class="crm-btn crm-btn-secondary btn-download-file" data-name="${escapeHtml(file.fileName)}" style="font-size:11.5px; min-height:28px; padding:0 8px;">
-                        📥 Tải về
-                    </button>
-                    <button type="button" class="crm-btn crm-btn-secondary btn-delete-file" data-id="${file.id}" style="font-size:11.5px; min-height:28px; padding:0 8px; color:var(--crm-danger);">
-                        ✕
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join("");
-
-    // Wire action buttons
-    container.querySelectorAll(".btn-preview-file").forEach(btn => {
-        btn.addEventListener("click", () => {
-            alert(`Xem trước tệp tin: ${btn.dataset.name}\n\nĐịnh dạng file an toàn, đã được quét bảo mật bởi hệ thống CRM.`);
-        });
-    });
-
-    container.querySelectorAll(".btn-download-file").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const fileName = btn.dataset.name;
-            const blob = new Blob([`Tài liệu CRM: ${fileName}\nKhách hàng: ${currentCustomer?.companyName || ''}`], { type: "text/plain;charset=utf-8" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-            link.click();
-            URL.revokeObjectURL(link.href);
-        });
-    });
-
-    container.querySelectorAll(".btn-delete-file").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const fId = Number(btn.dataset.id);
-            if (confirm("Bạn có chắc chắn muốn xóa tệp đính kèm này không?")) {
-                attachmentsData = attachmentsData.filter(f => f.id !== fId);
-                renderAttachmentsTab();
-                updateAllTabBadges();
-                syncInMemory360Data();
-            }
-        });
-    });
+    document.getElementById("btnOpenUploadAttachment")?.setAttribute("hidden","");
+    const counter=document.getElementById("attachmentsCountHeader"); if (counter) counter.textContent=`${attachmentsData.length} tệp`;
+    container.innerHTML=attachmentsData.length ? attachmentsData.map(file=>`
+        <div class="attachment-card"><strong>${escapeHtml(file.fileName)}</strong><p>${escapeHtml(file.uploadedAt || "")}</p>
+        <button class="crm-btn crm-btn-secondary" data-download-id="${file.id}">Tải tài liệu</button></div>`).join("") : '<div class="empty-small">Chưa có tài liệu đính kèm.</div>';
+    container.querySelectorAll("[data-download-id]").forEach(button=>button.addEventListener("click",async()=>{
+        try {
+            const response=await fetch(`${CrmApi.base}/api/customer-attachments/${button.dataset.downloadId}/download`,{credentials:"include"});
+            if (!response.ok) { const error=await response.json();throw new Error(error.message); }
+            const file=attachmentsData.find(f=>String(f.id)===button.dataset.downloadId);
+            const url=URL.createObjectURL(await response.blob()); const link=document.createElement("a");link.href=url;link.download=file.fileName;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+        } catch(error) { alert(error.message); }
+    }));
 }
 
 /* =========================================================
@@ -915,7 +520,7 @@ function renderContactsTab() {
         return;
     }
 
-    // Fallback Renderer if ContactsManager is not initialized yet
+    // Render the same API contacts when ContactsManager is not initialized yet
     const contacts = customer360Data?.contacts || [];
     if (contacts.length === 0) {
         container.innerHTML = `
@@ -978,49 +583,14 @@ function renderDecisionRoleBadge(role) {
    10. CRM-65 & CRM-68 PRESERVED INTEGRATIONS
 ========================================================= */
 function getCustomerRecord(cId) {
-    if (currentCustomer && Number(currentCustomer.id) === Number(cId)) return currentCustomer;
-    try {
-        const raw = localStorage.getItem("CRM_CUSTOMERS_DATA");
-        if (raw) {
-            const list = JSON.parse(raw);
-            return list.find(c => Number(c.id) === Number(cId)) || null;
-        }
-    } catch (_) {}
-    return null;
+    return currentCustomer && Number(currentCustomer.id)===Number(cId) ? currentCustomer : null;
 }
 
 function renderCustomerChurnRisk360() {
     const bannerContainer = document.getElementById("customer360ChurnBanner");
     if (!bannerContainer || !customerId) return;
 
-    let churnInfo = null;
-    if (window.SupportTicketsManager && typeof window.SupportTicketsManager.getChurnRiskStatus === "function") {
-        churnInfo = window.SupportTicketsManager.getChurnRiskStatus(Number(customerId));
-    } else {
-        try {
-            const rawChurn = localStorage.getItem("CRM_CHURN_RISK_DATA");
-            const churnFlags = rawChurn ? JSON.parse(rawChurn) : {};
-            const manualFlag = churnFlags[Number(customerId)];
-
-            const rawTickets = localStorage.getItem("CRM_SUPPORT_TICKETS_DATA");
-            const allTickets = rawTickets ? JSON.parse(rawTickets) : [];
-            const custTickets = allTickets.filter(t => Number(t.customerId) === Number(customerId) && t.status !== "CLOSED" && t.status !== "RESOLVED");
-
-            const isManual = !!manualFlag;
-            const hasOverdueUrgent = custTickets.some(t => t.priority === "URGENT" || t.priority === "HIGH");
-            const hasMultipleOpen = custTickets.length >= 2;
-            const isRisk = isManual || hasOverdueUrgent || hasMultipleOpen;
-
-            const reasons = [];
-            if (isManual) reasons.push(manualFlag.manualReason || "CSKH gắn cờ thủ công rủi ro rời bỏ.");
-            if (hasOverdueUrgent) reasons.push("Có yêu cầu mức độ Khẩn cấp/Cao chưa được giải quyết dứt điểm.");
-            if (hasMultipleOpen) reasons.push(`Có ${custTickets.length} phiếu khiếu nại/hỗ trợ đang tồn đọng mở.`);
-
-            churnInfo = { isRisk, reasons, riskLevel: (isManual || hasOverdueUrgent) ? "HIGH" : (hasMultipleOpen ? "MEDIUM" : "LOW") };
-        } catch (_) {
-            churnInfo = { isRisk: false, reasons: [], riskLevel: "LOW" };
-        }
-    }
+    const churnInfo=customer360Data.churnRisk;
 
     if (!churnInfo || !churnInfo.isRisk) {
         bannerContainer.innerHTML = "";
@@ -1030,9 +600,9 @@ function renderCustomerChurnRisk360() {
 
     bannerContainer.style.display = "block";
     const customer = getCustomerRecord(customerId);
-    const salesRepName = customer?.ownerName || customer?.owner || "Nông Quang Tiệp (Trưởng phòng KD)";
-    const salesRepEmail = customer?.ownerEmail || "tiep.nq@crm.vn";
-    const salesRepPhone = customer?.ownerPhone || "0912.888.999";
+    const salesRepName = customerLookups.owners.find(x=>x.id===customer?.ownerUserId)?.fullName || "Chưa có thông tin owner";
+    const salesRepEmail = customer?.ownerEmail || "—";
+    const salesRepPhone = customer?.ownerPhone || "—";
 
     bannerContainer.innerHTML = `
         <div class="churn-banner-container" style="margin-bottom:20px; animation:fadeIn 0.3s ease;">
@@ -1045,7 +615,7 @@ function renderCustomerChurnRisk360() {
                                 CẢNH BÁO RỦI RO RỜI BỎ (CHURN RISK DETECTED)
                             </h3>
                             <span class="churn-risk-badge" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-size:11.5px; padding:2px 8px; border-radius:4px; font-weight:700;">
-                                ${churnInfo.riskLevel === 'CRITICAL' ? 'RẤT NGUY CẤP' : 'RỦI RO CAO'}
+                                ${({CRITICAL:'RẤT NGUY CẤP',HIGH:'RỦI RO CAO',MEDIUM:'TRUNG BÌNH',LOW:'THẤP'})[churnInfo.riskLevel] || churnInfo.riskLevel}
                             </span>
                         </div>
                         <p style="margin:0 0 8px; font-size:13.5px; color:var(--crm-text);">
@@ -1080,24 +650,17 @@ function renderCustomerChurnRisk360() {
     `;
 }
 
-function renderCustomerTickets360() {
+async function renderCustomerTickets360() {
     const listEl = document.getElementById("customerTicketsList");
     const countBadge = document.getElementById("ticketCountBadge");
     if (!listEl || !customerId) return;
 
-    let tickets = [];
-    if (window.SupportTicketsManager && typeof window.SupportTicketsManager.getTicketsByCustomer === "function") {
-        tickets = window.SupportTicketsManager.getTicketsByCustomer(Number(customerId));
-    } else {
-        try {
-            const raw = localStorage.getItem("CRM_SUPPORT_TICKETS_DATA");
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                tickets = parsed.filter(t => Number(t.customerId) === Number(customerId));
-            }
-        } catch (_) {}
-    }
-
+    try {
+        const session=await CrmApi.session();
+        if (!session.permissions.includes("support.read")) { listEl.textContent="Bạn không có quyền xem phiếu hỗ trợ."; return; }
+        const data=await CrmApi.request(`/api/support-requests?customerId=${customerId}&size=100`);
+        var tickets=data.items.map(t=>({...t,ticketCode:`SR-${t.id}`}));
+    } catch(error) { listEl.textContent=error.message; return; }
     if (countBadge) countBadge.textContent = String(tickets.length);
 
     if (tickets.length === 0) {
@@ -1136,10 +699,8 @@ function renderCustomerTickets360() {
     }).join("");
 }
 
-function renderCorporateHierarchy360() {
-    if (window.CorporateHierarchyManager && typeof window.CorporateHierarchyManager.initCustomer360Hierarchy === "function") {
-        window.CorporateHierarchyManager.initCustomer360Hierarchy(Number(customerId));
-    }
+async function renderCorporateHierarchy360() {
+    if (window.CorporateHierarchyManager) await window.CorporateHierarchyManager.renderCustomer360Hierarchy(document.getElementById("customer360HierarchyBanner"),Number(customerId));
 }
 
 /* =========================================================
@@ -1209,40 +770,14 @@ composer?.addEventListener("submit", async event => {
     }
 
     const type = typeInput.value || "note";
-    const authorName = "Nông Quang Tiệp (Bạn)";
-    const newEntry = {
-        id: Date.now(),
-        type: type.toLowerCase(),
-        subject: text.slice(0, 50),
-        text: text,
-        author: authorName,
-        time: new Date()
-    };
-
-    // Optimistic UI Update
-    timelineData.unshift(newEntry);
-    noteInput.value = "";
-    applyTimelineFilter();
-    updateAllTabBadges();
-    syncInMemory360Data();
-
-    // Call API in background
-    if (customerId) {
-        try {
-            await api("/api/activities", {
-                method: "POST",
-                body: JSON.stringify({
-                    subject: text.slice(0, 50),
-                    type: type.toUpperCase(),
-                    description: text,
-                    customerId: Number(customerId),
-                    status: "COMPLETED"
-                })
-            });
-        } catch (err) {
-            console.warn("Lưu hoạt động vào Backend không thành công (lưu bộ nhớ tạm):", err);
-        }
-    }
+    const button=composer.querySelector("button[type=submit]");
+    if (button) button.disabled=true;
+    try {
+        await api("/api/activities", {method:"POST",body:JSON.stringify({subject:text.slice(0,50),type:type.toUpperCase(),description:text,customerId:Number(customerId),status:"COMPLETED"})});
+        noteInput.value="";
+        await initCustomer360();
+    } catch(error) { alert(error.message); }
+    finally { if(button) button.disabled=false; }
 });
 
 // Quick Action Buttons (Gọi ngay, Gửi Email, Ghi chú)
@@ -1317,35 +852,6 @@ document.getElementById("closeAttachmentModal")?.addEventListener("click", close
 document.getElementById("cancelAttachUpload")?.addEventListener("click", closeAttachModal);
 attachOverlay?.addEventListener("click", closeAttachModal);
 
-document.getElementById("attachmentUploadForm")?.addEventListener("submit", event => {
-    event.preventDefault();
-    const nameInput = document.getElementById("attachFileName");
-    const catInput = document.getElementById("attachCategory");
-    const fileInput = document.getElementById("attachFileInput");
-
-    const fileName = nameInput.value.trim();
-    if (!fileName) {
-        nameInput.focus();
-        return;
-    }
-
-    const newAttach = {
-        id: Date.now(),
-        fileName: fileName,
-        fileType: fileName.split('.').pop() || "pdf",
-        category: catInput.value || "Tài liệu",
-        fileSize: fileInput?.files?.[0] ? `${(fileInput.files[0].size / 1024 / 1024).toFixed(1)} MB` : "1.5 MB",
-        uploadedBy: "Nông Quang Tiệp",
-        uploadedAt: new Date().toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
-    };
-
-    attachmentsData.unshift(newAttach);
-    renderAttachmentsTab();
-    updateAllTabBadges();
-    syncInMemory360Data();
-    closeAttachModal();
-    nameInput.value = "";
-});
 
 /* =========================================================
    14. COMPANY EDIT MODAL
@@ -1354,18 +860,14 @@ const modal = document.getElementById("companyModal");
 const modalOverlay = document.getElementById("companyModalOverlay");
 
 function openCompanyModal() {
-    setValue("edit360Name", displayValue("company360Name"));
-    setValue("edit360Tax", displayValue("company360Tax"));
-    setValue("edit360Industry", displayValue("company360Industry"));
-    setValue("edit360Scale", displayValue("company360Scale"));
-    setValue("edit360Address", displayValue("company360Address"));
-    setValue("edit360Owner", displayValue("company360Owner"));
-    setValue("edit360Phone", displayValue("company360Phone"));
-    setValue("edit360Email", displayValue("company360Email"));
-    setValue("edit360Website", displayValue("company360Website"));
-
-    modal.classList.add("open");
-    modalOverlay.classList.add("open");
+    if (!currentCustomer) return;
+    for (const [id,key] of Object.entries({edit360Name:"name",edit360Tax:"taxCode",edit360Address:"address",edit360Phone:"phone",edit360Email:"email",edit360Website:"website"})) setValue(id,currentCustomer[key]);
+    for (const [id,items,key,label] of [["edit360Industry",customerLookups.industries,"industryId","name"],["edit360Scale",customerLookups.companySizes,"companySizeId","name"],["edit360Owner",customerLookups.owners,"ownerUserId","fullName"]]) {
+        const select=document.getElementById(id);
+        select.innerHTML='<option value="">Chọn...</option>'+items.map(x=>`<option value="${x.id}">${escapeHtml(x[label])}</option>`).join("");
+        setValue(id,currentCustomer[key]);
+    }
+    modal.classList.add("open"); modalOverlay.classList.add("open");
 }
 
 function closeCompanyModal() {
@@ -1381,67 +883,14 @@ modalOverlay?.addEventListener("click", closeCompanyModal);
 document.getElementById("company360Form")?.addEventListener("submit", async event => {
     event.preventDefault();
 
-    const name = value("edit360Name");
-    const tax = value("edit360Tax");
-    const ind = value("edit360Industry");
-    const scale = value("edit360Scale");
-    const address = value("edit360Address");
-    const owner = value("edit360Owner");
-    const ph = value("edit360Phone");
-    const email = value("edit360Email");
-    const web = value("edit360Website");
-
-    if (currentCustomer) {
-        currentCustomer.name = name;
-        currentCustomer.companyName = name;
-        currentCustomer.taxCode = tax;
-        currentCustomer.industry = ind;
-        currentCustomer.scale = scale;
-        currentCustomer.address = address;
-        currentCustomer.ownerName = owner;
-        currentCustomer.phone = ph;
-        currentCustomer.email = email;
-        currentCustomer.website = web;
-    }
-
-    writeDisplay("company360Name", name);
-    writeDisplay("company360Tax", tax);
-    writeDisplay("company360Industry", ind);
-    writeDisplay("company360Scale", scale);
-    writeDisplay("company360Address", address);
-    writeDisplay("company360Owner", owner);
-    writeDisplay("company360Phone", ph);
-    writeDisplay("company360Email", email);
-    writeDisplay("company360Website", web);
-
-    const titleEl = document.getElementById("pageCustomerTitle");
-    if (titleEl) titleEl.textContent = name;
-
-    syncInMemory360Data();
-
-    // Call Backend PUT /api/customers/{id}
-    if (customerId) {
-        try {
-            await api(`/api/customers/${customerId}`, {
-                method: "PUT",
-                body: JSON.stringify({
-                    name,
-                    taxCode: tax,
-                    industry: ind,
-                    phone: ph,
-                    website: web,
-                    email,
-                    address,
-                    type: currentCustomer?.type || "ENTERPRISE",
-                    status: currentCustomer?.status || "ACTIVE"
-                })
-            });
-        } catch (err) {
-            console.warn("Backend update error:", err.message);
-        }
-    }
-
-    closeCompanyModal();
+    const button=event.target.querySelector("button[type=submit]");
+    if(button)button.disabled=true;
+    try {
+        const payload={name:value("edit360Name"),taxCode:value("edit360Tax")||null,address:value("edit360Address"),phone:value("edit360Phone"),email:value("edit360Email"),website:value("edit360Website"),industryId:Number(value("edit360Industry"))||null,companySizeId:Number(value("edit360Scale"))||null,ownerUserId:Number(value("edit360Owner"))||currentCustomer.ownerUserId,status:currentCustomer.status,type:currentCustomer.type||"ENTERPRISE",region:currentCustomer.region,customFields:currentCustomer.customFields};
+        await api(`/api/customers/${customerId}`,{method:"PUT",body:JSON.stringify(payload)});
+        closeCompanyModal(); await initCustomer360();
+    } catch(error) { alert(error.message); }
+    finally { if(button)button.disabled=false; }
 });
 
 document.addEventListener("keydown", event => {
@@ -1452,26 +901,7 @@ document.addEventListener("keydown", event => {
 });
 
 // Re-render contacts on CRM-62 event
-document.addEventListener("crm:contacts-updated", () => {
-    renderContactsTab();
-    renderPrimaryContactCard();
-    updateAllTabBadges();
-});
-
-function syncInMemory360Data() {
-    if (customer360Data) {
-        customer360Data.customer = currentCustomer;
-        customer360Data.activities = timelineData.map(t => ({
-            id: t.id,
-            type: t.type,
-            subject: t.subject,
-            description: t.text,
-            authorName: t.author,
-            createdAt: t.time instanceof Date ? t.time.toISOString() : new Date().toISOString()
-        }));
-        customer360Data.attachments = attachmentsData;
-    }
-}
+document.addEventListener("crm:contacts-updated", initCustomer360);
 
 /* =========================================================
    15. UTILITY FUNCTIONS

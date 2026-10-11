@@ -14,9 +14,6 @@
 
 (function () {
     // Required LocalStorage Keys as mandated by Acceptance Criteria
-    const STORAGE_KEY_CONTACTS = "CRM_CONTACTS_DATA";
-    const STORAGE_KEY_HISTORY = "CRM_CONTACT_HISTORY_DATA";
-    const STORAGE_KEY_CUSTOMERS = "CRM_CUSTOMERS_DATA";
 
     // Decision Roles Definition (CRM-62)
     const DECISION_ROLES = {
@@ -73,271 +70,7 @@
         "linear-gradient(135deg, #ec4899, #be185d)"
     ];
 
-    // Seed Mock Contacts (Robust Enterprise Data across B2B clients)
-    const DEFAULT_MOCK_CONTACTS = [];
-    const _UNUSED_DEFAULT_MOCK_CONTACTS = [
-        {
-            id: 1,
-            customerId: 1,
-            companyName: "Tập đoàn Công nghệ FPT",
-            fullName: "Trương Gia Bình",
-            jobTitle: "Chủ tịch HĐQT",
-            department: "Ban Quản trị & Điều hành",
-            email: "binhtg@fpt.com.vn",
-            phone: "0913222333",
-            decisionRole: "DECISION_MAKER",
-            isPrimary: true,
-            status: "ACTIVE",
-            notes: "Người phê duyệt ngân sách cấp cao nhất cho các dự án chuyển đổi số toàn tập đoàn.",
-            createdAt: "2026-01-15T08:30:00",
-            updatedAt: "2026-03-20T10:00:00"
-        },
-        {
-            id: 2,
-            customerId: 1,
-            companyName: "Tập đoàn Công nghệ FPT",
-            fullName: "Nguyễn Văn Khoa",
-            jobTitle: "Tổng Giám đốc (CEO)",
-            department: "Ban Điều hành",
-            email: "khoanv@fpt.com.vn",
-            phone: "0903444555",
-            decisionRole: "INFLUENCER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Ủng hộ ứng dụng công nghệ hiện đại, quan tâm sâu sát đến chỉ số ROI và hiệu suất triển khai.",
-            createdAt: "2026-01-16T09:15:00",
-            updatedAt: "2026-03-20T10:00:00"
-        },
-        {
-            id: 3,
-            customerId: 1,
-            companyName: "Tập đoàn Công nghệ FPT",
-            fullName: "Đỗ Cao Bảo",
-            jobTitle: "Giám đốc CNTT (CIO)",
-            department: "Khối Công nghệ & Hạ tầng",
-            email: "baodc@fpt.com.vn",
-            phone: "0912555666",
-            decisionRole: "BLOCKER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Yêu cầu kiểm định an toàn thông tin khắt khe; ưu tiên giải pháp nội bộ tự phát triển nếu nhà cung cấp không chứng minh được SLA.",
-            createdAt: "2026-01-20T14:00:00",
-            updatedAt: "2026-03-20T10:00:00"
-        },
-        {
-            id: 4,
-            customerId: 1,
-            companyName: "Tập đoàn Công nghệ FPT",
-            fullName: "Phạm Minh Thắng",
-            jobTitle: "Trưởng phòng Mua sắm & Đấu thầu",
-            department: "Phòng Mua sắm",
-            email: "thangpm@fpt.com.vn",
-            phone: "0987654321",
-            decisionRole: "END_USER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Vận hành trực tiếp hệ thống đối chiếu đơn hàng và nghiệm thu dịch vụ định kỳ.",
-            createdAt: "2026-02-01T11:00:00",
-            updatedAt: "2026-03-20T10:00:00"
-        },
-        {
-            id: 5,
-            customerId: 2,
-            companyName: "Công ty Cổ phần VNG",
-            fullName: "Lê Hồng Minh",
-            jobTitle: "Chủ tịch & Sáng lập",
-            department: "Ban Lãnh đạo",
-            email: "minhlh@vng.com.vn",
-            phone: "0908111222",
-            decisionRole: "DECISION_MAKER",
-            isPrimary: true,
-            status: "ACTIVE",
-            notes: "Quyết định toàn diện các gói giải pháp hạ tầng máy chủ và bảo mật dữ liệu khách hàng.",
-            createdAt: "2026-02-10T10:00:00",
-            updatedAt: "2026-03-21T09:00:00"
-        },
-        {
-            id: 6,
-            customerId: 2,
-            companyName: "Công ty Cổ phần VNG",
-            fullName: "Vương Quang Khải",
-            jobTitle: "Phó Tổng Giám đốc Zalo",
-            department: "Khối Nền tảng & AI",
-            email: "khaivq@vng.com.vn",
-            phone: "0918333444",
-            decisionRole: "INFLUENCER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Tác động lớn đến kiến trúc tích hợp hệ thống tin nhắn OTT và API chăm sóc khách hàng.",
-            createdAt: "2026-02-12T14:30:00",
-            updatedAt: "2026-03-21T09:00:00"
-        },
-        {
-            id: 7,
-            customerId: 2,
-            companyName: "Công ty Cổ phần VNG",
-            fullName: "Trần Anh Dũng",
-            jobTitle: "Giám đốc Kiểm soát Tài chính",
-            department: "Phòng Tài chính - Kế toán",
-            email: "dungta@vng.com.vn",
-            phone: "0909666777",
-            decisionRole: "BLOCKER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Chặt chẽ về điều khoản thanh toán và phạt trễ hạn; thường yêu cầu đàm phán chiết khấu thêm 15%.",
-            createdAt: "2026-02-15T16:00:00",
-            updatedAt: "2026-03-21T09:00:00"
-        },
-        {
-            id: 8,
-            customerId: 3,
-            companyName: "Công ty TNHH Phần mềm MISA",
-            fullName: "Lữ Thành Long",
-            jobTitle: "Chủ tịch HĐQT",
-            department: "Hội đồng Quản trị",
-            email: "longlt@misa.vn",
-            phone: "0913999888",
-            decisionRole: "DECISION_MAKER",
-            isPrimary: true,
-            status: "ACTIVE",
-            notes: "Đại diện thẩm quyền tối cao, quan tâm đến quan hệ hợp tác chiến lược B2B lâu dài.",
-            createdAt: "2026-03-01T08:00:00",
-            updatedAt: "2026-03-25T11:00:00"
-        },
-        {
-            id: 9,
-            customerId: 3,
-            companyName: "Công ty TNHH Phần mềm MISA",
-            fullName: "Đinh Thị Thúy",
-            jobTitle: "Tổng Giám đốc",
-            department: "Ban Điều hành",
-            email: "thuydt@misa.vn",
-            phone: "0982555444",
-            decisionRole: "INFLUENCER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Theo dõi sát sao tiến độ bàn giao và đảm bảo quy chuẩn đào tạo nhân sự.",
-            createdAt: "2026-03-02T09:30:00",
-            updatedAt: "2026-03-25T11:00:00"
-        },
-        {
-            id: 10,
-            customerId: 3,
-            companyName: "Công ty TNHH Phần mềm MISA",
-            fullName: "Hoàng Nam",
-            jobTitle: "Trưởng nhóm Hỗ trợ Kỹ thuật",
-            department: "Trung tâm Chăm sóc Khách hàng",
-            email: "namh@misa.vn",
-            phone: "0976123456",
-            decisionRole: "END_USER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Người dùng trực tiếp giải quyết khiếu nại và đánh giá độ tiện dụng của giao diện.",
-            createdAt: "2026-03-05T15:00:00",
-            updatedAt: "2026-03-25T11:00:00"
-        },
-        {
-            id: 11,
-            customerId: 4,
-            companyName: "Tập đoàn Bưu chính Viễn thông VNPT",
-            fullName: "Tô Dũng Thái",
-            jobTitle: "Chủ tịch Hội đồng Thành viên",
-            department: "Ban Lãnh đạo",
-            email: "thaitd@vnpt.vn",
-            phone: "0913555777",
-            decisionRole: "DECISION_MAKER",
-            isPrimary: true,
-            status: "ACTIVE",
-            notes: "Ký kết phê duyệt các dự án đầu tư phần mềm trọng điểm cấp bộ ngành.",
-            createdAt: "2026-01-10T09:00:00",
-            updatedAt: "2026-03-22T14:00:00"
-        },
-        {
-            id: 12,
-            customerId: 4,
-            companyName: "Tập đoàn Bưu chính Viễn thông VNPT",
-            fullName: "Lê Quốc Hùng",
-            jobTitle: "Trưởng phòng Pháp chế & Rủi ro",
-            department: "Khối Pháp chế",
-            email: "hunglq@vnpt.vn",
-            phone: "0918777999",
-            decisionRole: "BLOCKER",
-            isPrimary: false,
-            status: "ACTIVE",
-            notes: "Soát xét hợp đồng rất kỹ lưỡng, yêu cầu tuân thủ đầy đủ nghị định bảo vệ dữ liệu cá nhân 13/2023/NĐ-CP.",
-            createdAt: "2026-01-18T10:00:00",
-            updatedAt: "2026-03-22T14:00:00"
-        },
-        {
-            id: 13,
-            customerId: 5,
-            companyName: "Tập đoàn Công nghiệp - Viễn thông Quân đội (Viettel)",
-            fullName: "Tào Đức Thắng",
-            jobTitle: "Chủ tịch kiêm Tổng Giám đốc",
-            department: "Ban Tổng Giám đốc",
-            email: "thangtd@viettel.com.vn",
-            phone: "0983111000",
-            decisionRole: "DECISION_MAKER",
-            isPrimary: true,
-            status: "ACTIVE",
-            notes: "Đòi hỏi kỷ luật triển khai cao, phương án dự phòng sự cố 24/7.",
-            createdAt: "2026-02-01T08:00:00",
-            updatedAt: "2026-03-24T16:00:00"
-        },
-        {
-            id: 14,
-            customerId: 8,
-            companyName: "Công ty Cổ phần Tập đoàn Hòa Phát",
-            fullName: "Trần Đình Long",
-            jobTitle: "Chủ tịch HĐQT",
-            department: "Ban Quản trị",
-            email: "longtd@hoaphat.com.vn",
-            phone: "0903888777",
-            decisionRole: "DECISION_MAKER",
-            isPrimary: true,
-            status: "ACTIVE",
-            notes: "Tập trung giải pháp quản lý chuỗi cung ứng thép và kho vận bãi cảng.",
-            createdAt: "2026-01-25T10:00:00",
-            updatedAt: "2026-03-20T10:00:00"
-        }
-    ];
-
-    // Seed Mock Career History (Audit Trail of Contact Transfers)
-    const DEFAULT_MOCK_HISTORY = [];
-    const _UNUSED_DEFAULT_MOCK_HISTORY = [
-        {
-            id: 101,
-            contactId: 3,
-            contactName: "Đỗ Cao Bảo",
-            fromCustomerId: 4,
-            fromCompanyName: "Tập đoàn Bưu chính Viễn thông VNPT",
-            toCustomerId: 1,
-            toCompanyName: "Tập đoàn Công nghệ FPT",
-            oldJobTitle: "Phó Giám đốc Trung tâm Kỹ thuật",
-            newJobTitle: "Giám đốc CNTT (CIO)",
-            transferDate: "2025-11-15",
-            reason: "Chuyển công tác sang FPT phụ trách chỉ đạo chuyển đổi số hạ tầng cloud toàn tập đoàn.",
-            loggedAt: "2025-11-15T09:30:00",
-            loggedBy: "Nông Quang Tiệp (Admin)"
-        },
-        {
-            id: 102,
-            contactId: 7,
-            contactName: "Trần Anh Dũng",
-            fromCustomerId: 3,
-            fromCompanyName: "Công ty TNHH Phần mềm MISA",
-            toCustomerId: 2,
-            toCompanyName: "Công ty Cổ phần VNG",
-            oldJobTitle: "Trưởng phòng Kế toán Quản trị",
-            newJobTitle: "Giám đốc Kiểm soát Tài chính",
-            transferDate: "2025-08-01",
-            reason: "Chuyển sang VNG phụ trách bộ phận kiểm toán nội bộ và quản trị rủi ro dòng tiền.",
-            loggedAt: "2025-08-01T14:15:00",
-            loggedBy: "Nông Quang Tiệp (Admin)"
-        }
-    ];
-
-    // Helper: Escape HTML
+    // Shared rendering helpers
     function escapeHtml(str) {
         if (str === null || str === undefined) return "";
         return String(str)
@@ -424,318 +157,55 @@
     // ===================================================================
     // CONTACTS CORE DATA MANAGER (PERSISTENCE LAYER)
     // ===================================================================
+    // The in-memory view is refreshed after every committed API write.
     class ContactsStore {
-        constructor() {
-            this.initStore();
+        constructor() { this.contacts=[]; this.customers=[]; this.history=[]; }
+        map(row) {
+            const customer=this.getCustomerById(row.customerId);
+            return {...row,jobTitle:row.title || "",decisionRole:row.buyingRole,isPrimary:!!row.isPrimary,status:"ACTIVE",companyName:customer?.name || `#${row.customerId}`};
         }
-
-        initStore() {
-            // Contacts table persistence
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY_CONTACTS);
-                if (!raw) {
-                    localStorage.setItem(STORAGE_KEY_CONTACTS, JSON.stringify(DEFAULT_MOCK_CONTACTS));
-                }
-            } catch (e) {
-                console.error("Error accessing localStorage for contacts:", e);
-            }
-
-            // History table persistence
-            try {
-                const rawHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-                if (!rawHistory) {
-                    localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(DEFAULT_MOCK_HISTORY));
-                }
-            } catch (e) {
-                console.error("Error accessing localStorage for history:", e);
-            }
+        async load() {
+            this.customers=await CrmApi.customers();
+            this.contacts=(await CrmApi.request("/api/contacts")).map(row=>this.map(row));
         }
-
-        getAllContacts() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY_CONTACTS);
-                return raw ? JSON.parse(raw) : [...DEFAULT_MOCK_CONTACTS];
-            } catch (_) {
-                return [...DEFAULT_MOCK_CONTACTS];
-            }
+        ingest(customer,contacts) {
+            this.customers=[...this.customers.filter(c=>Number(c.id)!==Number(customer.id)),customer];
+            this.contacts=[...this.contacts.filter(c=>Number(c.customerId)!==Number(customer.id)),...contacts.map(c=>this.map(c))];
         }
-
-        saveContacts(list) {
-            try {
-                localStorage.setItem(STORAGE_KEY_CONTACTS, JSON.stringify(list));
-            } catch (e) {
-                console.error("Failed to save contacts to localStorage:", e);
-            }
+        getAllContacts() { return this.contacts; }
+        getAvailableCustomers() { return this.customers; }
+        getCustomerById(id) { return this.customers.find(c=>Number(c.id)===Number(id)); }
+        getContactsByCustomer(id) { return this.contacts.filter(c=>Number(c.customerId)===Number(id)); }
+        getContactById(id) { return this.contacts.find(c=>Number(c.id)===Number(id)); }
+        getAllHistory() { return this.history; }
+        getContactHistory(id) { return this.history.filter(h=>Number(h.contactId)===Number(id)); }
+        async loadHistory(id) {
+            const ids=id ? [id] : this.contacts.map(c=>c.id);
+            const rows=(await Promise.all(ids.map(id=>CrmApi.request(`/api/contacts/${id}/history`)))).flat();
+            this.history=[...this.history.filter(h=>!ids.some(id=>Number(id)===Number(h.contactId))),...rows.map(row=>({
+                ...row,contactName:this.getContactById(row.contactId)?.fullName || `#${row.contactId}`,
+                fromCompanyName:this.getCustomerById(row.fromCustomerId)?.name || `#${row.fromCustomerId}`,
+                toCompanyName:this.getCustomerById(row.toCustomerId)?.name || `#${row.toCustomerId}`,
+                transferDate:row.changedAt,reason:row.note,loggedAt:row.changedAt,loggedBy:`#${row.changedBy}`
+            }))];
         }
-
-        getAllHistory() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY_HISTORY);
-                return raw ? JSON.parse(raw) : [...DEFAULT_MOCK_HISTORY];
-            } catch (_) {
-                return [...DEFAULT_MOCK_HISTORY];
-            }
+        payload(p) { return {customerId:Number(p.customerId),fullName:p.fullName,title:p.jobTitle,email:p.email,phone:p.phone,buyingRole:p.decisionRole,isPrimary:!!p.isPrimary}; }
+        async addContact(p) {
+            const row=await CrmApi.request("/api/contacts",{method:"POST",body:JSON.stringify(this.payload(p))});
+            await this.load(); return this.map(row);
         }
-
-        saveHistory(list) {
-            try {
-                localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(list));
-            } catch (e) {
-                console.error("Failed to save history to localStorage:", e);
-            }
+        async updateContact(id,p) {
+            const row=await CrmApi.request(`/api/contacts/${id}`,{method:"PUT",body:JSON.stringify(this.payload(p))});
+            await this.load(); return this.map(row);
         }
-
-        getAvailableCustomers() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed) && parsed.length) return parsed;
-                }
-            } catch (_) {}
-
-            // Fallback enterprise customers
-            return [
-                { id: 1, companyName: "Tập đoàn Công nghệ FPT", taxCode: "0101248141" },
-                { id: 2, companyName: "Công ty Cổ phần VNG", taxCode: "0303579890" },
-                { id: 3, companyName: "Công ty TNHH Phần mềm MISA", taxCode: "0100779774" },
-                { id: 4, companyName: "Tập đoàn Bưu chính Viễn thông VNPT", taxCode: "0100684378" },
-                { id: 5, companyName: "Tập đoàn Công nghiệp - Viễn thông Quân đội (Viettel)", taxCode: "0100109106" },
-                { id: 6, companyName: "Công ty Cổ phần Sữa Việt Nam (Vinamilk)", taxCode: "0300588569" },
-                { id: 7, companyName: "Công ty Cổ phần Đầu tư Thế Giới Di Động", taxCode: "0303270651" },
-                { id: 8, companyName: "Công ty Cổ phần Tập đoàn Hòa Phát", taxCode: "0900189284" }
-            ];
+        async deleteContact(id) { await CrmApi.request(`/api/contacts/${id}`,{method:"DELETE"}); await this.load(); }
+        async setPrimaryContact(id) {
+            const row=await CrmApi.request(`/api/contacts/${id}/primary`,{method:"PUT"});
+            await this.load(); return this.map(row);
         }
-
-        getCustomerById(customerId) {
-            const list = this.getAvailableCustomers();
-            return list.find(c => Number(c.id) === Number(customerId)) || null;
-        }
-
-        getContactsByCustomer(customerId) {
-            const all = this.getAllContacts();
-            return all.filter(c => Number(c.customerId) === Number(customerId));
-        }
-
-        getContactById(id) {
-            const all = this.getAllContacts();
-            return all.find(c => Number(c.id) === Number(id)) || null;
-        }
-
-        getContactHistory(contactId) {
-            const allHistory = this.getAllHistory();
-            return allHistory
-                .filter(h => Number(h.contactId) === Number(contactId))
-                .sort((a, b) => new Date(b.transferDate) - new Date(a.transferDate));
-        }
-
-        /**
-         * Add a new Contact.
-         * If marked isPrimary = true, unset other contacts of the same customer.
-         */
-        addContact(payload) {
-            const all = this.getAllContacts();
-            const newId = all.length ? Math.max(...all.map(c => Number(c.id) || 0)) + 1 : 1;
-
-            const custId = Number(payload.customerId);
-            const customer = this.getCustomerById(custId);
-            const compName = customer ? (customer.companyName || customer.name) : (payload.companyName || "Chưa xác định");
-
-            const isPrimary = !!payload.isPrimary;
-
-            // If new contact is primary, clear primary flag on sibling contacts
-            if (isPrimary) {
-                all.forEach(c => {
-                    if (Number(c.customerId) === custId) {
-                        c.isPrimary = false;
-                    }
-                });
-            }
-
-            const newContact = {
-                id: newId,
-                customerId: custId,
-                companyName: compName,
-                fullName: payload.fullName.trim(),
-                jobTitle: payload.jobTitle.trim(),
-                department: (payload.department || "").trim(),
-                email: payload.email.trim(),
-                phone: payload.phone.trim(),
-                decisionRole: payload.decisionRole || "END_USER",
-                isPrimary: isPrimary,
-                status: payload.status || "ACTIVE",
-                notes: (payload.notes || "").trim(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-
-            all.unshift(newContact);
-            this.saveContacts(all);
-            return newContact;
-        }
-
-        /**
-         * Update an existing contact.
-         */
-        updateContact(id, payload) {
-            const all = this.getAllContacts();
-            const index = all.findIndex(c => Number(c.id) === Number(id));
-            if (index === -1) throw new Error("Không tìm thấy người liên hệ cần cập nhật.");
-
-            const old = all[index];
-            const custId = Number(payload.customerId || old.customerId);
-            const isPrimary = payload.isPrimary !== undefined ? !!payload.isPrimary : old.isPrimary;
-
-            // If becoming primary, unset siblings
-            if (isPrimary && !old.isPrimary) {
-                all.forEach(c => {
-                    if (Number(c.customerId) === custId && Number(c.id) !== Number(id)) {
-                        c.isPrimary = false;
-                    }
-                });
-            }
-
-            const customer = this.getCustomerById(custId);
-            const compName = customer ? (customer.companyName || customer.name) : (payload.companyName || old.companyName);
-
-            all[index] = {
-                ...old,
-                customerId: custId,
-                companyName: compName,
-                fullName: payload.fullName !== undefined ? payload.fullName.trim() : old.fullName,
-                jobTitle: payload.jobTitle !== undefined ? payload.jobTitle.trim() : old.jobTitle,
-                department: payload.department !== undefined ? (payload.department || "").trim() : old.department,
-                email: payload.email !== undefined ? payload.email.trim() : old.email,
-                phone: payload.phone !== undefined ? payload.phone.trim() : old.phone,
-                decisionRole: payload.decisionRole || old.decisionRole,
-                isPrimary: isPrimary,
-                status: payload.status || old.status,
-                notes: payload.notes !== undefined ? (payload.notes || "").trim() : old.notes,
-                updatedAt: new Date().toISOString()
-            };
-
-            this.saveContacts(all);
-            return all[index];
-        }
-
-        /**
-         * Delete a contact
-         */
-        deleteContact(id) {
-            let all = this.getAllContacts();
-            const target = all.find(c => Number(c.id) === Number(id));
-            if (!target) return false;
-
-            all = all.filter(c => Number(c.id) !== Number(id));
-
-            // If deleted contact was primary, automatically assign primary to the first active sibling
-            if (target.isPrimary) {
-                const sibling = all.find(c => Number(c.customerId) === Number(target.customerId) && c.status === "ACTIVE");
-                if (sibling) {
-                    sibling.isPrimary = true;
-                }
-            }
-
-            this.saveContacts(all);
-            return true;
-        }
-
-        /**
-         * Set Primary Contact (Đầu mối chính)
-         * Only 1 contact is primary per company. Automatically unset others.
-         */
-        setPrimaryContact(contactId) {
-            const all = this.getAllContacts();
-            const target = all.find(c => Number(c.id) === Number(contactId));
-            if (!target) throw new Error("Không tìm thấy người liên hệ.");
-
-            const custId = Number(target.customerId);
-
-            all.forEach(c => {
-                if (Number(c.customerId) === custId) {
-                    c.isPrimary = Number(c.id) === Number(contactId);
-                    c.updatedAt = new Date().toISOString();
-                }
-            });
-
-            this.saveContacts(all);
-            return target;
-        }
-
-        /**
-         * Re-assign Contact to a new Company (Điều chuyển công tác)
-         * Creates an audit trail record in CRM_CONTACT_HISTORY_DATA.
-         */
-        transferContact(contactId, { toCustomerId, newJobTitle, newDepartment, transferDate, reason, setAsPrimaryInNewComp }) {
-            const all = this.getAllContacts();
-            const target = all.find(c => Number(c.id) === Number(contactId));
-            if (!target) throw new Error("Không tìm thấy người liên hệ để điều chuyển.");
-
-            const fromCustomerId = Number(target.customerId);
-            const fromCompanyName = target.companyName;
-            const oldJobTitle = target.jobTitle;
-
-            const targetCustId = Number(toCustomerId);
-            const newCustomer = this.getCustomerById(targetCustId);
-            if (!newCustomer) throw new Error("Không tìm thấy khách hàng doanh nghiệp đích.");
-            const toCompanyName = newCustomer.companyName || newCustomer.name;
-
-            if (fromCustomerId === targetCustId) {
-                throw new Error("Người liên hệ đã thuộc doanh nghiệp này. Vui lòng chọn doanh nghiệp khác.");
-            }
-
-            // 1. Create Career History Trail
-            const allHistory = this.getAllHistory();
-            const newHistoryId = allHistory.length ? Math.max(...allHistory.map(h => Number(h.id) || 0)) + 1 : 101;
-
-            const historyRecord = {
-                id: newHistoryId,
-                contactId: Number(contactId),
-                contactName: target.fullName,
-                fromCustomerId: fromCustomerId,
-                fromCompanyName: fromCompanyName,
-                toCustomerId: targetCustId,
-                toCompanyName: toCompanyName,
-                oldJobTitle: oldJobTitle,
-                newJobTitle: (newJobTitle || target.jobTitle).trim(),
-                transferDate: transferDate || new Date().toISOString().split("T")[0],
-                reason: (reason || "Điều chuyển công tác sang đơn vị mới.").trim(),
-                loggedAt: new Date().toISOString(),
-                loggedBy: "Nông Quang Tiệp (Quản trị viên)"
-            };
-
-            allHistory.unshift(historyRecord);
-            this.saveHistory(allHistory);
-
-            // 2. Handle Primary Flag at Old Company (promote another sibling if available)
-            if (target.isPrimary) {
-                const oldSibling = all.find(c => Number(c.customerId) === fromCustomerId && Number(c.id) !== Number(contactId) && c.status === "ACTIVE");
-                if (oldSibling) {
-                    oldSibling.isPrimary = true;
-                }
-            }
-
-            // 3. Handle Primary Flag at New Company
-            const isNewPrimary = !!setAsPrimaryInNewComp;
-            if (isNewPrimary) {
-                all.forEach(c => {
-                    if (Number(c.customerId) === targetCustId) {
-                        c.isPrimary = false;
-                    }
-                });
-            }
-
-            // 4. Update Contact Profile
-            target.customerId = targetCustId;
-            target.companyName = toCompanyName;
-            target.jobTitle = (newJobTitle || target.jobTitle).trim();
-            if (newDepartment) target.department = newDepartment.trim();
-            target.isPrimary = isNewPrimary;
-            target.updatedAt = new Date().toISOString();
-
-            this.saveContacts(all);
-
-            return { contact: target, history: historyRecord };
+        async transferContact(id,p) {
+            const row=await CrmApi.request(`/api/contacts/${id}/transfer`,{method:"POST",body:JSON.stringify({customerId:Number(p.toCustomerId),isPrimary:!!p.setAsPrimaryInNewComp,note:p.reason})});
+            await this.load(); await this.loadHistory(id); return {contact:this.map(row)};
         }
     }
 
@@ -1121,13 +591,15 @@
      * Attach Action Listeners (Set Primary, Transfer, Edit, Delete, View History)
      */
     function attachActionListeners(parent) {
+        if (!CrmApi.canSync("contact.update")) parent.querySelectorAll('[data-action="set-primary"],[data-action="transfer"],[data-action="edit"]').forEach(button => button.remove());
+        if (!CrmApi.canSync("contact.delete")) parent.querySelectorAll('[data-action="delete"]').forEach(button => button.remove());
         // Set Primary
         parent.querySelectorAll('[data-action="set-primary"]').forEach(btn => {
-            btn.addEventListener("click", e => {
+            btn.addEventListener("click", async e => {
                 e.stopPropagation();
                 const id = btn.dataset.id;
                 try {
-                    const updated = store.setPrimaryContact(id);
+                    const updated = await store.setPrimaryContact(id);
                     showToast(`Đã chỉ định "${updated.fullName}" làm Đầu mối liên hệ chính của ${updated.companyName}.`);
                     renderMainContactsList();
                     // Also trigger customer-360 update if present
@@ -1140,7 +612,7 @@
 
         // Transfer Contact Modal
         parent.querySelectorAll('[data-action="transfer"]').forEach(btn => {
-            btn.addEventListener("click", e => {
+            btn.addEventListener("click", async e => {
                 e.stopPropagation();
                 openTransferModal(btn.dataset.id);
             });
@@ -1148,7 +620,7 @@
 
         // View History Modal
         parent.querySelectorAll('[data-action="view-history"]').forEach(btn => {
-            btn.addEventListener("click", e => {
+            btn.addEventListener("click", async e => {
                 e.stopPropagation();
                 openHistoryModal(btn.dataset.id);
             });
@@ -1156,7 +628,7 @@
 
         // Edit Contact Modal
         parent.querySelectorAll('[data-action="edit"]').forEach(btn => {
-            btn.addEventListener("click", e => {
+            btn.addEventListener("click", async e => {
                 e.stopPropagation();
                 openEditModal(btn.dataset.id);
             });
@@ -1164,14 +636,14 @@
 
         // Delete Contact
         parent.querySelectorAll('[data-action="delete"]').forEach(btn => {
-            btn.addEventListener("click", e => {
+            btn.addEventListener("click", async e => {
                 e.stopPropagation();
                 const id = btn.dataset.id;
                 const contact = store.getContactById(id);
                 if (!contact) return;
 
                 if (confirm(`Bạn có chắc chắn muốn xóa người liên hệ "${contact.fullName}" (${contact.jobTitle} - ${contact.companyName})?`)) {
-                    store.deleteContact(id);
+                    try { await store.deleteContact(id); } catch (error) { showToast(error.message,"error"); return; }
                     showToast(`Đã xóa người liên hệ "${contact.fullName}".`);
                     renderMainContactsList();
                     dispatchContactsUpdatedEvent();
@@ -1196,7 +668,7 @@
     function openAddModal(preselectedCustomerId = null) {
         activeContactId = null;
         const modal = document.getElementById("contactFormModal");
-        if (!modal) return;
+        if (!modal) { window.location.href="contacts.html?customerId="+encodeURIComponent(preselectedCustomerId || ""); return; }
 
         document.getElementById("modalContactTitle").textContent = "Thêm mới người liên hệ B2B";
         document.getElementById("btnSubmitContact").textContent = "Lưu người liên hệ";
@@ -1323,7 +795,8 @@
     /**
      * Open Modal: History Timeline
      */
-    function openHistoryModal(contactId = null) {
+    async function openHistoryModal(contactId = null) {
+        try { await store.loadHistory(contactId); } catch(error) { showToast(error.message,"error"); return; }
         const modal = document.getElementById("contactHistoryModal");
         if (!modal) return;
 
@@ -1409,7 +882,7 @@
         // Contact Form Submit (Add/Edit)
         const contactForm = document.getElementById("contactForm");
         if (contactForm) {
-            contactForm.addEventListener("submit", e => {
+            contactForm.addEventListener("submit", async e => {
                 e.preventDefault();
 
                 const customerId = document.getElementById("contactCustomerId").value;
@@ -1450,7 +923,7 @@
                 try {
                     if (activeContactId) {
                         // Update
-                        const updated = store.updateContact(activeContactId, {
+                        const updated = await store.updateContact(activeContactId, {
                             customerId,
                             fullName,
                             jobTitle,
@@ -1465,7 +938,7 @@
                         showToast(`Đã cập nhật thông tin "${updated.fullName}".`);
                     } else {
                         // Add
-                        const created = store.addContact({
+                        const created = await store.addContact({
                             customerId,
                             fullName,
                             jobTitle,
@@ -1492,7 +965,7 @@
         // Transfer Form Submit
         const transferForm = document.getElementById("transferForm");
         if (transferForm) {
-            transferForm.addEventListener("submit", e => {
+            transferForm.addEventListener("submit", async e => {
                 e.preventDefault();
                 if (!activeContactId) return;
 
@@ -1507,7 +980,7 @@
                     alert("Vui lòng chọn doanh nghiệp đích.");
                     return;
                 }
-                if (!newJobTitle) {
+                if (false) {
                     alert("Vui lòng nhập chức danh mới tại đơn vị chuyển đến.");
                     return;
                 }
@@ -1517,7 +990,7 @@
                 }
 
                 try {
-                    const result = store.transferContact(activeContactId, {
+                    const result = await store.transferContact(activeContactId, {
                         toCustomerId,
                         newJobTitle,
                         newDepartment,
@@ -1648,6 +1121,7 @@
         attachActionListeners(container);
 
         const btnAdd = container.querySelector("#btn360AddContact");
+        if (btnAdd) btnAdd.hidden = !CrmApi.canSync("contact.create");
         if (btnAdd) btnAdd.addEventListener("click", () => openAddModal(customerId));
     }
 
@@ -1750,7 +1224,7 @@
         // Setup Add Contact Button on Header
         const btnAddMain = document.getElementById("btnAddNewContact");
         if (btnAddMain) {
-            btnAddMain.addEventListener("click", () => openAddModal());
+            btnAddMain.addEventListener("click", () => openAddModal(new URLSearchParams(location.search).get("customerId")));
         }
 
         // Setup View All History Button on Header
@@ -1811,6 +1285,7 @@
     // ===================================================================
     window.ContactsManager = {
         store,
+        ingest: (customer,contacts) => store.ingest(customer,contacts),
         DECISION_ROLES,
         getAllContacts: () => store.getAllContacts(),
         getContactsByCustomer: id => store.getContactsByCustomer(id),
@@ -1835,9 +1310,33 @@
     };
 
     // Auto-init on DOMContentLoaded
-    document.addEventListener("DOMContentLoaded", () => {
+    async function bootContacts() {
         setupFormListeners();
-        initContactsPage();
-    });
+        for (const id of ["contactDepartment","contactNotes","contactStatus","transferNewJobTitle","transferNewDepartment","transferDate"]) {
+            const input=document.getElementById(id);
+            if (input) { input.required=false; input.disabled=true; input.closest(".form-field-group")?.setAttribute("hidden",""); }
+        }
+        try {
+            const session=await CrmApi.session();
+            document.getElementById("selectStatusFilter")?.setAttribute("hidden","");
+            if (document.getElementById("contactsListContainer") || document.getElementById("customerTableBody")) {
+                if (!session.permissions.includes("contact.read")) {
+                    const container=document.getElementById("contactsListContainer");if(container)container.textContent="Bạn không có quyền xem người liên hệ.";
+                    const add=document.getElementById("btnAddNewContact");if(add)add.style.display="none";
+                    return;
+                }
+                await store.load();
+                initContactsPage();
+                const add=document.getElementById("btnAddNewContact");
+                if (add) add.hidden=!session.permissions.includes("contact.create");
+            }
+        } catch(error) {
+            const container=document.getElementById("contactsListContainer");
+            if (container) container.textContent=error.message;
+            showToast(error.message,"error");
+        }
+    }
+    if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bootContacts);
+    else bootContacts();
 
 })();
