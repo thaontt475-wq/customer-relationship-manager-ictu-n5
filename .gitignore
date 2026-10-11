@@ -7,3 +7,13 @@ frontend/node_modules/
 .vscode/
 .env
 .env.*
+
+# Never publish database dumps, local backups, or credentials
+database-backups/
+*.backup
+*.constructor-backup
+*.sql.bak
+*.pem
+*.key
+*.p12
+*.jks

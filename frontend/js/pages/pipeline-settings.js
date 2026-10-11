@@ -1,7 +1,6 @@
 "use strict";
 
-const API_BASE =
-    `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
 
 const PIPELINE_ID = 1;
 
