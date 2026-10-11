@@ -16,7 +16,13 @@ BEGIN
       AND TABLE_NAME = p_table_name
       AND COLUMN_NAME = p_column_name;
 
-    IF col_exists = 0 THEN
+    -- NOVACRM_009_TABLE_GUARD
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME = p_table_name
+    ) AND col_exists = 0 THEN
         SET @sql = CONCAT('ALTER TABLE `', p_table_name, '` ADD COLUMN `', p_column_name, '` ', p_column_definition);
         PREPARE stmt FROM @sql;
         EXECUTE stmt;
