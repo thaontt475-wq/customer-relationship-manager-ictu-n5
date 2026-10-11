@@ -47,6 +47,27 @@ public class QuoteService {
     ) throws Exception {
         dataScopeService.resolve(currentUserId, "quote", "create");
 
+        // NOVACRM_QUOTE_ACTIVE_CUSTOMER_GUARD
+        if (customerId == null || customerId <= 0) {
+            throw new IllegalArgumentException("Vui lòng chọn khách hàng hợp lệ.");
+        }
+
+        try (
+            java.sql.Connection conn = com.crm.config.DatabaseConfig.getConnection();
+            java.sql.PreparedStatement stmt = conn.prepareStatement(
+                "SELECT 1 FROM customers WHERE id = ? AND is_deleted = 0"
+            )
+        ) {
+            stmt.setLong(1, customerId);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    throw new IllegalArgumentException(
+                        "Khách hàng không tồn tại hoặc đã bị xóa."
+                    );
+                }
+            }
+        }
+
         String quoteNumber = "BG-" + System.currentTimeMillis() % 1000000;
         if (discountPercent == null) discountPercent = BigDecimal.ZERO;
 
