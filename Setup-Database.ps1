@@ -9,7 +9,7 @@ $root = $PSScriptRoot
 $folder = Join-Path $root "backend\database"
 $qa = Join-Path $root ".local-qa"
 
-if ($Database -notmatch '^(crm_db|crm_install_qa_[a-f0-9]{8})$') {
+if ($Database -notmatch '^(crm_db|crm_sprint1_test|crm_install_qa_[a-f0-9]{8})$') {
     throw "TEN DATABASE KHONG HOP LE"
 }
 
@@ -47,7 +47,8 @@ $ordered = @(
     "015_s3_06_customer_import.sql",
     "016_s3_08_support_risk.sql",
     "017_s3_07_customer_search_filters.sql",
-    "018_sprint3_contact_role_permissions.sql"
+    "018_sprint3_contact_role_permissions.sql",
+    "020_products_prices.sql"
 )
 
 foreach ($name in $ordered) {
@@ -155,7 +156,7 @@ password="$escaped"
         $file = $prepared[$i]
         $name = Split-Path $file -Leaf
 
-        Write-Host "[$($i+1)/20] $name" -ForegroundColor Cyan
+        Write-Host "[$($i+1)/$($prepared.Count)] $name" -ForegroundColor Cyan
 
         $cmd = "`"$mysql`" --defaults-extra-file=`"$cfg`" --database=$Database < `"$file`""
 

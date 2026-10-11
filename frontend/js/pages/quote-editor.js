@@ -107,11 +107,19 @@ function buildProductDatalist() {
 
 async function loadCustomers() {
     try {
-        const data = await api("/api/customers");
-        if (Array.isArray(data)) {
-            availableCustomers = data;
-            buildCustomerDatalist();
-        }
+        const data = await api("/api/customers?page=1&size=100");
+
+        const customerList = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.items)
+                ? data.items
+                : [];
+
+        availableCustomers = customerList.filter(
+            c => c && c.isDeleted !== true && c.is_deleted !== true
+        );
+
+        buildCustomerDatalist();
     } catch (err) {
         console.warn("Could not load customers:", err);
     }
@@ -394,7 +402,12 @@ async function saveQuote() {
 
     const summary = calculateSummary();
     const matchedCustomer = availableCustomers.find(c => c.name.toLowerCase() === custName.trim().toLowerCase());
-    const customerId = matchedCustomer ? matchedCustomer.id : (availableCustomers[0]?.id || 1);
+    if (!matchedCustomer) {
+        alert("Khách hàng không hợp lệ. Vui lòng chọn khách hàng đang hoạt động.");
+        return;
+    }
+
+    const customerId = matchedCustomer.id;
 
     const itemsPayload = lines.map(l => {
         let pId = l.productId;
