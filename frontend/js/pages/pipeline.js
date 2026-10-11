@@ -128,13 +128,20 @@ async function loadWinLossAndCompetitors() {
 
 async function loadCustomers() {
     try {
-        const list = await api("/api/customers");
-        if (Array.isArray(list)) {
-            customers = list;
-        }
+        const result = await api("/api/customers?page=1&size=100");
+
+        const list = Array.isArray(result)
+            ? result
+            : Array.isArray(result?.items)
+                ? result.items
+                : [];
+
+        customers = list.filter(c => c && c.isDeleted !== true && c.is_deleted !== true);
     } catch (err) {
+        customers = [];
         console.warn("Could not load customers:", err);
     }
+
     populateCustomerSelect();
 }
 
