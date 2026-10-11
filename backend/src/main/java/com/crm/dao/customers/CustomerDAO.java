@@ -30,7 +30,7 @@ public class CustomerDAO {
         CustomerSearchFilter.pagination(page, size);
         StringBuilder sql = new StringBuilder("""
                 SELECT c.id,c.name,c.region,c.tax_code,c.status,c.email,c.phone,c.website,c.address,
-                       c.industry_id,c.company_size_id,c.owner_user_id,c.created_at,u.full_name AS owner_name
+                       c.industry_id,c.company_size_id,c.owner_user_id,c.parent_customer_id,c.created_at,u.full_name AS owner_name
                 FROM customers c LEFT JOIN users u ON u.id=c.owner_user_id
                 WHERE c.is_deleted=0
                 """);
@@ -117,6 +117,7 @@ public class CustomerDAO {
                     c.industry_id,
                     c.company_size_id,
                     c.owner_user_id,
+                    c.parent_customer_id,
                     c.created_at,
                     u.full_name AS owner_name
                 FROM customers c
@@ -237,10 +238,12 @@ public class CustomerDAO {
         map.put("address", rs.getString("address"));
         map.put("industryId", rs.getObject("industry_id"));
         map.put("companySizeId", rs.getObject("company_size_id"));
+        map.put("parentCustomerId", rs.getObject("parent_customer_id"));
         map.put("ownerUserId", rs.getLong("owner_user_id"));
         map.put("ownerName", rs.getString("owner_name"));
         map.put("owner", rs.getString("owner_name"));
-        map.put("createdAt", rs.getTimestamp("created_at"));
+        Timestamp createdAt=rs.getTimestamp("created_at");
+        map.put("createdAt",createdAt==null ? null : createdAt.toLocalDateTime().toString());
         return map;
     }
 }

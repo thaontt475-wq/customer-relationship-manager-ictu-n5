@@ -5,23 +5,25 @@
  * Author: Senior Frontend Developer
  * 
  * Capabilities:
- *  1. Unified API Client for GET /api/customers/periodic-care & /care-list
+ *  1. Unified API Client for GET /api/customers/care-list
  *  2. Quick Mark-Contacted Workflow: POST /api/customers/{id}/mark-contacted
  *  3. Dynamic Inactive Days (N) Configuration with Preset Chips (15, 30, 45, 60, 90d)
  *  4. VIP Contract Value Prioritization (Default Sort: Contract Value DESC)
  *  5. Real-time Enterprise KPI Counters & Contract Value at Risk Calculation
  *  6. Dual Workspace Tabs: "Cần chăm sóc ngay" vs "Đã chăm sóc gần đây"
- *  7. Pure In-Memory Mock Fallback & HTTP/JSON Client Architecture
+ *  7. Authenticated Backend API data source
  * ===================================================================
  */
 
 "use strict";
 
 (function () {
-    const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+    const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
 
     // Module Global States
     let careCustomers = [];
+    let careLoadError=null;
+    let loadSequence=0;
     let currentFilteredList = [];
     let currentTab = "due"; // "due" | "done"
     let currentDaysThreshold = 30;
@@ -38,361 +40,42 @@
     let activeCustomerToContact = null;
 
     /* =========================================================
-       1. INITIAL IN-MEMORY ENTERPRISE SEED DATA (FALLBACK)
+       1. VIEW STATE
     ========================================================= */
-    function generateDefaultCareDataset() {
-        return [];
-    }
-    function _unused_generateDefaultCareDataset() {
-        return [
-                id: 4,
-                name: "Công ty Cổ phần Giải pháp Số Nam Á",
-                taxCode: "0108923456",
-                industry: "Công nghệ thông tin & Viễn thông",
-                phone: "024.3999.8888",
-                ownerId: 4,
-                ownerName: "Nông Quang Tiệp",
-                ownerRole: "Trưởng phòng KD",
-                lastInteractionAt: daysAgo(42),
-                lastInteractionType: "CALL",
-                lastInteractionNote: "Cuộc gọi định kỳ bàn về gói bảo trì quý 1.",
-                daysInactive: 42,
-                contractValue: 1250000000, // 1.25 Tỷ
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 1,
-                name: "Tập đoàn Công nghệ Nam Á Holdings",
-                taxCode: "0101234567",
-                industry: "Tập đoàn Đầu tư & Công nghệ",
-                phone: "024.3777.9999",
-                ownerId: 4,
-                ownerName: "Nông Quang Tiệp",
-                ownerRole: "Trưởng phòng KD",
-                lastInteractionAt: daysAgo(68),
-                lastInteractionType: "MEETING",
-                lastInteractionNote: "Họp triển khai hệ thống giải pháp Core ERP.",
-                daysInactive: 68,
-                contractValue: 3800000000, // 3.8 Tỷ - Ultra VIP
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 5,
-                name: "Công ty Cổ phần Đầu tư Bất động sản Thịnh Vượng",
-                taxCode: "0314567890",
-                industry: "Bất động sản & Xây dựng",
-                phone: "028.3888.1122",
-                ownerId: 2,
-                ownerName: "Nguyễn Văn An",
-                ownerRole: "Senior Sales Rep",
-                lastInteractionAt: daysAgo(35),
-                lastInteractionType: "EMAIL",
-                lastInteractionNote: "Gửi báo giá nâng cấp máy chủ quản lý giao dịch.",
-                daysInactive: 35,
-                contractValue: 1850000000, // 1.85 Tỷ
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 6,
-                name: "Tổng Công ty Xây dựng Công trình Giao thông 1",
-                taxCode: "0100105423",
-                industry: "Hạ tầng giao thông & Xây dựng",
-                phone: "024.3822.4466",
-                ownerId: 2,
-                ownerName: "Nguyễn Văn An",
-                ownerRole: "Senior Sales Rep",
-                lastInteractionAt: daysAgo(54),
-                lastInteractionType: "CALL",
-                lastInteractionNote: "Thăm hỏi tiến độ triển khai phân hệ giám sát.",
-                daysInactive: 54,
-                contractValue: 1600000000, // 1.6 Tỷ
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 7,
-                name: "Công ty CP Dược phẩm Trung ương An Khang",
-                taxCode: "0102558899",
-                industry: "Dược phẩm & Y tế",
-                phone: "024.3988.6655",
-                ownerId: 3,
-                ownerName: "Trần Thị Bích",
-                ownerRole: "CSKH Enterprise",
-                lastInteractionAt: daysAgo(75),
-                lastInteractionType: "CALL",
-                lastInteractionNote: "Khách hỏi thủ tục xuất hóa đơn điện tử bổ sung.",
-                daysInactive: 75,
-                contractValue: 890000000, // 890 Triệu
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 8,
-                name: "Công ty TNHH Sản xuất & Thương mại Thép Nam Đô",
-                taxCode: "2300987654",
-                industry: "Sản xuất & Công nghiệp nặng",
-                phone: "022.2388.7799",
-                ownerId: 5,
-                ownerName: "Lê Hoàng Long",
-                ownerRole: "Account Manager",
-                lastInteractionAt: daysAgo(31),
-                lastInteractionType: "MEETING",
-                lastInteractionNote: "Gặp đại diện nhà máy đánh giá phần mềm quản trị kho.",
-                daysInactive: 31,
-                contractValue: 750000000, // 750 Triệu
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 9,
-                name: "Công ty TNHH Viễn thông Miền Trung",
-                taxCode: "0401889922",
-                industry: "Viễn thông & Hạ tầng mạng",
-                phone: "023.6388.9900",
-                ownerId: 4,
-                ownerName: "Nông Quang Tiệp",
-                ownerRole: "Trưởng phòng KD",
-                lastInteractionAt: daysAgo(48),
-                lastInteractionType: "CALL",
-                lastInteractionNote: "Xác nhận nghiệm thu giai đoạn bảo hành quý 2.",
-                daysInactive: 48,
-                contractValue: 680000000, // 680 Triệu
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 10,
-                name: "Công ty Cổ phần Nông nghiệp Công nghệ cao Vinaseed",
-                taxCode: "0100109988",
-                industry: "Nông nghiệp & Chế biến thực phẩm",
-                phone: "024.3868.5522",
-                ownerId: 3,
-                ownerName: "Trần Thị Bích",
-                ownerRole: "CSKH Enterprise",
-                lastInteractionAt: daysAgo(92),
-                lastInteractionType: "SUPPORT",
-                lastInteractionNote: "Cập nhật chứng thư số token ký hóa đơn.",
-                daysInactive: 92,
-                contractValue: 520000000, // 520 Triệu - Nguy cơ rất cao
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 11,
-                name: "Công ty Cổ phần Bán lẻ F99 Mart",
-                taxCode: "0315894561",
-                industry: "Bán lẻ & Chuỗi siêu thị",
-                phone: "028.7300.9988",
-                ownerId: 2,
-                ownerName: "Nguyễn Văn An",
-                ownerRole: "Senior Sales Rep",
-                lastInteractionAt: daysAgo(33),
-                lastInteractionType: "EMAIL",
-                lastInteractionNote: "Gửi báo cáo tổng hợp thời gian phản hồi kỹ thuật.",
-                daysInactive: 33,
-                contractValue: 450000000, // 450 Triệu
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 12,
-                name: "Công ty TNHH Logistics Á Châu",
-                taxCode: "0312678901",
-                industry: "Vận tải & Kho bãi",
-                phone: "028.3944.5566",
-                ownerId: 5,
-                ownerName: "Lê Hoàng Long",
-                ownerRole: "Account Manager",
-                lastInteractionAt: daysAgo(61),
-                lastInteractionType: "CALL",
-                lastInteractionNote: "Liên hệ thông báo chuẩn bị đến kỳ gia hạn hợp đồng.",
-                daysInactive: 61,
-                contractValue: 320000000, // 320 Triệu
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 13,
-                name: "Công ty Cổ phần Giáo dục & Đào tạo Future Edu",
-                taxCode: "0106789123",
-                industry: "Giáo dục & Đào tạo",
-                phone: "024.3755.8899",
-                ownerId: 6,
-                ownerName: "Phạm Minh Đức",
-                ownerRole: "Technical Support Lead",
-                lastInteractionAt: daysAgo(38),
-                lastInteractionType: "SUPPORT",
-                lastInteractionNote: "Hỗ trợ cấu hình tích hợp API quản lý học viên.",
-                daysInactive: 38,
-                contractValue: 180000000, // 180 Triệu
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 14,
-                name: "Công ty TNHH Thương mại Dịch vụ Minh Khang",
-                taxCode: "0104561234",
-                industry: "Thương mại tổng hợp",
-                phone: "024.3644.2211",
-                ownerId: 6,
-                ownerName: "Phạm Minh Đức",
-                ownerRole: "Technical Support Lead",
-                lastInteractionAt: daysAgo(45),
-                lastInteractionType: "CALL",
-                lastInteractionNote: "Tư vấn nâng cấp phần mềm kế toán.",
-                daysInactive: 45,
-                contractValue: 45000000, // 45 Triệu (SME)
-                contractStatus: "SIGNED",
-                isContactedRecently: false,
-                nextFollowUpDate: null
-            },
-            {
-                id: 15,
-                name: "Công ty Cổ phần Thiết bị Y tế Tân Bình",
-                taxCode: "0309876543",
-                industry: "Thiết bị Y tế",
-                phone: "028.3844.7788",
-                ownerId: 3,
-                ownerName: "Trần Thị Bích",
-                ownerRole: "CSKH Enterprise",
-                lastInteractionAt: daysAgo(3),
-                lastInteractionType: "MEETING",
-                lastInteractionNote: "Đã gặp mặt trực tiếp thăm hỏi vận hành, khách phản hồi rất tốt.",
-                daysInactive: 3,
-                contractValue: 420000000,
-                contractStatus: "SIGNED",
-                isContactedRecently: true,
-                nextFollowUpDate: "2026-11-15"
-            },
-            {
-                id: 16,
-                name: "Ngân hàng TMCP Phương Đông - Khối CNTT",
-                taxCode: "0300852951",
-                industry: "Tài chính & Ngân hàng",
-                phone: "028.3822.0960",
-                ownerId: 4,
-                ownerName: "Nông Quang Tiệp",
-                ownerRole: "Trưởng phòng KD",
-                lastInteractionAt: daysAgo(1),
-                lastInteractionType: "CALL",
-                lastInteractionNote: "Gọi điện trao đổi điều khoản bổ sung phụ lục hợp đồng.",
-                daysInactive: 1,
-                contractValue: 2100000000,
-                contractStatus: "SIGNED",
-                isContactedRecently: true,
-                nextFollowUpDate: "2026-11-01"
-            }
-        ];
-    }
-
     /* =========================================================
        2. API CLIENT (FETCH API WITH CREDENTIALS)
     ========================================================= */
     async function api(path, options = {}) {
-        const config = {
-            credentials: "include",
-            headers: {
-                "Accept": "application/json",
-                ...(options.body ? { "Content-Type": "application/json" } : {}),
-                ...(options.headers || {})
-            },
-            ...options
-        };
-
-        const response = await fetch(API_BASE + path, config);
-        let result = null;
-        try {
-            result = await response.json();
-        } catch (_) {
-            result = null;
-        }
-
-        if (response.status === 401) {
-            console.warn("[CRM-69] Phiên làm việc hết hạn hoặc chưa đăng nhập.");
-        }
-
-        if (!response.ok || !result?.success) {
-            const error = new Error(result?.message || `HTTP ${response.status}`);
-            error.status = response.status;
-            error.data = result?.data;
-            throw error;
-        }
-
-        return result.data;
+        return window.CrmApi.request(path, options);
     }
 
     /* =========================================================
        3. DATA LOADING & IN-MEMORY ENGINE
     ========================================================= */
     async function loadPeriodicCareData() {
-        // Clean up residual demo localStorage key if previously present
+        const sequence=++loadSequence;
+        careLoadError=null;
         try {
-            localStorage.removeItem("CRM_PERIODIC_CARE_CUSTOMERS_DATA");
-        } catch (_) {}
-
-        // Primary Flow: Fetch Backend API
-        try {
-            // First try user specified endpoint: /api/customers/periodic-care
-            let backendItems = null;
-            try {
-                const res = await api(`/api/customers/periodic-care?days=${currentDaysThreshold}&sort=${currentSortOrder}`);
-                if (res && Array.isArray(res.items || res)) {
-                    backendItems = res.items || res;
-                }
-            } catch (_) {
-                // Fallback to existing servlet endpoint: /api/customers/care-list
-                const res2 = await api(`/api/customers/care-list?days=${currentDaysThreshold}&page=1&size=50`);
-                if (res2 && Array.isArray(res2.items)) {
-                    backendItems = res2.items;
-                }
+            const items = [];
+            for (let page=1; ; page++) {
+                const data = await api(`/api/customers/care-list?days=${currentDaysThreshold}&page=${page}&size=100`);
+                items.push(...data.items);
+                if (page >= data.totalPages || !data.items.length) break;
             }
-
-            if (backendItems && backendItems.length > 0) {
-                console.info("[CRM-69] Đã nạp thành công dữ liệu từ Backend API:", backendItems);
-                // Map backend items to rich client structure
-                careCustomers = backendItems.map(item => {
-                    const days = calculateDaysInactive(item.lastInteractionAt);
-                    return {
-                        id: Number(item.id),
-                        name: item.name || "Doanh nghiệp",
-                        taxCode: item.taxCode || ("010" + String(item.id).padStart(7, "0")),
-                        industry: item.industry || "Doanh nghiệp thương mại",
-                        phone: item.phone || "024.3999.8888",
-                        ownerId: item.ownerUserId || 4,
-                        ownerName: getOwnerNameById(item.ownerUserId),
-                        ownerRole: "Nhân viên phụ trách",
-                        lastInteractionAt: item.lastInteractionAt || null,
-                        lastInteractionType: item.lastInteractionType || "CALL",
-                        lastInteractionNote: item.lastInteractionNote || "Chưa có ghi chú",
-                        daysInactive: days,
-                        contractValue: Number(item.contractValue || 0),
-                        contractStatus: "SIGNED",
-                        isContactedRecently: days < currentDaysThreshold,
-                        nextFollowUpDate: item.nextFollowUpDate || null
-                    };
-                });
-                return;
-            }
-        } catch (err) {
-            console.warn("[CRM-69] Backend API chưa sẵn sàng. Kích hoạt In-Memory Mock Data nội bộ:", err.message);
+            if(sequence!==loadSequence)return;
+            careCustomers = items.map(item => ({...item, ownerId:item.ownerUserId, ownerName:item.ownerName || String(item.ownerUserId), daysInactive:calculateDaysInactive(item.lastInteractionAt), contractValue:Number(item.contractValue), isContactedRecently:false}));
+            applyFiltersAndSorting();
+        } catch (error) {
+            if(sequence!==loadSequence)return;
+            careLoadError=error;
+            const table=document.getElementById("careTableBody");if(table)table.innerHTML="";
+            careCustomers = [];
+            showToast(error.message,"error");
+            const empty = document.getElementById("careEmptyState");
+            if (empty) empty.style.display = "flex";
+            const description = document.getElementById("emptyStateDesc");
+            if (description) description.textContent = error.message;
         }
-
-        // Fallback Flow: Comprehensive In-Memory Mock Dataset
-        careCustomers = generateDefaultCareDataset();
     }
 
     /* =========================================================
@@ -405,6 +88,7 @@
     }
 
     function applyFiltersAndSorting() {
+        if(careLoadError)return;
         // Recalculate daysInactive for each customer based on their current lastInteractionAt
         careCustomers.forEach(c => {
             c.daysInactive = calculateDaysInactive(c.lastInteractionAt);
@@ -559,7 +243,9 @@
             // Days inactive formatting & Urgency Badge
             const days = customer.daysInactive;
             let daysBadgeHtml = "";
-            if (customer.isContactedRecently || days < currentDaysThreshold) {
+            if (!customer.lastInteractionAt) {
+                daysBadgeHtml = '<span class="days-badge days-badge-warning">Chưa có tương tác</span>';
+            } else if (customer.isContactedRecently || days < currentDaysThreshold) {
                 daysBadgeHtml = `<span class="days-badge days-badge-ok"><svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M20 6 9 17l-5-5"/></svg> ${days === 0 ? "Hôm nay" : days + " ngày (Đã CS)"}</span>`;
             } else if (days >= 60) {
                 daysBadgeHtml = `<span class="days-badge days-badge-critical" title="Nguy cấp: Đã ${days} ngày chưa được tương tác!"><svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${days} ngày (RỦI RO CAO)</span>`;
@@ -602,7 +288,7 @@
                     <div class="owner-pill">
                         <div class="owner-avatar-mini">${getInitials(customer.ownerName)}</div>
                         <div>
-                            <div style="font-weight:600; color:var(--crm-text); font-size:13px;">${escapeHtml(customer.ownerName || 'Nông Quang Tiệp')}</div>
+                            <div style="font-weight:600; color:var(--crm-text); font-size:13px;">${escapeHtml(customer.ownerName || 'Chưa phân công')}</div>
                             <div style="font-size:11.5px; color:var(--crm-muted);">${escapeHtml(customer.ownerRole || 'Phụ trách')}</div>
                         </div>
                     </div>
@@ -641,6 +327,7 @@
 
         tbody.innerHTML = "";
         tbody.appendChild(fragment);
+        if (!CrmApi.canSync("activity.create") || !CrmApi.canSync("customer.update")) tbody.querySelectorAll(".btn-action-contact").forEach(button => button.remove());
 
         // Bind Action Button Handlers
         tbody.querySelectorAll(".btn-action-contact").forEach(btn => {
@@ -676,7 +363,7 @@
 
         // Populate Modal Fields
         document.getElementById("modalCustName").textContent = customer.name;
-        document.getElementById("modalCustMeta").textContent = `MST: ${customer.taxCode || '—'} • Phụ trách: ${customer.ownerName || 'Nông Quang Tiệp'}`;
+        document.getElementById("modalCustMeta").textContent = `MST: ${customer.taxCode || '—'} • Phụ trách: ${customer.ownerName || 'Chưa phân công'}`;
         document.getElementById("modalCustContractValue").textContent = formatMoneyVND(customer.contractValue || 0);
 
         // Current Local Date Time for Input
@@ -774,66 +461,15 @@
             submitBtn.textContent = "Đang lưu...";
         }
 
-        // Build Payload
-        const contactTime = contactDateVal ? new Date(contactDateVal).toISOString() : new Date().toISOString();
-        const payload = {
-            customer_id: customerId,
-            customerId: customerId,
-            type: type.toUpperCase(),
-            note: notes,
-            notes: notes,
-            satisfaction: satisfaction,
-            next_follow_up: nextFollowUp,
-            nextFollowUp: nextFollowUp,
-            createReminder: createReminder
-        };
-
-        // Call Backend API via Fetch (Non-blocking fallback)
         try {
-            await api(`/api/customers/${customerId}/mark-contacted`, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-            console.info(`[CRM-69] Đã gửi thành công POST /api/customers/${customerId}/mark-contacted`);
-        } catch (apiErr) {
-            // Also try POST /api/activities as backup
-            try {
-                await api(`/api/activities`, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        subject: `Chăm sóc định kỳ: ${activeCustomerToContact.name}`,
-                        type: type.toUpperCase(),
-                        description: notes,
-                        customerId: customerId,
-                        status: "COMPLETED"
-                    })
-                });
-            } catch (_) {}
-            console.warn(`[CRM-69] Backend phản hồi lỗi (${apiErr.message}), đã lưu cập nhật vào bộ nhớ cục bộ.`);
-        }
+            const name = activeCustomerToContact.name;
+            await api(`/api/customers/${customerId}/mark-contacted`, {method:"POST",body:JSON.stringify({note:notes})});
+            closeMarkContactedModal();
+            await loadPeriodicCareData();
+            showToast(`Đã lưu Activity liên hệ cho "${name}".`);
+        } catch (error) { showToast(error.message,"error"); }
+        finally { if (submitBtn) { submitBtn.disabled=false; submitBtn.textContent="Xác nhận & Lưu liên hệ"; } }
 
-        // Update In-Memory State
-        const target = careCustomers.find(c => c.id === customerId);
-        if (target) {
-            target.lastInteractionAt = contactTime;
-            target.lastInteractionType = type.toUpperCase();
-            target.lastInteractionNote = notes;
-            target.daysInactive = 0;
-            target.isContactedRecently = true;
-            target.nextFollowUpDate = nextFollowUp;
-        }
-
-        closeMarkContactedModal();
-
-        // Trigger UI Refresh
-        applyFiltersAndSorting();
-
-        showToast(`Đã ghi nhận chăm sóc thành công cho "${activeCustomerToContact.name}"! Khách hàng đã được chuyển sang tab 'Đã chăm sóc'.`, "success");
-
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Xác nhận & Lưu liên hệ`;
-        }
     });
 
     /* =========================================================
@@ -849,7 +485,7 @@
                 currentDaysThreshold = days;
                 const inputEl = document.getElementById("inputDaysThreshold");
                 if (inputEl) inputEl.value = String(days);
-                applyFiltersAndSorting();
+                loadPeriodicCareData();
             });
         });
 
@@ -867,7 +503,7 @@
                 c.classList.toggle("active", Number(c.dataset.days) === val);
             });
 
-            applyFiltersAndSorting();
+            loadPeriodicCareData();
         });
 
         // Search Input
@@ -1069,18 +705,6 @@
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
-    function getOwnerNameById(id) {
-        const owners = {
-            1: "Trần Minh Đức",
-            2: "Nguyễn Văn An",
-            3: "Trần Thị Bích",
-            4: "Nông Quang Tiệp",
-            5: "Lê Hoàng Long",
-            6: "Phạm Minh Đức"
-        };
-        return owners[id] || "Nông Quang Tiệp";
-    }
-
     function getChannelLabel(type) {
         const map = {
             CALL: "Cuộc gọi định kỳ",
@@ -1143,9 +767,15 @@
        12. INITIALIZATION
     ========================================================= */
     async function initPeriodicCare() {
+        try { await CrmApi.session(); } catch(error) { showToast(error.message,"error"); return; }
         await loadPeriodicCareData();
         populateOwnersDropdown();
         setupEventListeners();
+        const done=document.getElementById("tabDoneCare");if(done)done.style.display="none";
+        const doneKpi=document.getElementById("kpiContactedRecently")?.closest(".care-kpi-card");if(doneKpi)doneKpi.style.display="none";
+        for(const id of ["modalContactDate","modalChannelSelector","modalSatisfaction","modalNextFollowUp","modalCreateReminder"]) {
+            const el=document.getElementById(id);if(el){el.disabled=true;el.required=false;const group=el.closest(".form-group-care");if(group)group.style.display="none";}
+        }
         applyFiltersAndSorting();
     }
 

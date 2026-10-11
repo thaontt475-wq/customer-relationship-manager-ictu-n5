@@ -17,6 +17,7 @@ public class ContactDAO {
                     for(int i=1;i<=r.getMetaData().getColumnCount();i++) {
                         Object value=r.getObject(i);
                         if(value instanceof Timestamp t) value=t.toLocalDateTime().toString();
+                        else if(value instanceof java.time.temporal.TemporalAccessor) value=value.toString();
                         row.put(r.getMetaData().getColumnLabel(i),value);
                     }
                     if(row.containsKey("isPrimary")) row.put("isPrimary",r.getBoolean("isPrimary"));

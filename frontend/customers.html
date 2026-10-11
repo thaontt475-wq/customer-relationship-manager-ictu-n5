@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<script src="js/crm-api.js"></script>
 <script>
 (function () {
     try {
@@ -143,9 +144,9 @@
                 <svg class="crm-inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 Chăm sóc định kỳ
             </a>
-            <button id="btnExportExcel" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu Excel">
+            <button id="btnExportExcel" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu CSV của trang hiện tại">
                 <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Xuất Excel
+                Xuất trang hiện tại
             </button>
             <button id="btnImportExcel" class="crm-btn crm-btn-secondary" type="button" title="Nhập danh sách từ Excel">
                 <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -175,7 +176,7 @@
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             </div>
             <div class="kpi-info">
-                <span class="kpi-label">Tiềm năng</span>
+                <span class="kpi-label">Tiềm năng (trang này)</span>
                 <span class="kpi-val" id="statProspect">0</span>
             </div>
         </div>
@@ -185,7 +186,7 @@
                 <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             </div>
             <div class="kpi-info">
-                <span class="kpi-label">Đang giao dịch</span>
+                <span class="kpi-label">Đang giao dịch (trang này)</span>
                 <span class="kpi-val" id="statDealing">0</span>
             </div>
         </div>
@@ -195,7 +196,7 @@
                 <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
             </div>
             <div class="kpi-info">
-                <span class="kpi-label">Đã thành khách</span>
+                <span class="kpi-label">Đã thành khách (trang này)</span>
                 <span class="kpi-val" id="statCustomer">0</span>
             </div>
         </div>
@@ -222,7 +223,7 @@
             <div class="saved-views-actions">
                 <button id="btnQuickDuplicates" class="crm-btn crm-btn-secondary" type="button" title="Lọc nhanh danh sách khách hàng có dấu hiệu trùng lặp (CRM-64)">
                     <svg class="crm-inline-icon" viewBox="0 0 24 24" style="color:#d97706;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                    <span>Khách trùng lặp</span>
+                    <span>Trùng lặp trên trang</span>
                     <span id="badgeDuplicatesCount" class="tax-badge" style="background:#fef3c7; color:#b45309; border-color:#fcd34d; font-weight:700; margin-left:2px;">0</span>
                 </button>
                 <button id="btnOpenSaveViewModal" class="crm-btn crm-btn-secondary btn-save-view" type="button" title="Lưu lại bộ lọc hiện tại thành một góc nhìn tùy chỉnh">
@@ -401,7 +402,8 @@
     </div>
 
     <form id="customerForm" class="customer-form-scroll" novalidate>
-        <input id="customerId" type="hidden" value="">
+        <label for="customerRegion">Khu vực</label><select id="customerRegion" class="crm-input"><option value="">Chưa chọn</option><option value="MB">Miền Bắc</option><option value="MT">Miền Trung</option><option value="MN">Miền Nam</option></select>
+<input id="customerId" type="hidden" value="">
 
         <!-- NHÓM 1: THÔNG TIN PHÁP LÝ & ĐỊNH DANH -->
         <div class="form-section-card">
@@ -422,10 +424,8 @@
 
                 <!-- Tax Code (Mandatory & Unique) -->
                 <div class="field-group" id="groupTaxCode">
-                    <label class="field-label" for="taxCode">
-                        Mã số thuế (MST) <span class="field-required">*</span>
-                    </label>
-                    <input id="taxCode" class="crm-input" type="text" placeholder="10 hoặc 13 chữ số (VD: 0101234567)" required maxlength="20">
+                    <label class="field-label" for="taxCode">Mã số thuế (không bắt buộc)</label>
+                    <input id="taxCode" class="crm-input" type="text" placeholder="10 hoặc 13 chữ số (VD: 0101234567)" maxlength="20">
                     <span class="field-error-msg" id="taxCodeError">Vui lòng nhập MST hợp lệ (10 hoặc 13 ký tự).</span>
                 </div>
 
@@ -821,7 +821,7 @@
                 </div>
                 <div>
                     <h2 id="importModalTitle" class="crm-import-modal-title">Nhập danh sách Khách hàng từ Excel (CRM-66)</h2>
-                    <p class="crm-import-modal-sub">Hỗ trợ tệp .xlsx và .csv, kiểm tra lỗi tự động và xử lý trùng lặp thông minh</p>
+                    <p class="crm-import-modal-sub">Hỗ trợ tệp .xlsx, kiểm tra lỗi tự động và xử lý trùng lặp thông minh</p>
                 </div>
             </div>
             <button type="button" class="crm-import-close-btn crm-import-close-trigger" aria-label="Đóng cửa sổ">
@@ -877,7 +877,7 @@
                     </div>
 
                     <!-- Drag & Drop Zone -->
-                    <input id="importFileInput" type="file" accept=".xlsx,.xls,.csv" hidden>
+                    <input id="importFileInput" type="file" accept=".xlsx" hidden>
                     <div id="importDropZone" class="crm-drop-zone">
                         <div class="crm-drop-icon">
                             <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -906,33 +906,6 @@
                         </button>
                     </div>
 
-                    <!-- Sandbox Quick Demo Cards -->
-                    <div>
-                        <div style="font-size:13px; font-weight:700; color:var(--crm-text); margin-bottom:8px;">
-                            Thử nghiệm nhanh (Demo tức thì không cần chuẩn bị tệp):
-                        </div>
-                        <div class="crm-demo-sandbox-grid">
-                            <div class="crm-demo-card">
-                                <div>
-                                    <h4>✨ Nạp mẫu Hợp lệ (Demo)</h4>
-                                    <p>Tải 5 khách hàng doanh nghiệp chuẩn (Viettel, VNPAY, Tiki, DHG, REE) sẵn sàng nhập mới ngay.</p>
-                                </div>
-                                <button id="btnLoadValidDemo" type="button" class="crm-btn crm-btn-secondary" style="font-size:12.5px;">
-                                    Nạp dữ liệu Hợp lệ
-                                </button>
-                            </div>
-
-                            <div class="crm-demo-card">
-                                <div>
-                                    <h4>⚡ Nạp mẫu Có lỗi & Trùng lặp (Demo)</h4>
-                                    <p>Bao gồm trường hợp thiếu Tên, sai MST, sai Email và các dòng trùng lặp với hệ thống (FPT, VNG) để thử nghiệm cơ chế SKIP/UPDATE.</p>
-                                </div>
-                                <button id="btnLoadMixedDemo" type="button" class="crm-btn crm-btn-secondary" style="font-size:12.5px; border-color:#f59e0b; color:#b45309;">
-                                    Nạp dữ liệu Lỗi & Trùng lặp
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 

@@ -16,7 +16,8 @@ const createButton = document.getElementById("createContractButton");
 
 async function initContractPage() {
     if (!quote && quoteId) {
-            const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+        try {
+            const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
             const res = await fetch(`${API_BASE}/api/quotes/${quoteId}`, { credentials: "include" });
             const json = await res.json();
             if (json?.success && json.data) {

@@ -1215,6 +1215,7 @@
         flex: 1;
         min-width: 70px;
     }
+    .quick-actions { flex-wrap: wrap; }
 
     .c360-kpis-grid {
         grid-template-columns: 1fr;
