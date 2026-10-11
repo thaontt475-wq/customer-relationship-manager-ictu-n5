@@ -61,7 +61,7 @@ class CustomerSearchJdbcTest {
                     CREATE TEMPORARY TABLE customers (
                     id BIGINT AUTO_INCREMENT PRIMARY KEY,name VARCHAR(255),tax_code VARCHAR(50),status VARCHAR(50),
                     email VARCHAR(255),phone VARCHAR(50),website VARCHAR(255),address VARCHAR(500),
-                    industry_id BIGINT,company_size_id BIGINT,owner_user_id BIGINT,region VARCHAR(20),
+                    industry_id BIGINT,company_size_id BIGINT,parent_customer_id BIGINT,owner_user_id BIGINT,region VARCHAR(20),
                     is_deleted TINYINT DEFAULT 0,created_at DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB
                     """);
             s.execute("CREATE TEMPORARY TABLE users(id BIGINT PRIMARY KEY,full_name VARCHAR(255)) ENGINE=InnoDB");
@@ -178,6 +178,16 @@ class CustomerSearchJdbcTest {
         assertEquals("Updated CRUD", dao.findById(id).get("name"));
         dao.softDelete(id); assertNull(dao.findById(id));
         assertEquals(3L, search(filter(null)).get("totalItems"));
+    }
+
+    @Test void listAndDetailExposeTheStoredParentAndIsoCreationTime() throws Exception {
+        try(var update=connection.prepareStatement("UPDATE customers SET parent_customer_id=2 WHERE id=1")) {
+            update.executeUpdate();
+        }
+        var item=(Map<?,?>)((List<?>)search(filter("Alpha")).get("items")).getFirst();
+        assertEquals(2L,((Number)item.get("parentCustomerId")).longValue());
+        assertEquals(2L,((Number)dao.findById(1).get("parentCustomerId")).longValue());
+        assertDoesNotThrow(()->java.time.LocalDateTime.parse((String)item.get("createdAt")));
     }
 
     @Test void regionIsWrittenPreservedClearedAndSearchableWithoutInferringAddress() throws Exception {

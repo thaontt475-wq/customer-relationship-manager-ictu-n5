@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
         form?.querySelector('button[type="submit"]');
 
     const API_BASE =
-        `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+        (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
 
 
     /* =========================

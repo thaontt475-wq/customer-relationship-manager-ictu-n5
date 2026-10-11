@@ -5,284 +5,42 @@
  * - CRM-64: Phát hiện và cảnh báo trùng lặp (MST, Website, Tên fuzzy)
  * - CRM-64: Giao diện so sánh đối chiếu 2 cột (Side-by-Side Merge Modal)
  * - CRM-64: Phân quyền gộp dữ liệu: Trưởng nhóm kinh doanh / Admin vs Sale Rep
- * - Bền vững dữ liệu qua LocalStorage: CRM_CUSTOMERS_DATA & CRM_DUPLICATE_MERGE_LOGS
+ * - Dữ liệu nghiệp vụ và phân quyền lấy từ Backend API
  * ===================================================================
  */
 
 "use strict";
 
 (function () {
-    const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+    const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
 
     // Master Catalogues (Categories)
-    const INDUSTRIES = [
-        { id: 1, name: "Công nghệ thông tin & Viễn thông", code: "IT" },
-        { id: 2, name: "Bán lẻ & Thương mại điện tử", code: "RETAIL" },
-        { id: 3, name: "Sản xuất & Chế tạo", code: "MANUFACTURING" },
-        { id: 4, name: "Tài chính - Ngân hàng - Bảo hiểm", code: "FINANCE" },
-        { id: 5, name: "Bất động sản & Xây dựng", code: "REAL_ESTATE" },
-        { id: 6, name: "Giáo dục & Đào tạo", code: "EDUCATION" },
-        { id: 7, name: "Y tế & Dược phẩm", code: "HEALTHCARE" },
-        { id: 8, name: "Ngành nghề khác", code: "OTHER" }
-    ];
+    const INDUSTRIES = [];
+    const COMPANY_SIZES = [];
 
-    const COMPANY_SIZES = [
-        { id: 9, name: "Dưới 10 nhân sự (Siêu nhỏ)", code: "MICRO" },
-        { id: 10, name: "10 - 50 nhân sự (Nhỏ)", code: "SMALL" },
-        { id: 11, name: "51 - 200 nhân sự (Vừa)", code: "MEDIUM" },
-        { id: 12, name: "201 - 500 nhân sự (Lớn)", code: "LARGE" },
-        { id: 13, name: "Trên 500 nhân sự (Tập đoàn)", code: "ENTERPRISE" }
-    ];
 
-    const STORAGE_KEY_CUSTOMERS = "CRM_CUSTOMERS_DATA";
-
-    const DEFAULT_MOCK_CUSTOMERS = [];
-    const _UNUSED_DEFAULT_MOCK_CUSTOMERS = [
-        {
-            id: 1,
-            companyName: "Tập đoàn Công nghệ FPT",
-            name: "Tập đoàn Công nghệ FPT",
-            taxCode: "0101248141",
-            status: "CHINH_THUC",
-            industryId: 1,
-            companySizeId: 13,
-            email: "contact@fpt.com.vn",
-            phone: "02473007300",
-            website: "https://fpt.com.vn",
-            address: "Số 10 Phạm Văn Bạch, Cầu Giấy, Hà Nội",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            createdAt: "2026-01-15T08:30:00"
-        },
-        {
-            id: 2,
-            companyName: "Công ty Cổ phần VNG",
-            name: "Công ty Cổ phần VNG",
-            taxCode: "0303579890",
-            status: "DANG_GIAO_DICH",
-            industryId: 1,
-            companySizeId: 12,
-            email: "partner@vng.com.vn",
-            phone: "02839623888",
-            website: "https://vng.com.vn",
-            address: "Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            createdAt: "2026-02-10T09:15:00"
-        },
-        {
-            id: 3,
-            companyName: "Công ty TNHH Phần mềm MISA",
-            name: "Công ty TNHH Phần mềm MISA",
-            taxCode: "0100779774",
-            status: "TIEM_NANG",
-            industryId: 1,
-            companySizeId: 12,
-            email: "contact@misa.vn",
-            phone: "02437959595",
-            website: "https://misa.vn",
-            address: "Tòa nhà MISA, Lô 5, Công viên phần mềm Quang Trung, Quận 12, TP.HCM",
-            ownerUserId: 2,
-            ownerName: "Nguyễn Văn An",
-            owner: "Nguyễn Văn An",
-            createdAt: "2026-03-01T10:00:00"
-        },
-        {
-            id: 4,
-            companyName: "Tập đoàn Bưu chính Viễn thông VNPT",
-            name: "Tập đoàn Bưu chính Viễn thông VNPT",
-            taxCode: "0100684378",
-            status: "CHINH_THUC",
-            industryId: 1,
-            companySizeId: 13,
-            email: "vanphong@vnpt.vn",
-            phone: "02437741091",
-            website: "https://vnpt.com.vn",
-            address: "57 Huỳnh Thúc Kháng, Láng Hạ, Đống Đa, Hà Nội",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            createdAt: "2026-01-20T14:20:00"
-        },
-        {
-            id: 5,
-            companyName: "Công ty CP Đầu tư Thế Giới Di Động",
-            name: "Công ty CP Đầu tư Thế Giới Di Động",
-            taxCode: "0303274391",
-            status: "DANG_GIAO_DICH",
-            industryId: 2,
-            companySizeId: 13,
-            email: "lienhe@thegioididong.com",
-            phone: "02838125960",
-            website: "https://mwg.vn",
-            address: "128 Trần Quang Khải, Tân Định, Quận 1, TP.HCM",
-            ownerUserId: 2,
-            ownerName: "Nguyễn Văn An",
-            owner: "Nguyễn Văn An",
-            createdAt: "2026-02-18T11:45:00"
-        },
-        {
-            id: 6,
-            companyName: "Ngân hàng TMCP Quân Đội (MBBank)",
-            name: "Ngân hàng TMCP Quân Đội (MBBank)",
-            taxCode: "0100283873",
-            status: "CHINH_THUC",
-            industryId: 4,
-            companySizeId: 13,
-            email: "mb247@mbbank.com.vn",
-            phone: "1900545426",
-            website: "https://mbbank.com.vn",
-            address: "Số 18 Lê Văn Lương, Trung Hòa, Cầu Giấy, Hà Nội",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            createdAt: "2026-01-05T08:00:00"
-        },
-        {
-            id: 7,
-            companyName: "Công ty CP Dược phẩm Imexpharm",
-            name: "Công ty CP Dược phẩm Imexpharm",
-            taxCode: "1400384433",
-            status: "TIEM_NANG",
-            industryId: 7,
-            companySizeId: 11,
-            email: "imexpharm@imexpharm.com",
-            phone: "02773851941",
-            website: "https://imexpharm.com",
-            address: "Số 04 Đường 30/4, Phường 1, TP. Cao Lãnh, Đồng Tháp",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            createdAt: "2026-03-12T16:10:00"
-        },
-        {
-            id: 8,
-            companyName: "Công ty Cổ phần Tập đoàn Hòa Phát",
-            name: "Công ty Cổ phần Tập đoàn Hòa Phát",
-            taxCode: "0900189284",
-            status: "CHINH_THUC",
-            industryId: 3,
-            companySizeId: 13,
-            email: "contact@hoaphat.com.vn",
-            phone: "02462848666",
-            website: "https://hoaphat.com.vn",
-            address: "KCN Phố Nối A, Xã Giai Phạm, Huyện Yên Mỹ, Hưng Yên",
-            ownerUserId: 2,
-            ownerName: "Nguyễn Văn An",
-            owner: "Nguyễn Văn An",
-            createdAt: "2026-02-01T13:30:00"
-        }
-    ];
-
-    const STORAGE_KEY_CUSTOMERS_PREFIX = "CRM_CUSTOMERS_DATA";
-
-    function getCachedSessionUser() {
-        try {
-            const raw = localStorage.getItem("crm_ui_session");
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && (parsed.id || parsed.userId)) return parsed;
-            }
-        } catch (_) {}
-        return null;
-    }
 
     function getUserId(user) {
         if (!user) return null;
         return user.id || user.userId || null;
     }
 
-    function getAccountStorageKey(userId) {
-        return userId ? `${STORAGE_KEY_CUSTOMERS_PREFIX}_USER_${userId}` : `${STORAGE_KEY_CUSTOMERS_PREFIX}_ANON`;
-    }
 
-    function getLocalCustomers(userId) {
-        const key = getAccountStorageKey(userId);
-        try {
-            const raw = localStorage.getItem(key);
-            if (raw !== null && raw !== undefined) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed)) {
-                    if (parsed.some(c => c.companyName === "Tập đoàn Công nghệ FPT" || c.name === "Tập đoàn Công nghệ FPT")) {
-                        localStorage.removeItem(key);
-                        localStorage.removeItem(STORAGE_KEY_CUSTOMERS);
-                        return null;
-                    }
-                    return parsed;
-                }
-            }
-        } catch (_) {}
-        // Dự phòng tương thích legacy storage key
-        try {
-            const legacyRaw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
-            if (legacyRaw !== null && legacyRaw !== undefined) {
-                const legacyParsed = JSON.parse(legacyRaw);
-                if (Array.isArray(legacyParsed)) {
-                    if (legacyParsed.some(c => c.companyName === "Tập đoàn Công nghệ FPT" || c.name === "Tập đoàn Công nghệ FPT")) {
-                        localStorage.removeItem(STORAGE_KEY_CUSTOMERS);
-                        return null;
-                    }
-                    return legacyParsed;
-                }
-            }
-        } catch (_) {}
-        return null;
-    }
 
-    function saveLocalCustomers(list, userId) {
-        const key = getAccountStorageKey(userId);
-        try {
-            localStorage.setItem(key, JSON.stringify(list || []));
-            localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(list || []));
-        } catch (_) {}
-    }
+
+
+
 
     /**
      * Xác định phạm vi dữ liệu tối đa của người dùng: SELF, TEAM, hoặc ALL
      * Ngăn chặn hoàn toàn hiển thị dữ liệu vượt quyền
      */
-    function resolveEffectiveScope(user) {
-        if (!user) return "SELF";
-        const explicit = String(user.dataScope || "").toUpperCase();
-        if (explicit === "ALL" || explicit === "TEAM" || explicit === "SELF") {
-            return explicit;
-        }
-        const roles = Array.isArray(user.roles) ? user.roles : [];
-        const roleString = (String(user.role || "") + " " + roles.map(r => r.name || r.code || r).join(" ")).toUpperCase();
-        if (roleString.includes("ADMIN") || roleString.includes("DIRECTOR") || roleString.includes("GIÁM ĐỐC")) {
-            return "ALL";
-        }
-        if (roleString.includes("LEAD") || roleString.includes("TRƯỞNG NHÓM") || roleString.includes("MANAGER")) {
-            return "TEAM";
-        }
-        return "SELF";
-    }
+    function resolveEffectiveScope() { return currentScope; }
 
     /**
      * Lọc danh sách khách hàng đảm bảo không vượt quá phạm vi SELF/TEAM/ALL của người dùng
      */
-    function filterCustomersByScope(list, user) {
-        if (!Array.isArray(list)) return [];
-        const scope = resolveEffectiveScope(user);
-        if (scope === "SELF") {
-            if (!user?.id) return [];
-            return list.filter(item => {
-                const ownerId = item.ownerUserId ?? item.ownerId;
-                return Number(ownerId) === Number(user.id);
-            });
-        }
-        if (scope === "TEAM") {
-            return list.filter(item => {
-                const ownerId = item.ownerUserId ?? item.ownerId;
-                const isSelf = user?.id && Number(ownerId) === Number(user.id);
-                const isSameTeam = user?.teamId && item.teamId && Number(item.teamId) === Number(user.teamId);
-                return isSelf || isSameTeam;
-            });
-        }
-        return list; // Scope ALL
-    }
+
 
     /**
      * Đồng bộ giao diện phân quyền phạm vi: khóa các option vượt quyền
@@ -308,7 +66,7 @@
                 } else if (maxScope === "TEAM") {
                     opt.disabled = val === "ALL";
                 } else {
-                    opt.disabled = false;
+                    opt.disabled = val === "TEAM";
                 }
             });
 
@@ -329,6 +87,7 @@
 
     // State
     let customersList = [];
+    let searchSequence = 0;
     let usersList = [];
     let currentSessionUser = null;
     let currentScope = "ALL";
@@ -406,103 +165,23 @@
        1. API HELPER & CLIENT-SIDE LOCALSTORAGE FALLBACK
     ========================================================= */
     async function apiRequest(path, options = {}) {
-        const config = {
-            credentials: "include",
-            headers: {
-                "Accept": "application/json",
-                ...(options.body ? { "Content-Type": "application/json" } : {}),
-                ...(options.headers || {})
-            },
-            ...options
-        };
-
-        let response;
-        try {
-            response = await fetch(API_BASE + path, config);
-        } catch (netErr) {
-            console.warn("Network error calling Backend, falling back to LocalStorage:", netErr);
-            throw new Error("Không thể kết nối Backend CRM (Sử dụng dữ liệu LocalStorage).");
-        }
-
-        let result = null;
-        try {
-            result = await response.json();
-        } catch (_) {
-            result = null;
-        }
-
-        if (response.status === 401) {
-            console.warn("Chưa đăng nhập Backend, tiếp tục với Mock Session người dùng.");
-            throw new Error("Chưa đăng nhập");
-        }
-
-        if (!response.ok || !result?.success) {
-            const err = new Error(result?.message || `Lỗi máy chủ HTTP ${response.status}`);
-            err.status = response.status;
-            err.data = result?.data;
-            throw err;
-        }
-
-        return result.data;
+        return window.CrmApi.request(path, options);
     }
 
     /* =========================================================
        2. INITIALIZATION (SCOPE-AWARE INSTANT RENDER & SYNC)
     ========================================================= */
     async function init() {
-        populateSelectOptions();
         bindEvents();
-
-        // 1. Phân quyền và nhận diện phiên người dùng an toàn (Security & Scope Check)
-        currentSessionUser = getCachedSessionUser();
-
-        // Nếu chưa có phiên cache trong localStorage, chờ loadSession hoàn tất trước khi render
-        // để không bao giờ hiển thị nhầm dữ liệu vượt quyền SELF/TEAM/ALL
-        if (!currentSessionUser) {
-            setLoading(true);
-            try {
-                await loadSession();
-            } catch (_) {}
-            setLoading(false);
-        } else {
-            applyUserScopePermissions(currentSessionUser);
-        }
-
-        // 2. Nạp dữ liệu cache phân tách theo tài khoản
-        const userId = getUserId(currentSessionUser);
-        const cached = getLocalCustomers(userId);
-        if (cached !== null) {
-            // Có dữ liệu cache hợp lệ của chính tài khoản này (kể cả mảng rỗng [])
-            customersList = filterCustomersByScope(cached, currentSessionUser);
-        } else {
-            // Lần đầu vào tài khoản: nạp seed mock nhưng lọc đúng quyền người dùng
-            const seed = window.DuplicateMergeEngine
-                ? window.DuplicateMergeEngine.getStoredCustomers()
-                : DEFAULT_MOCK_CUSTOMERS;
-            customersList = filterCustomersByScope(seed, currentSessionUser);
-            saveLocalCustomers(customersList, userId);
-        }
-
-        state.totalItems = Number(customersList.length);
-        state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
-
-        scanDuplicates();
-        filterAndRenderTable();
-        updateKpiStats();
-
-        // 3. Chạy ngầm session & users và sync backend (Backend là nguồn chân lý phân quyền)
-        if (currentSessionUser) {
-            loadSession().then(u => {
-                if (u) {
-                    currentSessionUser = u;
-                    applyUserScopePermissions(u);
-                }
-            }).catch(() => {});
-        }
-        loadUsers().catch(() => {});
-        syncBackendCustomers().catch(() => {});
-
-        // Đăng ký hook dọn dẹp khi chuyển trang SPA
+        window.addEventListener("crm:customers-imported",loadCustomers);
+        setLoading(true);
+        try {
+            await loadSession();
+            await loadUsers();
+            try { await window.DuplicateMergeEngine?.load(); } catch(error) { showToast(error.message,"error"); }
+            await syncBackendCustomers();
+        } catch (error) { renderErrorState(error.message); }
+        finally { setLoading(false); }
         registerSpaCleanups();
     }
 
@@ -560,143 +239,55 @@
     }
 
     async function loadSession() {
-        try {
-            const sessionData = await apiRequest("/api/auth/session");
-            if (sessionData) {
-                currentSessionUser = sessionData;
-                localStorage.setItem("crm_ui_session", JSON.stringify(sessionData));
-            }
-        } catch (e) {
-            if (!currentSessionUser) {
-                // Default fallback if no prior session exists: Nông Quang Tiệp (Trưởng nhóm)
-                currentSessionUser = {
-                    id: 100,
-                    fullName: "Nông Quang Tiệp",
-                    email: "tiepnq@corporate-crm.vn",
-                    roles: [{ id: 1, name: "Trưởng nhóm kinh doanh (Team Lead)" }],
-                    role: "TEAM_LEAD",
-                    dataScope: "ALL",
-                    teamId: 10,
-                    teamName: "Kinh doanh B2B Miền Bắc"
-                };
-            }
-        }
-
-        if (currentSessionUser) {
-            applyUserScopePermissions(currentSessionUser);
-            const topUserName = document.getElementById("topUserName");
-            const topUserRole = document.getElementById("topUserRole");
-            const topAvatar = document.getElementById("topAvatar");
-            if (topUserName) topUserName.textContent = currentSessionUser.fullName || "Người dùng";
-            if (topUserRole) topUserRole.textContent = (currentSessionUser.roles || []).map(r => r.name).join(", ") || "Trưởng nhóm kinh doanh";
-            if (topAvatar) topAvatar.textContent = (currentSessionUser.fullName || "N").charAt(0).toUpperCase();
-        }
+        currentSessionUser = await window.CrmApi.session();
+        applyUserScopePermissions(currentSessionUser);
+        if (openDrawerBtn) openDrawerBtn.hidden = !currentSessionUser.permissions.includes("customer.create");
+        const importButton = document.getElementById("btnImportExcel");
+        if (importButton) importButton.hidden = !currentSessionUser.permissions.includes("customer.create");
         return currentSessionUser;
     }
 
     async function loadUsers() {
-        try {
-            const data = await apiRequest("/api/users?size=100");
-            usersList = data?.items || [];
-        } catch (e) {
-            // Fallback mock users
-            usersList = [
-                { id: 100, fullName: "Nông Quang Tiệp", email: "tiepnq@crm.vn", teamName: "Kinh doanh B2B (Trưởng nhóm)", role: "TEAM_LEAD" },
-                { id: 101, fullName: "Nguyễn Văn An", email: "annv@crm.vn", teamName: "Nhóm B2B Hà Nội", role: "SALE" },
-                { id: 102, fullName: "Trần Thị Mai", email: "maitt@crm.vn", teamName: "Nhóm B2B Hà Nội", role: "SALE" },
-                { id: 103, fullName: "Lê Hoàng Nam", email: "namlh@crm.vn", teamName: "Nhóm Khách hàng Doanh nghiệp", role: "SALE" },
-                { id: 104, fullName: "Phạm Thu Thảo", email: "thaopt@crm.vn", teamName: "Nhóm Khách hàng Doanh nghiệp", role: "SALE" },
-                { id: 105, fullName: "Vũ Đức Hùng", email: "hungvd@crm.vn", teamName: "Nhóm Khách hàng Miền Nam", role: "SALE" }
-            ];
-        }
-
+        const data = await apiRequest("/api/customer-lookups");
+        INDUSTRIES.splice(0, INDUSTRIES.length, ...data.industries);
+        COMPANY_SIZES.splice(0, COMPANY_SIZES.length, ...data.companySizes);
+        usersList = data.owners;
+        currentScope = data.scope;
+        applyUserScopePermissions(currentSessionUser);
+        populateSelectOptions();
         const ownerSelect = document.getElementById("ownerSelect");
-        if (ownerSelect) {
-            ownerSelect.innerHTML = '<option value="">-- Mặc định: Bản thân tôi --</option>';
-            usersList.forEach(u => {
-                const opt = document.createElement("option");
-                opt.value = String(u.id);
-                opt.textContent = `${u.fullName || u.email} (${u.teamName || "Chưa phân nhóm"})`;
-                ownerSelect.appendChild(opt);
-            });
-        }
-
-        // Đồng bộ sang dropdown filter người phụ trách của CRM-67
-        if (window.CustomerFilterManager?.populateOwners) {
-            window.CustomerFilterManager.populateOwners(usersList);
-        }
+        if (ownerSelect) ownerSelect.innerHTML = '<option value="">Bản thân tôi</option>' + usersList.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)}</option>`).join("");
+        window.CustomerFilterManager?.populateOwners(usersList);
+        window.CustomerFilterManager?.populateCatalogs?.(data);
     }
 
     /* =========================================================
        3. LOAD & RENDER CUSTOMERS (WITH DUPLICATE SCANNING)
     ========================================================= */
     async function syncBackendCustomers() {
+        const sequence = ++searchSequence;
+        setLoading(true);
         try {
-            const params = new URLSearchParams();
-            params.set("page", String(state.page));
-            params.set("size", String(state.pageSize));
-            if (state.keyword) params.set("keyword", state.keyword);
-            if (state.status) params.set("status", state.status);
-            if (state.industryId) params.set("industryId", state.industryId);
-            if (state.companySizeId) params.set("companySizeId", state.companySizeId);
-            if (state.region) params.set("region", state.region);
-            if (state.ownerUserId) params.set("ownerId", state.ownerUserId);
-
-            const data = await apiRequest(`/api/customers?${params.toString()}`);
-            if (data && Array.isArray(data.items)) {
-                // Xử lý cả trường hợp backend trả về danh sách rỗng hợp lệ (items.length === 0)
-                customersList = data.items;
-                const userId = getUserId(currentSessionUser);
-                saveLocalCustomers(customersList, userId);
-
-                if (window.DuplicateMergeEngine?.saveStoredCustomers) {
-                    window.DuplicateMergeEngine.saveStoredCustomers(customersList);
-                }
-
-                state.totalItems = Number(data.totalItems ?? data.total ?? customersList.length);
-                state.totalPages = Math.max(1, Math.ceil(state.totalItems / state.pageSize));
-
-                scanDuplicates();
-                filterAndRenderTable();
-                updateKpiStats();
+            const params = new URLSearchParams({page:state.page, size:state.pageSize});
+            for (const [key,value] of Object.entries({keyword:state.keyword,status:state.status,industryId:state.industryId,companySizeId:state.companySizeId,region:state.region,ownerId:state.scopeFilter === "SELF" ? currentSessionUser.id : state.ownerUserId})) {
+                if (value) params.set(key, value);
             }
-        } catch (_) {
-            // Không kết nối được API Backend -> tiếp tục sử dụng dữ liệu bền vững từ LocalStorage
-        }
+            const data = await apiRequest(`/api/customers?${params}`);
+            if (sequence !== searchSequence) return;
+            customersList = data.items;
+            state.totalItems = data.totalItems;
+            state.totalPages = Math.max(1, data.totalPages);
+            scanDuplicates();
+            filterAndRenderTable(true);
+            updateKpiStats();
+        } catch (error) {
+            if (sequence === searchSequence) { customersList = []; renderErrorState(error.message); }
+        } finally { if (sequence === searchSequence) setLoading(false); }
     }
 
     async function loadCustomers() {
-        setLoading(true);
-        try {
-            const userId = getUserId(currentSessionUser);
-            const cached = getLocalCustomers(userId);
-            if (cached !== null) {
-                customersList = filterCustomersByScope(cached, currentSessionUser);
-            } else {
-                const seed = window.DuplicateMergeEngine
-                    ? window.DuplicateMergeEngine.getStoredCustomers()
-                    : DEFAULT_MOCK_CUSTOMERS;
-                customersList = filterCustomersByScope(seed, currentSessionUser);
-                saveLocalCustomers(customersList, userId);
-            }
-
-            state.totalItems = Number(customersList.length);
-            state.totalPages = Math.max(1, Math.ceil(customersList.length / state.pageSize));
-
-            applyUserScopePermissions(currentSessionUser);
-            scanDuplicates();
-            filterAndRenderTable();
-            updateKpiStats();
-
-            // Thử đồng bộ Backend nếu trực tuyến (Backend luôn là nguồn kiểm soát phân quyền chuẩn)
-            await syncBackendCustomers();
-        } catch (err) {
-            console.error("Lỗi tải khách hàng:", err);
-            filterAndRenderTable();
-            updateKpiStats();
-        } finally {
-            setLoading(false);
-        }
+        try { await window.DuplicateMergeEngine?.load(); } catch(error) { showToast(error.message,"error"); }
+        await syncBackendCustomers();
     }
 
     /**
@@ -707,146 +298,22 @@
         duplicatesMap = window.DuplicateMergeEngine.scanAllDuplicates(customersList);
 
         // Cập nhật số lượng lên Badge nút xem nhanh trên thanh công cụ
-        const dupCount = duplicatesMap.size;
+        const dupCount = customersList.filter(record => duplicatesMap.has(Number(record.id))).length;
         if (badgeDuplicatesCount) {
             badgeDuplicatesCount.textContent = String(dupCount);
         }
     }
 
-    function filterAndRenderTable() {
-        // Tái quét trùng lặp để dữ liệu luôn phản ánh mới nhất
-        scanDuplicates();
-
-        let displayList = [...customersList];
-
-        // 0. Bộ lọc Khách hàng trùng lặp tiềm ẩn (CRM-64)
-        if (isDuplicateOnlyFilter) {
-            displayList = displayList.filter(item => duplicatesMap.has(Number(item.id)));
-        }
-
-        // 1. Client-side Smart Search (Tên công ty, MST, SĐT, Email)
-        if (state.keyword) {
-            const kw = state.keyword.toLowerCase().trim();
-            displayList = displayList.filter(item => {
-                const nameMatch = (item.companyName || item.name || "").toLowerCase().includes(kw);
-                const taxMatch = (item.taxCode || "").toLowerCase().includes(kw);
-                const phoneMatch = (item.phone || "").toLowerCase().includes(kw);
-                const emailMatch = (item.email || "").toLowerCase().includes(kw);
-                return nameMatch || taxMatch || phoneMatch || emailMatch;
-            });
-        }
-
-        // 2. Client-side Status filter
-        if (state.status) {
-            displayList = displayList.filter(item => normalizeStatus(item.status) === state.status);
-        }
-
-        // 3. Client-side Industry filter
-        if (state.industryId) {
-            displayList = displayList.filter(item => String(item.industryId) === String(state.industryId));
-        }
-
-        // 4. Client-side Company Size filter (CRM-67)
-        if (state.companySizeId) {
-            displayList = displayList.filter(item => String(item.companySizeId) === String(state.companySizeId));
-        }
-
-        // 5. Client-side Geographical Region filter (CRM-67)
-        if (state.region) {
-            displayList = displayList.filter(item => {
-                const addr = (item.address || "").toLowerCase();
-                if (state.region === "MB") {
-                    return addr.includes("hà nội") || addr.includes("hải phòng") || addr.includes("quảng ninh") ||
-                           addr.includes("thái nguyên") || addr.includes("bắc ninh") || addr.includes("vĩnh phúc") ||
-                           addr.includes("hải dương") || addr.includes("hưng yên") || addr.includes("nam định");
-                } else if (state.region === "MT") {
-                    return addr.includes("đà nẵng") || addr.includes("huế") || addr.includes("khánh hòa") ||
-                           addr.includes("nha trang") || addr.includes("nghệ an") || addr.includes("hà tĩnh") ||
-                           addr.includes("quảng nam") || addr.includes("bình định");
-                } else if (state.region === "MN") {
-                    return addr.includes("hồ chí minh") || addr.includes("tp.hcm") || addr.includes("tphcm") ||
-                           addr.includes("bình dương") || addr.includes("đồng nai") || addr.includes("cần thơ") ||
-                           addr.includes("long an") || addr.includes("bà rịa") || addr.includes("vũng tàu");
-                }
-                return true;
-            });
-        }
-
-        // 6. Client-side Owner User filter (CRM-67)
-        if (state.ownerUserId) {
-            displayList = displayList.filter(item => String(item.ownerUserId) === String(state.ownerUserId));
-        }
-
-        // 7. Mandatory Data Scope Containment & Filter (SELF / TEAM / ALL)
-        const effectiveScope = resolveEffectiveScope(currentSessionUser);
-        if (effectiveScope === "SELF") {
-            // Quyền SELF: Chỉ được phép xem khách hàng do chính mình phụ trách
-            if (currentSessionUser?.id) {
-                displayList = displayList.filter(item => {
-                    const ownerId = item.ownerUserId ?? item.ownerId;
-                    return Number(ownerId) === Number(currentSessionUser.id);
-                });
-            }
-        } else if (effectiveScope === "TEAM") {
-            // Quyền TEAM: Được xem khách hàng của cá nhân hoặc trong cùng nhóm
-            if (state.scopeFilter === "SELF" && currentSessionUser?.id) {
-                displayList = displayList.filter(item => {
-                    const ownerId = item.ownerUserId ?? item.ownerId;
-                    return Number(ownerId) === Number(currentSessionUser.id);
-                });
-            } else if (currentSessionUser?.teamId) {
-                displayList = displayList.filter(item => {
-                    const ownerId = item.ownerUserId ?? item.ownerId;
-                    const isSelf = Number(ownerId) === Number(currentSessionUser.id);
-                    const isSameTeam = item.teamId && Number(item.teamId) === Number(currentSessionUser.teamId);
-                    return isSelf || isSameTeam;
-                });
-            }
-        } else {
-            // Quyền ALL (Admin / Team Lead cấp cao)
-            if (state.scopeFilter === "SELF" && currentSessionUser?.id) {
-                displayList = displayList.filter(item => {
-                    const ownerId = item.ownerUserId ?? item.ownerId;
-                    return Number(ownerId) === Number(currentSessionUser.id);
-                });
-            } else if (state.scopeFilter === "TEAM" && currentSessionUser?.teamId) {
-                displayList = displayList.filter(item => {
-                    const ownerId = item.ownerUserId ?? item.ownerId;
-                    const isSameTeam = item.teamId && Number(item.teamId) === Number(currentSessionUser.teamId);
-                    return isSameTeam || Number(ownerId) === Number(currentSessionUser.id);
-                });
-            }
-        }
-
-        // Cập nhật số lượng tìm thấy lên Badge (CRM-67)
-        if (window.CustomerFilterManager?.updateMatchCount) {
-            window.CustomerFilterManager.updateMatchCount(displayList.length, customersList.length);
-        }
-
-        // Sorting
-        displayList.sort((a, b) => {
-            let valA = a[state.sortField] || "";
-            let valB = b[state.sortField] || "";
-
-            if (typeof valA === "string") valA = valA.toLowerCase();
-            if (typeof valB === "string") valB = valB.toLowerCase();
-
-            if (valA < valB) return state.sortOrder === "asc" ? -1 : 1;
-            if (valA > valB) return state.sortOrder === "asc" ? 1 : -1;
-            return 0;
-        });
-
-        // Phân trang
-        const total = displayList.length;
-        state.totalItems = total;
-        state.totalPages = Math.max(1, Math.ceil(total / state.pageSize));
-        if (state.page > state.totalPages) state.page = 1;
-
-        const startIndex = (state.page - 1) * state.pageSize;
-        const pageItems = displayList.slice(startIndex, startIndex + state.pageSize);
-
-        renderTableRows(pageItems);
+    function filterAndRenderTable(renderOnly = false) {
+        if (!renderOnly) { syncBackendCustomers(); return; }
+        let displayList = customersList;
+        if (isDuplicateOnlyFilter) displayList = displayList.filter(c => duplicatesMap.has(Number(c.id)));
+        window.CustomerFilterManager?.updateMatchCount(isDuplicateOnlyFilter ? displayList.length : state.totalItems, state.totalItems);
+        renderTableRows(displayList);
+        if (!currentSessionUser.permissions.includes("customer.update")) tableBody.querySelectorAll(".btn-edit,[data-quick-status]").forEach(el=>{if(el.matches("button"))el.remove();else {el.removeAttribute("data-quick-status");el.style.cursor="default";}});
+        if (!currentSessionUser.permissions.includes("customer.delete")) tableBody.querySelectorAll(".btn-delete").forEach(el=>el.remove());
         renderPagination();
+        if (isDuplicateOnlyFilter && paginationInfo) paginationInfo.textContent = `Trang ${state.page}/${state.totalPages}: ${displayList.length} khách trùng lặp trong ${customersList.length} khách của trang (tổng bộ lọc ${state.totalItems}).`;
     }
 
     function renderTableRows(items) {
@@ -873,27 +340,10 @@
             const isSelf = currentSessionUser?.id && Number(record.ownerUserId) === Number(currentSessionUser.id);
             const scopeTag = isSelf
                 ? `<span class="scope-badge scope-self">Cá nhân (SELF)</span>`
-                : `<span class="scope-badge scope-team">Nhóm (TEAM)</span>`;
+                : `<span class="scope-badge scope-team">Phụ trách khác</span>`;
 
             // CRM-68: Churn Risk Flagging
-            let churnInfo = null;
-            if (window.SupportTicketsManager && typeof window.SupportTicketsManager.getChurnRiskStatus === "function") {
-                churnInfo = window.SupportTicketsManager.getChurnRiskStatus(record.id);
-            } else {
-                try {
-                    const rawTickets = localStorage.getItem("CRM_SUPPORT_TICKETS_DATA");
-                    const allTickets = rawTickets ? JSON.parse(rawTickets) : [];
-                    const openTickets = allTickets.filter(t => Number(t.customerId) === Number(record.id) && t.status !== "RESOLVED" && t.status !== "CLOSED");
-                    const hasSevere = openTickets.some(t => t.priority === "URGENT" || t.priority === "HIGH");
-                    const hasMulti = openTickets.length >= 2;
-                    const rawChurn = localStorage.getItem("CRM_CHURN_RISK_DATA");
-                    const churnFlags = rawChurn ? JSON.parse(rawChurn) : {};
-                    const isManual = !!churnFlags[record.id];
-                    if (hasSevere || hasMulti || isManual) {
-                        churnInfo = { isRisk: true, reasons: ["Khách hàng có nguy cơ rời bỏ cao"] };
-                    }
-                } catch (_) {}
-            }
+            const churnInfo = record.churnRisk;
             const churnBadge = churnInfo?.isRisk
                 ? `<span class="churn-risk-badge" title="${escapeHtml(churnInfo.reasons?.join(' • ') || 'Khách hàng có rủi ro rời bỏ')}" style="cursor:help;">
                      ⚠️ Rủi ro rời bỏ
@@ -1128,7 +578,7 @@
         const statDealing = document.getElementById("statDealing");
         const statCustomer = document.getElementById("statCustomer");
 
-        if (statTotal) statTotal.textContent = String(customersList.length);
+        if (statTotal) statTotal.textContent = String(state.totalItems);
 
         let countProspect = 0, countDealing = 0, countCustomer = 0;
         customersList.forEach(c => {
@@ -1165,6 +615,7 @@
                 setVal("customerPhone", customer.phone);
                 setVal("website", customer.website);
                 setVal("address", customer.address);
+                setVal("customerRegion", customer.region || "");
                 setVal("ownerSelect", customer.ownerUserId);
             }
         } else {
@@ -1278,10 +729,9 @@
         const errorTax = document.getElementById("taxCodeError");
 
         if (!taxVal) {
-            setFieldError(groupTax, errorTax, "Mã số thuế doanh nghiệp là bắt buộc.");
-            isValid = false;
+            clearFieldError(groupTax);
         } else {
-            const cleanTax = taxVal.replace(/[^0-9-]/g, "");
+            const cleanTax = taxVal;
             const taxRegex = /^(\d{10}|\d{10}-\d{3}|\d{13})$/;
             if (!taxRegex.test(cleanTax)) {
                 setFieldError(groupTax, errorTax, "MST phải gồm 10 số hoặc 13 số (chi nhánh).");
@@ -1312,7 +762,7 @@
         const groupWeb = document.getElementById("groupWebsite");
         const errorWeb = document.getElementById("websiteError");
         if (webVal) {
-            const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+            const urlRegex = /^https?:\/\/[^\s]+$/i;
             if (!urlRegex.test(webVal)) {
                 setFieldError(groupWeb, errorWeb, "Website không hợp lệ (Ví dụ: https://company.vn hoặc company.com).");
                 isValid = false;
@@ -1347,113 +797,24 @@
 
     async function handleSaveCustomer(event) {
         event.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
-
+        if (!validateForm()) return;
         const id = getVal("customerId");
-        const companyName = getVal("companyName");
-        const taxCode = getVal("taxCode").replace(/[^0-9-]/g, "");
-        const status = getVal("customerStatus") || "TIEM_NANG";
-        const email = getVal("customerEmail");
-        const phone = getVal("customerPhone");
-        const website = getVal("website");
-        const address = getVal("address");
-        const industryId = getVal("industrySelect") ? Number(getVal("industrySelect")) : 1;
-        const companySizeId = getVal("companySizeSelect") ? Number(getVal("companySizeSelect")) : 11;
-        const ownerUserId = getVal("ownerSelect") ? Number(getVal("ownerSelect")) : (currentSessionUser?.id || 100);
-
-        const assignedUser = usersList.find(u => Number(u.id) === Number(ownerUserId));
-        const ownerName = assignedUser?.fullName || currentSessionUser?.fullName || "Nông Quang Tiệp";
-
-        const submitBtn = document.getElementById("btnSaveCustomer");
-        const origText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span class="crm-spinner" style="width:16px;height:16px;margin-right:6px;"></span> Đang lưu...`;
-
+        const payload = { region:getVal("customerRegion") || null, name:getVal("companyName"), taxCode:getVal("taxCode") || null, status:getVal("customerStatus") || "TIEM_NANG", email:getVal("customerEmail"), phone:getVal("customerPhone"), website:getVal("website"), address:getVal("address"), industryId:Number(getVal("industrySelect")) || null, companySizeId:Number(getVal("companySizeSelect")) || null, ownerUserId:Number(getVal("ownerSelect")) || currentSessionUser.id };
+        const button = document.getElementById("btnSaveCustomer");
+        button.disabled = true;
         try {
-            if (!id) {
-                // CREATE NEW CUSTOMER
-                const newId = customersList.length ? Math.max(...customersList.map(c => Number(c.id) || 0)) + 1 : 1;
-                const newCustomer = {
-                    id: newId,
-                    name: companyName,
-                    companyName: companyName,
-                    taxCode: taxCode,
-                    status: status,
-                    email: email,
-                    phone: phone,
-                    website: website,
-                    address: address,
-                    industryId: industryId,
-                    companySizeId: companySizeId,
-                    ownerUserId: ownerUserId,
-                    ownerName: ownerName,
-                    revenue: "Chưa cập nhật",
-                    contacts: [],
-                    deals: [],
-                    activities: [
-                        {
-                            id: Date.now(),
-                            type: "Khởi tạo hồ sơ",
-                            summary: "Khai báo mới hồ sơ doanh nghiệp trên hệ thống CRM",
-                            date: new Date().toISOString().slice(0, 10),
-                            user: currentSessionUser?.fullName || "Nông Quang Tiệp"
-                        }
-                    ],
-                    tickets: []
-                };
-
-                customersList.unshift(newCustomer);
-                saveLocalCustomers(customersList, getUserId(currentSessionUser));
-                window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
-                showToast("Tạo mới hồ sơ khách hàng doanh nghiệp thành công!", "success");
-            } else {
-                // UPDATE CUSTOMER
-                const idx = customersList.findIndex(c => Number(c.id) === Number(id));
-                if (idx !== -1) {
-                    customersList[idx] = {
-                        ...customersList[idx],
-                        name: companyName,
-                        companyName: companyName,
-                        taxCode: taxCode,
-                        status: status,
-                        email: email,
-                        phone: phone,
-                        website: website,
-                        address: address,
-                        industryId: industryId,
-                        companySizeId: companySizeId,
-                        ownerUserId: ownerUserId,
-                        ownerName: ownerName
-                    };
-                    saveLocalCustomers(customersList, getUserId(currentSessionUser));
-                    window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
-                    showToast("Cập nhật thông tin khách hàng thành công!", "success");
-                }
+            const saved = await apiRequest(`/api/customers${id ? "/"+id : ""}`, {method:id ? "PUT" : "POST",body:JSON.stringify(payload)});
+            setVal("customerId", saved.id);
+            const parent = document.getElementById("customerParentSelect");
+            if (parent && Number(saved.parentCustomerId || 0) !== Number(parent.value || 0)) {
+                try { await window.CorporateHierarchyManager.apiUpdateParent(saved.id, Number(parent.value) || null); }
+                catch (error) { await syncBackendCustomers(); throw new Error("Hồ sơ đã lưu; gán công ty mẹ thất bại: " + error.message); }
             }
-
-            // CRM-65: Synchronize Parent Association
-            const parentSelect = document.getElementById("customerParentSelect");
-            if (parentSelect && window.CorporateHierarchyManager) {
-                const targetCustId = id ? Number(id) : (customersList[0]?.id || 1);
-                const pVal = parentSelect.value ? Number(parentSelect.value) : null;
-                try {
-                    await window.CorporateHierarchyManager.apiUpdateParent(targetCustId, pVal);
-                } catch (_) {}
-            }
-
             closeDrawer();
-            filterAndRenderTable();
-            updateKpiStats();
-        } catch (err) {
-            console.error("Save customer error:", err);
-            alert(err.message || "Không thể lưu thông tin khách hàng.");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = origText;
-        }
+            await loadCustomers();
+            showToast("Đã lưu hồ sơ khách hàng.");
+        } catch (error) { showToast(error.message,"error"); }
+        finally { button.disabled = false; }
     }
 
     /* =========================================================
@@ -1479,35 +840,23 @@
 
     async function handleConfirmQuickStatus() {
         if (!quickActionCustomer) return;
-        const newStatus = quickModalSelect.value;
-
-        const idx = customersList.findIndex(c => Number(c.id) === Number(quickActionCustomer.id));
-        if (idx !== -1) {
-            customersList[idx].status = newStatus;
-            saveLocalCustomers(customersList, getUserId(currentSessionUser));
-            window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
-            showToast(`Đã chuyển trạng thái sang "${getStatusLabel(newStatus)}"`, "success");
-        }
-
-        closeQuickStatus();
-        filterAndRenderTable();
-        updateKpiStats();
+        try {
+            const profile = await apiRequest(`/api/customers/${quickActionCustomer.id}`);
+            await apiRequest(`/api/customers/${quickActionCustomer.id}`, {method:"PUT",body:JSON.stringify({...profile,status:quickModalSelect.value})});
+            closeQuickStatus();
+            await syncBackendCustomers();
+            showToast("Đã cập nhật trạng thái.");
+        } catch (error) { showToast(error.message,"error"); }
     }
 
     async function handleDeleteCustomer(customerId) {
         const customer = customersList.find(c => Number(c.id) === Number(customerId));
-        if (!customer) return;
-
-        const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa khách hàng "${customer.companyName || customer.name}" khỏi hệ thống?`);
-        if (!confirmed) return;
-
-        customersList = customersList.filter(c => Number(c.id) !== Number(customerId));
-        saveLocalCustomers(customersList, getUserId(currentSessionUser));
-        window.DuplicateMergeEngine?.saveStoredCustomers(customersList);
-        showToast(`Đã xóa khách hàng "${customer.companyName || customer.name}" thành công!`, "success");
-
-        filterAndRenderTable();
-        updateKpiStats();
+        if (!customer || !confirm(`Xóa khách hàng "${customer.name}"?`)) return;
+        try {
+            await apiRequest(`/api/customers/${customerId}`, {method:"DELETE"});
+            await loadCustomers();
+            showToast("Đã xóa khách hàng.");
+        } catch (error) { showToast(error.message,"error"); }
     }
 
     function exportToExcel() {
@@ -1563,14 +912,17 @@
        6. CRM-64: SIDE-BY-SIDE MERGE COMPARISON MODAL CONTROLLER
     ========================================================= */
 
-    function openMergeModal(idA, idB) {
+    async function openMergeModal(idA, idB) {
+        let comparison;
+        try { comparison = await apiRequest(`/api/customers/compare?masterId=${idA}&secondaryId=${idB}`); }
+        catch(error) { showToast(error.message,"error"); return; }
         if (!window.DuplicateMergeEngine) {
             alert("Công cụ gộp khách hàng đang tải, vui lòng thử lại.");
             return;
         }
 
-        const recordA = customersList.find(c => Number(c.id) === Number(idA));
-        const recordB = customersList.find(c => Number(c.id) === Number(idB));
+        const recordA = comparison.master;
+        const recordB = comparison.secondary;
 
         if (!recordA || !recordB) {
             alert("Không tìm thấy thông tin của 2 bản ghi để so sánh đối chiếu.");
@@ -1588,17 +940,18 @@
             masterKey: "A", // 'A' | 'B'
             fieldOverrides: {
                 companyName: recordA.companyName || recordA.name,
-                taxCode: recordA.taxCode || "",
-                website: recordA.website || "",
+                taxCode: recordA.taxCode ?? null,
+                website: recordA.website ?? null,
                 industryId: recordA.industryId,
                 companySizeId: recordA.companySizeId,
                 ownerUserId: recordA.ownerUserId,
-                email: recordA.email || "",
-                phone: recordA.phone || "",
-                address: recordA.address || "",
-                status: recordA.status || "TIEM_NANG",
-                revenue: recordA.revenue || "Chưa cập nhật"
+                email: recordA.email ?? null,
+                phone: recordA.phone ?? null,
+                address: recordA.address ?? null,
+                status: recordA.status || "TIEM_NANG"
             },
+            fieldChoices: {},
+            relatedA: comparison.masterRelated, relatedB: comparison.secondaryRelated,
             reasons: matchedReasons
         };
 
@@ -1667,16 +1020,16 @@
         renderSideBySideTable();
 
         // 4. Cập nhật số liệu preview hợp nhất
-        const countContactsA = (recordA.contacts || []).length;
-        const countContactsB = (recordB.contacts || []).length;
+        const countContactsA = Number(currentMergeSession.relatedA.contacts);
+        const countContactsB = Number(currentMergeSession.relatedB.contacts);
         setElText("txtContactsCount", `${countContactsA} + ${countContactsB} = ${countContactsA + countContactsB} liên hệ`);
 
-        const countDealsA = (recordA.deals || []).length;
-        const countDealsB = (recordB.deals || []).length;
+        const countDealsA = Number(currentMergeSession.relatedA["opportunities.customer_id"]);
+        const countDealsB = Number(currentMergeSession.relatedB["opportunities.customer_id"]);
         setElText("txtDealsCount", `${countDealsA} + ${countDealsB} = ${countDealsA + countDealsB} cơ hội`);
 
-        const countActsA = (recordA.activities || []).length;
-        const countActsB = (recordB.activities || []).length;
+        const countActsA = Number(currentMergeSession.relatedA["activities.customer_id"]);
+        const countActsB = Number(currentMergeSession.relatedB["activities.customer_id"]);
         setElText("txtActivitiesCount", `Hợp nhất toàn bộ ${countActsA + countActsB} tương tác`);
 
         // 5. Cập nhật phân quyền nút Gộp
@@ -1702,16 +1055,16 @@
             {
                 key: "taxCode",
                 label: "Mã số thuế (MST)",
-                valA: recordA.taxCode || "",
-                valB: recordB.taxCode || "",
+                valA: recordA.taxCode ?? null,
+                valB: recordB.taxCode ?? null,
                 displayValA: recordA.taxCode || "—",
                 displayValB: recordB.taxCode || "—"
             },
             {
                 key: "website",
                 label: "Website doanh nghiệp",
-                valA: recordA.website || "",
-                valB: recordB.website || "",
+                valA: recordA.website ?? null,
+                valB: recordB.website ?? null,
                 displayValA: recordA.website || "—",
                 displayValB: recordB.website || "—"
             },
@@ -1740,34 +1093,26 @@
                 displayValB: recordB.ownerName || recordB.owner || "Chưa phân công"
             },
             {
-                key: "revenue",
-                label: "Doanh thu / Quy mô tài chính",
-                valA: recordA.revenue || "Chưa cập nhật",
-                valB: recordB.revenue || "Chưa cập nhật",
-                displayValA: recordA.revenue || "Chưa cập nhật",
-                displayValB: recordB.revenue || "Chưa cập nhật"
-            },
-            {
                 key: "phone",
                 label: "Số điện thoại / Hotline",
-                valA: recordA.phone || "",
-                valB: recordB.phone || "",
+                valA: recordA.phone ?? null,
+                valB: recordB.phone ?? null,
                 displayValA: recordA.phone || "—",
                 displayValB: recordB.phone || "—"
             },
             {
                 key: "email",
                 label: "Email đại diện",
-                valA: recordA.email || "",
-                valB: recordB.email || "",
+                valA: recordA.email ?? null,
+                valB: recordB.email ?? null,
                 displayValA: recordA.email || "—",
                 displayValB: recordB.email || "—"
             },
             {
                 key: "address",
                 label: "Địa chỉ trụ sở văn phòng",
-                valA: recordA.address || "",
-                valB: recordB.address || "",
+                valA: recordA.address ?? null,
+                valB: recordB.address ?? null,
                 displayValA: recordA.address || "—",
                 displayValB: recordB.address || "—"
             },
@@ -1787,8 +1132,9 @@
             if (isDifferent) tr.classList.add("row-different");
 
             const currentChoiceValue = fieldOverrides[f.key];
-            const isAChecked = String(currentChoiceValue) === String(f.valA);
-            const isBChecked = !isAChecked && String(currentChoiceValue) === String(f.valB);
+            const side = currentMergeSession.fieldChoices[f.key] || currentMergeSession.masterKey;
+            const isAChecked = side === "A";
+            const isBChecked = side === "B";
 
             tr.innerHTML = `
                 <td class="field-name-cell">
@@ -1816,6 +1162,7 @@
                     const fieldKey = cell.dataset.field;
                     const chosenVal = side === "A" ? f.valA : f.valB;
                     fieldOverrides[fieldKey] = chosenVal;
+                    currentMergeSession.fieldChoices[fieldKey] = side;
                     renderSideBySideTable();
                 });
             });
@@ -1827,28 +1174,29 @@
     function switchMasterRecord(newMaster) {
         if (!currentMergeSession) return;
         currentMergeSession.masterKey = newMaster;
+        currentMergeSession.fieldChoices={};
 
         const targetMasterRecord = newMaster === "A" ? currentMergeSession.recordA : currentMergeSession.recordB;
         currentMergeSession.fieldOverrides = {
             companyName: targetMasterRecord.companyName || targetMasterRecord.name,
-            taxCode: targetMasterRecord.taxCode || "",
-            website: targetMasterRecord.website || "",
+            taxCode: targetMasterRecord.taxCode ?? null,
+            website: targetMasterRecord.website ?? null,
             industryId: targetMasterRecord.industryId,
             companySizeId: targetMasterRecord.companySizeId,
             ownerUserId: targetMasterRecord.ownerUserId,
-            email: targetMasterRecord.email || "",
-            phone: targetMasterRecord.phone || "",
-            address: targetMasterRecord.address || "",
-            status: targetMasterRecord.status || "TIEM_NANG",
-            revenue: targetMasterRecord.revenue || "Chưa cập nhật"
+            email: targetMasterRecord.email ?? null,
+            phone: targetMasterRecord.phone ?? null,
+            address: targetMasterRecord.address ?? null,
+            status: targetMasterRecord.status || "TIEM_NANG"
         };
 
         renderMergeModal();
     }
 
     function updateRolePermissionUI() {
-        const role = window.DuplicateMergeEngine?.getSimulatedRole() || "TEAM_LEAD";
-        if (roleSimulatorSelect) roleSimulatorSelect.value = role;
+        const role = window.DuplicateMergeEngine?.getSimulatedRole() || "";
+        if (roleSimulatorSelect) roleSimulatorSelect.closest(".role-simulator")?.remove();
+        if (roleSimulatorSelect) { roleSimulatorSelect.hidden=true; roleSimulatorSelect.disabled=true; }
 
         const canMerge = window.DuplicateMergeEngine?.canExecuteMerge(role);
         const permStatusEl = document.getElementById("mergePermissionStatus");
@@ -1882,51 +1230,22 @@
         }
     }
 
-    function handleConfirmMerge() {
-        if (!currentMergeSession) return;
-        const role = window.DuplicateMergeEngine?.getSimulatedRole() || "TEAM_LEAD";
-
-        if (!window.DuplicateMergeEngine?.canExecuteMerge(role)) {
-            alert("Bạn không có quyền thực hiện gộp khách hàng. Vui lòng chuyển vai trò sang 'Trưởng nhóm' để kiểm thử.");
-            return;
-        }
-
-        const { recordA, recordB, masterKey, fieldOverrides, reasons } = currentMergeSession;
+    async function handleConfirmMerge() {
+        if (!currentMergeSession || btnConfirmMerge.disabled) return;
+        const {recordA,recordB,masterKey,fieldOverrides} = currentMergeSession;
         const master = masterKey === "A" ? recordA : recordB;
         const secondary = masterKey === "A" ? recordB : recordA;
-
-        const confirmed = window.confirm(
-            `Xác nhận gộp khách hàng trùng lặp?\n\n` +
-            `• Bản ghi chính giữ lại: "${master.companyName || master.name}"\n` +
-            `• Bản ghi phụ sẽ gộp: "${secondary.companyName || secondary.name}"\n` +
-            `• Toàn bộ người liên hệ, cơ hội bán hàng và lịch sử hoạt động sẽ được chuyển giao về bản ghi chính.\n` +
-            `• Bản ghi phụ sẽ chuyển trạng thái "Đã gộp" (MERGED).\n\n` +
-            `Bạn có chắc chắn muốn tiến hành?`
-        );
-        if (!confirmed) return;
-
+        if (!confirm(`Gộp "${secondary.name}" vào "${master.name}" và chuyển toàn bộ dữ liệu liên quan?`)) return;
+        btnConfirmMerge.disabled = true;
         try {
-            const result = window.DuplicateMergeEngine.executeMerge({
-                masterId: master.id,
-                secondaryId: secondary.id,
-                fieldOverrides: fieldOverrides,
-                matchedReasons: reasons,
-                operatorUser: currentSessionUser || { fullName: "Nông Quang Tiệp (Trưởng nhóm)", role: role }
-            });
-
-            if (result.success) {
-                showToast(`Gộp thành công! Đã hợp nhất dữ liệu vào "${result.master.companyName || result.master.name}".`, "success");
-                closeMergeModal();
-                // Nạp lại danh sách mới nhất từ LocalStorage
-                customersList = window.DuplicateMergeEngine.getStoredCustomers();
-                saveLocalCustomers(customersList, getUserId(currentSessionUser));
-                filterAndRenderTable();
-                updateKpiStats();
-            }
-        } catch (err) {
-            console.error("Lỗi khi thực hiện gộp khách hàng:", err);
-            alert(err.message || "Đã xảy ra lỗi khi gộp khách hàng.");
-        }
+            const allowed = ["name","companyName","taxCode","status","email","phone","website","address","industryId","companySizeId","ownerUserId"];
+            const overrides = Object.fromEntries(Object.entries(fieldOverrides).filter(([key]) => allowed.includes(key)));
+            await apiRequest("/api/customers/merge",{method:"POST",body:JSON.stringify({masterId:master.id,secondaryId:secondary.id,fieldOverrides:overrides})});
+            closeMergeModal();
+            await loadCustomers();
+            showToast("Đã hợp nhất khách hàng và dữ liệu liên quan.");
+        } catch (error) { showToast(error.message,"error"); }
+        finally { updateRolePermissionUI(); }
     }
 
     /* =========================================================
@@ -2017,6 +1336,7 @@
             state.region = criteria.region || "";
             state.ownerUserId = criteria.ownerUserId || "";
             state.scopeFilter = criteria.scopeFilter || "ALL";
+            applyUserScopePermissions(currentSessionUser);
             isDuplicateOnlyFilter = Boolean(criteria.isDuplicateOnly);
 
             if (btnQuickDuplicates) {
@@ -2145,22 +1465,6 @@
         cardRecordB?.addEventListener("click", () => switchMasterRecord("B"));
         radioSelectMasterA?.addEventListener("change", () => switchMasterRecord("A"));
         radioSelectMasterB?.addEventListener("change", () => switchMasterRecord("B"));
-
-        // Role Simulator Select
-        roleSimulatorSelect?.addEventListener("change", (e) => {
-            const newRole = e.target.value;
-            window.DuplicateMergeEngine?.setSimulatedRole(newRole);
-            updateRolePermissionUI();
-
-            // Đồng bộ mô phỏng quyền dữ liệu cho phiên người dùng
-            if (currentSessionUser) {
-                currentSessionUser.role = newRole;
-                currentSessionUser.dataScope = newRole === "SALE" ? "SELF" : "ALL";
-                applyUserScopePermissions(currentSessionUser);
-                filterAndRenderTable();
-                updateKpiStats();
-            }
-        });
 
         // Export Excel
         document.getElementById("btnExportExcel")?.addEventListener("click", exportToExcel);

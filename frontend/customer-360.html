@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<script src="js/crm-api.js"></script>
 <script>
 (function () {
     try {
@@ -601,7 +602,7 @@
                         <div class="num" id="dealsStatOpenAmount" style="color:var(--crm-primary);">0 ₫</div>
                     </div>
                     <div class="deals-stat-box">
-                        <div class="label">Tổng giá trị đã ký (Won)</div>
+                        <div class="label">Giá trị cơ hội thắng (WON)</div>
                         <div class="num" id="dealsStatWonAmount" style="color:var(--crm-success);">0 ₫</div>
                     </div>
                     <div class="deals-stat-box">
@@ -735,22 +736,12 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <label>
                 Ngành nghề
-                <input
-                    id="edit360Industry"
-                    class="crm-input"
-                    type="text"
-                    placeholder="Ví dụ: Công nghệ thông tin"
-                >
+                <select id="edit360Industry" class="crm-input"></select>
             </label>
 
             <label>
                 Quy mô nhân sự
-                <input
-                    id="edit360Scale"
-                    class="crm-input"
-                    type="text"
-                    placeholder="Ví dụ: 200 - 500 nhân sự"
-                >
+                <select id="edit360Scale" class="crm-input"></select>
             </label>
         </div>
 
@@ -797,12 +788,7 @@
 
             <label>
                 Phụ trách (Sales Rep)
-                <input
-                    id="edit360Owner"
-                    class="crm-input"
-                    type="text"
-                    placeholder="Tên nhân sự phụ trách..."
-                >
+                <select id="edit360Owner" class="crm-input"></select>
             </label>
         </div>
 
