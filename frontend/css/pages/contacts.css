@@ -392,6 +392,7 @@
 }
 
 .contact-card {
+    min-width: 0;
     background: var(--crm-surface);
     border: 1px solid var(--crm-border);
     border-radius: var(--crm-radius-md);
@@ -1071,8 +1072,12 @@
     }
 
     .contacts-cards-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
+
+    .contacts-search-box { flex-basis: auto; min-width: 0; }
+    .contact-card-badges, .contact-card-actions { flex-wrap: wrap; }
+    .contact-full-name, .contact-job-title { overflow-wrap: anywhere; white-space: normal; }
 }
 
 @media (max-width: 480px) {

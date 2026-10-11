@@ -7,6 +7,37 @@ import java.sql.*;
 import java.util.*;
 
 public class CustomerRelationDAO {
+    public List<Map<String,Object>> hierarchy(long root,DataScopeContext scope) throws SQLException {
+        StringBuilder sql=new StringBuilder("""
+            WITH RECURSIVE grp AS (
+              SELECT id FROM customers WHERE id=? AND is_deleted=0 AND status<>'DA_GOP'
+              UNION DISTINCT
+              SELECT c.id FROM customers c JOIN grp g ON c.parent_customer_id=g.id
+              WHERE c.is_deleted=0 AND c.status<>'DA_GOP'
+            )
+            SELECT c.id,c.name,c.name AS companyName,c.tax_code AS taxCode,c.status,
+              c.parent_customer_id AS parentCustomerId,c.owner_user_id AS ownerUserId,
+              u.full_name AS ownerName,
+              COALESCE((SELECT SUM(ct.total_amount) FROM customer_contracts ct
+                WHERE ct.customer_id=c.id AND ct.status='SIGNED'),0) AS contractValue
+            FROM grp g JOIN customers c ON c.id=g.id LEFT JOIN users u ON u.id=c.owner_user_id
+            WHERE 1=1
+            """);
+        List<Object> args=new ArrayList<>();args.add(root);scope.appendOwnerPredicate("c.owner_user_id",sql,args);
+        sql.append(" ORDER BY c.id");
+        try(Connection c=DatabaseConfig.getConnection();PreparedStatement p=c.prepareStatement(sql.toString())) {
+            for(int i=0;i<args.size();i++)p.setObject(i+1,args.get(i));
+            try(ResultSet r=p.executeQuery()) {
+                List<Map<String,Object>> rows=new ArrayList<>();
+                while(r.next()) {
+                    Map<String,Object> row=new LinkedHashMap<>();
+                    for(int i=1;i<=r.getMetaData().getColumnCount();i++)row.put(r.getMetaData().getColumnLabel(i),r.getObject(i));
+                    rows.add(row);
+                }
+                return rows;
+            }
+        }
+    }
     public void setParent(long child,Long parent) throws SQLException {
         try(Connection c=DatabaseConfig.getConnection()) {
             c.setAutoCommit(false);

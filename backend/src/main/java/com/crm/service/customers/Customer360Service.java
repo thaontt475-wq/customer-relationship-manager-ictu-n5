@@ -17,6 +17,8 @@ public class Customer360Service {
         if(customerId<=0) throw new IllegalArgumentException("Customer ID không hợp lệ");
         Map<String,Object> customer=customers.getById(userId,customerId);
         if(customer==null) return null;
+        if(!new com.crm.service.permissions.PermissionService().hasPermission(userId,"contact.read"))
+            throw new SecurityException("Bạn không có quyền xem người liên hệ trong hồ sơ 360");
         DataScopeContext opportunityScope=scopes.resolve(userId,"opportunity","read");
         DataScopeContext activityScope=scopes.resolve(userId,"activity","read");
         List<Map<String,Object>> all=dao.opportunities(customerId,opportunityScope);

@@ -13,13 +13,15 @@ public class CustomerCareDAO {
         try(Connection conn=DatabaseConfig.getConnection();PreparedStatement ps=conn.prepareStatement("SELECT COUNT(*) "+where)){
             bind(ps,args);try(ResultSet rs=ps.executeQuery()){rs.next();total=rs.getLong(1);}
         }
-        String sql="SELECT c.id,c.name,c.status,c.owner_user_id AS ownerUserId,la.last_at AS lastInteractionAt,COALESCE(ct.total_value,0) AS contractValue "+where+" ORDER BY contractValue DESC,c.id DESC LIMIT ? OFFSET ?";
+        String sql="SELECT c.id,c.name,c.tax_code,c.phone,c.status,c.owner_user_id AS ownerUserId,(SELECT full_name FROM users WHERE id=c.owner_user_id) AS ownerName,la.last_at AS lastInteractionAt,COALESCE(ct.total_value,0) AS contractValue "+where+" ORDER BY contractValue DESC,c.id DESC LIMIT ? OFFSET ?";
         List<Object> params=new ArrayList<>(args);params.add(size);params.add((page-1)*size);
         List<Map<String,Object>> items=new ArrayList<>();
         try(Connection conn=DatabaseConfig.getConnection();PreparedStatement ps=conn.prepareStatement(sql)){
             bind(ps,params);try(ResultSet rs=ps.executeQuery()){while(rs.next()){
                 Map<String,Object> row=new LinkedHashMap<>();
-                row.put("id",rs.getLong("id"));row.put("name",rs.getString("name"));row.put("status",rs.getString("status"));row.put("ownerUserId",rs.getLong("ownerUserId"));row.put("lastInteractionAt",rs.getTimestamp("lastInteractionAt"));row.put("contractValue",rs.getBigDecimal("contractValue"));items.add(row);
+                row.put("id",rs.getLong("id"));row.put("name",rs.getString("name"));row.put("taxCode",rs.getString("tax_code"));row.put("phone",rs.getString("phone"));row.put("ownerName",rs.getString("ownerName"));row.put("status",rs.getString("status"));row.put("ownerUserId",rs.getLong("ownerUserId"));
+                Timestamp last=rs.getTimestamp("lastInteractionAt");
+                row.put("lastInteractionAt",last==null ? null : last.toLocalDateTime().toString());row.put("contractValue",rs.getBigDecimal("contractValue"));items.add(row);
             }}
         }
         Map<String,Object> out=new LinkedHashMap<>();out.put("items",items);out.put("page",page);out.put("size",size);out.put("totalItems",total);out.put("totalPages",(total+size-1)/size);out.put("days",days);return out;

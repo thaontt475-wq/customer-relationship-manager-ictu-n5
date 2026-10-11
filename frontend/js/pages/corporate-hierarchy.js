@@ -8,210 +8,23 @@
  * - Thẻ KPI Tổng giá trị Hợp đồng Tập đoàn (Consolidated Group Revenue)
  * - Bảng phân rã doanh thu & Tỷ lệ đóng góp (%)
  * - Sơ đồ cây phân cấp tập đoàn trực quan (Expand/Collapse Hierarchy Tree)
- * - Chuẩn hóa Fetch API với In-Memory Mock Data dự phòng (Zero LocalStorage dependency)
+ * - Chuẩn hóa Fetch API với dữ liệu Backend đã kiểm tra quyền
  * ===================================================================
  */
 
 "use strict";
 
 (function () {
-    const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+    const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
 
-    // Default Seed Hierarchy Relationships (Mapping: childId -> parentId)
-    const DEFAULT_HIERARCHY_MAPPING = {
-        2: 1, // VNG is child of FPT
-        3: 1, // MISA is child of FPT
-        5: 1, // MWG is child of FPT
-        7: 4  // Imexpharm is child of VNPT
-    };
-
-    // Default Mock Contract Values for Enterprises (VND)
-    const DEFAULT_MOCK_CONTRACTS = {};
-    const _UNUSED_DEFAULT_MOCK_CONTRACTS = {
-        1: [
-            { id: 101, code: "HD-FPT-01", name: "Hệ thống ERP Doanh nghiệp Toàn diện", amount: 4500000000, status: "ACTIVE", signedDate: "2026-01-20" }
-        ],
-        2: [
-            { id: 102, code: "HD-VNG-01", name: "Hạ tầng Cloud Server & Datacenter", amount: 2200000000, status: "ACTIVE", signedDate: "2026-02-15" }
-        ],
-        3: [
-            { id: 103, code: "HD-MISA-01", name: "Phần mềm Kế toán Tài chính Đa chi nhánh", amount: 1300000000, status: "ACTIVE", signedDate: "2026-03-05" }
-        ],
-        4: [
-            { id: 104, code: "HD-VNPT-01", name: "Đường truyền Kênh thuê riêng & Bảo mật", amount: 5800000000, status: "ACTIVE", signedDate: "2026-01-18" }
-        ],
-        5: [
-            { id: 105, code: "HD-MWG-01", name: "Nền tảng Bán lẻ Đa kênh POS Omni-channel", amount: 3500000000, status: "ACTIVE", signedDate: "2026-03-10" }
-        ],
-        6: [
-            { id: 106, code: "HD-MB-01", name: "Cổng thanh toán & Tích hợp Ngân hàng Mở", amount: 6200000000, status: "ACTIVE", signedDate: "2026-02-28" }
-        ],
-        7: [
-            { id: 107, code: "HD-IMEX-01", name: "Phần mềm Truy xuất Nguồn gốc Dược phẩm", amount: 1200000000, status: "ACTIVE", signedDate: "2026-03-14" }
-        ],
-        8: [
-            { id: 108, code: "HD-HP-01", name: "Hệ thống Quản trị Sản xuất Thép MES", amount: 8500000000, status: "ACTIVE", signedDate: "2026-02-05" }
-        ]
-    };
-
-    // Standard In-Memory Mock Master Customer Records
-    const DEFAULT_ENTERPRISE_CUSTOMERS = [
-        {
-            id: 1,
-            companyName: "Tập đoàn Công nghệ FPT",
-            name: "Tập đoàn Công nghệ FPT",
-            taxCode: "0101248141",
-            status: "CHINH_THUC",
-            industryId: 1,
-            companySizeId: 13,
-            email: "contact@fpt.com.vn",
-            phone: "02473007300",
-            website: "https://fpt.com.vn",
-            address: "Số 10 Phạm Văn Bạch, Cầu Giấy, Hà Nội",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            parent_customer_id: null,
-            createdAt: "2026-01-15T08:30:00"
-        },
-        {
-            id: 2,
-            companyName: "Công ty Cổ phần VNG",
-            name: "Công ty Cổ phần VNG",
-            taxCode: "0303579890",
-            status: "DANG_GIAO_DICH",
-            industryId: 1,
-            companySizeId: 12,
-            email: "partner@vng.com.vn",
-            phone: "02839623888",
-            website: "https://vng.com.vn",
-            address: "Z06 Đường số 13, KCX Tân Thuận, Quận 7, TP.HCM",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            parent_customer_id: 1,
-            createdAt: "2026-02-10T09:15:00"
-        },
-        {
-            id: 3,
-            companyName: "Công ty TNHH Phần mềm MISA",
-            name: "Công ty TNHH Phần mềm MISA",
-            taxCode: "0100779774",
-            status: "TIEM_NANG",
-            industryId: 1,
-            companySizeId: 12,
-            email: "contact@misa.vn",
-            phone: "02437959595",
-            website: "https://misa.vn",
-            address: "Tòa nhà MISA, Lô 5, Công viên phần mềm Quang Trung, Quận 12, TP.HCM",
-            ownerUserId: 2,
-            ownerName: "Nguyễn Văn An",
-            owner: "Nguyễn Văn An",
-            parent_customer_id: 1,
-            createdAt: "2026-03-01T10:00:00"
-        },
-        {
-            id: 4,
-            companyName: "Tập đoàn Bưu chính Viễn thông VNPT",
-            name: "Tập đoàn Bưu chính Viễn thông VNPT",
-            taxCode: "0100684378",
-            status: "CHINH_THUC",
-            industryId: 1,
-            companySizeId: 13,
-            email: "vanphong@vnpt.vn",
-            phone: "02437741091",
-            website: "https://vnpt.com.vn",
-            address: "57 Huỳnh Thúc Kháng, Láng Hạ, Đống Đa, Hà Nội",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            parent_customer_id: null,
-            createdAt: "2026-01-20T14:20:00"
-        },
-        {
-            id: 5,
-            companyName: "Công ty CP Đầu tư Thế Giới Di Động",
-            name: "Công ty CP Đầu tư Thế Giới Di Động",
-            taxCode: "0303274391",
-            status: "DANG_GIAO_DICH",
-            industryId: 2,
-            companySizeId: 13,
-            email: "lienhe@thegioididong.com",
-            phone: "02838125960",
-            website: "https://mwg.vn",
-            address: "128 Trần Quang Khải, Tân Định, Quận 1, TP.HCM",
-            ownerUserId: 2,
-            ownerName: "Nguyễn Văn An",
-            owner: "Nguyễn Văn An",
-            parent_customer_id: 1,
-            createdAt: "2026-02-18T11:45:00"
-        },
-        {
-            id: 6,
-            companyName: "Ngân hàng TMCP Quân Đội (MBBank)",
-            name: "Ngân hàng TMCP Quân Đội (MBBank)",
-            taxCode: "0100283873",
-            status: "CHINH_THUC",
-            industryId: 4,
-            companySizeId: 13,
-            email: "mb247@mbbank.com.vn",
-            phone: "1900545426",
-            website: "https://mbbank.com.vn",
-            address: "Số 18 Lê Văn Lương, Trung Hòa, Cầu Giấy, Hà Nội",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            parent_customer_id: null,
-            createdAt: "2026-01-05T08:00:00"
-        },
-        {
-            id: 7,
-            companyName: "Công ty CP Dược phẩm Imexpharm",
-            name: "Công ty CP Dược phẩm Imexpharm",
-            taxCode: "1400384433",
-            status: "CHINH_THUC",
-            industryId: 7,
-            companySizeId: 12,
-            email: "imexpharm@imexpharm.com",
-            phone: "02773851941",
-            website: "https://imexpharm.com",
-            address: "Số 4, Đường 30/4, Phường 1, TP. Cao Lãnh, Đồng Tháp",
-            ownerUserId: 2,
-            ownerName: "Nguyễn Văn An",
-            owner: "Nguyễn Văn An",
-            parent_customer_id: 4,
-            createdAt: "2026-03-12T16:00:00"
-        },
-        {
-            id: 8,
-            companyName: "Công ty Cổ phần Tập đoàn Hòa Phát",
-            name: "Công ty Cổ phần Tập đoàn Hòa Phát",
-            taxCode: "0900189284",
-            status: "CHINH_THUC",
-            industryId: 3,
-            companySizeId: 13,
-            email: "contact@hoaphat.com.vn",
-            phone: "02462810999",
-            website: "https://hoaphat.com.vn",
-            address: "KCN Phố Nối A, Xã Giai Phạm, Huyện Yên Mỹ, Hưng Yên",
-            ownerUserId: 1,
-            ownerName: "Nông Quang Tiệp",
-            owner: "Nông Quang Tiệp",
-            parent_customer_id: null,
-            createdAt: "2026-02-01T09:00:00"
-        }
-    ];
-
-    /* =========================================================
-       1. IN-MEMORY STATE STORE (FALLBACK WHEN API NOT READY)
-    ========================================================= */
-    const inMemoryState = {
-        parents: { ...DEFAULT_HIERARCHY_MAPPING },
-        contracts: { ...DEFAULT_MOCK_CONTRACTS },
-        customers: DEFAULT_ENTERPRISE_CUSTOMERS.map(c => ({ ...c })),
-        collapsedNodes: []
-    };
-
+    const inMemoryState = {parents:{},contracts:{},customers:[],collapsedNodes:[]};
+    let hydration;
+    async function hydrateHierarchy() {
+        return hydration ||= (async()=>{
+            inMemoryState.customers = await CrmApi.customers();
+            inMemoryState.parents = Object.fromEntries(inMemoryState.customers.filter(c=>c.parentCustomerId).map(c=>[c.id,Number(c.parentCustomerId)]));
+        })().catch(error=>{hydration=null;throw error;});
+    }
     function getHierarchyStorage() {
         return inMemoryState;
     }
@@ -321,7 +134,7 @@
         let current = Number(customerId);
         const visited = new Set();
 
-        while (parents[current]) {
+        while (parents[current] && getCustomerById(parents[current])) {
             if (visited.has(current)) break; // cycle guard
             visited.add(current);
             current = Number(parents[current]);
@@ -330,66 +143,22 @@
     }
 
     /* =========================================================
-       3. STANDARDIZED API CLIENT WITH FALLBACK
+       3. AUTHENTICATED API CLIENT
     ========================================================= */
     /**
      * 1. GET /api/customers?search={query}
      */
     async function apiSearchCustomers(query = "") {
-        const cleanQuery = (query || "").trim();
-        const url = `${API_BASE}/api/customers?search=${encodeURIComponent(cleanQuery)}`;
-
-        try {
-            const response = await fetch(url, {
-                credentials: "include",
-                headers: { "Accept": "application/json" }
-            });
-            if (response.ok) {
-                const res = await response.json();
-                if (res.success && Array.isArray(res.data)) {
-                    return res.data;
-                }
-            }
-        } catch (_) {}
-
-        // Fallback: search in local customers list
-        const all = getLocalCustomersList();
-        if (!cleanQuery) return all.slice(0, 20);
-
-        const qLower = cleanQuery.toLowerCase();
-        return all.filter(c => {
-            const name = (c.companyName || c.name || "").toLowerCase();
-            const tax = (c.taxCode || "").toLowerCase();
-            const phone = (c.phone || "").toLowerCase();
-            const email = (c.email || "").toLowerCase();
-            return name.includes(qLower) || tax.includes(qLower) || phone.includes(qLower) || email.includes(qLower);
-        });
+        return CrmApi.customers({keyword:query});
     }
 
     /**
      * 2. GET /api/customers/{id}/hierarchy
      */
     async function apiGetHierarchy(customerId) {
-        const cId = Number(customerId);
-        const url = `${API_BASE}/api/customers/${cId}/hierarchy`;
-
-        try {
-            const response = await fetch(url, {
-                credentials: "include",
-                headers: { "Accept": "application/json" }
-            });
-            if (response.ok) {
-                const res = await response.json();
-                if (res.success && res.data) {
-                    return res.data;
-                }
-            }
-        } catch (_) {}
-
-        // Fallback: build tree locally
-        const hier = getHierarchyStorage();
-        const rootId = getRootParentId(cId, hier);
-        return buildLocalHierarchyTree(rootId, hier);
+        await hydrateHierarchy();
+        const rootId=getRootParentId(Number(customerId),inMemoryState);
+        return CrmApi.request(`/api/customers/${rootId}/hierarchy`);
     }
 
     /**
@@ -434,120 +203,26 @@
      * Payload: { parent_customer_id: ... }
      */
     async function apiUpdateParent(customerId, parentCustomerId) {
-        const cId = Number(customerId);
-        const pId = parentCustomerId !== null && parentCustomerId !== undefined && parentCustomerId !== "" ? Number(parentCustomerId) : null;
-
-        // Perform strict recursive validation
-        const check = validateParentAssignment(cId, pId);
-        if (!check.valid) {
-            throw new Error(check.message);
-        }
-
-        const url = `${API_BASE}/api/customers/${cId}/parent`;
-        let serverSuccess = false;
-
-        try {
-            const response = await fetch(url, {
-                method: "PUT",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({ parent_customer_id: pId })
-            });
-            if (response.ok) {
-                const res = await response.json();
-                if (res.success) {
-                    serverSuccess = true;
-                }
-            }
-        } catch (_) {}
-
-        // Synchronize in-memory fallback state
-        syncCustomerParentInStorage(cId, pId);
-
-        // Notify app
-        document.dispatchEvent(new CustomEvent("crm:hierarchy-updated", { detail: { customerId: cId, parentId: pId } }));
-        document.dispatchEvent(new CustomEvent("crm:customers-updated"));
-
-        return { success: true, parent_customer_id: pId, serverSynced: serverSuccess };
+        const result = await CrmApi.request(`/api/customers/${customerId}/parent`,{method:"PUT",body:JSON.stringify({parentCustomerId:parentCustomerId == null ? null : Number(parentCustomerId)})});
+        hydration=null;
+        await hydrateHierarchy();
+        document.dispatchEvent(new CustomEvent("crm:hierarchy-updated",{detail:{customerId,parentCustomerId}}));
+        return result;
     }
 
     /**
-     * 4. GET /api/contracts/group-summary?parent_id={id}
+     * 4. Consolidate SIGNED values returned by GET hierarchy
      */
     async function apiGetGroupSummary(parentId) {
-        const pId = Number(parentId);
-        const url = `${API_BASE}/api/contracts/group-summary?parent_id=${pId}`;
-
-        try {
-            const response = await fetch(url, {
-                credentials: "include",
-                headers: { "Accept": "application/json" }
-            });
-            if (response.ok) {
-                const res = await response.json();
-                if (res.success && res.data) {
-                    return res.data;
-                }
-            }
-        } catch (_) {}
-
-        // Fallback: compute consolidated revenue locally
-        const hier = getHierarchyStorage();
-        const rootId = getRootParentId(pId, hier);
-        const tree = buildLocalHierarchyTree(rootId, hier);
-
-        const flatEntities = [];
-        function flatten(node, role = "PARENT") {
-            if (!node) return;
-            flatEntities.push({
-                id: node.id,
-                name: node.name,
-                taxCode: node.taxCode,
-                ownerName: node.ownerName,
-                role: role,
-                roleLabel: role === "PARENT" ? "Công ty Mẹ" : (node.depth === 1 ? "Công ty Con" : "Công ty Cháu"),
-                contractValue: node.contractValue || 0,
-                contractsCount: node.contractsCount || 0,
-                status: node.status || "CHINH_THUC"
-            });
-            (node.children || []).forEach(child => flatten(child, "SUBSIDIARY"));
+        const tree=await apiGetHierarchy(parentId);
+        if (!tree) throw new Error("Không tìm thấy công ty trong phạm vi quyền.");
+        const breakdown=[];
+        function flatten(node) {
+            breakdown.push({...node,role:node.depth===0 ? "PARENT":"SUBSIDIARY",roleLabel:node.depth===0 ? "Công ty mẹ":"Công ty con",contributionPercentage:tree.groupContractValue ? node.contractValue/tree.groupContractValue*100:0});
+            node.children.forEach(flatten);
         }
-
-        flatten(tree, "PARENT");
-
-        const totalGroupRevenue = flatEntities.reduce((sum, item) => sum + item.contractValue, 0);
-        const parentEntity = flatEntities.find(e => e.role === "PARENT") || flatEntities[0];
-        const parentRevenue = parentEntity ? parentEntity.contractValue : 0;
-        const subsidiariesRevenue = totalGroupRevenue - parentRevenue;
-
-        // Calculate contribution percentages
-        const breakdown = flatEntities.map(item => {
-            const pct = totalGroupRevenue > 0 ? ((item.contractValue / totalGroupRevenue) * 100) : 0;
-            return {
-                ...item,
-                contributionPercentage: Number(pct.toFixed(2))
-            };
-        });
-
-        // Sort breakdown: Parent first, then by contract value descending
-        breakdown.sort((a, b) => {
-            if (a.role === "PARENT") return -1;
-            if (b.role === "PARENT") return 1;
-            return b.contractValue - a.contractValue;
-        });
-
-        return {
-            parentId: rootId,
-            parentName: parentEntity ? parentEntity.name : "Tập đoàn",
-            totalGroupRevenue: totalGroupRevenue,
-            parentRevenue: parentRevenue,
-            subsidiariesRevenue: subsidiariesRevenue,
-            totalEntities: flatEntities.length,
-            breakdown: breakdown
-        };
+        flatten(tree);
+        return {parentId:tree.id,parentName:tree.name,totalGroupRevenue:tree.groupContractValue,parentRevenue:tree.contractValue,subsidiariesRevenue:tree.groupContractValue-tree.contractValue,totalEntities:breakdown.length,breakdown};
     }
 
     /* =========================================================
@@ -608,6 +283,7 @@
         if (!container || !customerId) return;
         const cId = Number(customerId);
 
+        await hydrateHierarchy();
         const hier = getHierarchyStorage();
         const rootId = getRootParentId(cId, hier);
         const isRoot = rootId === cId;
@@ -783,7 +459,7 @@
                                                     <div class="contribution-progress-bar">
                                                         <div class="contribution-progress-fill" style="width: ${item.contributionPercentage}%;"></div>
                                                     </div>
-                                                    <span class="contribution-percentage">${item.contributionPercentage}%</span>
+                                                    <span class="contribution-percentage">${item.contributionPercentage.toFixed(1)}%</span>
                                                 </div>
                                             </td>
                                             <td style="text-align:right;">
@@ -810,6 +486,7 @@
 
         // Render Right-Panel Tab Hierarchy View
         renderRightTabHierarchy(document.getElementById("hierarchyPanel"), cId, summary, hier);
+        if (!CrmApi.canSync("customer.update")) document.querySelectorAll('[onclick*="CorporateHierarchyManager.openHierarchyModal"],[onclick*="CorporateHierarchyManager.promptUnbindParent"]').forEach(button => { button.hidden = true; });
     }
 
     /**
@@ -916,7 +593,7 @@
                         <a href="customer-360.html?id=${treeNode.id}" class="crm-btn crm-btn-secondary" style="flex:1; padding:3px 6px; font-size:11px; height:auto; text-align:center; text-decoration:none;">
                             👁️ 360
                         </a>
-                        <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.openHierarchyModal(${treeNode.id})" style="padding:3px 6px; font-size:11px; height:auto;" title="Quản lý quan hệ">
+                        <button type="button" class="crm-btn crm-btn-secondary" ${CrmApi.canSync("customer.update") ? "" : "hidden"} onclick="window.CorporateHierarchyManager.openHierarchyModal(${treeNode.id})" style="padding:3px 6px; font-size:11px; height:auto;" title="Quản lý quan hệ">
                             ⚙️ Thiết lập
                         </button>
                     </div>
@@ -1071,17 +748,23 @@
 
         inputParent?.addEventListener("input", () => {
             clearTimeout(debounceTimerP);
+            dropParent.innerHTML = "";
             debounceTimerP = setTimeout(async () => {
                 const q = inputParent.value.trim();
-                const results = await apiSearchCustomers(q);
-                renderParentSearchResults(results, dropParent);
+                try {
+                    const results = await apiSearchCustomers(q);
+                    if (q === inputParent.value.trim()) renderParentSearchResults(results, dropParent);
+                } catch (error) { showToast(error.message, "danger"); }
             }, 250);
         });
 
         inputParent?.addEventListener("focus", async () => {
             if (!dropParent.children.length) {
-                const results = await apiSearchCustomers(inputParent.value.trim());
-                renderParentSearchResults(results, dropParent);
+                const query = inputParent.value.trim();
+                try {
+                    const results = await apiSearchCustomers(query);
+                    if (query === inputParent.value.trim()) renderParentSearchResults(results, dropParent);
+                } catch (error) { showToast(error.message, "danger"); }
             }
             dropParent.style.display = "block";
         });
@@ -1093,17 +776,23 @@
 
         inputChild?.addEventListener("input", () => {
             clearTimeout(debounceTimerC);
+            dropChild.innerHTML = "";
             debounceTimerC = setTimeout(async () => {
                 const q = inputChild.value.trim();
-                const results = await apiSearchCustomers(q);
-                renderChildSearchResults(results, dropChild);
+                try {
+                    const results = await apiSearchCustomers(q);
+                    if (q === inputChild.value.trim()) renderChildSearchResults(results, dropChild);
+                } catch (error) { showToast(error.message, "danger"); }
             }, 250);
         });
 
         inputChild?.addEventListener("focus", async () => {
             if (!dropChild.children.length) {
-                const results = await apiSearchCustomers(inputChild.value.trim());
-                renderChildSearchResults(results, dropChild);
+                const query = inputChild.value.trim();
+                try {
+                    const results = await apiSearchCustomers(query);
+                    if (query === inputChild.value.trim()) renderChildSearchResults(results, dropChild);
+                } catch (error) { showToast(error.message, "danger"); }
             }
             dropChild.style.display = "block";
         });
@@ -1252,7 +941,12 @@
         dropdownEl.style.display = "block";
     }
 
-    function openHierarchyModal(customerId) {
+    async function openHierarchyModal(customerId) {
+        if (!CrmApi.canSync("customer.update")) { showToast("Bạn không có quyền thay đổi quan hệ công ty.", "danger"); return; }
+        try {
+            hydration = null;
+            await hydrateHierarchy();
+        } catch (error) { showToast(error.message, "danger"); return; }
         buildHierarchyModalDOM();
         currentModalTargetId = Number(customerId);
         const dialog = document.getElementById("corporateHierarchyModal");
@@ -1441,7 +1135,7 @@
         const params = new URLSearchParams(window.location.search);
         const cId = params.get("id");
         if (cId) {
-            renderCustomer360Hierarchy(document.getElementById("customer360HierarchyBanner"), cId);
+            // Customer 360 awaits its own hierarchy rendering.
         }
     }
 
@@ -1536,15 +1230,14 @@
     /* =========================================================
        10. BOOTSTRAP & EVENT LISTENERS
     ========================================================= */
-    function init() {
+    async function init() {
+        try { await hydrateHierarchy(); } catch(error) { showToast(error.message,"error"); return; }
         // Detect Customer 360 page
         const isCustomer360 = window.location.pathname.includes("customer-360.html") || !!document.querySelector(".customer360");
         const params = new URLSearchParams(window.location.search);
         const cId = params.get("id");
 
-        if (isCustomer360 && cId) {
-            renderCustomer360Hierarchy(document.getElementById("customer360HierarchyBanner"), cId);
-        }
+        // Customer 360 awaits this renderer after its core data is ready.
 
         // Detect Customers List page
         const isCustomersPage = window.location.pathname.includes("customers.html") || !!document.querySelector(".customer-page");
