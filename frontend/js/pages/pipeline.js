@@ -1,6 +1,6 @@
 "use strict";
 
-const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
 
 let stages = [];
 let opportunities = [];
@@ -94,15 +94,10 @@ async function loadStages() {
         console.warn("Could not load stages from API, using default stages:", err);
     }
 
+    // Never invent stage identifiers: writes must use IDs returned by the backend.
     if (!stages || stages.length === 0) {
-        stages = [
-            { id: 1, name: "Khảo sát nhu cầu", orderNo: 1, probability: 10 },
-            { id: 2, name: "Đánh giá & Xác định nhu cầu", orderNo: 2, probability: 25 },
-            { id: 3, name: "Gửi đề xuất & Báo giá", orderNo: 3, probability: 50 },
-            { id: 4, name: "Thương lượng & Đàm phán", orderNo: 4, probability: 75 },
-            { id: 5, name: "Chốt thành công (Won)", orderNo: 5, probability: 100, isWon: true },
-            { id: 6, name: "Đóng Thua (Lost)", orderNo: 6, probability: 0, isLost: true }
-        ];
+        stages = [];
+        console.error("Pipeline stages unavailable. Please verify /api/pipeline-stages.");
     }
 
     populateStageSelect();
@@ -133,13 +128,20 @@ async function loadWinLossAndCompetitors() {
 
 async function loadCustomers() {
     try {
-        const list = await api("/api/customers");
-        if (Array.isArray(list)) {
-            customers = list;
-        }
+        const result = await api("/api/customers?page=1&size=100");
+
+        const list = Array.isArray(result)
+            ? result
+            : Array.isArray(result?.items)
+                ? result.items
+                : [];
+
+        customers = list.filter(c => c && c.isDeleted !== true && c.is_deleted !== true);
     } catch (err) {
+        customers = [];
         console.warn("Could not load customers:", err);
     }
+
     populateCustomerSelect();
 }
 

@@ -120,8 +120,8 @@ public class OpportunityService {
                 String requirements = (String) currentStage.get("requirements");
                 if (requirements != null && !requirements.isBlank()) {
                     // Check if requirements are met
-                    boolean isWonOrLost = Boolean.TRUE.equals(targetStage.get("isWon")) || Boolean.TRUE.equals(targetStage.get("isLost"));
-                    if (!isWonOrLost && requirements.toLowerCase().contains("gặp") && opp.get("contactName") == null) {
+                    boolean conditionRequired = Boolean.TRUE.equals(currentStage.get("conditionRequired"));
+                    if (conditionRequired && requirements.toLowerCase().contains("gặp") && opp.get("contactName") == null) {
                         throw new IllegalArgumentException("Điều kiện rời giai đoạn '" + currentStage.get("name") + "': " + requirements);
                     }
                 }
