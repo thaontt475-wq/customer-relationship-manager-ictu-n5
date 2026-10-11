@@ -17,3 +17,5 @@ database-backups/
 *.key
 *.p12
 *.jks
+
+.local-qa/

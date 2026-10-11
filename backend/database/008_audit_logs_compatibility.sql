@@ -1,4 +1,98 @@
 USE crm_db;
+-- NOVACRM_AUDIT_008_COMPAT_FIX
+-- Add optional legacy audit columns before MODIFY, UPDATE or TRIGGER.
+-- Compatible with a fresh installation and an existing schema.
+
+SET @novacrm_col_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'audit_logs'
+      AND COLUMN_NAME = 'actor_user_id'
+);
+
+SET @novacrm_sql = IF(
+    @novacrm_col_exists = 0,
+    'ALTER TABLE audit_logs ADD COLUMN actor_user_id BIGINT NULL',
+    'SELECT 1'
+);
+
+PREPARE novacrm_stmt FROM @novacrm_sql;
+EXECUTE novacrm_stmt;
+DEALLOCATE PREPARE novacrm_stmt;
+
+SET @novacrm_col_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'audit_logs'
+      AND COLUMN_NAME = 'object_type'
+);
+
+SET @novacrm_sql = IF(
+    @novacrm_col_exists = 0,
+    'ALTER TABLE audit_logs ADD COLUMN object_type VARCHAR(50) NULL',
+    'SELECT 1'
+);
+
+PREPARE novacrm_stmt FROM @novacrm_sql;
+EXECUTE novacrm_stmt;
+DEALLOCATE PREPARE novacrm_stmt;
+
+SET @novacrm_col_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'audit_logs'
+      AND COLUMN_NAME = 'object_id'
+);
+
+SET @novacrm_sql = IF(
+    @novacrm_col_exists = 0,
+    'ALTER TABLE audit_logs ADD COLUMN object_id BIGINT NULL',
+    'SELECT 1'
+);
+
+PREPARE novacrm_stmt FROM @novacrm_sql;
+EXECUTE novacrm_stmt;
+DEALLOCATE PREPARE novacrm_stmt;
+
+SET @novacrm_col_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'audit_logs'
+      AND COLUMN_NAME = 'before_value'
+);
+
+SET @novacrm_sql = IF(
+    @novacrm_col_exists = 0,
+    'ALTER TABLE audit_logs ADD COLUMN before_value LONGTEXT NULL',
+    'SELECT 1'
+);
+
+PREPARE novacrm_stmt FROM @novacrm_sql;
+EXECUTE novacrm_stmt;
+DEALLOCATE PREPARE novacrm_stmt;
+
+SET @novacrm_col_exists = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'audit_logs'
+      AND COLUMN_NAME = 'after_value'
+);
+
+SET @novacrm_sql = IF(
+    @novacrm_col_exists = 0,
+    'ALTER TABLE audit_logs ADD COLUMN after_value LONGTEXT NULL',
+    'SELECT 1'
+);
+
+PREPARE novacrm_stmt FROM @novacrm_sql;
+EXECUTE novacrm_stmt;
+DEALLOCATE PREPARE novacrm_stmt;
+
 
 ALTER TABLE audit_logs
     MODIFY COLUMN actor_user_id BIGINT NULL,

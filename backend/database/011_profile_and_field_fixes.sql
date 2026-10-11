@@ -31,5 +31,39 @@ CALL AddCol('custom_fields', 'options_json', 'TEXT NULL');
 DROP PROCEDURE IF EXISTS AddCol;
 
 -- Sync existing data
-UPDATE users SET email_signature = signature WHERE (email_signature IS NULL OR email_signature = '') AND signature IS NOT NULL;
-UPDATE users SET signature = email_signature WHERE (signature IS NULL OR signature = '') AND email_signature IS NOT NULL;
+-- NOVACRM_LEGACY_SYNC_GUARD
+SET @novacrm_cols = (
+    SELECT COUNT(DISTINCT COLUMN_NAME)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'users'
+      AND COLUMN_NAME IN ('email_signature', 'signature')
+);
+
+SET @novacrm_sql = IF(
+    @novacrm_cols = 2,
+    'UPDATE users SET email_signature = signature WHERE (email_signature IS NULL OR email_signature = '''') AND signature IS NOT NULL;',
+    'SELECT 1'
+);
+
+PREPARE novacrm_stmt FROM @novacrm_sql;
+EXECUTE novacrm_stmt;
+DEALLOCATE PREPARE novacrm_stmt;
+-- NOVACRM_LEGACY_SYNC_GUARD
+SET @novacrm_cols = (
+    SELECT COUNT(DISTINCT COLUMN_NAME)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'users'
+      AND COLUMN_NAME IN ('email_signature', 'signature')
+);
+
+SET @novacrm_sql = IF(
+    @novacrm_cols = 2,
+    'UPDATE users SET signature = email_signature WHERE (signature IS NULL OR signature = '''') AND email_signature IS NOT NULL;',
+    'SELECT 1'
+);
+
+PREPARE novacrm_stmt FROM @novacrm_sql;
+EXECUTE novacrm_stmt;
+DEALLOCATE PREPARE novacrm_stmt;
