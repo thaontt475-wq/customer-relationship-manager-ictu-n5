@@ -180,7 +180,7 @@ class CustomerImportServiceTest {
         assertEquals(2,p.get("errorCount"));assertEquals(2,confirm(p,"SKIP",1).get("errorCount"));
     }
     @Test void capacityIsBoundedPerUser() throws Exception {
-        preview(new String[][]{});preview(new String[][]{});preview(new String[][]{});
+        for(int i=0;i<20;i++){preview(new String[][]{});}
         assertThrows(IllegalStateException.class,()->preview(new String[][]{}));
         clock.now=clock.now.plus(Duration.ofMinutes(16));
         assertNotNull(preview(new String[][]{}).get("batchToken"));

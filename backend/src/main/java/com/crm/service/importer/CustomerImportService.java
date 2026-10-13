@@ -76,7 +76,7 @@ public class CustomerImportService {
         synchronized(batches) {
             batches.entrySet().removeIf(e->!e.getValue().expires().isAfter(clock.instant()));
             long own=batches.values().stream().filter(b->b.owner()==user).count();
-            if(batches.size()>=64 || own>=3) throw new IllegalStateException("Đã đạt giới hạn preview; hãy confirm hoặc chờ 15 phút");
+            if(batches.size()>=256 || own>=20) throw new IllegalStateException("Đã đạt giới hạn preview; hãy confirm hoặc chờ 15 phút");
             token=UUID.randomUUID().toString();
             batches.put(token,new Batch(user,clock.instant().plus(TTL),List.copyOf(saved)));
         }

@@ -57,7 +57,7 @@ public class PermissionServlet
                         response,
                         404,
                         ApiResponse.error(
-                                "User không tồn tại",
+                                "User khÃ´ng tá»“n táº¡i",
                                 null
                         )
                 );
@@ -69,7 +69,7 @@ public class PermissionServlet
                     response,
                     200,
                     ApiResponse.success(
-                            "Lấy phân quyền thành công",
+                            "Láº¥y phÃ¢n quyá»n thÃ nh cÃ´ng",
                             data
                     )
             );
@@ -82,7 +82,7 @@ public class PermissionServlet
             );
 
         } catch (com.google.gson.JsonParseException e) {
-            badRequest(response, "JSON không hợp lệ");
+            badRequest(response, "JSON khÃ´ng há»£p lá»‡");
         } catch (Exception e) {
 
             serverError(
@@ -133,7 +133,7 @@ public class PermissionServlet
 
             if (body == null) {
                 throw new IllegalArgumentException(
-                        "Dữ liệu không hợp lệ"
+                        "Dá»¯ liá»‡u khÃ´ng há»£p lá»‡"
                 );
             }
 
@@ -141,7 +141,7 @@ public class PermissionServlet
                     response,
                     200,
                     ApiResponse.success(
-                            "Gán quyền thành công",
+                            "GÃ¡n quyá»n thÃ nh cÃ´ng",
                             service.assign(
                                     body.getUserId(),
                                     body.getRoleIds(),
@@ -159,7 +159,7 @@ public class PermissionServlet
             );
 
         } catch (com.google.gson.JsonParseException e) {
-            badRequest(response, "JSON không hợp lệ");
+            badRequest(response, "JSON khÃ´ng há»£p lá»‡");
         } catch (Exception e) {
 
             serverError(
@@ -190,7 +190,7 @@ public class PermissionServlet
                 path.length() <= 1
         ) {
             throw new IllegalArgumentException(
-                    "Thiếu userId"
+                    "Thiáº¿u userId"
             );
         }
 
@@ -200,7 +200,7 @@ public class PermissionServlet
             );
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
-                    "userId không hợp lệ"
+                    "userId khÃ´ng há»£p lá»‡"
             );
         }
     }
@@ -213,7 +213,7 @@ public class PermissionServlet
                 response,
                 403,
                 ApiResponse.error(
-                        "Không có quyền",
+                        "KhÃ´ng cÃ³ quyá»n",
                         null
                 )
         );
@@ -239,13 +239,13 @@ public class PermissionServlet
             Exception e
     ) throws IOException {
 
-        System.err.println("API request failed: " + e.getClass().getSimpleName());
+        e.printStackTrace(System.err);
 
         ResponseUtil.json(
                 response,
                 500,
                 ApiResponse.error(
-                        "Lỗi hệ thống",
+                        "Lá»—i há»‡ thá»‘ng",
                         null
                 )
         );

@@ -18,6 +18,28 @@
     const INDUSTRIES = [];
     const COMPANY_SIZES = [];
 
+    const DEFAULT_INDUSTRIES = [
+        { id: 1, code: "CNTT", name: "Công nghệ thông tin" },
+        { id: 2, code: "RETAIL", name: "Bán lẻ / Thương mại" },
+        { id: 3, code: "MANUFACTURING", name: "Sản xuất / Chế tạo" },
+        { id: 4, code: "FINANCE", name: "Tài chính / Ngân hàng / Bảo hiểm" },
+        { id: 5, code: "REAL_ESTATE", name: "Bất động sản / Xây dựng" },
+        { id: 6, code: "LOGISTICS", name: "Vận tải / Kho bãi / Logistics" },
+        { id: 7, code: "HEALTHCARE", name: "Y tế / Dược phẩm" },
+        { id: 8, code: "EDUCATION", name: "Giáo dục / Đào tạo" },
+        { id: 9, code: "FNB", name: "Thực phẩm / Đồ uống (F&B)" },
+        { id: 10, code: "SERVICES", name: "Dịch vụ / Du lịch / Khách sạn" },
+        { id: 11, code: "OTHER", name: "Ngành nghề khác" }
+    ];
+
+    const DEFAULT_COMPANY_SIZES = [
+        { id: 1, code: "MICRO", name: "Dưới 10 nhân sự (Siêu nhỏ)" },
+        { id: 2, code: "SMALL", name: "10 - 50 nhân sự (Nhỏ)" },
+        { id: 3, code: "MEDIUM", name: "50 - 200 nhân sự (Vừa)" },
+        { id: 4, code: "LARGE", name: "200 - 500 nhân sự (Lớn)" },
+        { id: 5, code: "ENTERPRISE", name: "Trên 500 nhân sự (Tập đoàn)" }
+    ];
+
 
 
     function getUserId(user) {
@@ -249,16 +271,18 @@
 
     async function loadUsers() {
         const data = await apiRequest("/api/customer-lookups");
-        INDUSTRIES.splice(0, INDUSTRIES.length, ...data.industries);
-        COMPANY_SIZES.splice(0, COMPANY_SIZES.length, ...data.companySizes);
-        usersList = data.owners;
-        currentScope = data.scope;
+        const industries = (data.industries && data.industries.length > 0) ? data.industries : DEFAULT_INDUSTRIES;
+        const companySizes = (data.companySizes && data.companySizes.length > 0) ? data.companySizes : DEFAULT_COMPANY_SIZES;
+        INDUSTRIES.splice(0, INDUSTRIES.length, ...industries);
+        COMPANY_SIZES.splice(0, COMPANY_SIZES.length, ...companySizes);
+        usersList = data.owners || [];
+        currentScope = data.scope || "ALL";
         applyUserScopePermissions(currentSessionUser);
         populateSelectOptions();
         const ownerSelect = document.getElementById("ownerSelect");
         if (ownerSelect) ownerSelect.innerHTML = '<option value="">Bản thân tôi</option>' + usersList.map(u => `<option value="${u.id}">${escapeHtml(u.fullName)}</option>`).join("");
         window.CustomerFilterManager?.populateOwners(usersList);
-        window.CustomerFilterManager?.populateCatalogs?.(data);
+        window.CustomerFilterManager?.populateCatalogs?.({ ...data, industries, companySizes });
     }
 
     /* =========================================================
@@ -815,6 +839,45 @@
             showToast("Đã lưu hồ sơ khách hàng.");
         } catch (error) { showToast(error.message,"error"); }
         finally { button.disabled = false; }
+    }
+
+    async function handleQuickAddCatalog(type, typeLabel) {
+        const name = window.prompt(`Nhập tên ${typeLabel} mới:`);
+        if (!name || !name.trim()) return;
+        const trimmedName = name.trim();
+
+        const targetList = (type === "industry") ? INDUSTRIES : COMPANY_SIZES;
+        const existing = targetList.find(x => x.name && x.name.toLowerCase() === trimmedName.toLowerCase());
+        if (existing) {
+            showToast(`${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} "${trimmedName}" đã tồn tại trong danh sách.`, "info");
+            const selectEl = document.getElementById(type === "industry" ? "industrySelect" : "companySizeSelect");
+            if (selectEl) selectEl.value = String(existing.id);
+            return;
+        }
+
+        const code = (type === "industry" ? "IND_" : "SIZE_") + Date.now().toString(36).toUpperCase();
+        let newItem = { id: Date.now(), code: code, name: trimmedName };
+
+        try {
+            const res = await apiRequest(`/api/master-data/${type}`, {
+                method: "POST",
+                body: JSON.stringify({ code: code, name: trimmedName, active: true })
+            });
+            if (res && res.data && res.data.id) {
+                newItem.id = res.data.id;
+            }
+            showToast(`Đã thêm ${typeLabel} "${trimmedName}" thành công!`, "success");
+        } catch (err) {
+            console.warn("Could not persist to master-data API:", err);
+            showToast(`Đã thêm nhanh ${typeLabel} "${trimmedName}".`, "info");
+        }
+
+        targetList.push(newItem);
+        populateSelectOptions();
+        const selectEl = document.getElementById(type === "industry" ? "industrySelect" : "companySizeSelect");
+        if (selectEl) {
+            selectEl.value = String(newItem.id);
+        }
     }
 
     /* =========================================================
@@ -1442,6 +1505,8 @@
         cancelDrawerBtn?.addEventListener("click", closeDrawer);
         drawerOverlay?.addEventListener("click", closeDrawer);
         customerForm?.addEventListener("submit", handleSaveCustomer);
+        document.getElementById("btnQuickAddIndustry")?.addEventListener("click", () => handleQuickAddCatalog("industry", "ngành nghề"));
+        document.getElementById("btnQuickAddCompanySize")?.addEventListener("click", () => handleQuickAddCatalog("company-size", "quy mô doanh nghiệp"));
 
         // Realtime input validations & duplicate scanning
         document.getElementById("companyName")?.addEventListener("input", () => validateForm());

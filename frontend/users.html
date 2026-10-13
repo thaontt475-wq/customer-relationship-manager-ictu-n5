@@ -417,7 +417,6 @@
 
     </header>
 
-
     <form
         id="userForm"
         class="user-form"
@@ -429,7 +428,6 @@
             type="hidden"
         >
 
-
         <label>
             Họ và tên
             <em>*</em>
@@ -438,9 +436,10 @@
                 id="fullName"
                 class="crm-input"
                 type="text"
+                placeholder="VD: Nguyễn Văn A"
             >
+            <small id="nameError"></small>
         </label>
-
 
         <label>
             Email công ty
@@ -450,145 +449,77 @@
                 id="userEmail"
                 class="crm-input"
                 type="email"
+                placeholder="VD: nguyen.vana@company.com"
             >
 
             <small id="emailError"></small>
         </label>
 
+        <label id="userPasswordLabel">
+            Mật khẩu ban đầu
+            <em>*</em>
+
+            <input
+                id="userPassword"
+                class="crm-input"
+                type="password"
+                autocomplete="new-password"
+                placeholder="Tối thiểu 8 ký tự, gồm cả chữ và số"
+            >
+
+            <small id="passwordUserError"></small>
+        </label>
 
         <label>
             Nhóm kinh doanh
 
-            <input
+            <select
                 id="userTeam"
                 class="crm-input"
-                type="text"
-                placeholder="VD: Sales Hà Nội"
             >
+                <option value="">
+                    Chưa gán nhóm
+                </option>
+            </select>
 
             <small id="teamError"></small>
         </label>
 
-
         <fieldset class="roles-fieldset">
-
             <legend>
-                Vai trò
+                Vai trò <em>*</em>
             </legend>
-
-
-            <label class="role-check">
-
-                <input
-                    type="checkbox"
-                    value="Quản trị"
-                    name="roles"
-                >
-
-                Quản trị
-
-            </label>
-
-
-            <label class="role-check">
-
-                <input
-                    type="checkbox"
-                    value="Giám đốc kinh doanh"
-                    name="roles"
-                >
-
-                Giám đốc kinh doanh
-
-            </label>
-
-
-            <label class="role-check">
-
-                <input
-                    type="checkbox"
-                    value="Trưởng nhóm"
-                    name="roles"
-                >
-
-                Trưởng nhóm
-
-            </label>
-
-
-            <label class="role-check">
-
-                <input
-                    type="checkbox"
-                    value="Nhân viên kinh doanh"
-                    name="roles"
-                >
-
-                Nhân viên kinh doanh
-
-            </label>
-
-
-            <label class="role-check">
-
-                <input
-                    type="checkbox"
-                    value="Marketing"
-                    name="roles"
-                >
-
-                Marketing
-
-            </label>
-
-
-            <label class="role-check">
-
-                <input
-                    type="checkbox"
-                    value="Kế toán"
-                    name="roles"
-                >
-
-                Kế toán
-
-            </label>
-
-
-            <label class="role-check">
-
-                <input
-                    type="checkbox"
-                    value="CSKH"
-                    name="roles"
-                >
-
-                CSKH
-
-            </label>
-
+            <div id="rolesList"></div>
+            <small id="rolesError"></small>
         </fieldset>
 
+        <label id="userDataScopeLabel">
+            Phạm vi dữ liệu
+            <em>*</em>
 
-        <label class="self-admin-check">
-
-            <input
-                id="isCurrentAccount"
-                type="checkbox"
+            <select
+                id="userDataScope"
+                class="crm-input"
             >
-
-            Đây là tài khoản quản trị hiện tại
+                <option value="SELF">
+                    Chỉ dữ liệu của bản thân
+                </option>
+                <option value="TEAM">
+                    Dữ liệu của nhóm
+                </option>
+                <option value="ALL">
+                    Toàn bộ dữ liệu
+                </option>
+            </select>
+            <small id="dataScopeError"></small>
         </label>
-
 
         <div
             id="userFormError"
             class="user-form-error"
         ></div>
 
-
         <footer class="drawer-footer">
-
             <button
                 id="cancelUserForm"
                 class="crm-btn crm-btn-secondary"
@@ -603,7 +534,6 @@
             >
                 Lưu
             </button>
-
         </footer>
 
     </form>
