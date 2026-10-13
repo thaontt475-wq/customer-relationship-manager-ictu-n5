@@ -19,12 +19,12 @@ public final class ResponseUtil {
         response.setStatus(status);
         response.setHeader("Cache-Control", "no-store");
 
-        response.setCharacterEncoding(
-                "UTF-8"
+        response.setContentType(
+                "application/json; charset=UTF-8"
         );
 
-        response.setContentType(
-                "application/json"
+        response.setCharacterEncoding(
+                "UTF-8"
         );
 
         response.getWriter().write(

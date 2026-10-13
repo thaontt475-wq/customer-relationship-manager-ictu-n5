@@ -756,8 +756,8 @@
     /**
      * Open Modal: Transfer Contact (Chuyển công tác sang công ty mới)
      */
-    function openTransferModal(contactId) {
-        const contact = store.getContactById(contactId);
+    async function openTransferModal(contactId) {
+        let contact = store.getContactById(contactId);
         if (!contact) return;
         activeContactId = contact.id;
 
@@ -768,20 +768,45 @@
         document.getElementById("transferCurrentCompany").textContent = contact.companyName;
         document.getElementById("transferCurrentJobTitle").textContent = contact.jobTitle;
 
+        // Ensure available destination customers are loaded
+        let availableCustomers = store.getAvailableCustomers();
+        if (!availableCustomers || availableCustomers.length <= 1) {
+            try {
+                availableCustomers = await CrmApi.customers();
+                store.customers = availableCustomers;
+            } catch (err) {
+                console.warn("Không thể tải danh sách khách hàng:", err);
+            }
+        }
+
         // Populate Destination Customers (excluding current)
         const selectNewCust = document.getElementById("transferNewCustomerId");
         if (selectNewCust) {
-            const customers = store.getAvailableCustomers().filter(c => Number(c.id) !== Number(contact.customerId));
-            selectNewCust.innerHTML = customers.map(c => `
-                <option value="${c.id}">${escapeHtml(c.companyName || c.name)}</option>
-            `).join("");
+            const customers = (availableCustomers || []).filter(c => Number(c.id) !== Number(contact.customerId));
+            if (customers.length === 0) {
+                selectNewCust.innerHTML = `
+                    <option value="" disabled selected>-- Không có doanh nghiệp khác để chuyển đến --</option>
+                `;
+            } else {
+                selectNewCust.innerHTML = `
+                    <option value="" disabled selected>-- Chọn doanh nghiệp chuyển đến --</option>
+                    ${customers.map(c => `
+                        <option value="${c.id}">${escapeHtml(c.companyName || c.name)}</option>
+                    `).join("")}
+                `;
+            }
         }
 
-        document.getElementById("transferNewJobTitle").value = contact.jobTitle;
-        document.getElementById("transferNewDepartment").value = contact.department || "";
-        document.getElementById("transferDate").value = new Date().toISOString().split("T")[0];
-        document.getElementById("transferReason").value = `Chuyển công tác từ ${contact.companyName} sang đơn vị mới từ tháng ${new Date().getMonth() + 1}/${new Date().getFullYear()}.`;
-        document.getElementById("transferSetPrimary").checked = false;
+        const jobEl = document.getElementById("transferNewJobTitle");
+        if (jobEl) jobEl.value = contact.jobTitle || "";
+        const deptEl = document.getElementById("transferNewDepartment");
+        if (deptEl) deptEl.value = contact.department || "";
+        const dateEl = document.getElementById("transferDate");
+        if (dateEl) dateEl.value = new Date().toISOString().split("T")[0];
+        const reasonEl = document.getElementById("transferReason");
+        if (reasonEl) reasonEl.value = `Chuyển công tác từ ${contact.companyName} sang đơn vị mới từ tháng ${new Date().getMonth() + 1}/${new Date().getFullYear()}.`;
+        const primaryEl = document.getElementById("transferSetPrimary");
+        if (primaryEl) primaryEl.checked = false;
 
         modal.classList.add("open");
     }
@@ -969,19 +994,15 @@
                 e.preventDefault();
                 if (!activeContactId) return;
 
-                const toCustomerId = document.getElementById("transferNewCustomerId").value;
-                const newJobTitle = document.getElementById("transferNewJobTitle").value.trim();
-                const newDepartment = document.getElementById("transferNewDepartment").value.trim();
-                const transferDate = document.getElementById("transferDate").value;
-                const reason = document.getElementById("transferReason").value.trim();
-                const setAsPrimaryInNewComp = document.getElementById("transferSetPrimary").checked;
+                const toCustomerId = document.getElementById("transferNewCustomerId")?.value;
+                const newJobTitle = document.getElementById("transferNewJobTitle")?.value?.trim() || "";
+                const newDepartment = document.getElementById("transferNewDepartment")?.value?.trim() || "";
+                const transferDate = document.getElementById("transferDate")?.value || new Date().toISOString().split("T")[0];
+                const reason = document.getElementById("transferReason")?.value?.trim() || "";
+                const setAsPrimaryInNewComp = !!document.getElementById("transferSetPrimary")?.checked;
 
                 if (!toCustomerId) {
-                    alert("Vui lòng chọn doanh nghiệp đích.");
-                    return;
-                }
-                if (false) {
-                    alert("Vui lòng nhập chức danh mới tại đơn vị chuyển đến.");
+                    alert("Vui lòng chọn doanh nghiệp chuyển đến.");
                     return;
                 }
                 if (!reason) {
@@ -1312,7 +1333,7 @@
     // Auto-init on DOMContentLoaded
     async function bootContacts() {
         setupFormListeners();
-        for (const id of ["contactDepartment","contactNotes","contactStatus","transferNewJobTitle","transferNewDepartment","transferDate"]) {
+        for (const id of ["contactDepartment","contactNotes","contactStatus"]) {
             const input=document.getElementById(id);
             if (input) { input.required=false; input.disabled=true; input.closest(".form-field-group")?.setAttribute("hidden",""); }
         }

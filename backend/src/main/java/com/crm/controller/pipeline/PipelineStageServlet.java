@@ -88,6 +88,38 @@ public class PipelineStageServlet extends HttpServlet {
                         );
                     }
                 }
+
+                boolean hasTargetStages = items.stream().anyMatch(i -> "Tiềm năng".equals(i.get("name")));
+                if ((items.isEmpty() || !hasTargetStages) && pipelineId == 1) {
+                    ensureDefaultPipelineStages(connection, pipelineId);
+                    items.clear();
+                    try (
+                            PreparedStatement retryStmt =
+                                    connection.prepareStatement(
+                                            """
+                                            SELECT
+                                                id,
+                                                pipeline_id,
+                                                name,
+                                                order_no,
+                                                probability,
+                                                exit_condition,
+                                                condition_required,
+                                                active
+                                            FROM pipeline_stages
+                                            WHERE pipeline_id = ?
+                                            ORDER BY order_no ASC, id ASC
+                                            """
+                                    )
+                    ) {
+                        retryStmt.setLong(1, pipelineId);
+                        try (ResultSet rs2 = retryStmt.executeQuery()) {
+                            while (rs2.next()) {
+                                items.add(map(rs2));
+                            }
+                        }
+                    }
+                }
             }
 
             ResponseUtil.json(
@@ -817,5 +849,74 @@ public class PipelineStageServlet extends HttpServlet {
                         null
                 )
         );
+    }
+
+    private void ensureDefaultPipelineStages(Connection connection, long pipelineId) {
+        try (PreparedStatement countStmt = connection.prepareStatement("SELECT COUNT(*) FROM pipeline_stages WHERE pipeline_id = ?")) {
+            countStmt.setLong(1, pipelineId);
+            try (ResultSet rs = countStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    String insertSql = """
+                            INSERT INTO pipeline_stages(pipeline_id, name, order_no, probability, active)
+                            VALUES
+                            (?, 'Tiềm năng', 1, 10, 1),
+                            (?, 'Giải pháp', 2, 40, 1),
+                            (?, 'Đàm phán', 3, 70, 1),
+                            (?, 'Thành công', 4, 100, 1),
+                            (?, 'Thất bại', 5, 0, 1)
+                            """;
+                    try (PreparedStatement ps = connection.prepareStatement(insertSql)) {
+                        for (int i = 1; i <= 5; i++) ps.setLong(i, pipelineId);
+                        ps.executeUpdate();
+                    }
+                    return;
+                }
+            }
+        } catch (SQLException ignored) {
+        }
+
+        List<Object[]> stagesToEnsure = List.of(
+                new Object[]{"Tiềm năng", 1, 10},
+                new Object[]{"Giải pháp", 2, 40},
+                new Object[]{"Đàm phán", 3, 70},
+                new Object[]{"Thành công", 4, 100},
+                new Object[]{"Thất bại", 5, 0}
+        );
+        for (Object[] st : stagesToEnsure) {
+            String name = (String) st[0];
+            int orderNo = (Integer) st[1];
+            int prob = (Integer) st[2];
+            try (PreparedStatement check = connection.prepareStatement(
+                    "SELECT id FROM pipeline_stages WHERE pipeline_id = ? AND name = ?")) {
+                check.setLong(1, pipelineId);
+                check.setString(2, name);
+                try (ResultSet rs = check.executeQuery()) {
+                    if (!rs.next()) {
+                        int finalOrder = orderNo;
+                        try (PreparedStatement checkOrder = connection.prepareStatement(
+                                "SELECT MAX(order_no) FROM pipeline_stages WHERE pipeline_id = ?")) {
+                            checkOrder.setLong(1, pipelineId);
+                            try (ResultSet rsOrder = checkOrder.executeQuery()) {
+                                if (rsOrder.next()) {
+                                    int maxOrder = rsOrder.getInt(1);
+                                    if (maxOrder >= finalOrder) {
+                                        finalOrder = maxOrder + 1;
+                                    }
+                                }
+                            }
+                        }
+                        try (PreparedStatement insert = connection.prepareStatement(
+                                "INSERT INTO pipeline_stages(pipeline_id, name, order_no, probability, active) VALUES (?, ?, ?, ?, 1)")) {
+                            insert.setLong(1, pipelineId);
+                            insert.setString(2, name);
+                            insert.setInt(3, finalOrder);
+                            insert.setInt(4, prob);
+                            insert.executeUpdate();
+                        }
+                    }
+                }
+            } catch (SQLException ignored) {
+            }
+        }
     }
 }

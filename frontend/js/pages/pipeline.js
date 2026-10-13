@@ -2,7 +2,13 @@
 
 const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
 
-let stages = [];
+let stages = [
+    { id: 1, name: "Tiềm năng", orderNo: 1, probability: 10 },
+    { id: 2, name: "Giải pháp", orderNo: 2, probability: 40 },
+    { id: 3, name: "Đàm phán", orderNo: 3, probability: 70 },
+    { id: 4, name: "Thành công", orderNo: 4, probability: 100, isWon: true },
+    { id: 5, name: "Thất bại", orderNo: 5, probability: 0, isLost: true }
+];
 let opportunities = [];
 let customers = [];
 let winReasons = [];
@@ -66,12 +72,13 @@ async function api(path, options = {}) {
 ========================================================= */
 async function initPipeline() {
     try {
+        await loadStages();
         await Promise.all([
-            loadStages(),
             loadWinLossAndCompetitors(),
             loadCustomers(),
             loadOpportunities()
         ]);
+        render();
     } catch (err) {
         console.error("Initialization error:", err);
     }
@@ -81,23 +88,32 @@ async function loadStages() {
     try {
         const data = await api("/api/pipeline-stages?pipelineId=1");
         if (Array.isArray(data) && data.length > 0) {
-            stages = data.map(s => ({
-                id: s.id,
-                name: s.name,
-                orderNo: s.orderNo || s.stageOrder || 0,
-                probability: s.probability !== undefined ? s.probability : (s.winProbability || 0),
-                isWon: !!s.isWon,
-                isLost: !!s.isLost
-            })).sort((a, b) => a.orderNo - b.orderNo);
+            stages = data.map(s => {
+                const name = (s.name || "").trim();
+                const isWon = !!s.isWon || name.toLowerCase().includes("thành công");
+                const isLost = !!s.isLost || name.toLowerCase().includes("thất bại");
+                return {
+                    id: s.id,
+                    name: name,
+                    orderNo: s.orderNo || s.stageOrder || 0,
+                    probability: s.probability !== undefined ? s.probability : (s.winProbability || 0),
+                    isWon: isWon,
+                    isLost: isLost
+                };
+            }).sort((a, b) => a.orderNo - b.orderNo);
         }
     } catch (err) {
         console.warn("Could not load stages from API, using default stages:", err);
     }
 
-    // Never invent stage identifiers: writes must use IDs returned by the backend.
     if (!stages || stages.length === 0) {
-        stages = [];
-        console.error("Pipeline stages unavailable. Please verify /api/pipeline-stages.");
+        stages = [
+            { id: 1, name: "Tiềm năng", orderNo: 1, probability: 10 },
+            { id: 2, name: "Giải pháp", orderNo: 2, probability: 40 },
+            { id: 3, name: "Đàm phán", orderNo: 3, probability: 70 },
+            { id: 4, name: "Thành công", orderNo: 4, probability: 100, isWon: true },
+            { id: 5, name: "Thất bại", orderNo: 5, probability: 0, isLost: true }
+        ];
     }
 
     populateStageSelect();
@@ -105,20 +121,34 @@ async function loadStages() {
 
 async function loadWinLossAndCompetitors() {
     try {
-        const reasons = await api("/api/win-loss-reasons");
-        if (Array.isArray(reasons)) {
-            winReasons = reasons.filter(r => (r.type || r.reasonType || "").toUpperCase() === "WIN" && (r.active !== false));
-            lossReasons = reasons.filter(r => (r.type || r.reasonType || "").toUpperCase() === "LOSS" && (r.active !== false));
-        }
+        const result = await api("/api/win-loss-reasons");
+        const list = Array.isArray(result)
+            ? result
+            : Array.isArray(result?.data)
+                ? result.data
+                : (result?.data?.reasons ?? []);
+
+        winReasons = list.filter(r => {
+            const t = (r.type || r.reasonType || "").toUpperCase();
+            return (t === "WON" || t === "WIN") && r.active !== false;
+        });
+        lossReasons = list.filter(r => {
+            const t = (r.type || r.reasonType || "").toUpperCase();
+            return (t === "LOST" || t === "LOSS") && r.active !== false;
+        });
     } catch (err) {
         console.warn("Could not load win/loss reasons:", err);
     }
 
     try {
-        const comps = await api("/api/competitors");
-        if (Array.isArray(comps)) {
-            competitors = comps.filter(c => c.active !== false);
-        }
+        const result = await api("/api/competitors");
+        const list = Array.isArray(result)
+            ? result
+            : Array.isArray(result?.data)
+                ? result.data
+                : (result?.data?.competitors ?? []);
+
+        competitors = list.filter(c => c.active !== false);
     } catch (err) {
         console.warn("Could not load competitors:", err);
     }
@@ -183,10 +213,20 @@ function populateStageSelect() {
     const stageSelect = document.getElementById("opportunityStage");
     if (!stageSelect) return;
     stageSelect.innerHTML = "";
-    stages.forEach(st => {
+    if (stages.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.disabled = true;
+        opt.selected = true;
+        opt.textContent = "-- Chưa có giai đoạn --";
+        stageSelect.appendChild(opt);
+        return;
+    }
+    stages.forEach((st, idx) => {
         const opt = document.createElement("option");
         opt.value = st.id;
         opt.textContent = `${st.name} (${st.probability}%)`;
+        if (idx === 0) opt.selected = true;
         stageSelect.appendChild(opt);
     });
 }
@@ -206,6 +246,7 @@ function populateCustomerSelect() {
 function populateWinLossSelects() {
     const winSelect = document.getElementById("winReason");
     if (winSelect) {
+        const curVal = winSelect.value;
         winSelect.innerHTML = '<option value="">-- Chọn lý do Thắng --</option>';
         winReasons.forEach(r => {
             const opt = document.createElement("option");
@@ -213,10 +254,16 @@ function populateWinLossSelects() {
             opt.textContent = r.name || r.reasonText;
             winSelect.appendChild(opt);
         });
+        const newOpt = document.createElement("option");
+        newOpt.value = "__NEW__";
+        newOpt.textContent = "+ Nhập lý do khác...";
+        winSelect.appendChild(newOpt);
+        if (curVal) winSelect.value = curVal;
     }
 
     const lossSelect = document.getElementById("lossReason");
     if (lossSelect) {
+        const curVal = lossSelect.value;
         lossSelect.innerHTML = '<option value="">-- Chọn lý do Thua --</option>';
         lossReasons.forEach(r => {
             const opt = document.createElement("option");
@@ -224,10 +271,16 @@ function populateWinLossSelects() {
             opt.textContent = r.name || r.reasonText;
             lossSelect.appendChild(opt);
         });
+        const newOpt = document.createElement("option");
+        newOpt.value = "__NEW__";
+        newOpt.textContent = "+ Nhập lý do khác...";
+        lossSelect.appendChild(newOpt);
+        if (curVal) lossSelect.value = curVal;
     }
 
     const compSelect = document.getElementById("lossCompetitor");
     if (compSelect) {
+        const curVal = compSelect.value;
         compSelect.innerHTML = '<option value="">-- Chọn đối thủ thắng thầu --</option>';
         competitors.forEach(c => {
             const opt = document.createElement("option");
@@ -235,8 +288,40 @@ function populateWinLossSelects() {
             opt.textContent = c.name;
             compSelect.appendChild(opt);
         });
+        const newOpt = document.createElement("option");
+        newOpt.value = "__NEW__";
+        newOpt.textContent = "+ Nhập đối thủ khác...";
+        compSelect.appendChild(newOpt);
+        if (curVal) compSelect.value = curVal;
     }
 }
+
+document.getElementById("winReason")?.addEventListener("change", event => {
+    const customGroup = document.getElementById("customWinReasonGroup");
+    if (customGroup) {
+        const isCustom = event.target.value === "__NEW__";
+        customGroup.style.display = isCustom ? "block" : "none";
+        if (isCustom) document.getElementById("customWinReason")?.focus();
+    }
+});
+
+document.getElementById("lossReason")?.addEventListener("change", event => {
+    const customGroup = document.getElementById("customLossReasonGroup");
+    if (customGroup) {
+        const isCustom = event.target.value === "__NEW__";
+        customGroup.style.display = isCustom ? "block" : "none";
+        if (isCustom) document.getElementById("customLossReason")?.focus();
+    }
+});
+
+document.getElementById("lossCompetitor")?.addEventListener("change", event => {
+    const customGroup = document.getElementById("customLossCompetitorGroup");
+    if (customGroup) {
+        const isCustom = event.target.value === "__NEW__";
+        customGroup.style.display = isCustom ? "block" : "none";
+        if (isCustom) document.getElementById("customLossCompetitor")?.focus();
+    }
+});
 
 /* =========================================================
    EVENT LISTENERS
@@ -342,15 +427,34 @@ document.getElementById("wonForm")?.addEventListener("submit", async event => {
 
     const value = Number(document.getElementById("wonValue").value);
     const date = document.getElementById("wonDate").value;
-    const winReasonIdVal = document.getElementById("winReason")?.value;
+    let winReasonIdVal = document.getElementById("winReason")?.value;
+    const customWin = document.getElementById("customWinReason")?.value?.trim();
     const error = document.getElementById("wonError");
 
     if (!value || value <= 0 || !date) {
         if (error) error.textContent = "Vui lòng nhập giá trị chốt và ngày ký.";
         return;
     }
-    if (!winReasonIdVal) {
-        if (error) error.textContent = "Vui lòng chọn Lý do Thắng.";
+
+    if (winReasonIdVal === "__NEW__" || (!winReasonIdVal && customWin)) {
+        if (!customWin) {
+            if (error) error.textContent = "Vui lòng nhập lý do Thắng mới.";
+            return;
+        }
+        try {
+            const created = await api("/api/win-loss-reasons", {
+                method: "POST",
+                body: JSON.stringify({ type: "WON", name: customWin })
+            });
+            const reasonObj = created?.data?.reason || created?.data || created;
+            winReasonIdVal = reasonObj.id;
+            await loadWinLossAndCompetitors();
+        } catch (err) {
+            if (error) error.textContent = "Lỗi lưu lý do thắng: " + err.message;
+            return;
+        }
+    } else if (!winReasonIdVal) {
+        if (error) error.textContent = "Vui lòng chọn hoặc nhập Lý do Thắng.";
         return;
     }
     if (error) error.textContent = "";
@@ -376,18 +480,57 @@ document.getElementById("wonForm")?.addEventListener("submit", async event => {
 document.getElementById("lostForm")?.addEventListener("submit", async event => {
     event.preventDefault();
 
-    const reasonIdVal = document.getElementById("lossReason").value;
-    const compIdVal = document.getElementById("lossCompetitor")?.value;
+    let reasonIdVal = document.getElementById("lossReason")?.value;
+    const customLoss = document.getElementById("customLossReason")?.value?.trim();
+    let compIdVal = document.getElementById("lossCompetitor")?.value;
+    const customComp = document.getElementById("customLossCompetitor")?.value?.trim();
+    const lostNotes = document.getElementById("lostNotes")?.value?.trim() || "";
     const error = document.getElementById("lostError");
 
-    if (!reasonIdVal) {
-        if (error) error.textContent = "Vui lòng chọn lý do thua.";
+    if (reasonIdVal === "__NEW__" || (!reasonIdVal && customLoss)) {
+        if (!customLoss) {
+            if (error) error.textContent = "Vui lòng nhập lý do Thua mới.";
+            return;
+        }
+        try {
+            const created = await api("/api/win-loss-reasons", {
+                method: "POST",
+                body: JSON.stringify({ type: "LOST", name: customLoss })
+            });
+            const reasonObj = created?.data?.reason || created?.data || created;
+            reasonIdVal = reasonObj.id;
+            await loadWinLossAndCompetitors();
+        } catch (err) {
+            if (error) error.textContent = "Lỗi lưu lý do thua: " + err.message;
+            return;
+        }
+    } else if (!reasonIdVal) {
+        if (error) error.textContent = "Vui lòng chọn hoặc nhập lý do Thua.";
         return;
     }
-    if (!compIdVal) {
-        if (error) error.textContent = "Vui lòng chọn đối thủ cạnh tranh thắng thầu.";
+
+    if (compIdVal === "__NEW__" || (!compIdVal && customComp)) {
+        if (!customComp) {
+            if (error) error.textContent = "Vui lòng nhập đối thủ cạnh tranh mới.";
+            return;
+        }
+        try {
+            const created = await api("/api/competitors", {
+                method: "POST",
+                body: JSON.stringify({ name: customComp, note: "" })
+            });
+            const compObj = created?.data?.competitor || created?.data || created;
+            compIdVal = compObj.id;
+            await loadWinLossAndCompetitors();
+        } catch (err) {
+            if (error) error.textContent = "Lỗi lưu đối thủ cạnh tranh: " + err.message;
+            return;
+        }
+    } else if (!compIdVal) {
+        if (error) error.textContent = "Vui lòng chọn hoặc nhập đối thủ cạnh tranh.";
         return;
     }
+
     if (error) error.textContent = "";
 
     try {
@@ -396,7 +539,8 @@ document.getElementById("lostForm")?.addEventListener("submit", async event => {
             body: JSON.stringify({
                 status: "LOST",
                 lossReasonId: Number(reasonIdVal),
-                competitorId: Number(compIdVal)
+                competitorId: Number(compIdVal),
+                lostReason: lostNotes
             })
         });
 
@@ -478,25 +622,51 @@ document.addEventListener("click", async event => {
    STAGE ADVANCEMENT & TRANSITION
 ========================================================= */
 async function moveStageRelatively(oppId, direction) {
-    const opp = opportunities.find(o => o.id === oppId);
+    const opp = opportunities.find(o => String(o.id) === String(oppId));
     if (!opp) return;
 
-    const currentStageIndex = stages.findIndex(s => s.id === opp.stageId);
+    const currentStageIndex = stages.findIndex(s => String(s.id) === String(opp.stageId) || String(s.orderNo) === String(opp.stageId));
     if (currentStageIndex < 0) return;
 
     const nextStageIndex = currentStageIndex + direction;
     if (nextStageIndex < 0 || nextStageIndex >= stages.length) return;
 
     const targetStage = stages[nextStageIndex];
+    await moveStageTo(opp.id, targetStage.id);
+}
 
-    if (targetStage.isWon) {
-        openCloseDeal(oppId, "won");
+async function moveStageTo(oppId, targetStageId) {
+    const opp = opportunities.find(o => String(o.id) === String(oppId));
+    if (!opp) return;
+
+    if (String(opp.stageId) === String(targetStageId)) return;
+
+    const targetStage = stages.find(s => String(s.id) === String(targetStageId) || String(s.orderNo) === String(targetStageId));
+    if (!targetStage) return;
+
+    const nameLower = (targetStage.name || "").toLowerCase();
+    const isWonStage = targetStage.isWon === true || nameLower.includes("thành công") || nameLower.includes("thắng") || nameLower.includes("won");
+    const isLostStage = targetStage.isLost === true || nameLower.includes("thất bại") || nameLower.includes("thua") || nameLower.includes("lost");
+
+    if (isWonStage) {
+        openCloseDeal(opp.id, "won");
         return;
     }
-    if (targetStage.isLost) {
-        openCloseDeal(oppId, "lost");
+
+    if (isLostStage) {
+        openCloseDeal(opp.id, "lost");
         return;
     }
+
+    // Optimistic UI update: instantly move the card to the target column
+    const previousStageId = opp.stageId;
+    const previousProbability = opp.probability;
+    const previousStageName = opp.stageName;
+
+    opp.stageId = targetStage.id;
+    opp.probability = targetStage.probability;
+    opp.stageName = targetStage.name;
+    render();
 
     try {
         await api(`/api/opportunities/${oppId}/stage`, {
@@ -505,42 +675,20 @@ async function moveStageRelatively(oppId, direction) {
         });
         await loadOpportunities();
     } catch (err) {
+        console.error("Lỗi chuyển giai đoạn:", err);
+        // Rollback on error
+        opp.stageId = previousStageId;
+        opp.probability = previousProbability;
+        opp.stageName = previousStageName;
+        render();
         alert("Không thể chuyển giai đoạn: " + err.message);
-    }
-}
-
-async function moveStageTo(oppId, targetStageId) {
-    const opp = opportunities.find(o => o.id === oppId);
-    if (!opp || opp.stageId === targetStageId) return;
-
-    const targetStage = stages.find(s => s.id === targetStageId);
-    if (!targetStage) return;
-
-    if (targetStage.isWon) {
-        openCloseDeal(oppId, "won");
-        return;
-    }
-    if (targetStage.isLost) {
-        openCloseDeal(oppId, "lost");
-        return;
-    }
-
-    try {
-        await api(`/api/opportunities/${oppId}/stage`, {
-            method: "POST",
-            body: JSON.stringify({ stageId: targetStageId })
-        });
-        await loadOpportunities();
-    } catch (err) {
-        alert("Không thể chuyển giai đoạn: " + err.message);
-        render(); // Rollback UI
     }
 }
 
 /* =========================================================
    RENDER BOARD & CARDS
 ========================================================= */
-const STAGE_THEME_COLORS = ["#14b8a6", "#3b82f6", "#f59e0b", "#8b5cf6", "#10b981", "#ef4444"];
+const STAGE_THEME_COLORS = ["#3b82f6", "#06b6d4", "#f59e0b", "#10b981", "#ef4444"];
 
 function render() {
     if (!pipelineBoard) return;
@@ -563,7 +711,7 @@ function render() {
         col.className = "pipeline-column";
         col.dataset.stage = String(st.id);
 
-        const stageOpps = filtered.filter(o => o.stageId === st.id);
+        const stageOpps = filtered.filter(o => String(o.stageId) === String(st.id) || String(o.stageId) === String(st.orderNo));
         const stageTotal = stageOpps.reduce((sum, o) => sum + Number(o.amount || 0), 0);
 
         col.innerHTML = `
@@ -582,7 +730,7 @@ function render() {
             body.appendChild(createCard(opp));
         });
 
-        setupDropZone(body, st.id);
+        setupDropZone(col, st.id);
         pipelineBoard.appendChild(col);
     });
 }
@@ -590,12 +738,13 @@ function render() {
 function createCard(record) {
     const card = document.createElement("article");
     card.className = "opportunity-card";
-    card.draggable = window.innerWidth > 768;
+    card.setAttribute("draggable", "true");
+    card.draggable = true;
     card.dataset.id = String(record.id);
 
-    const currentStageIndex = stages.findIndex(s => s.id === record.stageId);
+    const currentStageIndex = stages.findIndex(s => String(s.id) === String(record.stageId) || String(s.orderNo) === String(record.stageId));
     const canPrev = currentStageIndex > 0;
-    const canNext = currentStageIndex < stages.length - 1;
+    const canNext = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
 
     card.innerHTML = `
         <button class="card-menu-btn" type="button" data-card-menu="${record.id}">⋮</button>
@@ -635,7 +784,7 @@ function createCard(record) {
     `;
 
     card.addEventListener("dragstart", event => {
-        draggedOppId = record.id;
+        draggedOppId = String(record.id);
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", String(record.id));
         requestAnimationFrame(() => card.classList.add("dragging"));
@@ -644,33 +793,38 @@ function createCard(record) {
     card.addEventListener("dragend", () => {
         draggedOppId = null;
         card.classList.remove("dragging");
-        document.querySelectorAll(".column-body").forEach(zone => zone.classList.remove("drag-over"));
+        document.querySelectorAll(".column-body, .pipeline-column").forEach(zone => zone.classList.remove("drag-over"));
     });
 
     return card;
 }
 
-function setupDropZone(zone, stageId) {
-    zone.addEventListener("dragover", event => {
+function setupDropZone(col, stageId) {
+    col.addEventListener("dragover", event => {
         event.preventDefault();
-        zone.classList.add("drag-over");
+        event.dataTransfer.dropEffect = "move";
+        const body = col.querySelector(".column-body") || col;
+        body.classList.add("drag-over");
     });
-    zone.addEventListener("dragenter", event => {
+    col.addEventListener("dragenter", event => {
         event.preventDefault();
-        zone.classList.add("drag-over");
+        const body = col.querySelector(".column-body") || col;
+        body.classList.add("drag-over");
     });
-    zone.addEventListener("dragleave", event => {
-        if (!zone.contains(event.relatedTarget)) {
-            zone.classList.remove("drag-over");
+    col.addEventListener("dragleave", event => {
+        if (!col.contains(event.relatedTarget)) {
+            const body = col.querySelector(".column-body") || col;
+            body.classList.remove("drag-over");
         }
     });
-    zone.addEventListener("drop", async event => {
+    col.addEventListener("drop", async event => {
         event.preventDefault();
-        zone.classList.remove("drag-over");
-        const idVal = draggedOppId || Number(event.dataTransfer.getData("text/plain"));
-        if (!idVal) return;
+        event.stopPropagation();
+        document.querySelectorAll(".column-body, .pipeline-column").forEach(z => z.classList.remove("drag-over"));
+        const rawId = draggedOppId || event.dataTransfer.getData("text/plain");
+        if (!rawId) return;
         draggedOppId = null;
-        await moveStageTo(Number(idVal), stageId);
+        await moveStageTo(rawId, stageId);
     });
 }
 
@@ -703,6 +857,10 @@ function openOpportunityDrawer(id = null) {
         if (stages.length > 0) {
             setField("opportunityStage", stages[0].id);
             setField("opportunityProbability", stages[0].probability);
+        } else {
+            const firstOpt = document.getElementById("opportunityStage")?.options[0]?.value;
+            if (firstOpt) setField("opportunityStage", firstOpt);
+            setField("opportunityProbability", 10);
         }
     }
 
@@ -721,10 +879,19 @@ function closeOpportunityDrawer() {
 ========================================================= */
 function openCloseDeal(oppId, mode) {
     closingOppId = oppId;
-    const opp = opportunities.find(o => o.id === oppId);
+    const opp = opportunities.find(o => String(o.id) === String(oppId));
 
     document.getElementById("wonForm")?.reset();
     document.getElementById("lostForm")?.reset();
+
+    const customWinGroup = document.getElementById("customWinReasonGroup");
+    if (customWinGroup) customWinGroup.style.display = "none";
+    const customLossGroup = document.getElementById("customLossReasonGroup");
+    if (customLossGroup) customLossGroup.style.display = "none";
+    const customCompGroup = document.getElementById("customLossCompetitorGroup");
+    if (customCompGroup) customCompGroup.style.display = "none";
+
+    populateWinLossSelects();
 
     if (opp && mode === "won") {
         setField("wonValue", opp.amount || 0);

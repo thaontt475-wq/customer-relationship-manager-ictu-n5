@@ -23,7 +23,8 @@ public class MasterDataServlet extends HttpServlet {
                     "industry",
                     "company-size",
                     "lead-source",
-                    "activity-type"
+                    "activity-type",
+                    "region"
             );
 
     private final PermissionService permissions =
@@ -38,7 +39,13 @@ public class MasterDataServlet extends HttpServlet {
 
         try {
 
-            require(req, "masterdata.read");
+            requireAny(
+                    req,
+                    "masterdata.read",
+                    "customer.read",
+                    "customer.create",
+                    "customer.manage"
+            );
 
             String type = getType(req);
 
@@ -214,9 +221,11 @@ public class MasterDataServlet extends HttpServlet {
 
         try {
 
-            require(
+            requireAny(
                     req,
-                    "masterdata.manage"
+                    "masterdata.manage",
+                    "customer.create",
+                    "customer.manage"
             );
 
             String[] parts =
@@ -791,6 +800,13 @@ public class MasterDataServlet extends HttpServlet {
             HttpServletRequest req,
             String permission
     ) throws Exception {
+        requireAny(req, permission);
+    }
+
+    private void requireAny(
+            HttpServletRequest req,
+            String... perms
+    ) throws Exception {
 
         HttpSession session =
                 req.getSession(false);
@@ -812,15 +828,13 @@ public class MasterDataServlet extends HttpServlet {
                                 "userId"
                         );
 
-        if (
-                !permissions.hasPermission(
-                        userId,
-                        permission
-                )
-        ) {
-
-            throw new SecurityException();
+        for (String perm : perms) {
+            if (permissions.hasPermission(userId, perm)) {
+                return;
+            }
         }
+
+        throw new SecurityException();
     }
 
 

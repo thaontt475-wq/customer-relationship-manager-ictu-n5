@@ -98,8 +98,9 @@ public class OpportunityServlet extends HttpServlet {
                     Long lossReasonId = body.get("lossReasonId") != null ? ((Number) body.get("lossReasonId")).longValue() : null;
                     Long competitorId = body.get("competitorId") != null ? ((Number) body.get("competitorId")).longValue() : null;
                     String lostReason = body.get("lostReason") != null ? String.valueOf(body.get("lostReason")) : null;
+                    Double amount = body.get("amount") != null ? ((Number) body.get("amount")).doubleValue() : null;
 
-                    var closed = opportunityService.closeDeal(currentUserId, targetId, status, winReasonId, lossReasonId, competitorId, lostReason);
+                    var closed = opportunityService.closeDeal(currentUserId, targetId, status, winReasonId, lossReasonId, competitorId, lostReason, amount);
                     ResponseUtil.json(resp, 200, ApiResponse.success("Đóng cơ hội thành công", closed));
                     return;
                 }
