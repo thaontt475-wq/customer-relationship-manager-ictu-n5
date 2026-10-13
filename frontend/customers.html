@@ -88,6 +88,11 @@
             <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-4 2.7-7 6-7s6 3 6 7"/><path d="M15 14c3 0 5 2 5 5"/></svg></span>
             <span class="crm-nav-label">Người dùng</span>
         </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h7"/></svg></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
     </nav>
 </aside>
 
@@ -442,7 +447,10 @@
 
                 <!-- Industry -->
                 <div class="field-group" id="groupIndustry">
-                    <label class="field-label" for="industrySelect">Ngành nghề kinh doanh</label>
+                    <div class="field-label-row">
+                        <label class="field-label" for="industrySelect">Ngành nghề kinh doanh</label>
+                        <button type="button" id="btnQuickAddIndustry" class="btn-quick-add" title="Thêm ngành nghề mới">+ Thêm mới</button>
+                    </div>
                     <select id="industrySelect" class="crm-input">
                         <option value="">-- Chọn ngành nghề --</option>
                     </select>
@@ -450,7 +458,10 @@
 
                 <!-- Company Size -->
                 <div class="field-group" id="groupCompanySize">
-                    <label class="field-label" for="companySizeSelect">Quy mô doanh nghiệp</label>
+                    <div class="field-label-row">
+                        <label class="field-label" for="companySizeSelect">Quy mô doanh nghiệp</label>
+                        <button type="button" id="btnQuickAddCompanySize" class="btn-quick-add" title="Thêm quy mô doanh nghiệp mới">+ Thêm mới</button>
+                    </div>
                     <select id="companySizeSelect" class="crm-input">
                         <option value="">-- Chọn quy mô nhân sự --</option>
                     </select>

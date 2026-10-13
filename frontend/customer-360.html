@@ -1135,25 +1135,14 @@
 
                 <div class="form-field-group">
                     <label for="transferNewCustomerId">Doanh nghiệp chuyển đến <span class="req-star">*</span></label>
-                    <select id="transferNewCustomerId" class="crm-input" required></select>
+                    <select id="transferNewCustomerId" class="crm-input" required>
+                        <option value="" disabled selected>-- Chọn doanh nghiệp chuyển đến --</option>
+                    </select>
                 </div>
 
-                <div class="form-grid-2">
-                    <div class="form-field-group">
-                        <label for="transferNewJobTitle">Chức danh tại công ty mới <span class="req-star">*</span></label>
-                        <input id="transferNewJobTitle" class="crm-input" type="text" placeholder="Chức danh mới..." required>
-                    </div>
-
-                    <div class="form-field-group">
-                        <label for="transferNewDepartment">Phòng ban mới</label>
-                        <input id="transferNewDepartment" class="crm-input" type="text" placeholder="Phòng ban mới...">
-                    </div>
-                </div>
-
-                <div class="form-field-group">
-                    <label for="transferDate">Ngày điều chuyển công tác <span class="req-star">*</span></label>
-                    <input id="transferDate" class="crm-input" type="date" required>
-                </div>
+                <input id="transferNewJobTitle" type="hidden">
+                <input id="transferNewDepartment" type="hidden">
+                <input id="transferDate" type="hidden">
 
                 <div class="form-field-group" style="background:rgba(217,119,6,0.06); border:1px dashed rgba(217,119,6,0.3); border-radius:8px; padding:10px;">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">

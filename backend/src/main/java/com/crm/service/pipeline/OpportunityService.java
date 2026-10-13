@@ -128,8 +128,9 @@ public class OpportunityService {
             }
         }
 
+        long actualStageId = targetStage.get("id") != null ? ((Number) targetStage.get("id")).longValue() : targetStageId;
         int prob = targetStage.get("winProbability") != null ? ((Number) targetStage.get("winProbability")).intValue() : 0;
-        opportunityDAO.updateStage(id, targetStageId, prob);
+        opportunityDAO.updateStage(id, actualStageId, prob);
 
         return getById(currentUserId, id);
     }
@@ -142,6 +143,19 @@ public class OpportunityService {
             Long lossReasonId,
             Long competitorId,
             String lostReason
+    ) throws Exception {
+        return closeDeal(currentUserId, id, status, winReasonId, lossReasonId, competitorId, lostReason, null);
+    }
+
+    public Map<String, Object> closeDeal(
+            long currentUserId,
+            long id,
+            String status,
+            Long winReasonId,
+            Long lossReasonId,
+            Long competitorId,
+            String lostReason,
+            Double amount
     ) throws Exception {
         dataScopeService.resolve(currentUserId, "opportunity", "close");
         Map<String, Object> opp = opportunityDAO.findById(id);
@@ -171,7 +185,7 @@ public class OpportunityService {
             throw new IllegalArgumentException("Trạng thái đóng cơ hội phải là WON hoặc LOST.");
         }
 
-        opportunityDAO.closeDeal(id, status.toUpperCase(), winReasonId, lossReasonId, competitorId, lostReason);
+        opportunityDAO.closeDeal(id, status.toUpperCase(), winReasonId, lossReasonId, competitorId, lostReason, amount);
         return getById(currentUserId, id);
     }
 

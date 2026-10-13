@@ -175,6 +175,9 @@
 
     cursor: grab;
 
+    user-select: none;
+    -webkit-user-select: none;
+
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--crm-ease);
 }
 

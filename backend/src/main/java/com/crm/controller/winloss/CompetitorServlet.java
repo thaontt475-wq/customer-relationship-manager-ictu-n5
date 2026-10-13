@@ -108,6 +108,10 @@ public class CompetitorServlet
                     !permissionService.hasPermission(
                             userId,
                             "competitor.manage"
+                    ) &&
+                    !permissionService.hasPermission(
+                            userId,
+                            "competitor.read"
                     )
             ) {
                 forbidden(response);

@@ -47,6 +47,20 @@
         renderActiveFilterChips();
         syncWithGlobalState();
         try { const data=await CrmApi.request("/api/customer-lookups"); window.CustomerFilterManager.populateCatalogs(data);window.CustomerFilterManager.populateOwners(data.owners); } catch(error) { showToast(error.message,"error"); }
+        try {
+            const regionsData = await CrmApi.request("/api/master-data/region?active=true");
+            if (Array.isArray(regionsData) && regionsData.length > 0 && elements.regionFilter) {
+                const currentVal = elements.regionFilter.value;
+                elements.regionFilter.innerHTML = '<option value="">Tất cả khu vực địa lý</option>';
+                regionsData.forEach(reg => {
+                    const opt = document.createElement("option");
+                    opt.value = reg.code;
+                    opt.textContent = `${reg.name} (${reg.code})`;
+                    elements.regionFilter.appendChild(opt);
+                });
+                if (currentVal) elements.regionFilter.value = currentVal;
+            }
+        } catch (_) {}
     }
 
     function cacheElements() {

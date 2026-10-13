@@ -52,8 +52,27 @@ public class Customer360DAO {
         }
     }
     public BigDecimal signedValue(long id) throws SQLException {
-        try(Connection c=DatabaseConfig.getConnection(); PreparedStatement ps=c.prepareStatement("SELECT COALESCE(SUM(total_amount),0) FROM customer_contracts WHERE customer_id=? AND status='SIGNED'")) {
-            ps.setLong(1,id);try(ResultSet rs=ps.executeQuery()){rs.next();return rs.getBigDecimal(1);}
+        try(Connection c=DatabaseConfig.getConnection()) {
+            BigDecimal totalContracts = BigDecimal.ZERO;
+            try (PreparedStatement ps=c.prepareStatement("SELECT COALESCE(SUM(total_amount),0) FROM customer_contracts WHERE customer_id=? AND status='SIGNED'")) {
+                ps.setLong(1,id);
+                try(ResultSet rs=ps.executeQuery()){
+                    if (rs.next()) totalContracts = rs.getBigDecimal(1);
+                }
+            } catch (Exception ignored) {}
+
+            BigDecimal totalWonOpps = BigDecimal.ZERO;
+            try (PreparedStatement ps=c.prepareStatement("SELECT COALESCE(SUM(amount),0) FROM opportunities WHERE customer_id=? AND status='WON' AND is_deleted=0")) {
+                ps.setLong(1,id);
+                try(ResultSet rs=ps.executeQuery()){
+                    if (rs.next()) totalWonOpps = rs.getBigDecimal(1);
+                }
+            } catch (Exception ignored) {}
+
+            if (totalContracts != null && totalContracts.compareTo(BigDecimal.ZERO) > 0) {
+                return totalContracts;
+            }
+            return totalWonOpps != null ? totalWonOpps : BigDecimal.ZERO;
         }
     }
 }
