@@ -28,21 +28,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>Cơ cấu tổ chức</title>
+<title>Cơ cấu tổ chức &amp; Nhóm kinh doanh</title>
 
 <link rel="stylesheet" href="css/design-system.css">
 <link rel="stylesheet" href="css/app-shell.css">
 <link rel="stylesheet" href="css/pages/organization.css">
-
-
-
-
-
-
-
-
-
-
 <link rel="stylesheet" href="css/animations.css">
 </head>
 
@@ -92,8 +82,6 @@
         </a>
 
     </nav>
-
-    
 
 </aside>
 
@@ -151,25 +139,37 @@
                 Cấu hình / Tổ chức
             </p>
 
-            <h1>
-                Cơ cấu tổ chức
+            <h1 id="pageHeadingTitle">
+                Nhóm kinh doanh &amp; Khu vực địa lý
             </h1>
 
-            <span>
-                Quản lý phòng ban, nhóm kinh doanh và cấp quản lý.
+            <span id="pageHeadingSub">
+                Quản lý cây nhóm kinh doanh, trưởng nhóm và gán khu vực địa lý cho nhóm.
             </span>
 
         </div>
 
         <button
-            id="addRootOrg"
+            id="addMainActionBtn"
             class="crm-btn crm-btn-primary"
             type="button"
         >
-            + Thêm đơn vị
+            + Thêm nhóm kinh doanh
         </button>
 
     </section>
+
+    <!-- TAB SWITCHER: Nhóm kinh doanh vs Phòng ban -->
+    <div class="org-nav-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--crm-border); padding-bottom: 8px;">
+        <button id="tabTeamsMode" class="crm-btn crm-btn-primary" type="button" style="font-weight: 600;">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; margin-right: 6px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Nhóm kinh doanh &amp; Khu vực
+        </button>
+        <button id="tabUnitsMode" class="crm-btn crm-btn-secondary" type="button" style="font-weight: 600;">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px; margin-right: 6px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Phòng ban nội bộ
+        </button>
+    </div>
 
 
     <section class="organization-grid">
@@ -179,12 +179,12 @@
             <header class="section-header">
 
                 <div>
-                    <h2>
-                        Cây tổ chức
+                    <h2 id="treeCardTitle">
+                        Cây nhóm kinh doanh
                     </h2>
 
-                    <p>
-                        Bấm vào một đơn vị để xem hoặc chỉnh sửa.
+                    <p id="treeCardSubtitle">
+                        Cấu trúc cây quyết định phạm vi dữ liệu mà Trưởng nhóm nhìn thấy.
                     </p>
                 </div>
 
@@ -213,7 +213,7 @@
                 id="orgDetailEmpty"
                 class="detail-empty"
             >
-                Chọn một đơn vị ở cây tổ chức.
+                Chọn một nhóm hoặc đơn vị ở cây tổ chức.
             </div>
 
 
@@ -225,7 +225,7 @@
                 <header class="detail-head">
 
                     <div>
-                        <small>Đơn vị đang chọn</small>
+                        <small id="detailBadgeType">Nhóm kinh doanh đang chọn</small>
                         <h2 id="detailName">—</h2>
                     </div>
 
@@ -241,27 +241,48 @@
 
                 <dl class="detail-list">
 
-                    <div>
+                    <div id="rowDetailCode">
                         <dt>Mã đơn vị</dt>
                         <dd id="detailCode">—</dd>
                     </div>
 
+                    <div id="rowDetailRegion">
+                        <dt>Khu vực địa lý phụ trách</dt>
+                        <dd id="detailRegion">—</dd>
+                    </div>
+
                     <div>
-                        <dt>Đơn vị cha</dt>
+                        <dt id="labelDetailParent">Nhóm cấp trên</dt>
                         <dd id="detailParent">—</dd>
                     </div>
 
                     <div>
-                        <dt>Người quản lý</dt>
+                        <dt id="labelDetailManager">Trưởng nhóm</dt>
                         <dd id="detailManager">—</dd>
                     </div>
 
-                    <div>
+                    <div id="rowDetailMembersCount">
+                        <dt>Số lượng nhân sự trực thuộc</dt>
+                        <dd id="detailMembersCount">0 nhân viên</dd>
+                    </div>
+
+                    <div id="rowDetailDescription">
                         <dt>Mô tả</dt>
                         <dd id="detailDescription">—</dd>
                     </div>
 
                 </dl>
+
+                <!-- KHUNG DANH SÁCH THÀNH VIÊN TRỰC THUỘC (CHO NHÓM KINH DOANH) -->
+                <div id="teamMembersContainer" class="team-members-box">
+                    <h3>
+                        <span>Nhân viên trong nhóm</span>
+                        <small id="teamMembersTotalBadge" class="team-badge-members">0</small>
+                    </h3>
+                    <div id="teamMembersList" class="team-members-list-wrapper">
+                        <div class="team-members-empty">Đang tải...</div>
+                    </div>
+                </div>
 
 
                 <div class="detail-actions">
@@ -271,7 +292,7 @@
                         class="crm-btn crm-btn-secondary"
                         type="button"
                     >
-                        + Thêm đơn vị con
+                        + Thêm nhóm con
                     </button>
 
                     <button
@@ -305,7 +326,73 @@
 <aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
 
 
-<!-- ORGANIZATION DRAWER -->
+<!-- TEAM DRAWER (THÊM / SỬA NHÓM KINH DOANH) -->
+<div id="teamOverlay" class="org-overlay"></div>
+<aside id="teamDrawer" class="org-drawer">
+    <header>
+        <div>
+            <strong id="teamDrawerTitle">Thêm nhóm kinh doanh</strong>
+            <span>Cấu trúc cây, trưởng nhóm &amp; khu vực địa lý</span>
+        </div>
+        <button id="closeTeamDrawer" type="button">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+    </header>
+
+    <form id="teamForm" novalidate>
+        <input id="editingTeamId" type="hidden">
+
+        <label>
+            Tên nhóm kinh doanh <em>*</em>
+            <input id="teamName" class="crm-input" type="text" placeholder="Ví dụ: Kinh doanh Hà Nội 1" required>
+        </label>
+
+        <label>
+            Nhóm cấp trên (Cây phân cấp)
+            <select id="teamParent" class="crm-input">
+                <option value="">(Là nhóm gốc / Cấp cao nhất)</option>
+            </select>
+        </label>
+
+        <label>
+            Trưởng nhóm kinh doanh
+            <select id="teamLeader" class="crm-input">
+                <option value="">Chưa chọn trưởng nhóm</option>
+            </select>
+            <span style="display:block; margin-top:4px; font-size:11px; color:var(--crm-muted); font-weight:normal;">
+                Trưởng nhóm sẽ có quyền xem dữ liệu của nhóm và tất cả các nhóm con cháu.
+            </span>
+        </label>
+
+        <label>
+            Khu vực địa lý gán cho nhóm
+            <select id="teamRegion" class="crm-input">
+                <option value="">Chưa gán khu vực</option>
+            </select>
+            <span style="display:block; margin-top:4px; font-size:11px; color:var(--crm-muted); font-weight:normal;">
+                Khai báo khu vực mới tại Danh mục dùng chung &rarr; Khu vực địa lý.
+            </span>
+        </label>
+
+        <label>
+            Trạng thái hoạt động
+            <select id="teamActive" class="crm-input">
+                <option value="true">Đang hoạt động</option>
+                <option value="false">Ngừng hoạt động</option>
+            </select>
+        </label>
+
+        <div id="teamFormError" class="form-error"></div>
+
+        <footer>
+            <button id="cancelTeam" class="crm-btn crm-btn-secondary" type="button">Hủy</button>
+            <button class="crm-btn crm-btn-primary" type="submit">Lưu nhóm</button>
+        </footer>
+    </form>
+</aside>
+
+
+<!-- ORGANIZATION DRAWER (PHÒNG BAN NỘI BỘ) -->
 
 <div
     id="orgOverlay"
@@ -326,7 +413,7 @@
             </strong>
 
             <span>
-                Cấu hình phòng ban / nhóm
+                Cấu hình phòng ban nội bộ
             </span>
         </div>
 
@@ -453,16 +540,9 @@
 </aside>
 
 
-
-
-
 <script src="js/pages/organization.js"></script>
 
 <script src="js/page-transition.js"></script>
-
-
-
-
 <script src="js/theme.js"></script>
 <script src="js/shared-shell.js"></script>
 <script src="js/ui-core.js"></script>

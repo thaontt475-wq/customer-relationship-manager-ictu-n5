@@ -71,8 +71,16 @@ function normalizePayload(raw) {
     const oppsClosed = raw.closedOpportunities || (Array.isArray(raw.opportunities) ? raw.opportunities.filter(o => o.status !== "OPEN") : (raw.opportunities?.closed || []));
 
     // Financial KPIs calculation
-    const wonSum = raw.totalContractValue;
-    const pipelineSum = raw.openOpportunityValue;
+    const oppsWon = oppsClosed.filter(o => o.status === "WON");
+    const oppsWonSum = oppsWon.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const wonSum = (raw.totalContractValue != null && Number(raw.totalContractValue) > 0)
+        ? Number(raw.totalContractValue)
+        : oppsWonSum;
+
+    const pipelineSum = (raw.openOpportunityValue != null && Number(raw.openOpportunityValue) > 0)
+        ? Number(raw.openOpportunityValue)
+        : oppsOpen.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+
     const contacts = (raw.contacts || []).map(c=>({...c,jobTitle:c.title,decisionRole:c.buyingRole,isPrimary:!!c.isPrimary}));
     const activities = raw.activities || [];
     const attachments = raw.attachments || [];
@@ -81,9 +89,9 @@ function normalizePayload(raw) {
         customer: cust,
         kpis: {
             totalWon: wonSum,
-            wonDealsCount: raw.kpis?.wonDealsCount ?? oppsClosed.filter(o => o.status === "WON").length,
+            wonDealsCount: (raw.kpis?.wonDealsCount ?? 0) || oppsWon.length,
             openPipeline: pipelineSum,
-            openDealsCount: raw.kpis?.openDealsCount ?? oppsOpen.length,
+            openDealsCount: (raw.kpis?.openDealsCount ?? 0) || oppsOpen.length,
             contactsCount: raw.kpis?.contactsCount ?? contacts.length,
             activitiesCount: raw.kpis?.activitiesCount ?? activities.length
         },
@@ -211,7 +219,8 @@ function renderKPIs() {
     const wonValEl = document.getElementById("kpiTotalWonValue");
     const wonCountEl = document.getElementById("kpiTotalWonCount");
     if (wonValEl) wonValEl.textContent = formatMoney(kpis.totalWon || 0);
-    if (wonCountEl) wonCountEl.textContent = "Giá trị hợp đồng đã ký";
+    const wonCount = kpis.wonDealsCount || (customer360Data.closedOpportunities || []).filter(o => o.status === "WON").length;
+    if (wonCountEl) wonCountEl.textContent = `${wonCount} hợp đồng`;
 
     // Card 2: Open Pipeline (Giá trị cơ hội đang mở)
     const pipeValEl = document.getElementById("kpiOpenPipelineValue");

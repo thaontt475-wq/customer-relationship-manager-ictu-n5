@@ -20,7 +20,10 @@ const categoryLabels = {
         "Nguồn Lead",
 
     "activity-type":
-        "Loại hoạt động"
+        "Loại hoạt động",
+
+    "region":
+        "Khu vực địa lý"
 };
 
 
