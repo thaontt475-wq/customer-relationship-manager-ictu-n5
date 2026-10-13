@@ -73,7 +73,7 @@ public class UserServlet
                         response,
                         200,
                         ApiResponse.success(
-                                "Lấy danh sách user thành công",
+                                "Láº¥y danh sÃ¡ch user thÃ nh cÃ´ng",
                                 users.search(
                                         request.getParameter(
                                                 "keyword"
@@ -105,7 +105,7 @@ public class UserServlet
                     response,
                     200,
                     ApiResponse.success(
-                            "Lấy user thành công",
+                            "Láº¥y user thÃ nh cÃ´ng",
                             user
                     )
             );
@@ -115,7 +115,7 @@ public class UserServlet
         } catch (IllegalArgumentException e) {
             badRequest(response, e.getMessage());
         } catch (com.google.gson.JsonParseException e) {
-            badRequest(response, "JSON không hợp lệ");
+            badRequest(response, "JSON khÃ´ng há»£p lá»‡");
         } catch (Exception e) {
             serverError(response, e);
         }
@@ -154,7 +154,7 @@ public class UserServlet
                         response,
                         201,
                         ApiResponse.success(
-                                "Tạo user thành công",
+                                "Táº¡o user thÃ nh cÃ´ng",
                                 users.create(body)
                         )
                 );
@@ -198,7 +198,7 @@ public class UserServlet
                             response,
                             200,
                             ApiResponse.success(
-                                    "Gán team thành công",
+                                    "GÃ¡n team thÃ nh cÃ´ng",
                                     teamService.assignTeam(
                                             targetId,
                                             body == null
@@ -227,7 +227,7 @@ public class UserServlet
                             response,
                             200,
                             ApiResponse.success(
-                                    "Khóa tài khoản thành công",
+                                    "KhÃ³a tÃ i khoáº£n thÃ nh cÃ´ng",
                                     statusService.lock(
                                             targetId,
                                             currentUserId,
@@ -250,7 +250,7 @@ public class UserServlet
                             response,
                             200,
                             ApiResponse.success(
-                                    "Mở khóa tài khoản thành công",
+                                    "Má»Ÿ khÃ³a tÃ i khoáº£n thÃ nh cÃ´ng",
                                     statusService.unlock(
                                             targetId,
                                             currentUserId
@@ -275,7 +275,7 @@ public class UserServlet
 
                     if (body == null) {
                         throw new IllegalArgumentException(
-                                "Thiếu toUserId"
+                                "Thiáº¿u toUserId"
                         );
                     }
 
@@ -283,7 +283,7 @@ public class UserServlet
                             response,
                             200,
                             ApiResponse.success(
-                                    "Bàn giao dữ liệu thành công",
+                                    "BÃ n giao dá»¯ liá»‡u thÃ nh cÃ´ng",
                                     statusService.transfer(
                                             targetId,
                                             body.getToUserId(),
@@ -307,7 +307,7 @@ public class UserServlet
         ) {
             badRequest(response, e.getMessage());
         } catch (com.google.gson.JsonParseException e) {
-            badRequest(response, "JSON không hợp lệ");
+            badRequest(response, "JSON khÃ´ng há»£p lá»‡");
         } catch (Exception e) {
             serverError(response, e);
         }
@@ -360,7 +360,7 @@ public class UserServlet
                     response,
                     200,
                     ApiResponse.success(
-                            "Cập nhật user thành công",
+                            "Cáº­p nháº­t user thÃ nh cÃ´ng",
                             result
                     )
             );
@@ -372,7 +372,7 @@ public class UserServlet
         } catch (IllegalArgumentException e) {
             badRequest(response, e.getMessage());
         } catch (com.google.gson.JsonParseException e) {
-            badRequest(response, "JSON không hợp lệ");
+            badRequest(response, "JSON khÃ´ng há»£p lá»‡");
         } catch (Exception e) {
             serverError(response, e);
         }
@@ -405,7 +405,7 @@ public class UserServlet
                     response,
                     200,
                     ApiResponse.success(
-                            "Xóa user thành công",
+                            "XÃ³a user thÃ nh cÃ´ng",
                             null
                     )
             );
@@ -418,7 +418,7 @@ public class UserServlet
         ) {
             badRequest(response, e.getMessage());
         } catch (com.google.gson.JsonParseException e) {
-            badRequest(response, "JSON không hợp lệ");
+            badRequest(response, "JSON khÃ´ng há»£p lá»‡");
         } catch (Exception e) {
             serverError(response, e);
         }
@@ -457,7 +457,7 @@ public class UserServlet
                 path.equals("/")
         ) {
             throw new IllegalArgumentException(
-                    "Thiếu user id"
+                    "Thiáº¿u user id"
             );
         }
 
@@ -466,7 +466,7 @@ public class UserServlet
 
         if (parts.length != 1) {
             throw new IllegalArgumentException(
-                    "Đường dẫn không hợp lệ"
+                    "ÄÆ°á»ng dáº«n khÃ´ng há»£p lá»‡"
             );
         }
 
@@ -511,7 +511,7 @@ public class UserServlet
                 response,
                 403,
                 ApiResponse.error(
-                        "Không có quyền",
+                        "KhÃ´ng cÃ³ quyá»n",
                         null
                 )
         );
@@ -555,7 +555,7 @@ public class UserServlet
                 response,
                 404,
                 ApiResponse.error(
-                        "Không tìm thấy dữ liệu",
+                        "KhÃ´ng tÃ¬m tháº¥y dá»¯ liá»‡u",
                         null
                 )
         );
@@ -566,13 +566,13 @@ public class UserServlet
             Exception e
     ) throws IOException {
 
-        System.err.println("API request failed: " + e.getClass().getSimpleName());
+        e.printStackTrace(System.err);
 
         ResponseUtil.json(
                 response,
                 500,
                 ApiResponse.error(
-                        "Lỗi hệ thống",
+                        "Lá»—i há»‡ thá»‘ng",
                         null
                 )
         );

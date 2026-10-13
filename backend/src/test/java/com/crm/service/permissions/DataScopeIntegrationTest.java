@@ -97,7 +97,18 @@ class DataScopeIntegrationTest {
 
         // Sales A searches customers -> Customer of B is not present in list
         var listForA = customerService.search(salesA, null, null, 1, 50);
-        List<Map<String, Object>> itemsA = (List<Map<String, Object>>) listForA.get("items");
+        List<?> rawItems = (List<?>) listForA.get("items");
+        List<Map<String, Object>> itemsA = new ArrayList<>();
+        for (Object item : rawItems) {
+            assertInstanceOf(Map.class, item);
+            Map<?, ?> rawMap = (Map<?, ?>) item;
+            Map<String, Object> typedMap = new HashMap<>();
+            for (Map.Entry<?, ?> entry : rawMap.entrySet()) {
+                assertInstanceOf(String.class, entry.getKey());
+                typedMap.put((String) entry.getKey(), entry.getValue());
+            }
+            itemsA.add(typedMap);
+        }
         boolean containsB = itemsA.stream().anyMatch(c -> Objects.equals(c.get("id"), customerBId));
         assertFalse(containsB, "Sales A must not see customer of Sales B in list");
     }

@@ -78,7 +78,7 @@ public class OpportunityServlet extends HttpServlet {
                 String action = segments[1];
 
                 if ("stage".equals(action)) {
-                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), Map.class);
+                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
                     if (body == null || body.get("stageId") == null) {
                         throw new IllegalArgumentException("Thiếu stageId");
                     }
@@ -89,7 +89,7 @@ public class OpportunityServlet extends HttpServlet {
                 }
 
                 if ("close".equals(action)) {
-                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), Map.class);
+                    Map<String, Object> body = JsonUtil.getGson().fromJson(req.getReader(), new com.google.gson.reflect.TypeToken<Map<String, Object>>() {}.getType());
                     if (body == null || body.get("status") == null) {
                         throw new IllegalArgumentException("Thiếu trạng thái đóng cơ hội (WON/LOST)");
                     }
@@ -98,8 +98,9 @@ public class OpportunityServlet extends HttpServlet {
                     Long lossReasonId = body.get("lossReasonId") != null ? ((Number) body.get("lossReasonId")).longValue() : null;
                     Long competitorId = body.get("competitorId") != null ? ((Number) body.get("competitorId")).longValue() : null;
                     String lostReason = body.get("lostReason") != null ? String.valueOf(body.get("lostReason")) : null;
+                    Double amount = body.get("amount") != null ? ((Number) body.get("amount")).doubleValue() : null;
 
-                    var closed = opportunityService.closeDeal(currentUserId, targetId, status, winReasonId, lossReasonId, competitorId, lostReason);
+                    var closed = opportunityService.closeDeal(currentUserId, targetId, status, winReasonId, lossReasonId, competitorId, lostReason, amount);
                     ResponseUtil.json(resp, 200, ApiResponse.success("Đóng cơ hội thành công", closed));
                     return;
                 }

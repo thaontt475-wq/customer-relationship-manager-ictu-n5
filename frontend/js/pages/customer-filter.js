@@ -8,8 +8,6 @@
 "use strict";
 
 (function () {
-    const STORAGE_KEY_SAVED_VIEWS = "crm_saved_customer_views";
-    const STORAGE_KEY_ACTIVE_VIEW = "crm_active_customer_view_id";
 
     // Danh mục tỉnh thành / khu vực địa lý Việt Nam
     const REGIONS = [
@@ -19,81 +17,7 @@
     ];
 
     // Cấu hình View mặc định của hệ thống
-    const DEFAULT_PRESET_VIEWS = [
-        {
-            id: "view_all",
-            name: "Tất cả khách hàng",
-            isPreset: true,
-            filter: {
-                keyword: "",
-                status: "",
-                industryId: "",
-                companySizeId: "",
-                region: "",
-                ownerUserId: "",
-                scopeFilter: "ALL"
-            }
-        },
-        {
-            id: "view_calls_this_week",
-            name: "Khách cần gọi trong tuần",
-            isPreset: true,
-            badge: "Gợi ý",
-            filter: {
-                keyword: "",
-                status: "TIEM_NANG",
-                industryId: "",
-                companySizeId: "",
-                region: "",
-                ownerUserId: "",
-                scopeFilter: "SELF"
-            }
-        },
-        {
-            id: "view_negotiating_deals",
-            name: "Đang đàm phán hợp đồng",
-            isPreset: true,
-            filter: {
-                keyword: "",
-                status: "DANG_GIAO_DICH",
-                industryId: "",
-                companySizeId: "",
-                region: "",
-                ownerUserId: "",
-                scopeFilter: "ALL"
-            }
-        },
-        {
-            id: "view_north_vip",
-            name: "Khách VIP Miền Bắc",
-            isPreset: true,
-            filter: {
-                keyword: "",
-                status: "CHINH_THUC",
-                industryId: "",
-                companySizeId: "13", // Enterprise
-                region: "MB",
-                ownerUserId: "",
-                scopeFilter: "ALL"
-            }
-        },
-        {
-            id: "view_duplicates",
-            name: "Trùng lặp tiềm ẩn",
-            badge: "CRM-64",
-            isPreset: true,
-            filter: {
-                keyword: "",
-                status: "",
-                industryId: "",
-                companySizeId: "",
-                region: "",
-                ownerUserId: "",
-                scopeFilter: "ALL",
-                isDuplicateOnly: true
-            }
-        }
-    ];
+    const DEFAULT_PRESET_VIEWS = [{id:"view_all",name:"Tất cả khách hàng",isPreset:true,filter:{}}];
 
     // Trạng thái bộ lọc hiện hành
     let filterCriteria = {
@@ -114,14 +38,29 @@
     // Cache elements
     let elements = {};
 
-    function initFilterEngine() {
+    async function initFilterEngine() {
         cacheElements();
-        loadSavedViews();
+        try { await loadSavedViews(); } catch(error) { alert(error.message); }
         populateFilterDropdowns();
         bindFilterEvents();
         renderViewTabs();
         renderActiveFilterChips();
         syncWithGlobalState();
+        try { const data=await CrmApi.request("/api/customer-lookups"); window.CustomerFilterManager.populateCatalogs(data);window.CustomerFilterManager.populateOwners(data.owners); } catch(error) { showToast(error.message,"error"); }
+        try {
+            const regionsData = await CrmApi.request("/api/master-data/region?active=true");
+            if (Array.isArray(regionsData) && regionsData.length > 0 && elements.regionFilter) {
+                const currentVal = elements.regionFilter.value;
+                elements.regionFilter.innerHTML = '<option value="">Tất cả khu vực địa lý</option>';
+                regionsData.forEach(reg => {
+                    const opt = document.createElement("option");
+                    opt.value = reg.code;
+                    opt.textContent = `${reg.name} (${reg.code})`;
+                    elements.regionFilter.appendChild(opt);
+                });
+                if (currentVal) elements.regionFilter.value = currentVal;
+            }
+        } catch (_) {}
     }
 
     function cacheElements() {
@@ -154,32 +93,19 @@
         };
     }
 
-    function loadSavedViews() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_SAVED_VIEWS);
-            const userViews = raw ? JSON.parse(raw) : [];
-            savedViews = [...DEFAULT_PRESET_VIEWS, ...userViews];
-        } catch (e) {
-            console.warn("Lỗi đọc saved views từ localStorage:", e);
-            savedViews = [...DEFAULT_PRESET_VIEWS];
+    async function loadSavedViews() {
+        const views=[];
+        for (let page=1;;page++) {
+            const data=await CrmApi.request(`/api/saved-filters?entity=CUSTOMER&page=${page}&size=100`);
+            views.push(...data);
+            if (data.length<100) break;
         }
-
-        const savedActiveId = localStorage.getItem(STORAGE_KEY_ACTIVE_VIEW);
-        if (savedActiveId && savedViews.some(v => v.id === savedActiveId)) {
-            activeViewId = savedActiveId;
-        } else {
-            activeViewId = "view_all";
-        }
+        savedViews=[...DEFAULT_PRESET_VIEWS,...views.map(v=>({id:String(v.id),name:v.name,isPreset:false,filter:{keyword:v.criteria.keyword,status:v.criteria.status,industryId:v.criteria.industry,companySizeId:v.criteria.size,region:v.criteria.region,ownerUserId:v.criteria.ownerId}}))];
+        if (!savedViews.some(v=>v.id===activeViewId)) activeViewId="view_all";
     }
 
     function saveUserViews() {
-        try {
-            const customViews = savedViews.filter(v => !v.isPreset);
-            localStorage.setItem(STORAGE_KEY_SAVED_VIEWS, JSON.stringify(customViews));
-            localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, activeViewId);
-        } catch (e) {
-            console.error("Lỗi lưu saved views:", e);
-        }
+        // Saved filters are persisted only by POST/DELETE /api/saved-filters.
     }
 
     function populateFilterDropdowns() {
@@ -266,7 +192,7 @@
         if (!found) return;
 
         activeViewId = viewId;
-        localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, activeViewId);
+
         filterCriteria = { ...found.filter };
 
         // Cập nhật giá trị vào các controls
@@ -283,16 +209,14 @@
         dispatchFilterChange();
     }
 
-    function deleteSavedView(viewId) {
-        if (!confirm("Bạn có chắc chắn muốn xóa bộ lọc đã lưu này?")) return;
-        savedViews = savedViews.filter(v => v.id !== viewId);
-        if (activeViewId === viewId) {
-            activeViewId = "view_all";
+    async function deleteSavedView(viewId) {
+        if (!confirm("Xóa bộ lọc đã lưu?")) return;
+        try {
+            await CrmApi.request(`/api/saved-filters/${viewId}`,{method:"DELETE"});
+            await loadSavedViews();
             applySavedView("view_all");
-        } else {
-            saveUserViews();
             renderViewTabs();
-        }
+        } catch(error) { alert(error.message); }
     }
 
     function openSaveViewModal() {
@@ -309,31 +233,19 @@
         elements.saveViewModalOverlay?.classList.remove("open");
     }
 
-    function handleSaveCurrentView() {
-        const name = elements.saveViewNameInput?.value?.trim();
-        if (!name) {
-            alert("Vui lòng nhập tên cho bộ lọc cần lưu.");
-            return;
-        }
-
-        const newView = {
-            id: "view_custom_" + Date.now(),
-            name: name,
-            isPreset: false,
-            filter: { ...filterCriteria }
-        };
-
-        savedViews.push(newView);
-        activeViewId = newView.id;
-        saveUserViews();
-        renderViewTabs();
-        closeSaveViewModal();
-
-        if (window.showToast) {
-            window.showToast(`Đã lưu bộ lọc "${name}" thành công!`, "success");
-        } else {
-            alert(`Đã lưu bộ lọc "${name}" thành công!`);
-        }
+    async function handleSaveCurrentView() {
+        const name=elements.saveViewNameInput?.value.trim();
+        if (!name) { alert("Vui lòng nhập tên bộ lọc."); return; }
+        const criteria={keyword:filterCriteria.keyword,status:filterCriteria.status,industry:filterCriteria.industryId,size:filterCriteria.companySizeId,region:filterCriteria.region,ownerId:filterCriteria.ownerUserId};
+        for (const key of Object.keys(criteria)) if (!criteria[key]) delete criteria[key];
+        elements.btnConfirmSaveView.disabled=true;
+        try {
+            const saved=await CrmApi.request("/api/saved-filters",{method:"POST",body:JSON.stringify({entity:"CUSTOMER",name,criteria})});
+            await loadSavedViews();
+            activeViewId=String(saved.id);
+            renderViewTabs(); closeSaveViewModal();
+        } catch(error) { alert(error.message); }
+        finally { elements.btnConfirmSaveView.disabled=false; }
     }
 
     function renderActiveFilterChips() {
@@ -459,7 +371,7 @@
         if (elements.scopeFilter) elements.scopeFilter.value = "ALL";
 
         activeViewId = "view_all";
-        localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, activeViewId);
+
 
         renderViewTabs();
         renderActiveFilterChips();
@@ -483,7 +395,7 @@
         } else {
             activeViewId = ""; // Custom / Unsaved state
         }
-        localStorage.setItem(STORAGE_KEY_ACTIVE_VIEW, activeViewId);
+
         renderViewTabs();
     }
 
@@ -604,13 +516,16 @@
                     elements.filterMatchCountBadge.style.display = "inline-flex";
                 }
             },
+            populateCatalogs: data => {
+                if (elements.companySizeFilter) elements.companySizeFilter.innerHTML='<option value="">Tất cả quy mô</option>'+data.companySizes.map(item=>`<option value="${item.id}">${escapeHtml(item.name)}</option>`).join("");
+            },
             populateOwners: (users) => {
                 if (!elements.ownerFilter) return;
                 elements.ownerFilter.innerHTML = '<option value="">Tất cả người phụ trách (Sale)</option>';
                 users.forEach(u => {
                     const opt = document.createElement("option");
                     opt.value = String(u.id);
-                    opt.textContent = `${u.fullName || u.email} (${u.teamName || "Chưa phân nhóm"})`;
+                    opt.textContent = u.fullName || u.email || `Người dùng #${u.id}`;
                     elements.ownerFilter.appendChild(opt);
                 });
             }

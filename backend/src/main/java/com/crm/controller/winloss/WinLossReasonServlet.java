@@ -106,6 +106,10 @@ public class WinLossReasonServlet
                     !permissionService.hasPermission(
                             userId,
                             "winloss.manage"
+                    ) &&
+                    !permissionService.hasPermission(
+                            userId,
+                            "winloss.read"
                     )
             ) {
                 forbidden(response);

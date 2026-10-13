@@ -7,7 +7,6 @@ import com.crm.dto.pipeline.OpportunityWriteRequest;
 import com.crm.service.permissions.DataScopeContext;
 import com.crm.service.permissions.DataScopeService;
 
-import java.sql.SQLException;
 import java.util.*;
 
 public class OpportunityService {
@@ -121,16 +120,17 @@ public class OpportunityService {
                 String requirements = (String) currentStage.get("requirements");
                 if (requirements != null && !requirements.isBlank()) {
                     // Check if requirements are met
-                    boolean isWonOrLost = Boolean.TRUE.equals(targetStage.get("isWon")) || Boolean.TRUE.equals(targetStage.get("isLost"));
-                    if (!isWonOrLost && requirements.toLowerCase().contains("gặp") && opp.get("contactName") == null) {
+                    boolean conditionRequired = Boolean.TRUE.equals(currentStage.get("conditionRequired"));
+                    if (conditionRequired && requirements.toLowerCase().contains("gặp") && opp.get("contactName") == null) {
                         throw new IllegalArgumentException("Điều kiện rời giai đoạn '" + currentStage.get("name") + "': " + requirements);
                     }
                 }
             }
         }
 
+        long actualStageId = targetStage.get("id") != null ? ((Number) targetStage.get("id")).longValue() : targetStageId;
         int prob = targetStage.get("winProbability") != null ? ((Number) targetStage.get("winProbability")).intValue() : 0;
-        opportunityDAO.updateStage(id, targetStageId, prob);
+        opportunityDAO.updateStage(id, actualStageId, prob);
 
         return getById(currentUserId, id);
     }
@@ -143,6 +143,19 @@ public class OpportunityService {
             Long lossReasonId,
             Long competitorId,
             String lostReason
+    ) throws Exception {
+        return closeDeal(currentUserId, id, status, winReasonId, lossReasonId, competitorId, lostReason, null);
+    }
+
+    public Map<String, Object> closeDeal(
+            long currentUserId,
+            long id,
+            String status,
+            Long winReasonId,
+            Long lossReasonId,
+            Long competitorId,
+            String lostReason,
+            Double amount
     ) throws Exception {
         dataScopeService.resolve(currentUserId, "opportunity", "close");
         Map<String, Object> opp = opportunityDAO.findById(id);
@@ -172,7 +185,7 @@ public class OpportunityService {
             throw new IllegalArgumentException("Trạng thái đóng cơ hội phải là WON hoặc LOST.");
         }
 
-        opportunityDAO.closeDeal(id, status.toUpperCase(), winReasonId, lossReasonId, competitorId, lostReason);
+        opportunityDAO.closeDeal(id, status.toUpperCase(), winReasonId, lossReasonId, competitorId, lostReason, amount);
         return getById(currentUserId, id);
     }
 

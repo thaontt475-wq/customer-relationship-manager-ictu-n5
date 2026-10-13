@@ -7,7 +7,7 @@ import java.util.*;
 /** Resolves action-specific scope from database roles, never from request parameters. */
 public class DataScopeService {
     public DataScopeContext resolve(long currentUserId, String module, String action) throws SQLException {
-        if (!Set.of("customer", "opportunity", "activity", "quote").contains(module)) {
+        if (!Set.of("customer", "opportunity", "activity", "quote", "contract").contains(module)) {
             throw new IllegalArgumentException("Module phạm vi dữ liệu không hợp lệ");
         }
         String permission = module + "." + action;

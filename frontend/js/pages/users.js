@@ -1,6 +1,6 @@
 "use strict";
 
-const API_BASE = "http://localhost:8080/crm";
+const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 const PAGE_SIZE = 20;
 
 let currentPage = 1;
@@ -28,6 +28,67 @@ const lockModal = document.getElementById("lockModal");
 const lockOverlay = document.getElementById("lockOverlay");
 
 let searchTimer = null;
+
+const ROLE_NAMES = {
+    ADMIN: "Quản trị viên",
+    DIRECTOR: "Giám đốc kinh doanh",
+    TEAM_LEAD: "Trưởng nhóm kinh doanh",
+    SALES_REP: "Nhân viên kinh doanh",
+    MARKETING: "Nhân viên Marketing",
+    CUSTOMER_SUCCESS: "Chăm sóc khách hàng",
+    ACCOUNTANT: "Kế toán",
+    SALE: "Nhân viên kinh doanh",
+    MANAGER: "Trưởng nhóm kinh doanh"
+};
+
+const TEAM_NAMES = {
+    1: "Kinh doanh miền Bắc",
+    2: "Kinh doanh miền Trung",
+    3: "Kinh doanh miền Nam"
+};
+
+function fixMojibake(str) {
+    if (!str || typeof str !== "string") return str;
+    return str
+        .replace(/miß╗ün Bß│«c/g, "miền Bắc")
+        .replace(/miß╗ün Trung/g, "miền Trung")
+        .replace(/miß╗ün Nam/g, "miền Nam")
+        .replace(/Quß│ún trß╗ï vi├¬n/g, "Quản trị viên")
+        .replace(/Quß│ún trß╗ï hß╗ç thß╗æng/g, "Quản trị hệ thống")
+        .replace(/Kß║┐ to├ín/g, "Kế toán")
+        .replace(/Ch─âm s├│c kh├ích h├íng/g, "Chăm sóc khách hàng")
+        .replace(/Gi├ím ─æß╗æc kinh doanh/g, "Giám đốc kinh doanh")
+        .replace(/Nh├ón vi├¬n Marketing/g, "Nhân viên Marketing")
+        .replace(/Nh├ón vi├¬n kinh doanh/g, "Nhân viên kinh doanh")
+        .replace(/Tr╞░ß╗ƒng nh├│m kinh doanh/g, "Trưởng nhóm kinh doanh");
+}
+
+function normalizeRoleName(role) {
+    if (!role) return "";
+    if (typeof role === "string") {
+        return ROLE_NAMES[role] || fixMojibake(role);
+    }
+    if (role.code && ROLE_NAMES[role.code]) {
+        return ROLE_NAMES[role.code];
+    }
+    return fixMojibake(role.name || "");
+}
+
+function normalizeTeamName(team) {
+    if (!team) return "";
+    if (typeof team === "string") {
+        return fixMojibake(team);
+    }
+    const id = Number(team.id);
+    let name = fixMojibake(team.name || (id && TEAM_NAMES[id] ? TEAM_NAMES[id] : ""));
+    const meta = [];
+    if (team.regionName) meta.push(team.regionName);
+    if (team.leaderName) meta.push(`Trưởng nhóm: ${team.leaderName}`);
+    if (meta.length > 0) {
+        return `${name} [${meta.join(" · ")}]`;
+    }
+    return name;
+}
 
 
 /* =========================================================
@@ -141,148 +202,6 @@ async function init() {
 ========================================================= */
 
 function prepareFormControls() {
-
-    /*
-     * userTeam cũ đang là input text.
-     * Backend cần teamId nên đổi thành select
-     * nhưng vẫn giữ nguyên ID + class.
-     */
-
-    const currentTeam =
-        document.getElementById(
-            "userTeam"
-        );
-
-    if (
-        currentTeam &&
-        currentTeam.tagName !== "SELECT"
-    ) {
-
-        const select =
-            document.createElement(
-                "select"
-            );
-
-        select.id =
-            "userTeam";
-
-        select.className =
-            currentTeam.className;
-
-        currentTeam.replaceWith(
-            select
-        );
-    }
-
-
-    /*
-     * Backend yêu cầu password khi tạo user.
-     */
-
-    if (
-        !document.getElementById(
-            "userPassword"
-        )
-    ) {
-
-        const team =
-            document.getElementById(
-                "userTeam"
-            );
-
-        const teamLabel =
-            team?.closest("label");
-
-        if (teamLabel) {
-
-            const passwordLabel =
-                document.createElement(
-                    "label"
-                );
-
-            passwordLabel.id =
-                "userPasswordLabel";
-
-            passwordLabel.innerHTML = `
-                Mật khẩu ban đầu
-                <em>*</em>
-
-                <input
-                    id="userPassword"
-                    class="crm-input"
-                    type="password"
-                    autocomplete="new-password"
-                    placeholder="Ít nhất 8 ký tự"
-                >
-
-                <small id="passwordUserError"></small>
-            `;
-
-            teamLabel.parentNode.insertBefore(
-                passwordLabel,
-                teamLabel
-            );
-        }
-    }
-
-
-    /*
-     * Permission API yêu cầu dataScope.
-     */
-
-    if (
-        !document.getElementById(
-            "userDataScope"
-        )
-    ) {
-
-        const rolesFieldset =
-            document.querySelector(
-                ".roles-fieldset"
-            );
-
-        if (rolesFieldset) {
-
-            const wrapper =
-                document.createElement(
-                    "label"
-                );
-
-            wrapper.innerHTML = `
-                Phạm vi dữ liệu
-                <em>*</em>
-
-                <select
-                    id="userDataScope"
-                    class="crm-input"
-                >
-                    <option value="SELF">
-                        Chỉ dữ liệu của bản thân
-                    </option>
-
-                    <option value="TEAM">
-                        Dữ liệu của nhóm
-                    </option>
-
-                    <option value="ALL">
-                        Toàn bộ dữ liệu
-                    </option>
-                </select>
-            `;
-
-            rolesFieldset.insertAdjacentElement(
-                "afterend",
-                wrapper
-            );
-        }
-    }
-
-
-    /*
-     * Không dùng checkbox FE giả để xác định
-     * tài khoản hiện tại nữa.
-     */
-
     const selfCheck =
         document.querySelector(
             ".self-admin-check"
@@ -336,7 +255,7 @@ function renderRoleOptions() {
                 String(role.id);
 
             option.textContent =
-                role.name;
+                normalizeRoleName(role);
 
             roleFilter.appendChild(
                 option
@@ -345,18 +264,15 @@ function renderRoleOptions() {
     }
 
 
-    const fieldset =
-        document.querySelector(
-            ".roles-fieldset"
-        );
+    const container =
+        document.getElementById("rolesList") ||
+        document.querySelector(".roles-fieldset");
 
-    if (!fieldset) {
+    if (!container) {
         return;
     }
 
-    fieldset.innerHTML = `
-        <legend>Vai trò</legend>
-    `;
+    container.innerHTML = "";
 
     roles.forEach(role => {
 
@@ -368,16 +284,20 @@ function renderRoleOptions() {
         label.className =
             "role-check";
 
+        const cleanName =
+            normalizeRoleName(role);
+
         label.innerHTML = `
             <input
                 type="checkbox"
                 value="${role.id}"
                 name="roles"
+                data-role-code="${escapeHtml(role.code || "")}"
             >
-            ${escapeHtml(role.name)}
+            ${escapeHtml(cleanName)}
         `;
 
-        fieldset.appendChild(
+        container.appendChild(
             label
         );
     });
@@ -432,7 +352,7 @@ function renderTeamOptions() {
             String(team.id);
 
         option.textContent =
-            team.name;
+            normalizeTeamName(team);
 
         select.appendChild(
             option
@@ -618,7 +538,7 @@ function render() {
         const roleNames =
             user.roles.length
                 ? user.roles
-                    .map(role => role.name)
+                    .map(role => normalizeRoleName(role))
                 : [];
 
         const status =
@@ -689,7 +609,7 @@ function render() {
 
 
             <td>
-                ${escapeHtml(user.teamName || "—")}
+                ${escapeHtml(normalizeTeamName(user.teamName) || "—")}
             </td>
 
 
@@ -1099,6 +1019,10 @@ function openUserDrawer(
 
     clearErrors();
 
+    if (form) {
+        form.scrollTop = 0;
+    }
+
     const editing =
         document.getElementById(
             "editingUserIndex"
@@ -1146,6 +1070,7 @@ function openUserDrawer(
         if (password) {
             password.required =
                 true;
+            password.value = "";
         }
 
         setValue(
@@ -1312,66 +1237,67 @@ async function saveUserForm(
             )
             : null;
 
+    let hasValidationError = false;
 
-    if (
-        !fullName ||
-        !email
-    ) {
-
+    if (!fullName) {
         setError(
-            "userFormError",
-            "Vui lòng nhập họ tên và email."
+            "nameError",
+            "Vui lòng nhập họ và tên."
         );
-
-        return;
+        hasValidationError = true;
     }
 
+    if (!email) {
+        setError(
+            "emailError",
+            "Vui lòng nhập email công ty."
+        );
+        hasValidationError = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setError(
+            "emailError",
+            "Email không đúng định dạng."
+        );
+        hasValidationError = true;
+    }
+
+    if (userId === null) {
+        if (!password) {
+            setError(
+                "passwordUserError",
+                "Vui lòng nhập mật khẩu ban đầu."
+            );
+            hasValidationError = true;
+        } else if (password.length < 8 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+            setError(
+                "passwordUserError",
+                "Mật khẩu phải có ít nhất 8 ký tự, gồm cả chữ và số."
+            );
+            hasValidationError = true;
+        }
+    }
 
     if (!roleIds.length) {
-
         setError(
-            "userFormError",
-            "Người dùng phải có ít nhất một vai trò."
+            "rolesError",
+            "Vui lòng chọn ít nhất một vai trò."
         );
-
-        return;
+        hasValidationError = true;
     }
 
-
-    if (roles.some(role => role.code === "TEAM_LEAD" && roleIds.includes(Number(role.id))) && !teamValue) {
-        setError("userFormError", "Trưởng nhóm kinh doanh phải được gán vào một nhóm.");
-        return;
+    const isTeamLead = roles.some(role => role.code === "TEAM_LEAD" && roleIds.includes(Number(role.id)));
+    if (isTeamLead && !teamValue) {
+        setError(
+            "teamError",
+            "Trưởng nhóm kinh doanh phải được gán vào một nhóm kinh doanh."
+        );
+        hasValidationError = true;
     }
 
-    if (
-        userId === null &&
-        !password
-    ) {
-
-        setError(
-            "passwordUserError",
-            "Vui lòng nhập mật khẩu ban đầu."
-        );
-
-        return;
-    }
-
-
-    if (
-        userId === null &&
-        (
-            password.length < 8 ||
-            !/[A-Z]/.test(password) ||
-            !/[a-z]/.test(password) ||
-            !/\d/.test(password)
-        )
-    ) {
-
-        setError(
-            "passwordUserError",
-            "Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, chữ thường và số."
-        );
-
+    if (hasValidationError) {
+        if (form) {
+            form.scrollTop = 0;
+        }
         return;
     }
 
@@ -1490,8 +1416,8 @@ async function saveUserForm(
 
         try {
             if (existing) {
-                const oldRoles = (existing.roles || []).map(r => r.name).sort().join(", ");
-                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
+                const oldRoles = (existing.roles || []).map(r => normalizeRoleName(r)).sort().join(", ");
+                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => normalizeRoleName(r)).sort().join(", ");
                 if (oldRoles !== newRoleNames) {
                     await recordAuditLog({
                         entity: "USER_ROLE",
@@ -1515,7 +1441,7 @@ async function saveUserForm(
                     });
                 }
             } else {
-                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => r.name).sort().join(", ");
+                const newRoleNames = roles.filter(r => roleIds.includes(Number(r.id))).map(r => normalizeRoleName(r)).sort().join(", ");
                 const scopeMap = { SELF: "Chỉ bản thân (SELF)", TEAM: "Dữ liệu nhóm (TEAM)", ALL: "Toàn bộ dữ liệu (ALL)" };
                 await recordAuditLog({
                     entity: "USER_ROLE",
@@ -1562,6 +1488,10 @@ async function saveUserForm(
                 error.message ||
                 "Không thể lưu người dùng."
             );
+        }
+
+        if (form) {
+            form.scrollTop = 0;
         }
 
     } finally {
@@ -2151,10 +2081,13 @@ function showPageError(
 function clearErrors() {
 
     [
+        "nameError",
         "emailError",
-        "teamError",
-        "userFormError",
         "passwordUserError",
+        "teamError",
+        "rolesError",
+        "dataScopeError",
+        "userFormError",
         "lockError"
     ]
         .forEach(
