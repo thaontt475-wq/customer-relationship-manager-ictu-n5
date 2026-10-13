@@ -251,97 +251,72 @@
 
         <article
             class="pipeline-column"
-            data-stage="approach"
+            data-stage="1"
         >
-
-            <header class="column-head approach">
-
+            <header class="column-head" style="border-top-color:#3b82f6;">
                 <div>
-                    <strong>Tiếp cận</strong>
+                    <strong>Tiềm năng</strong>
                     <span class="column-count">0 cơ hội</span>
                 </div>
-
                 <b class="column-total">0 ₫</b>
-
             </header>
-
-            <div
-                class="column-body"
-                data-drop-zone="approach"
-            ></div>
-
+            <div class="column-body" data-drop-zone="1"></div>
         </article>
-
 
         <article
             class="pipeline-column"
-            data-stage="quote"
+            data-stage="2"
         >
-
-            <header class="column-head quote">
-
+            <header class="column-head" style="border-top-color:#06b6d4;">
                 <div>
-                    <strong>Báo giá</strong>
+                    <strong>Giải pháp</strong>
                     <span class="column-count">0 cơ hội</span>
                 </div>
-
                 <b class="column-total">0 ₫</b>
-
             </header>
-
-            <div
-                class="column-body"
-                data-drop-zone="quote"
-            ></div>
-
+            <div class="column-body" data-drop-zone="2"></div>
         </article>
-
 
         <article
             class="pipeline-column"
-            data-stage="negotiation"
+            data-stage="3"
         >
-
-            <header class="column-head negotiation">
-
+            <header class="column-head" style="border-top-color:#f59e0b;">
                 <div>
                     <strong>Đàm phán</strong>
                     <span class="column-count">0 cơ hội</span>
                 </div>
-
                 <b class="column-total">0 ₫</b>
-
             </header>
-
-            <div
-                class="column-body"
-                data-drop-zone="negotiation"
-            ></div>
-
+            <div class="column-body" data-drop-zone="3"></div>
         </article>
-
 
         <article
             class="pipeline-column"
-            data-stage="closing"
+            data-stage="4"
         >
-
-            <header class="column-head closing">
-
+            <header class="column-head" style="border-top-color:#10b981;">
                 <div>
-                    <strong>Chốt</strong>
+                    <strong>Thành công</strong>
                     <span class="column-count">0 cơ hội</span>
                 </div>
-
                 <b class="column-total">0 ₫</b>
-
             </header>
+            <div class="column-body" data-drop-zone="4"></div>
+        </article>
 
-            <div
-                class="column-body"
-                data-drop-zone="closing"
-            ></div>
-
+        <article
+            class="pipeline-column"
+            data-stage="5"
+        >
+            <header class="column-head" style="border-top-color:#ef4444;">
+                <div>
+                    <strong>Thất bại</strong>
+                    <span class="column-count">0 cơ hội</span>
+                </div>
+                <b class="column-total">0 ₫</b>
+            </header>
+            <div class="column-body" data-drop-zone="5"></div>
         </article>
 
     </section>
@@ -456,27 +431,19 @@
         <div class="form-grid">
 
             <label>
-                Giai đoạn
+                Giai đoạn <em>*</em>
 
                 <select
                     id="opportunityStage"
                     class="crm-input"
+                    required
                 >
-                    <option value="approach">
-                        Tiếp cận
-                    </option>
-
-                    <option value="quote">
-                        Báo giá
-                    </option>
-
-                    <option value="negotiation">
-                        Đàm phán
-                    </option>
-
-                    <option value="closing">
-                        Chốt
-                    </option>
+                    <option value="" disabled selected>-- Chọn giai đoạn --</option>
+                    <option value="1">Tiềm năng (10%)</option>
+                    <option value="2">Giải pháp (40%)</option>
+                    <option value="3">Đàm phán (70%)</option>
+                    <option value="4">Thành công (100%)</option>
+                    <option value="5">Thất bại (0%)</option>
                 </select>
             </label>
 
@@ -645,6 +612,16 @@
             </select>
         </label>
 
+        <label id="customWinReasonGroup" style="display:none; margin-top: 6px;">
+            Nhập lý do thắng mới
+            <input
+                id="customWinReason"
+                class="crm-input"
+                type="text"
+                placeholder="Ví dụ: Giá cả cạnh tranh, Khách hàng thân thiết..."
+            >
+        </label>
+
 
         <div
             id="wonError"
@@ -696,6 +673,16 @@
             </select>
         </label>
 
+        <label id="customLossReasonGroup" style="display:none; margin-top: 6px;">
+            Nhập lý do thua mới
+            <input
+                id="customLossReason"
+                class="crm-input"
+                type="text"
+                placeholder="Ví dụ: Vượt ngân sách, Không đủ tính năng..."
+            >
+        </label>
+
 
         <label>
             Đối thủ cạnh tranh
@@ -709,6 +696,26 @@
                     -- Chọn đối thủ thắng thầu --
                 </option>
             </select>
+        </label>
+
+        <label id="customLossCompetitorGroup" style="display:none; margin-top: 6px;">
+            Nhập đối thủ cạnh tranh mới
+            <input
+                id="customLossCompetitor"
+                class="crm-input"
+                type="text"
+                placeholder="Ví dụ: Base CRM, MISA AMIS..."
+            >
+        </label>
+
+        <label>
+            Chi tiết / Ghi chú
+            <textarea
+                id="lostNotes"
+                class="crm-input"
+                rows="2"
+                placeholder="Ghi chú chi tiết về lý do thua..."
+            ></textarea>
         </label>
 
 
@@ -732,7 +739,7 @@
                 type="submit"
                 class="crm-btn crm-btn-primary lost-button"
             >
-                Xác nhận Đóng
+                Xác nhận Đóng Thua
             </button>
 
         </footer>

@@ -22,6 +22,9 @@ public class CorsFilter implements Filter {
             FilterChain chain
     ) throws IOException, ServletException {
 
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
         HttpServletRequest httpRequest =
                 (HttpServletRequest) request;
 

@@ -1358,6 +1358,29 @@
     gap: 6px;
 }
 
+.field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.btn-quick-add {
+    background: none;
+    border: none;
+    color: var(--crm-primary, #2563eb);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0 4px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.btn-quick-add:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
 .field-label {
     font-size: 13px;
     font-weight: 600;

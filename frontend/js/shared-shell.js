@@ -3,7 +3,7 @@
 (function () {
 
     const API_BASE =
-        "http://localhost:8080/crm";
+        (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
 
 
     const currentPage =
@@ -31,6 +31,9 @@
 
             customer:
                 `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>`,
+
+            contact:
+                `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
 
             support:
                 `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg>`,
@@ -186,7 +189,7 @@
                 >
                     ${icon("bell")}
 
-                    <span class="crm-notification-dot"></span>
+                    <span class="crm-notification-dot" hidden></span>
                 </button>
 
 
@@ -522,9 +525,21 @@
         }
 
 
+        const standardRoleLabels = {
+            ADMIN: "Quản trị viên",
+            DIRECTOR: "Giám đốc",
+            TEAM_LEAD: "Trưởng nhóm kinh doanh",
+            SALES_REP: "Nhân viên kinh doanh",
+            CUSTOMER_SUCCESS: "Chăm sóc khách hàng",
+            MARKETING: "Marketing",
+            ACCOUNTANT: "Kế toán"
+        };
+
         return roles
             .map(
                 role =>
+                    standardRoleLabels[role.code]
+                    ||
                     role.name
                     ||
                     role.code
@@ -554,7 +569,7 @@
     function absoluteAvatarUrl(url) {
         if (!url) return "";
         if (/^https?:\/\//i.test(url)) return url;
-        const origin = "http://localhost:8080";
+        const origin = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080`;
         return origin + (url.startsWith("/") ? url : "/" + url);
     }
 
@@ -708,9 +723,26 @@
                 :
                 [];
 
-            // CRM-68: Ensure Post-sale Support & Churn Risk item is in workspace menu
-            if (!currentMenu.some(m => m.path === "support-tickets.html" || m.name === "SUPPORT_TICKETS")) {
+            // CRM-62: Ensure Contact Management (Decision Roles) item is in workspace menu
+            if (currentSession.permissions.includes("contact.read") && !currentMenu.some(m => m.path === "contacts.html" || m.name === "CONTACTS")) {
                 const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const contactItem = {
+                    name: "CONTACTS",
+                    label: "Người liên hệ (CRM-62)",
+                    path: "contacts.html",
+                    icon: "contact",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, contactItem);
+                } else {
+                    currentMenu.push(contactItem);
+                }
+            }
+
+            // CRM-68: Ensure Post-sale Support & Churn Risk item is in workspace menu
+            if (currentSession.permissions.includes("support.read") && !currentMenu.some(m => m.path === "support-tickets.html" || m.name === "SUPPORT_TICKETS")) {
+                const contactIndex = currentMenu.findIndex(m => m.path === "contacts.html");
                 const supportItem = {
                     name: "SUPPORT_TICKETS",
                     label: "Chăm sóc & Hỗ trợ",
@@ -718,10 +750,27 @@
                     icon: "support",
                     section: "workspace"
                 };
-                if (customerIndex !== -1) {
-                    currentMenu.splice(customerIndex + 1, 0, supportItem);
+                if (contactIndex !== -1) {
+                    currentMenu.splice(contactIndex + 1, 0, supportItem);
                 } else {
                     currentMenu.push(supportItem);
+                }
+            }
+
+            // CRM-69: Ensure Periodic Customer Care item is in workspace menu
+            if (currentSession.permissions.includes("customer.read") && !currentMenu.some(m => m.path === "periodic-care.html" || m.name === "PERIODIC_CARE")) {
+                const supportIndex = currentMenu.findIndex(m => m.path === "support-tickets.html");
+                const careItem = {
+                    name: "PERIODIC_CARE",
+                    label: "Chăm sóc định kỳ",
+                    path: "periodic-care.html",
+                    icon: "calendar",
+                    section: "workspace"
+                };
+                if (supportIndex !== -1) {
+                    currentMenu.splice(supportIndex + 1, 0, careItem);
+                } else {
+                    currentMenu.push(careItem);
                 }
             }
 
@@ -1541,19 +1590,7 @@
             "crm-notification-panel";
 
 
-        /*
-         * Hiện project chưa có API notification.
-         * Không tạo notification giả.
-         */
-        panel.innerHTML = `
-            <div class="crm-shell-panel-header">
-                <strong>Thông báo</strong>
-            </div>
-
-            <div class="crm-shell-panel-empty">
-                Chưa có thông báo.
-            </div>
-        `;
+        panel.innerHTML = '<div class="crm-shell-panel-header"><strong>Thông báo</strong></div><div class="crm-shell-panel-empty">Đang tải...</div>';
 
 
         document.body
@@ -1566,7 +1603,7 @@
     }
 
 
-    function toggleNotifications() {
+    async function toggleNotifications() {
 
         const panel =
             ensureNotificationPanel();
@@ -1584,6 +1621,33 @@
         panel.classList.toggle(
             "open"
         );
+        if (!panel.classList.contains("open")) return;
+        try {
+            const response=await fetch(API_BASE+"/api/notifications?size=100",{credentials:"include"});
+            const body=await response.json();
+            if(!response.ok || !body.success)throw new Error(body.message||`HTTP ${response.status}`);
+            const data=body.data;
+            const dot=document.querySelector(".crm-notification-dot"); if(dot)dot.hidden=!data.unreadCount;
+            const content=document.createElement("div");
+            for(const item of data.items) {
+                const button=document.createElement("button");button.type="button";button.className="crm-shell-panel-empty";
+                button.textContent=`${item.readAt ? "" : "● "}${item.title}: ${item.message}`;
+                button.onclick=async()=>{
+                    try {
+                        const r=await fetch(API_BASE+`/api/notifications/${item.id}/read`,{method:"PUT",credentials:"include"});
+                        const b=await r.json();if(!r.ok||!b.success)throw new Error(b.message);
+                        button.textContent=`${item.title}: ${item.message}`;
+                    } catch(error){alert(error.message);}
+                };
+                content.appendChild(button);
+            }
+            if(!data.items.length)content.textContent="Chưa có thông báo.";
+            panel.replaceChildren(panel.firstElementChild,content);
+        } catch(error) {
+            const message=document.createElement("div");message.textContent=error.message;
+            panel.replaceChildren(panel.firstElementChild,message);
+        }
+
     }
 
 

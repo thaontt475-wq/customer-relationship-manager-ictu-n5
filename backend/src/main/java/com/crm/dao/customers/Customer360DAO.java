@@ -16,7 +16,13 @@ public class Customer360DAO {
                 ResultSetMetaData md = rs.getMetaData();
                 while (rs.next()) {
                     Map<String,Object> item = new LinkedHashMap<>();
-                    for (int i=1; i<=md.getColumnCount(); i++) item.put(md.getColumnLabel(i), rs.getObject(i));
+                    for (int i=1; i<=md.getColumnCount(); i++) {
+                        Object value=rs.getObject(i);
+                        if (value instanceof Timestamp timestamp) value=timestamp.toLocalDateTime().toString();
+                        else if (value instanceof java.time.temporal.TemporalAccessor) value=value.toString();
+                        if ("isPrimary".equals(md.getColumnLabel(i))) value=rs.getBoolean(i);
+                        item.put(md.getColumnLabel(i), value);
+                    }
                     result.add(item);
                 }
             }
@@ -29,7 +35,7 @@ public class Customer360DAO {
         }
     }
     public List<Map<String,Object>> opportunities(long id, DataScopeContext scope) throws SQLException {
-        StringBuilder q=new StringBuilder("SELECT o.id,o.name,o.amount,o.status,o.stage_id AS stageId,o.probability,o.created_at AS createdAt FROM opportunities o WHERE o.customer_id=? AND o.is_deleted=0");
+        StringBuilder q=new StringBuilder("SELECT o.id,o.name,o.amount,o.status,o.stage_id AS stageId,ps.name AS stageName,o.probability,o.expected_close_date AS expectedCloseDate,o.owner_user_id AS ownerUserId,u.full_name AS ownerName,o.created_at AS createdAt FROM opportunities o LEFT JOIN pipeline_stages ps ON ps.id=o.stage_id LEFT JOIN users u ON u.id=o.owner_user_id WHERE o.customer_id=? AND o.is_deleted=0");
         List<Object> args=new ArrayList<>(); args.add(id); scope.appendOwnerPredicate("o.owner_user_id",q,args);
         q.append(" ORDER BY o.created_at DESC,o.id DESC");
         try(Connection c=DatabaseConfig.getConnection()){return rows(c,q.toString(),args);}
@@ -37,7 +43,7 @@ public class Customer360DAO {
     public List<Map<String,Object>> activities(long id, DataScopeContext scope) throws SQLException {
         StringBuilder q=new StringBuilder("SELECT a.id,a.subject,a.type,a.description,a.status,a.due_date AS dueDate,a.owner_user_id AS ownerUserId,a.created_at AS createdAt FROM activities a WHERE a.customer_id=? AND a.is_deleted=0");
         List<Object> args=new ArrayList<>();args.add(id);scope.appendOwnerPredicate("a.owner_user_id",q,args);
-        q.append(" ORDER BY a.created_at DESC,a.id DESC LIMIT 500");
+        q.append(" ORDER BY a.created_at DESC,a.id DESC");
         try(Connection c=DatabaseConfig.getConnection()){return rows(c,q.toString(),args);}
     }
     public List<Map<String,Object>> attachments(long id) throws SQLException {
@@ -46,8 +52,27 @@ public class Customer360DAO {
         }
     }
     public BigDecimal signedValue(long id) throws SQLException {
-        try(Connection c=DatabaseConfig.getConnection(); PreparedStatement ps=c.prepareStatement("SELECT COALESCE(SUM(total_amount),0) FROM customer_contracts WHERE customer_id=? AND status='SIGNED'")) {
-            ps.setLong(1,id);try(ResultSet rs=ps.executeQuery()){rs.next();return rs.getBigDecimal(1);}
+        try(Connection c=DatabaseConfig.getConnection()) {
+            BigDecimal totalContracts = BigDecimal.ZERO;
+            try (PreparedStatement ps=c.prepareStatement("SELECT COALESCE(SUM(total_amount),0) FROM customer_contracts WHERE customer_id=? AND status='SIGNED'")) {
+                ps.setLong(1,id);
+                try(ResultSet rs=ps.executeQuery()){
+                    if (rs.next()) totalContracts = rs.getBigDecimal(1);
+                }
+            } catch (Exception ignored) {}
+
+            BigDecimal totalWonOpps = BigDecimal.ZERO;
+            try (PreparedStatement ps=c.prepareStatement("SELECT COALESCE(SUM(amount),0) FROM opportunities WHERE customer_id=? AND status='WON' AND is_deleted=0")) {
+                ps.setLong(1,id);
+                try(ResultSet rs=ps.executeQuery()){
+                    if (rs.next()) totalWonOpps = rs.getBigDecimal(1);
+                }
+            } catch (Exception ignored) {}
+
+            if (totalContracts != null && totalContracts.compareTo(BigDecimal.ZERO) > 0) {
+                return totalContracts;
+            }
+            return totalWonOpps != null ? totalWonOpps : BigDecimal.ZERO;
         }
     }
 }

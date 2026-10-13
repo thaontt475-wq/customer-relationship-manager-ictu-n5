@@ -49,6 +49,18 @@ public class ActivityService {
             throw new IllegalArgumentException("Tiêu đề hoạt động là bắt buộc.");
         }
         dataScopeService.resolve(currentUserId, "activity", "create");
+        if (customerId != null) {
+            if (customerId <= 0) throw new IllegalArgumentException("Mã khách hàng không hợp lệ.");
+            if (new com.crm.service.customers.CustomerService().getById(currentUserId, customerId) == null)
+                throw new NoSuchElementException("Khách hàng không tồn tại.");
+        }
+        if (opportunityId != null) {
+            if (opportunityId <= 0) throw new IllegalArgumentException("Mã cơ hội không hợp lệ.");
+            var opportunity = new com.crm.service.pipeline.OpportunityService().getById(currentUserId, opportunityId);
+            if (opportunity == null) throw new NoSuchElementException("Cơ hội không tồn tại.");
+            if (customerId != null && !customerId.equals(opportunity.get("customerId")))
+                throw new IllegalArgumentException("Cơ hội không thuộc khách hàng đã chọn.");
+        }
         long id = activityDAO.create(subject, type, description, status, dueDate, customerId, opportunityId, currentUserId);
         return getById(currentUserId, id);
     }

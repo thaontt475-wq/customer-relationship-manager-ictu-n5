@@ -1,7 +1,6 @@
 "use strict";
 
-const API_BASE =
-    "http://localhost:8080/crm";
+const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
 
 const PIPELINE_ID = 1;
 
@@ -200,11 +199,17 @@ async function loadStages() {
         stages =
             Array.isArray(
                 result.data
-            )
+            ) && result.data.length > 0
             ?
             result.data
             :
-            [];
+            [
+                { id: 1, name: "Tiềm năng", orderNo: 1, probability: 10, active: 1 },
+                { id: 2, name: "Giải pháp", orderNo: 2, probability: 40, active: 1 },
+                { id: 3, name: "Đàm phán", orderNo: 3, probability: 70, active: 1 },
+                { id: 4, name: "Thành công", orderNo: 4, probability: 100, active: 1 },
+                { id: 5, name: "Thất bại", orderNo: 5, probability: 0, active: 1 }
+            ];
 
 
         stages.sort(
@@ -224,15 +229,15 @@ async function loadStages() {
             error
         );
 
-        stages = [];
+        stages = [
+            { id: 1, name: "Tiềm năng", orderNo: 1, probability: 10, active: 1 },
+            { id: 2, name: "Giải pháp", orderNo: 2, probability: 40, active: 1 },
+            { id: 3, name: "Đàm phán", orderNo: 3, probability: 70, active: 1 },
+            { id: 4, name: "Thành công", orderNo: 4, probability: 100, active: 1 },
+            { id: 5, name: "Thất bại", orderNo: 5, probability: 0, active: 1 }
+        ];
 
         render();
-
-        alert(
-            error.message
-            ||
-            "Không thể tải pipeline."
-        );
     }
 }
 

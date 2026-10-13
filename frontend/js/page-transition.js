@@ -233,27 +233,36 @@
             const parser = new DOMParser();
             const newDoc = parser.parseFromString(html, "text/html");
 
-            // Tìm script chức năng tương ứng
-            const pageScriptTag = Array.from(newDoc.querySelectorAll("script[src]")).find(s => {
-                const src = s.getAttribute("src") || "";
-                return src.includes("pages/");
+            // Tìm toàn bộ script chức năng của trang mục tiêu (loại trừ các script shell dùng chung đã nạp)
+            const sharedShellScripts = [
+                "page-transition.js",
+                "theme.js",
+                "shared-shell.js",
+                "ui-core.js",
+                "ui-effects.js"
+            ];
+
+            const pageScriptTags = Array.from(newDoc.querySelectorAll("script[src]")).filter(s => {
+                const src = (s.getAttribute("src") || "").trim();
+                return src && !sharedShellScripts.some(name => src.endsWith(name));
             });
 
-            let scriptCodePromise = Promise.resolve(null);
-            if (pageScriptTag) {
-                const scriptUrl = new URL(pageScriptTag.getAttribute("src"), targetUrl).href;
-                scriptCodePromise = fetch(scriptUrl, { cache: "no-cache" })
-                    .then(r => r.ok ? r.text() : null)
-                    .catch(err => {
-                        console.warn("Không thể tải script:", scriptUrl, err);
-                        return null;
-                    });
-            }
+            const scriptCodesPromise = Promise.all(
+                pageScriptTags.map(tag => {
+                    const scriptUrl = new URL(tag.getAttribute("src"), targetUrl).href;
+                    return fetch(scriptUrl, { cache: "no-cache" })
+                        .then(r => r.ok ? r.text() : null)
+                        .catch(err => {
+                            console.warn("Không thể tải script:", scriptUrl, err);
+                            return null;
+                        });
+                })
+            );
 
-            // Tải trước CSS và Script ĐỒNG THỜI trước khi đụng vào DOM
-            const [commitStyles, scriptCode] = await Promise.all([
+            // Tải trước CSS và toàn bộ Scripts ĐỒNG THỜI trước khi hoán đổi DOM
+            const [commitStyles, scriptCodes] = await Promise.all([
                 preparePageStyles(newDoc),
-                scriptCodePromise
+                scriptCodesPromise
             ]);
 
             // Mờ nhẹ vùng làm việc hiện tại
@@ -291,9 +300,9 @@
             // G. CUỘN LÊN ĐẦU
             window.scrollTo(0, 0);
 
-            // H. THỰC THI SCRIPT CHỨC NĂNG VỚI HỆ THỐNG GHI NHẬN CLEANUP
-            if (scriptCode) {
-                executePageScriptCode(scriptCode);
+            // H. THỰC THI TOÀN BỘ SCRIPT CHỨC NĂNG THEO THỨ TỰ VỚI HỆ THỐNG GHI NHẬN CLEANUP
+            if (Array.isArray(scriptCodes)) {
+                executePageScripts(scriptCodes);
             }
 
             // I. ĐỒNG BỘ AVATAR & MOBILE DRAWER NẾU CÓ
@@ -385,17 +394,33 @@
        6. DỌN DẸP SỰ KIỆN VÀ GIAO DIỆN TRANG CŨ
     ========================================================= */
     function addPageCleanup(fn) {
-        pageCleanups.push(fn);
+        if (typeof fn === "function") {
+            pageCleanups.push(fn);
+        }
     }
 
+    // Expose công khai cho các module trang đăng ký dọn dẹp riêng
+    window.crmAddPageCleanup = addPageCleanup;
+
     function runPageCleanups() {
-        // Hủy đăng ký tất cả sự kiện đã ghi nhận
+        // 1. Kích hoạt sự kiện hủy trang trước khi gỡ giao diện (cho các trang tự dọn dẹp)
+        try {
+            window.dispatchEvent(new CustomEvent("crmPageDestroy"));
+        } catch (_) {}
+
+        // 2. Chạy hook dọn dẹp riêng nếu trang đã đăng ký qua window.__CRM_PAGE_CLEANUP__
+        if (typeof window.__CRM_PAGE_CLEANUP__ === "function") {
+            try { window.__CRM_PAGE_CLEANUP__(); } catch (_) {}
+            window.__CRM_PAGE_CLEANUP__ = null;
+        }
+
+        // 3. Hủy đăng ký tất cả sự kiện, intervals, timeouts đã ghi nhận
         while (pageCleanups.length > 0) {
             const fn = pageCleanups.pop();
             try { fn(); } catch (_) {}
         }
 
-        // Đóng toàn bộ drawer, modal, dropdown đang mở
+        // 4. Đóng toàn bộ drawer, modal, dropdown đang mở để tránh kẹt trạng thái
         document.querySelectorAll(".open").forEach(el => el.classList.remove("open"));
         document.body.classList.remove("drawer-open", "modal-open", "sidebar-open");
     }
@@ -464,17 +489,22 @@
 
 
     /* =========================================================
-       9. THỰC THI SCRIPT CHỨC NĂNG VÀ THEO DÕI SỰ KIỆN
+       9. THỰC THI CÁC SCRIPT CHỨC NĂNG VÀ THEO DÕI SỰ KIỆN
     ========================================================= */
-    function executePageScriptCode(code) {
-        if (!code) return;
+    function executePageScripts(codes) {
+        if (!Array.isArray(codes) || codes.length === 0) return;
 
         const originalDocAdd = document.addEventListener;
         const originalDocRemove = document.removeEventListener;
         const originalWinAdd = window.addEventListener;
         const originalWinRemove = window.removeEventListener;
+        const originalBodyAdd = document.body ? document.body.addEventListener : null;
+        const originalBodyRemove = document.body ? document.body.removeEventListener : null;
+
         const originalSetInterval = window.setInterval;
         const originalClearInterval = window.clearInterval;
+        const originalSetTimeout = window.setTimeout;
+        const originalClearTimeout = window.clearTimeout;
 
         // Ghi nhận và theo dõi tất cả event listener gắn vào document
         document.addEventListener = function (type, listener, options) {
@@ -500,7 +530,17 @@
             });
         };
 
-        // Ghi nhận timers
+        // Ghi nhận event listener gắn vào document.body nếu có
+        if (document.body && originalBodyAdd && originalBodyRemove) {
+            document.body.addEventListener = function (type, listener, options) {
+                originalBodyAdd.call(document.body, type, listener, options);
+                addPageCleanup(() => {
+                    try { originalBodyRemove.call(document.body, type, listener, options); } catch (_) {}
+                });
+            };
+        }
+
+        // Ghi nhận intervals
         window.setInterval = function (handler, timeout, ...args) {
             const id = originalSetInterval.call(window, handler, timeout, ...args);
             addPageCleanup(() => {
@@ -509,17 +549,41 @@
             return id;
         };
 
+        // Ghi nhận timeouts
+        window.setTimeout = function (handler, timeout, ...args) {
+            const id = originalSetTimeout.call(window, handler, timeout, ...args);
+            addPageCleanup(() => {
+                originalClearTimeout.call(window, id);
+            });
+            return id;
+        };
+
         try {
-            const runner = new Function(code);
-            runner();
-        } catch (err) {
-            console.error("Lỗi khi khởi chạy script chức năng:", err);
+            for (const code of codes) {
+                if (!code) continue;
+                try {
+                    const runner = new Function(code);
+                    runner.call(window);
+                } catch (err) {
+                    console.error("Lỗi khi khởi chạy script chức năng:", err);
+                }
+            }
         } finally {
-            // Khôi phục lại native listeners
+            // Khôi phục lại native listeners & timer methods
             document.addEventListener = originalDocAdd;
             window.addEventListener = originalWinAdd;
+            if (document.body && originalBodyAdd) {
+                document.body.addEventListener = originalBodyAdd;
+            }
             window.setInterval = originalSetInterval;
+            window.clearInterval = originalClearInterval;
+            window.setTimeout = originalSetTimeout;
+            window.clearTimeout = originalClearTimeout;
         }
+    }
+
+    function executePageScriptCode(code) {
+        executePageScripts([code]);
     }
 
 

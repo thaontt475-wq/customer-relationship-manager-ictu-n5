@@ -3,19 +3,17 @@
  * ENTERPRISE B2B CUSTOMER SUPPORT & CHURN RISK CONTROLLER (CRM-68)
  * Pure HTML5 / CSS3 / ES6+ JavaScript client-side module.
  * Manages post-sale support tickets, SLA monitoring, automatic & manual
- * churn risk detection, drawer forms, and localStorage persistence.
+ * churn risk detection, drawer forms, and authenticated Backend persistence.
  * ===================================================================
  */
 
 "use strict";
 
 (function () {
-    const API_BASE = "http://localhost:8080/crm";
+    const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
 
-    // Required LocalStorage Keys
-    const STORAGE_KEY_TICKETS = "CRM_SUPPORT_TICKETS_DATA";
-    const STORAGE_KEY_CHURN = "CRM_CHURN_RISK_DATA";
-    const STORAGE_KEY_CUSTOMERS = "CRM_CUSTOMERS_DATA";
+    let sessionUser;
+    let customerOwners = [];
 
     // Priority Definitions
     const PRIORITIES = {
@@ -42,125 +40,8 @@
         FEATURE_REQUEST: { label: "Đề xuất tính năng / Quota", icon: "💡" }
     };
 
-    // Support Assignees
-    const SUPPORT_AGENTS = [
-        { id: 1, name: "Trần Minh Đức", role: "Kỹ thuật Senior", email: "duc.tm@crm.vn", phone: "0912.345.678" },
-        { id: 2, name: "Nguyễn Hải Yến", role: "CSKH Lead", email: "yen.nh@crm.vn", phone: "0988.765.432" },
-        { id: 3, name: "Lê Hoàng Long", role: "CSKH Enterprise", email: "long.lh@crm.vn", phone: "0934.567.890" },
-        { id: 4, name: "Nông Quang Tiệp", role: "Quản trị viên / CSKH", email: "tiep.nq@crm.vn", phone: "0912.888.999" }
-    ];
-
-    // Seed Mock Tickets for Customer Care
-    const DEFAULT_MOCK_TICKETS = [
-        {
-            id: 1,
-            ticketCode: "TCK-2026-001",
-            customerId: 1,
-            customerName: "Tập đoàn Công nghệ FPT",
-            title: "Sự cố Timeout cổng API Gateway đồng bộ dữ liệu chi nhánh",
-            description: "Hệ thống gateway báo lỗi 504 Gateway Timeout vào đầu giờ sáng, gây ách tắc hơn 500 yêu cầu đồng bộ. Khách hàng yêu cầu kiểm tra khẩn cấp và nâng mức trần timeout quota.",
-            category: "TECHNICAL",
-            priority: "URGENT",
-            status: "PROCESSING",
-            assigneeId: 1,
-            assigneeName: "Trần Minh Đức",
-            creatorName: "Nông Quang Tiệp",
-            createdAt: "2026-03-27T08:30:00",
-            dueDate: "2026-03-27T12:00:00",
-            slaBreached: true,
-            timeline: [
-                { time: "2026-03-27 08:30", author: "FPT IT Admin", text: "Gửi cảnh báo sự cố gián đoạn API gateway qua Hotline khẩn cấp." },
-                { time: "2026-03-27 09:00", author: "Trần Minh Đức", text: "Đã trích xuất log server, phát hiện nghẽn kết nối cơ sở dữ liệu vùng miền Bắc." },
-                { time: "2026-03-27 10:15", author: "Trần Minh Đức", text: "Đang tiến hành mở rộng cụm node dự phòng để giảm tải." }
-            ]
-        },
-        {
-            id: 2,
-            ticketCode: "TCK-2026-002",
-            customerId: 1,
-            customerName: "Tập đoàn Công nghệ FPT",
-            title: "Khiếu nại thời gian phản hồi kỹ thuật chậm theo cam kết SLA Gold",
-            description: "Đại diện ban giám đốc FPT gửi công văn phàn nàn thời gian phản hồi sự cố tuần qua không đúng cam kết 15 phút, yêu cầu giải trình nguyên nhân và họp đối soát.",
-            category: "COMPLAINT",
-            priority: "HIGH",
-            status: "NEW",
-            assigneeId: 2,
-            assigneeName: "Nguyễn Hải Yến",
-            creatorName: "Nông Quang Tiệp",
-            createdAt: "2026-03-28T09:15:00",
-            dueDate: "2026-03-28T17:00:00",
-            slaBreached: false,
-            timeline: [
-                { time: "2026-03-28 09:15", author: "Nguyễn Hải Yến", text: "Tiếp nhận văn bản khiếu nại SLA từ đại diện khách hàng FPT." },
-                { time: "2026-03-28 09:45", author: "Nguyễn Hải Yến", text: "Đã liên hệ nhân viên Sale phụ trách Nông Quang Tiệp để phối hợp giải trình." }
-            ]
-        },
-        {
-            id: 3,
-            ticketCode: "TCK-2026-003",
-            customerId: 2,
-            customerName: "Công ty Cổ phần VNG",
-            title: "Hỗ trợ mở rộng quota lưu trữ và cấp thêm 50 tài khoản người dùng",
-            description: "VNG chuẩn bị ra mắt dịch vụ mới, cần nâng hạn mức gói dịch vụ lưu trữ thêm 5TB và tạo thêm 50 tài khoản người dùng phụ quyền quản lý tài nguyên.",
-            category: "FEATURE_REQUEST",
-            priority: "MEDIUM",
-            status: "WAITING_CUSTOMER",
-            assigneeId: 3,
-            assigneeName: "Lê Hoàng Long",
-            creatorName: "Nông Quang Tiệp",
-            createdAt: "2026-03-25T14:00:00",
-            dueDate: "2026-03-29T18:00:00",
-            slaBreached: false,
-            timeline: [
-                { time: "2026-03-25 14:00", author: "VNG Team", text: "Gửi yêu cầu nâng cấp gói qua cổng Portal." },
-                { time: "2026-03-26 10:00", author: "Lê Hoàng Long", text: "Đã gửi bảng báo giá bổ sung quota và đang chờ VNG xác nhận ký duyệt." }
-            ]
-        },
-        {
-            id: 4,
-            ticketCode: "TCK-2026-004",
-            customerId: 3,
-            customerName: "Công ty TNHH Phần mềm MISA",
-            title: "Lỗi xuất báo cáo tổng hợp thuế GTGT bị sai định dạng XML theo TT78",
-            description: "Khách hàng MISA phản ánh tính năng kết xuất dữ liệu hóa đơn điện tử bị sai thẻ cấu trúc số hóa đơn mới, khiến cơ quan thuế từ chối tiếp nhận hồ sơ kê khai.",
-            category: "TECHNICAL",
-            priority: "HIGH",
-            status: "PROCESSING",
-            assigneeId: 1,
-            assigneeName: "Trần Minh Đức",
-            creatorName: "Nông Quang Tiệp",
-            createdAt: "2026-03-26T10:00:00",
-            dueDate: "2026-03-27T18:00:00",
-            slaBreached: true,
-            timeline: [
-                { time: "2026-03-26 10:00", author: "MISA Kế toán", text: "Báo lỗi qua email kèm file XML mẫu bị từ chối." },
-                { time: "2026-03-26 14:00", author: "Trần Minh Đức", text: "Đang cập nhật lại schema XML parser để tương thích bản vá của Tổng cục Thuế." }
-            ]
-        },
-        {
-            id: 5,
-            ticketCode: "TCK-2026-005",
-            customerId: 5,
-            customerName: "Công ty CP Đầu tư Thế Giới Di Động",
-            title: "Hướng dẫn tích hợp Webhook cảnh báo đơn hàng phát sinh vào Telegram BOT",
-            description: "Đội ngũ vận hành của Thế Giới Di Động cần tài liệu và cấu hình mẫu để đẩy thông báo realtime qua webhook về kênh Telegram nội bộ.",
-            category: "TECHNICAL",
-            priority: "LOW",
-            status: "RESOLVED",
-            assigneeId: 2,
-            assigneeName: "Nguyễn Hải Yến",
-            creatorName: "Nguyễn Văn An",
-            createdAt: "2026-03-20T11:00:00",
-            dueDate: "2026-03-22T17:00:00",
-            slaBreached: false,
-            timeline: [
-                { time: "2026-03-20 11:00", author: "TGDD Tech", text: "Gửi câu hỏi hỗ trợ kỹ thuật." },
-                { time: "2026-03-21 15:30", author: "Nguyễn Hải Yến", text: "Đã gửi tài liệu Postman collection và hướng dẫn tích hợp chi tiết. Khách xác nhận thành công." }
-            ]
-        }
-    ];
-
-    // Module State
+    const SUPPORT_AGENTS=[];
+    const riskByCustomer=new Map();
     let ticketsList = [];
     let churnFlagsMap = {}; // customerId -> { isManualFlag: boolean, manualReason: string, flaggedAt: string, riskLevel: string }
     let customersList = [];
@@ -179,80 +60,36 @@
     let activeDrawerTicketId = null;
 
     /* =========================================================
-       PERSISTENCE ENGINE (localStorage)
+       API PERSISTENCE AND IN-MEMORY VIEW
     ========================================================= */
-    function loadTickets() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_TICKETS);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed;
-                }
-            }
-        } catch (e) {
-            console.warn("Lỗi đọc dữ liệu CRM_SUPPORT_TICKETS_DATA:", e);
+    async function loadRisks() {
+        riskByCustomer.clear();
+        await Promise.all([...new Set(ticketsList.map(t=>Number(t.customerId)))].map(async id=>riskByCustomer.set(id,await CrmApi.request(`/api/customers/${id}/risk`))));
+    }
+    async function loadTickets() {
+        const items=[];
+        for (let page=1;;page++) {
+            const data=await CrmApi.request(`/api/support-requests?page=${page}&size=100`);
+            items.push(...data.items);
+            if (data.items.length<100) break;
         }
-        // Save default seed tickets
-        saveTickets(DEFAULT_MOCK_TICKETS);
-        return [...DEFAULT_MOCK_TICKETS];
+        return items.map(t=>({...t,ticketCode:`SR-${t.id}`,customerName:customersList.find(c=>Number(c.id)===Number(t.customerId))?.name || `#${t.customerId}`,assigneeName:SUPPORT_AGENTS.find(a=>Number(a.id)===Number(t.assigneeId))?.name || `#${t.assigneeId}`,timeline:[]}));
     }
 
     function saveTickets(list) {
-        try {
-            ticketsList = list;
-            localStorage.setItem(STORAGE_KEY_TICKETS, JSON.stringify(list));
-        } catch (e) {
-            console.error("Lỗi lưu CRM_SUPPORT_TICKETS_DATA:", e);
-        }
+        throw new Error("Thay đổi phiếu hỗ trợ phải được Backend lưu.");
     }
 
     function loadChurnFlags() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_CHURN);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (typeof parsed === "object" && parsed !== null) {
-                    return parsed;
-                }
-            }
-        } catch (e) {
-            console.warn("Lỗi đọc dữ liệu CRM_CHURN_RISK_DATA:", e);
-        }
         return {};
     }
 
     function saveChurnFlags(map) {
-        try {
-            churnFlagsMap = map;
-            localStorage.setItem(STORAGE_KEY_CHURN, JSON.stringify(map));
-        } catch (e) {
-            console.error("Lỗi lưu CRM_CHURN_RISK_DATA:", e);
-        }
+        throw new Error("Risk được Backend tính theo số phiếu đang mở.");
     }
 
-    function loadCustomers() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed;
-                }
-            }
-        } catch (e) {
-            console.warn("Lỗi đọc CRM_CUSTOMERS_DATA:", e);
-        }
-        return [
-            { id: 1, companyName: "Tập đoàn Công nghệ FPT", taxCode: "0101248141", ownerName: "Nông Quang Tiệp", email: "contact@fpt.com.vn", phone: "02473007300" },
-            { id: 2, companyName: "Công ty Cổ phần VNG", taxCode: "0303579890", ownerName: "Nông Quang Tiệp", email: "partner@vng.com.vn", phone: "02839623888" },
-            { id: 3, companyName: "Công ty TNHH Phần mềm MISA", taxCode: "0100779774", ownerName: "Nguyễn Văn An", email: "contact@misa.vn", phone: "02437959595" },
-            { id: 4, companyName: "Tập đoàn Bưu chính Viễn thông VNPT", taxCode: "0100684378", ownerName: "Nông Quang Tiệp", email: "vanphong@vnpt.vn", phone: "02437741091" },
-            { id: 5, companyName: "Công ty CP Đầu tư Thế Giới Di Động", taxCode: "0303274391", ownerName: "Nguyễn Văn An", email: "lienhe@thegioididong.com", phone: "02838125960" },
-            { id: 6, companyName: "Ngân hàng TMCP Quân Đội (MBBank)", taxCode: "0100283873", ownerName: "Nông Quang Tiệp", email: "mb247@mbbank.com.vn", phone: "1900545426" },
-            { id: 7, companyName: "Công ty CP Dược phẩm Imexpharm", taxCode: "1400384433", ownerName: "Nông Quang Tiệp", email: "imexpharm@imexpharm.com", phone: "02773851941" },
-            { id: 8, companyName: "Công ty Cổ phần Tập đoàn Hòa Phát", taxCode: "0900189284", ownerName: "Nguyễn Văn An", email: "contact@hoaphat.com.vn", phone: "02462848666" }
-        ];
+    async function loadCustomers() {
+        return CrmApi.customers();
     }
 
     /* =========================================================
@@ -263,76 +100,7 @@
        - Manual Override: CSKH manual flag with custom reason
     ========================================================= */
     function evaluateCustomerChurnRisk(customerId) {
-        const cId = Number(customerId);
-        const customer = customersList.find(c => Number(c.id) === cId);
-        const customerName = customer ? (customer.companyName || customer.name) : `Khách hàng #${cId}`;
-
-        // Get all open tickets for this customer
-        const customerOpenTickets = ticketsList.filter(t =>
-            Number(t.customerId) === cId &&
-            t.status !== "RESOLVED" &&
-            t.status !== "CLOSED"
-        );
-
-        const reasons = [];
-        let autoRisk = false;
-        let riskLevel = "LOW";
-
-        // Check for urgent or high priority unresolved tickets
-        const severeTickets = customerOpenTickets.filter(t => t.priority === "URGENT" || t.priority === "HIGH");
-        if (severeTickets.length > 0) {
-            autoRisk = true;
-            riskLevel = severeTickets.some(t => t.priority === "URGENT") ? "CRITICAL" : "HIGH";
-            reasons.push(`Có ${severeTickets.length} yêu cầu hỗ trợ mức độ [Khẩn cấp / Cao] đang chờ xử lý.`);
-        }
-
-        // Check for complaints
-        const complaintTickets = customerOpenTickets.filter(t => t.category === "COMPLAINT");
-        if (complaintTickets.length > 0) {
-            autoRisk = true;
-            if (riskLevel === "LOW") riskLevel = "HIGH";
-            reasons.push(`Khách hàng có khiếu nại dịch vụ / SLA chưa giải quyết.`);
-        }
-
-        // Check for >= 2 open tickets
-        if (customerOpenTickets.length >= 2) {
-            autoRisk = true;
-            if (riskLevel === "LOW") riskLevel = "MEDIUM";
-            reasons.push(`Tồn đọng ${customerOpenTickets.length} phiếu yêu cầu hỗ trợ chưa đóng.`);
-        }
-
-        // Check SLA breaches
-        const breachedTickets = customerOpenTickets.filter(t => t.slaBreached);
-        if (breachedTickets.length > 0) {
-            autoRisk = true;
-            reasons.push(`Có ${breachedTickets.length} phiếu đã quá thời hạn cam kết SLA.`);
-        }
-
-        // Check manual flag
-        const manualFlag = churnFlagsMap[cId];
-        const isManual = !!manualFlag?.isManualFlag;
-        if (isManual) {
-            if (manualFlag.manualReason) {
-                reasons.unshift(`[Cờ thủ công CSKH]: ${manualFlag.manualReason}`);
-            } else {
-                reasons.unshift(`[Cờ thủ công CSKH]: Nhân viên đánh giá nguy cơ rời bỏ cao.`);
-            }
-            if (riskLevel === "LOW") riskLevel = "HIGH";
-        }
-
-        const isRisk = autoRisk || isManual;
-
-        return {
-            customerId: cId,
-            customerName,
-            isRisk,
-            riskLevel: isRisk ? (riskLevel === "LOW" ? "MEDIUM" : riskLevel) : "NONE",
-            reasons,
-            openTicketCount: customerOpenTickets.length,
-            severeTicketCount: severeTickets.length,
-            isManual,
-            manualReason: manualFlag?.manualReason || ""
-        };
+        return riskByCustomer.get(Number(customerId)) || {isRisk:false,reasons:[],openTicketCount:0,riskLevel:"NONE"};
     }
 
     function getAllChurnRiskCustomers() {
@@ -352,19 +120,42 @@
     /* =========================================================
        PAGE RENDER & CONTROLLER
     ========================================================= */
-    function init() {
-        ticketsList = loadTickets();
-        churnFlagsMap = loadChurnFlags();
-        customersList = loadCustomers();
-
-        // Check if we are on support-tickets.html page
-        const isSupportPage = !!document.getElementById("ticketsTableBody");
-        if (isSupportPage) {
-            setupSupportPage();
-        }
-
-        // Expose Public API on window for cross-page usage (customers.html, customer-360.html)
+    async function init() {
         exposeGlobalApi();
+        if (!document.getElementById("ticketsTableBody")) return;
+        try {
+            const session=await CrmApi.session();
+            sessionUser = session;
+            const createButton=document.getElementById("btnOpenCreateTicket");
+            if(createButton)createButton.hidden=!session.permissions.includes("support.create");
+            if(!session.permissions.includes("support.read")) {
+                document.getElementById("ticketsTableBody").innerHTML='<tr><td colspan="9">Bạn không có quyền xem yêu cầu hỗ trợ.</td></tr>';
+                return;
+            }
+            customersList=await loadCustomers();
+            const lookups=await CrmApi.request("/api/customer-lookups");
+            customerOwners = lookups.owners;
+            SUPPORT_AGENTS.splice(0,SUPPORT_AGENTS.length,...lookups.owners.map(u=>({id:u.id,name:u.fullName,role:""})));
+            ticketsList=await loadTickets();
+            await loadRisks();
+            setupSupportPage();
+            const manualFlag=document.getElementById("modalChurnFlagCheckbox");
+            if(manualFlag)manualFlag.closest("label").parentElement.style.display="none";
+            const saveFlag=document.getElementById("btnSaveChurnModal");if(saveFlag)saveFlag.style.display="none";
+            document.querySelector(".churn-manual-box")?.setAttribute("hidden","");
+            document.getElementById("ticketTimelineSection")?.setAttribute("hidden","");
+            document.getElementById("filterCategory")?.setAttribute("hidden","");
+            const create=document.getElementById("btnOpenCreateTicket");
+            if (create) create.hidden=!session.permissions.includes("support.create");
+            for (const id of ["ticketCategory","ticketDueDate","manualChurnCheckbox","manualChurnReason","ticketTimelineNote","btnAddTimelineNote"]) {
+                const el=document.getElementById(id);
+                if (el) { el.required=false; el.disabled=true; el.closest(".form-group,.field-group")?.setAttribute("hidden",""); }
+            }
+        } catch(error) {
+            const table=document.getElementById("ticketsTableBody");
+            if (table) table.innerHTML=`<tr><td colspan="9">${escapeHtml(error.message)}</td></tr>`;
+            showToast(error.message,"error");
+        }
     }
 
     function setupSupportPage() {
@@ -462,10 +253,11 @@
             renderTicketsTable();
         });
 
-        document.getElementById("btnRefreshTickets")?.addEventListener("click", () => {
-            ticketsList = loadTickets();
+        document.getElementById("btnRefreshTickets")?.addEventListener("click", async () => {
+            ticketsList = await loadTickets();
+            await loadRisks();
             churnFlagsMap = loadChurnFlags();
-            customersList = loadCustomers();
+            customersList = await loadCustomers();
             updateKpis();
             renderChurnBanner();
             renderTicketsTable();
@@ -548,9 +340,9 @@
         const cust = topCustomerItem.customer;
         const evalInfo = topCustomerItem.evaluation;
 
-        const salesRepName = cust.ownerName || cust.owner || "Nông Quang Tiệp (Trưởng phòng KD)";
-        const salesRepEmail = cust.ownerEmail || "tiep.nq@crm.vn";
-        const salesRepPhone = cust.ownerPhone || "0912.888.999";
+        const salesRepName = cust.ownerName || cust.owner || "Chưa phân công";
+        const salesRepEmail = cust.ownerEmail || "Chưa có email";
+        const salesRepPhone = cust.ownerPhone || "Chưa có số điện thoại";
 
         container.innerHTML = `
             <div class="churn-banner-container" style="animation:fadeIn 0.3s ease;">
@@ -622,8 +414,7 @@
 
             // Tab filter
             if (filterState.tab === "my") {
-                // Assignee id 1 or 4 (current user mock)
-                if (Number(t.assigneeId) !== 1 && Number(t.assigneeId) !== 4) return false;
+                if (Number(t.assigneeId) !== Number(sessionUser.id)) return false;
             } else if (filterState.tab === "urgent") {
                 if (t.priority !== "URGENT" && !t.slaBreached) return false;
                 if (t.status === "RESOLVED" || t.status === "CLOSED") return false;
@@ -709,7 +500,7 @@
                         ${escapeHtml(t.title)}
                     </div>
                     <div style="font-size:12px; color:var(--crm-muted); display:flex; align-items:center; gap:6px;">
-                        <span>${categoryDef.icon} ${categoryDef.label}</span>
+                        <span>${t.category ? categoryDef.label : ""}</span>
                         ${t.slaBreached ? `<span style="color:var(--crm-danger); font-weight:700;">• Quá hạn SLA</span>` : ""}
                     </div>
                 </td>
@@ -737,17 +528,30 @@
                         <button type="button" class="crm-btn crm-btn-secondary btn-edit-ticket" data-id="${t.id}" style="padding:4px 8px; font-size:12px;" title="Chỉnh sửa & cập nhật tiến độ">
                             ✏️
                         </button>
-                        <button type="button" class="crm-btn crm-btn-secondary btn-manage-churn" data-customer-id="${t.customerId}" style="padding:4px 8px; font-size:12px;" title="Cờ rủi ro rời bỏ">
+                        <button type="button" class="crm-btn crm-btn-secondary btn-delete-ticket" data-id="${t.id}" title="Xóa phiếu">Xóa</button>
+                        <button hidden type="button" class="crm-btn crm-btn-secondary btn-manage-churn" data-customer-id="${t.customerId}" style="padding:4px 8px; font-size:12px;" title="Cờ rủi ro rời bỏ">
                             🚩
                         </button>
                     </div>
                 </td>
             `;
 
+            tr.querySelector(".btn-delete-ticket")?.addEventListener("click",async()=>{
+                if (!confirm(`Xóa phiếu ${t.ticketCode}?`)) return;
+                try {
+                    await CrmApi.request(`/api/support-requests/${t.id}`,{method:"DELETE"});
+                    ticketsList=await loadTickets();
+                    const data=await CrmApi.request(`/api/customers/${t.customerId}/risk`);
+                    riskByCustomer.set(Number(t.customerId),data);
+                    updateKpis();renderChurnBanner();renderTicketsTable();showToast("Đã xóa phiếu hỗ trợ.");
+                } catch(error) { showToast(error.message,"error"); }
+            });
             tbody.appendChild(tr);
         });
 
         // Bind table row buttons
+        if (!CrmApi.canSync("support.update")) tbody.querySelectorAll("button.btn-edit-ticket").forEach(button => button.remove());
+        if (!CrmApi.canSync("support.delete")) tbody.querySelectorAll(".btn-delete-ticket").forEach(button => button.remove());
         tbody.querySelectorAll(".btn-edit-ticket").forEach(btn => {
             btn.addEventListener("click", () => {
                 const id = Number(btn.dataset.id);
@@ -850,7 +654,7 @@
             setVal("ticketCategory", "TECHNICAL");
             setVal("ticketPriority", "MEDIUM");
             setVal("ticketStatus", "NEW");
-            setVal("ticketAssignee", "1");
+            setVal("ticketAssignee", SUPPORT_AGENTS[0]?.id || "");
             setVal("ticketDescription", "");
 
             // Default due date: now + 24 hours
@@ -913,7 +717,7 @@
             </div>
             <div style="font-size:12px; color:var(--crm-muted); display:grid; grid-template-columns:1fr 1fr; gap:6px;">
                 <div>MST: <strong style="color:var(--crm-text);">${escapeHtml(cust.taxCode || "N/A")}</strong></div>
-                <div>Đại diện Sale: <strong style="color:var(--crm-primary);">${escapeHtml(cust.ownerName || cust.owner || "Nông Quang Tiệp")}</strong></div>
+                <div>Đại diện Sale: <strong style="color:var(--crm-primary);">${escapeHtml(cust.ownerName || cust.owner || "Chưa phân công")}</strong></div>
                 <div>Hotline: ${escapeHtml(cust.phone || "—")}</div>
                 <div>Email: ${escapeHtml(cust.email || "—")}</div>
             </div>
@@ -948,142 +752,25 @@
     }
 
     function handleAddTimelineNote() {
-        const noteInput = document.getElementById("newTimelineNote");
-        if (!noteInput || !activeDrawerTicketId) return;
-
-        const text = noteInput.value.trim();
-        if (!text) {
-            noteInput.focus();
-            return;
-        }
-
-        const ticket = ticketsList.find(t => t.id === activeDrawerTicketId);
-        if (!ticket) return;
-
-        if (!Array.isArray(ticket.timeline)) ticket.timeline = [];
-
-        const now = new Date();
-        const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-
-        ticket.timeline.push({
-            time: timeStr,
-            author: "Nông Quang Tiệp (CSKH)",
-            text
-        });
-
-        saveTickets(ticketsList);
-        renderDrawerTimeline(ticket.timeline);
-        noteInput.value = "";
-        showToast("Đã thêm ghi nhận tiến độ mới", "success");
+        showToast("Ghi chú tiến độ chưa được hỗ trợ bởi API.","error");
     }
 
-    function handleTicketFormSubmit(e) {
+    async function handleTicketFormSubmit(e) {
         e.preventDefault();
-
-        const ticketId = getVal("ticketId");
-        const customerId = Number(getVal("ticketCustomerSelect"));
-        const title = getVal("ticketTitle");
-        const category = getVal("ticketCategory");
-        const priority = getVal("ticketPriority");
-        const status = getVal("ticketStatus");
-        const assigneeId = Number(getVal("ticketAssignee"));
-        const dueDate = getVal("ticketDueDate");
-        const description = getVal("ticketDescription");
-
-        if (!customerId) {
-            alert("Vui lòng chọn khách hàng doanh nghiệp!");
-            document.getElementById("ticketCustomerSelect")?.focus();
-            return;
-        }
-
-        if (!title) {
-            alert("Vui lòng nhập tiêu đề yêu cầu!");
-            document.getElementById("ticketTitle")?.focus();
-            return;
-        }
-
-        const customer = customersList.find(c => Number(c.id) === customerId);
-        const customerName = customer ? (customer.companyName || customer.name) : `Khách hàng #${customerId}`;
-        const assignee = SUPPORT_AGENTS.find(a => a.id === assigneeId);
-        const assigneeName = assignee ? assignee.name : "Chưa phân công";
-
-        // Handle manual churn risk toggle
-        const manualChurnCheck = document.getElementById("manualChurnCheckbox")?.checked;
-        const manualChurnReason = getVal("manualChurnReason");
-
-        if (manualChurnCheck) {
-            churnFlagsMap[customerId] = {
-                customerId,
-                isManualFlag: true,
-                manualReason: manualChurnReason || "CSKH gắn cờ thủ công rủi ro rời bỏ.",
-                flaggedAt: new Date().toISOString(),
-                riskLevel: "HIGH"
-            };
-        } else {
-            delete churnFlagsMap[customerId];
-        }
-        saveChurnFlags(churnFlagsMap);
-
-        if (ticketId) {
-            // Update Existing
-            const index = ticketsList.findIndex(t => t.id === Number(ticketId));
-            if (index !== -1) {
-                const existing = ticketsList[index];
-                ticketsList[index] = {
-                    ...existing,
-                    customerId,
-                    customerName,
-                    title,
-                    category,
-                    priority,
-                    status,
-                    assigneeId,
-                    assigneeName,
-                    dueDate: dueDate || existing.dueDate,
-                    description,
-                    slaBreached: priority === "URGENT" && status !== "RESOLVED" && status !== "CLOSED"
-                };
-                showToast("Cập nhật phiếu hỗ trợ thành công", "success");
-            }
-        } else {
-            // Create New
-            const newId = ticketsList.length > 0 ? Math.max(...ticketsList.map(t => t.id)) + 1 : 1;
-            const now = new Date();
-            const ticketCode = `TCK-${now.getFullYear()}-${String(newId).padStart(3, "0")}`;
-
-            const newTicket = {
-                id: newId,
-                ticketCode,
-                customerId,
-                customerName,
-                title,
-                category,
-                priority,
-                status,
-                assigneeId,
-                assigneeName,
-                creatorName: "Nông Quang Tiệp",
-                createdAt: now.toISOString(),
-                dueDate: dueDate || new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
-                description,
-                slaBreached: false,
-                timeline: [
-                    {
-                        time: formatDateTime(now.toISOString()),
-                        author: "Nông Quang Tiệp (Tiếp nhận)",
-                        text: `Mở mới phiếu hỗ trợ: "${title}"`
-                    }
-                ]
-            };
-            ticketsList.unshift(newTicket);
-            showToast(`Đã tạo phiếu hỗ trợ [${ticketCode}] thành công`, "success");
-        }
-
-        saveTickets(ticketsList);
-        closeTicketDrawer();
-        updateKpis();
-        renderChurnBanner();
-        renderTicketsTable();
+        const id=getVal("ticketId");
+        const payload={customerId:Number(getVal("ticketCustomerSelect")),title:getVal("ticketTitle"),description:getVal("ticketDescription"),priority:getVal("ticketPriority"),status:getVal("ticketStatus"),assigneeId:Number(getVal("ticketAssignee"))};
+        if (!payload.customerId || !payload.title || !payload.assigneeId) { showToast("Vui lòng chọn khách hàng, người xử lý và nhập tiêu đề.","error"); return; }
+        const button=document.getElementById("btnSubmitTicket");
+        if (button) button.disabled=true;
+        try {
+            await CrmApi.request(`/api/support-requests${id ? "/"+id : ""}`,{method:id ? "PUT":"POST",body:JSON.stringify(payload)});
+            ticketsList=await loadTickets();
+            const data=await CrmApi.request(`/api/customers/${payload.customerId}/risk`);
+                    riskByCustomer.set(payload.customerId,data);
+            closeTicketDrawer(); updateKpis(); renderChurnBanner(); renderTicketsTable();
+            showToast("Đã lưu phiếu hỗ trợ.");
+        } catch(error) { showToast(error.message,"error"); }
+        finally { if (button) button.disabled=false; }
     }
 
     /* =========================================================
@@ -1118,10 +805,10 @@
                     Nhân viên kinh doanh phụ trách (Sales Rep):
                 </div>
                 <div style="font-weight:700; font-size:14px; color:var(--crm-text);">
-                    ${escapeHtml(cust.ownerName || cust.owner || "Nông Quang Tiệp")}
+                    ${escapeHtml(cust.ownerName || cust.owner || "Chưa phân công")}
                 </div>
                 <div style="font-size:12px; color:var(--crm-muted); margin-top:2px;">
-                    Email: ${escapeHtml(cust.email || "tiep.nq@crm.vn")} • Hotline: ${escapeHtml(cust.phone || "0912.888.999")}
+                    Email: ${escapeHtml(customerOwners.find(owner => Number(owner.id) === Number(cust.ownerUserId))?.email || "Chưa có email")}
                 </div>
             `;
         }
@@ -1150,33 +837,7 @@
     }
 
     function handleSaveChurnModal() {
-        if (!currentModalCustomerId) return;
-
-        const flagCheckbox = document.getElementById("modalChurnFlagCheckbox");
-        const reasonInput = document.getElementById("modalChurnReasonInput");
-
-        const isFlag = !!flagCheckbox?.checked;
-        const reason = reasonInput ? reasonInput.value.trim() : "";
-
-        if (isFlag) {
-            churnFlagsMap[currentModalCustomerId] = {
-                customerId: currentModalCustomerId,
-                isManualFlag: true,
-                manualReason: reason || "CSKH gắn cờ thủ công rủi ro rời bỏ.",
-                flaggedAt: new Date().toISOString(),
-                riskLevel: "HIGH"
-            };
-            showToast("Đã gắn cờ rủi ro rời bỏ cho khách hàng", "warning");
-        } else {
-            delete churnFlagsMap[currentModalCustomerId];
-            showToast("Đã hủy cờ rủi ro rời bỏ", "success");
-        }
-
-        saveChurnFlags(churnFlagsMap);
-        closeChurnModal();
-        updateKpis();
-        renderChurnBanner();
-        renderTicketsTable();
+        showToast("Risk được Backend tính tự động từ phiếu đang mở.","error");
     }
 
     /* =========================================================
@@ -1211,63 +872,11 @@
        GLOBAL API EXPORT (window.SupportTicketsManager)
     ========================================================= */
     function exposeGlobalApi() {
-        window.SupportTicketsManager = {
-            getTickets: () => [...ticketsList],
-            getTicketsByCustomer: (customerId) => {
-                const cId = Number(customerId);
-                return ticketsList.filter(t => Number(t.customerId) === cId);
-            },
-            getChurnRiskStatus: (customerId) => {
-                return evaluateCustomerChurnRisk(customerId);
-            },
-            getAllChurnRiskCustomers: () => {
-                return getAllChurnRiskCustomers();
-            },
-            createTicket: (data) => {
-                const newId = ticketsList.length > 0 ? Math.max(...ticketsList.map(t => t.id)) + 1 : 1;
-                const now = new Date();
-                const ticketCode = `TCK-${now.getFullYear()}-${String(newId).padStart(3, "0")}`;
-
-                const newTicket = {
-                    id: newId,
-                    ticketCode,
-                    customerId: Number(data.customerId),
-                    customerName: data.customerName || `Khách hàng #${data.customerId}`,
-                    title: data.title || "Yêu cầu hỗ trợ",
-                    category: data.category || "TECHNICAL",
-                    priority: data.priority || "MEDIUM",
-                    status: data.status || "NEW",
-                    assigneeId: Number(data.assigneeId) || 1,
-                    assigneeName: data.assigneeName || "Trần Minh Đức",
-                    creatorName: data.creatorName || "Nông Quang Tiệp",
-                    createdAt: now.toISOString(),
-                    dueDate: data.dueDate || new Date(now.getTime() + 24 * 3600 * 1000).toISOString(),
-                    description: data.description || "",
-                    slaBreached: false,
-                    timeline: [
-                        { time: formatDateTime(now.toISOString()), author: "Hệ thống", text: "Tiếp nhận yêu cầu hỗ trợ sau bán" }
-                    ]
-                };
-                ticketsList.unshift(newTicket);
-                saveTickets(ticketsList);
-                return newTicket;
-            },
-            toggleManualChurnRisk: (customerId, isFlag, reason = "") => {
-                const cId = Number(customerId);
-                if (isFlag) {
-                    churnFlagsMap[cId] = {
-                        customerId: cId,
-                        isManualFlag: true,
-                        manualReason: reason || "Đánh dấu thủ công rủi ro rời bỏ.",
-                        flaggedAt: new Date().toISOString(),
-                        riskLevel: "HIGH"
-                    };
-                } else {
-                    delete churnFlagsMap[cId];
-                }
-                saveChurnFlags(churnFlagsMap);
-                return evaluateCustomerChurnRisk(cId);
-            }
+        window.SupportTicketsManager={
+            getTicketsByCustomer:id=>ticketsList.filter(t=>Number(t.customerId)===Number(id)),
+            getChurnRiskStatus:evaluateCustomerChurnRisk,
+            getAllChurnRiskCustomers,
+            createTicket:payload=>CrmApi.request("/api/support-requests",{method:"POST",body:JSON.stringify(payload)})
         };
     }
 

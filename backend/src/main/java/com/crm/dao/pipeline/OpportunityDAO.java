@@ -4,7 +4,6 @@ import com.crm.config.DatabaseConfig;
 import com.crm.dto.pipeline.OpportunityWriteRequest;
 import com.crm.service.permissions.DataScopeContext;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 
@@ -37,7 +36,7 @@ public class OpportunityDAO {
                     o.created_at,
                     c.name AS customer_name,
                     ps.name AS stage_name,
-                    ps.stage_order,
+                    ps.order_no AS stage_order,
                     u.full_name AS owner_name,
                     comp.name AS competitor_name
                 FROM opportunities o
@@ -113,7 +112,7 @@ public class OpportunityDAO {
                     o.created_at,
                     c.name AS customer_name,
                     ps.name AS stage_name,
-                    ps.stage_order,
+                    ps.order_no AS stage_order,
                     u.full_name AS owner_name,
                     comp.name AS competitor_name
                 FROM opportunities o
@@ -213,21 +212,96 @@ public class OpportunityDAO {
     }
 
     public void closeDeal(long id, String status, Long winReasonId, Long lossReasonId, Long competitorId, String lostReason) throws SQLException {
-        String sql = """
+        closeDeal(id, status, winReasonId, lossReasonId, competitorId, lostReason, null);
+    }
+
+    public void closeDeal(long id, String status, Long winReasonId, Long lossReasonId, Long competitorId, String lostReason, Double amount) throws SQLException {
+        Long targetStageId = null;
+        Integer prob = null;
+
+        if ("WON".equalsIgnoreCase(status)) {
+            prob = 100;
+            targetStageId = findStageIdByFlagOrOrder(true, 4);
+        } else if ("LOST".equalsIgnoreCase(status)) {
+            prob = 0;
+            targetStageId = findStageIdByFlagOrOrder(false, 5);
+        }
+
+        StringBuilder sql = new StringBuilder("""
                 UPDATE opportunities SET
                     status = ?, win_reason_id = ?, loss_reason_id = ?, competitor_id = ?, lost_reason = ?
-                WHERE id = ? AND is_deleted = 0
-                """;
+                """);
+        List<Object> params = new ArrayList<>();
+        params.add(status.toUpperCase());
+        params.add(winReasonId);
+        params.add(lossReasonId);
+        params.add(competitorId);
+        params.add(lostReason);
+
+        if (targetStageId != null) {
+            sql.append(", stage_id = ?, probability = ?");
+            params.add(targetStageId);
+            params.add(prob);
+        }
+
+        if (amount != null && amount > 0) {
+            sql.append(", amount = ?");
+            params.add(amount);
+        }
+
+        sql.append(" WHERE id = ? AND is_deleted = 0");
+        params.add(id);
+
         try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status);
-            stmt.setObject(2, winReasonId, Types.BIGINT);
-            stmt.setObject(3, lossReasonId, Types.BIGINT);
-            stmt.setObject(4, competitorId, Types.BIGINT);
-            stmt.setString(5, lostReason);
-            stmt.setLong(6, id);
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
             stmt.executeUpdate();
         }
+
+        if ("WON".equalsIgnoreCase(status)) {
+            try (Connection conn = DatabaseConfig.getConnection()) {
+                Long custId = null;
+                Double finalAmount = amount;
+                try (PreparedStatement getCust = conn.prepareStatement("SELECT customer_id, amount FROM opportunities WHERE id = ?")) {
+                    getCust.setLong(1, id);
+                    try (ResultSet rs = getCust.executeQuery()) {
+                        if (rs.next()) {
+                            custId = rs.getLong("customer_id");
+                            if (finalAmount == null || finalAmount <= 0) {
+                                finalAmount = rs.getDouble("amount");
+                            }
+                        }
+                    }
+                }
+                if (custId != null && custId > 0 && finalAmount != null && finalAmount > 0) {
+                    try (PreparedStatement ins = conn.prepareStatement(
+                            "INSERT INTO customer_contracts(customer_id, total_amount, status, signed_at) VALUES (?, ?, 'SIGNED', NOW())")) {
+                        ins.setLong(1, custId);
+                        ins.setDouble(2, finalAmount);
+                        ins.executeUpdate();
+                    }
+                }
+            } catch (Exception ex) {
+                System.err.println("Notice: sync to customer_contracts: " + ex.getMessage());
+            }
+        }
+    }
+
+    private Long findStageIdByFlagOrOrder(boolean isWon, int fallbackOrder) {
+        String flagCol = isWon ? "is_won" : "is_lost";
+        String nameMatch = isWon ? "%thành công%" : "%thất bại%";
+        String sql = "SELECT id FROM pipeline_stages WHERE " + flagCol + " = 1 OR order_no = ? OR LOWER(name) LIKE ? ORDER BY " + flagCol + " DESC, id ASC LIMIT 1";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, fallbackOrder);
+            stmt.setString(2, nameMatch);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getLong("id");
+            }
+        } catch (Exception e) {}
+        return (long) fallbackOrder;
     }
 
     public void softDelete(long id) throws SQLException {
