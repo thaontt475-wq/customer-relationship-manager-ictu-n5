@@ -87,7 +87,10 @@
                 `<svg viewBox="0 0 24 24"><path d="M20 15a8 8 0 1 1-11-11 7 7 0 0 0 11 11Z"/></svg>`,
 
             sun:
-                `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`
+                `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`,
+
+            merge:
+                `<svg viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 9v12M18 9a9 9 0 0 0-9 9"/></svg>`
         };
 
         return icons[name] || "";
@@ -771,6 +774,23 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // CRM-118: Ensure Lead Duplicate Merge item is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-duplicates.html" || m.name === "LEAD_DUPLICATES")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const dupItem = {
+                    name: "LEAD_DUPLICATES",
+                    label: "Phát hiện & Gộp Lead (CRM-118)",
+                    path: "lead-duplicates.html",
+                    icon: "merge",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, dupItem);
+                } else {
+                    currentMenu.push(dupItem);
                 }
             }
 

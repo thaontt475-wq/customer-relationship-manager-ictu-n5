@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phát hiện & Gộp Lead trùng (CRM-118) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/lead-duplicates.css?v=20261014_s404">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="lead-duplicates.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-code-merge"></i></span>
+            <span class="crm-nav-label">Phát hiện & Gộp Lead (CRM-118)</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản trị</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead, khách hàng trùng lặp...">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">QT</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Frontend Developer</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogout">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main lead-dup-page">
+
+    <!-- 1. HEADER & ACTIONS -->
+    <section class="lead-page-head">
+        <div>
+            <p class="lead-kicker">Marketing & Dữ liệu khách hàng / Sprint 4 (S4-04)</p>
+            <h1>Phát hiện và Gộp Lead trùng lặp (CRM-118)</h1>
+            <p>Hệ thống tự động phát hiện các khách hàng tiềm năng bị trùng số điện thoại, email hoặc tên doanh nghiệp; hỗ trợ đối chiếu trường song song, bảo toàn toàn bộ lịch sử chăm sóc và gợi ý liên kết với Khách hàng hiện hữu.</p>
+        </div>
+
+        <div class="lead-head-actions">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnScanDuplicates">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                Quét lại trùng lặp
+            </button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnGenerateDemoDups">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Tạo cặp trùng mẫu (Sandbox)
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. KPI METRICS -->
+    <section class="dup-kpi-grid">
+        <div class="dup-kpi-card">
+            <div class="dup-kpi-icon amber">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="dup-kpi-body">
+                <div class="dup-kpi-title">Cặp Lead nghi ngờ trùng</div>
+                <div class="dup-kpi-value" id="kpiTotalDuplicates">0</div>
+                <div class="dup-kpi-sub">Cần đối soát & gộp dữ liệu</div>
+            </div>
+        </div>
+
+        <div class="dup-kpi-card">
+            <div class="dup-kpi-icon blue">
+                <i class="fa-solid fa-phone-volume"></i>
+            </div>
+            <div class="dup-kpi-body">
+                <div class="dup-kpi-title">Trùng Số điện thoại</div>
+                <div class="dup-kpi-value" id="kpiPhoneMatches">0</div>
+                <div class="dup-kpi-sub">Độ tin cậy trùng khớp cao</div>
+            </div>
+        </div>
+
+        <div class="dup-kpi-card">
+            <div class="dup-kpi-icon purple">
+                <i class="fa-solid fa-envelope-open-text"></i>
+            </div>
+            <div class="dup-kpi-body">
+                <div class="dup-kpi-title">Trùng Địa chỉ Email</div>
+                <div class="dup-kpi-value" id="kpiEmailMatches">0</div>
+                <div class="dup-kpi-sub">Khách hàng điền nhiều lần</div>
+            </div>
+        </div>
+
+        <div class="dup-kpi-card">
+            <div class="dup-kpi-icon red">
+                <i class="fa-solid fa-building-circle-check"></i>
+            </div>
+            <div class="dup-kpi-body">
+                <div class="dup-kpi-title">Trùng với Khách hàng CRM</div>
+                <div class="dup-kpi-value" id="kpiCustomerMatches">0</div>
+                <div class="dup-kpi-sub text-success"><i class="fa-solid fa-arrow-right"></i> Gợi ý gắn vào hồ sơ cũ</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. STRICT SINGLE-ROW FILTER TOOLBAR -->
+    <section class="dup-filter-toolbar">
+        <div class="dup-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" id="dupSearchInput" class="crm-input dup-search-input" placeholder="Tìm theo tên người liên hệ, email, số điện thoại, công ty...">
+        </div>
+
+        <select id="dupFilterCriterion" class="crm-input">
+            <option value="ALL">Tất cả tiêu chí trùng lặp</option>
+            <option value="PHONE">Trùng Số điện thoại</option>
+            <option value="EMAIL">Trùng Địa chỉ Email</option>
+            <option value="COMPANY">Trùng Tên Công ty / Doanh nghiệp</option>
+            <option value="CUSTOMER">Trùng với Khách hàng hiện có trong CRM</option>
+        </select>
+
+        <select id="dupSortOrder" class="crm-input">
+            <option value="score_desc">Độ trùng khớp (Cao nhất trước)</option>
+            <option value="newest">Thời gian phát hiện (Mới nhất)</option>
+            <option value="name_asc">Họ tên đối tượng (A - Z)</option>
+        </select>
+
+        <button type="button" class="crm-btn crm-btn-secondary" id="btnResetFilters" title="Đặt lại bộ lọc">
+            <i class="fa-solid fa-rotate-left"></i> Làm mới
+        </button>
+    </section>
+
+    <!-- 4. DUPLICATES DETECTION DATA TABLE -->
+    <section class="dup-table-container">
+        <table class="dup-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center;">#</th>
+                    <th>Bản ghi Lead hiện hành (A)</th>
+                    <th>Bản ghi đối chiếu trùng lặp (B)</th>
+                    <th>Tiêu chí trùng khớp</th>
+                    <th style="text-align: center;">Độ tin cậy</th>
+                    <th style="text-align: right; width: 260px;">Thao tác xử lý</th>
+                </tr>
+            </thead>
+            <tbody id="dupTableBody">
+                <!-- Populated dynamically by JS -->
+            </tbody>
+        </table>
+
+        <!-- EMPTY STATE -->
+        <div class="dup-empty-state" id="dupEmptyState" style="display:none;">
+            <div class="dup-empty-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3>Cơ sở dữ liệu Lead sạch - Không có bản ghi trùng lặp nào!</h3>
+            <p>Hệ thống không tìm thấy bất kỳ khách hàng tiềm năng nào bị trùng số điện thoại, email hoặc công ty.</p>
+        </div>
+    </section>
+
+</main>
+
+<!-- ================= 5. SIDE-BY-SIDE MERGE MODAL ================= -->
+<div class="merge-modal-backdrop" id="mergeModal">
+    <div class="merge-modal-box">
+        
+        <!-- Header -->
+        <div class="merge-modal-header">
+            <div class="merge-modal-title">
+                <i class="fa-solid fa-code-merge text-primary"></i>
+                Đối chiếu Song song & Gộp Lead (Side-by-Side Merge)
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseMergeModal" aria-label="Đóng modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="merge-modal-body">
+            
+            <!-- Alert if matches existing CRM Customer -->
+            <div class="merge-customer-alert" id="mergeCustomerAlert" style="display:none;">
+                <i class="fa-solid fa-circle-info"></i>
+                <div>
+                    <div class="title">Phát hiện trùng với Khách hàng Doanh nghiệp hiện có trong CRM</div>
+                    <div class="desc" id="mergeCustomerAlertText">
+                        Lead này có số điện thoại hoặc email trùng với khách hàng đã ký hợp đồng. Bạn có thể chọn giữ dữ liệu của khách hàng làm Master hoặc liên kết nhanh vào hồ sơ hiện tại.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compare Grid (3 Columns: Lead A, Lead B, Merged Preview) -->
+            <div class="merge-compare-grid">
+                
+                <!-- Cột A: Bản ghi Lead A (Master ban đầu) -->
+                <div class="compare-card master" id="colMasterCard">
+                    <div class="compare-header">
+                        <span class="compare-title">
+                            <i class="fa-solid fa-crown text-amber"></i> Bản ghi Lead A (Bản chính)
+                        </span>
+                        <span class="dup-record-badge" id="lblMasterSource">Nguồn: Web</span>
+                    </div>
+                    <div class="compare-body" id="colMasterFields">
+                        <!-- Dynamic fields populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Cột B: Bản ghi Lead B (Bản phụ trùng lặp) -->
+                <div class="compare-card" id="colDupCard">
+                    <div class="compare-header">
+                        <span class="compare-title">
+                            <i class="fa-solid fa-copy text-primary"></i> Bản ghi Lead B (Bản trùng)
+                        </span>
+                        <span class="dup-record-badge" id="lblDupSource">Nguồn: Hội thảo</span>
+                    </div>
+                    <div class="compare-body" id="colDupFields">
+                        <!-- Dynamic fields populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Cột C: Khung xem trước sau khi gộp -->
+                <div class="compare-card preview">
+                    <div class="compare-header">
+                        <span class="compare-title">
+                            <i class="fa-solid fa-eye text-success"></i> Xem trước kết quả sau gộp
+                        </span>
+                        <span class="row-status-badge valid" style="font-size:10.5px;">Bản ghi Hợp nhất</span>
+                    </div>
+                    <div class="compare-body">
+                        <div class="preview-summary-list" id="previewSummaryList">
+                            <!-- Dynamic preview generated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Checkbox: History Retention Policy -->
+            <label class="history-policy-box">
+                <input type="checkbox" id="chkRetainHistory" checked>
+                <span>
+                    <i class="fa-solid fa-shield-halved text-success"></i>
+                    <strong>Bảo toàn toàn bộ lịch sử:</strong> Tự động gộp tất cả ghi chú, mốc thời gian liên hệ và nguồn tiếp cận của cả 2 bản ghi vào hồ sơ Master sau khi gộp.
+                </span>
+            </label>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="merge-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnSwapMasterDup" title="Đảo ngược vị trí bản ghi chính và bản ghi phụ">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i> Đổi bản ghi Master
+            </button>
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelMerge">Hủy bỏ</button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnConfirmMerge">
+                <i class="fa-solid fa-check-double"></i>
+                <span id="btnConfirmMergeText">Xác nhận gộp Lead</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= 6. ATTACH TO EXISTING CUSTOMER MODAL ================= -->
+<div class="merge-modal-backdrop" id="attachCustomerModal">
+    <div class="merge-modal-box" style="max-width: 650px;">
+        <div class="merge-modal-header">
+            <div class="merge-modal-title">
+                <i class="fa-solid fa-building-circle-check text-success"></i>
+                Gắn Lead vào Khách hàng Doanh nghiệp hiện có
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseAttachModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="merge-modal-body" id="attachModalBody">
+            <!-- Dynamic info populated by JS -->
+        </div>
+        <div class="merge-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelAttach">Hủy</button>
+            <button type="button" class="crm-btn crm-btn-success" id="btnConfirmAttach">
+                <i class="fa-solid fa-link"></i> Xác nhận gắn vào Khách hàng này
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="leadDupToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<!-- Scripts -->
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/pages/lead-duplicates.js?v=20261014_s404"></script>
+</body>
+</html>
