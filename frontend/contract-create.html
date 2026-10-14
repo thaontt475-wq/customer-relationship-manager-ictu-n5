@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <script src="js/crm-api.js"></script>
@@ -17,11 +17,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>Tạo Hợp đồng - NovaCRM</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <link rel="stylesheet" href="css/design-system.css">
-    <link rel="stylesheet" href="css/app-shell.css">
-    <link rel="stylesheet" href="css/pages/contract-create.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/contract-create.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
@@ -34,27 +36,27 @@
 
     <nav class="crm-nav">
         <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
             <span class="crm-nav-label">Tổng quan</span>
         </a>
 
         <a href="customers.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
             <span class="crm-nav-label">Khách hàng</span>
         </a>
 
         <a href="pipeline.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
             <span class="crm-nav-label">Cơ hội</span>
         </a>
 
         <a href="quotations.html" class="crm-nav-item">
-            <span class="crm-nav-icon">▤</span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-file-signature"></i></span>
             <span class="crm-nav-label">Báo giá</span>
         </a>
 
         <a href="contracts.html" class="crm-nav-item active">
-            <span class="crm-nav-icon">📄</span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-file-signature"></i></span>
             <span class="crm-nav-label">Hợp đồng</span>
         </a>
     </nav>
@@ -71,8 +73,8 @@
 <main class="crm-main contract-page">
     <section class="contract-head">
         <div>
-            <a href="contracts.html" class="back-link">← Danh sách Hợp đồng</a>
-            <h1 id="pageHeading">Tạo Hợp đồng</h1>
+            <a href="contracts.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Danh sách Hợp đồng</a>
+            <h1 id="pageHeading"><i class="fa-solid fa-file-signature" style="color:var(--crm-primary); margin-right:8px;"></i> Tạo Hợp đồng</h1>
             <p id="pageSubHeading">Nhập thông tin hợp đồng để lưu trực tiếp vào cơ sở dữ liệu hệ thống.</p>
         </div>
     </section>
@@ -188,16 +190,16 @@
         </section>
 
         <aside class="crm-card contract-summary">
-            <h2>Xác nhận Lưu</h2>
+            <h2><i class="fa-solid fa-circle-check" style="color:var(--crm-primary); margin-right:6px;"></i> Xác nhận Lưu</h2>
             <p>Dữ liệu hợp đồng sẽ được kiểm tra và lưu trực tiếp vào cơ sở dữ liệu MySQL qua Backend REST API.</p>
 
             <div id="contractValidation" class="contract-validation"></div>
 
             <button id="createContractButton" class="crm-btn crm-btn-primary" type="submit" style="width:100%; justify-content:center; padding:12px;">
-                Lưu Hợp đồng vào Hệ thống
+                <i class="fa-solid fa-floppy-disk"></i> Lưu Hợp đồng vào Hệ thống
             </button>
             <a href="contracts.html" class="crm-btn crm-btn-secondary" style="width:100%; justify-content:center; text-decoration:none; margin-top:8px; display:inline-flex;">
-                Hủy bỏ & Quay lại
+                <i class="fa-solid fa-xmark"></i> Hủy bỏ & Quay lại
             </a>
         </aside>
     </form>
@@ -207,16 +209,16 @@
 <div id="contractSuccess" class="contract-success-overlay">
     <div class="contract-success-box">
         <div class="success-check">
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+            <i class="fa-solid fa-circle-check" style="font-size:3.5rem; color:#16a34a;"></i>
         </div>
         <h2>Hợp đồng đã được tạo thành công!</h2>
         <p id="successDetailText">Dữ liệu hợp đồng đã được lưu an toàn vào cơ sở dữ liệu MySQL.</p>
         <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
             <a href="contracts.html" class="crm-btn crm-btn-primary" style="text-decoration:none;">
-                Xem danh sách Hợp đồng
+                <i class="fa-solid fa-list"></i> Xem danh sách Hợp đồng
             </a>
             <a href="quotations.html" class="crm-btn crm-btn-secondary" style="text-decoration:none;">
-                Quay lại Báo giá
+                <i class="fa-solid fa-arrow-left"></i> Quay lại Báo giá
             </a>
         </div>
     </div>
@@ -224,7 +226,7 @@
 
 <script src="js/pages/contract-create.js"></script>
 <script src="js/page-transition.js"></script>
-<script src="js/theme.js"></script>
-<script src="js/shared-shell.js"></script>
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
 <script src="js/crm-api.js"></script>
@@ -17,17 +17,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
 <title>Quản lý Khách hàng Doanh nghiệp | Corporate CRM</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<link rel="stylesheet" href="css/design-system.css">
-<link rel="stylesheet" href="css/app-shell.css">
-<link rel="stylesheet" href="css/pages/customers.css">
-<link rel="stylesheet" href="css/customers/customers.css">
-<link rel="stylesheet" href="css/pages/duplicate-merge.css">
-<link rel="stylesheet" href="css/pages/support-tickets.css">
-<link rel="stylesheet" href="css/pages/contacts.css">
-<link rel="stylesheet" href="css/pages/corporate-hierarchy.css">
-<link rel="stylesheet" href="css/pages/customer-import.css">
-<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+<link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/customers.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/customers/customers.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/duplicate-merge.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/support-tickets.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/contacts.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/corporate-hierarchy.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/customer-import.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
@@ -43,54 +45,54 @@
         <div class="crm-nav-section">Không gian làm việc</div>
 
         <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
             <span class="crm-nav-label">Tổng quan</span>
         </a>
 
         <a href="customers.html" class="crm-nav-item active">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
             <span class="crm-nav-label">Khách hàng</span>
         </a>
 
         <a href="contacts.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
             <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
         </a>
 
         <a href="support-tickets.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/><line x1="9" y1="10" x2="9.01" y2="10"/><line x1="12" y1="10" x2="12.01" y2="10"/><line x1="15" y1="10" x2="15.01" y2="10"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-headset"></i></span>
             <span class="crm-nav-label">Chăm sóc & Hỗ trợ</span>
         </a>
 
         <a href="periodic-care.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-check"></i></span>
             <span class="crm-nav-label">Chăm sóc định kỳ</span>
         </a>
 
         <a href="pipeline.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
             <span class="crm-nav-label">Cơ hội</span>
         </a>
 
         <a href="calendar.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
             <span class="crm-nav-label">Lịch</span>
         </a>
 
         <div class="crm-nav-section">Quản lý</div>
 
         <a href="products.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
             <span class="crm-nav-label">Sản phẩm</span>
         </a>
 
         <a href="users.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-4 2.7-7 6-7s6 3 6 7"/><path d="M15 14c3 0 5 2 5 5"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
             <span class="crm-nav-label">Người dùng</span>
         </a>
 
         <a href="master-data.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h7"/></svg></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
             <span class="crm-nav-label">Danh mục dùng chung</span>
         </a>
     </nav>
@@ -99,14 +101,14 @@
 <!-- ================= TOPBAR ================= -->
 <header class="crm-topbar">
     <div class="crm-search">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        <i class="fa-solid fa-magnifying-glass"></i>
         <input id="globalSearch" type="search" placeholder="Tìm kiếm khách hàng, mã số thuế...">
         <kbd>Ctrl K</kbd>
     </div>
 
     <div class="crm-top-actions">
         <button class="crm-icon-btn" type="button" aria-label="Thông báo">
-            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+            <i class="fa-solid fa-bell"></i>
             <span class="crm-notification-dot"></span>
         </button>
 
@@ -117,7 +119,7 @@
                     <span class="crm-user-name" id="topUserName">Đang tải...</span>
                     <span class="crm-user-role" id="topUserRole">Người dùng</span>
                 </div>
-                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+                <span><i class="fa-solid fa-angle-down"></i></span>
             </button>
 
             <div id="userDropdown" class="crm-user-dropdown">
@@ -142,23 +144,23 @@
 
         <div class="customer-head-actions">
             <a href="contacts.html" class="crm-btn crm-btn-secondary" style="text-decoration:none;" title="Quản lý Người liên hệ & Vai trò quyết định mua (CRM-62)">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <i class="fa-solid fa-address-book"></i>
                 Người liên hệ (CRM-62)
             </a>
             <a href="periodic-care.html" class="crm-btn crm-btn-secondary" style="text-decoration:none;" title="Danh sách khách hàng cần chăm sóc định kỳ (CRM-69)">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <i class="fa-solid fa-calendar-check"></i>
                 Chăm sóc định kỳ
             </a>
             <button id="btnExportExcel" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu CSV của trang hiện tại">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <i class="fa-solid fa-file-export"></i>
                 Xuất trang hiện tại
             </button>
             <button id="btnImportExcel" class="crm-btn crm-btn-secondary" type="button" title="Nhập danh sách từ Excel">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <i class="fa-solid fa-file-excel"></i>
                 Nhập Excel
             </button>
             <button id="openCustomerDrawer" class="crm-btn crm-btn-primary" type="button">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <i class="fa-solid fa-user-plus"></i>
                 Thêm mới khách hàng
             </button>
         </div>
@@ -168,7 +170,7 @@
     <section class="customer-kpi-bar">
         <div class="customer-kpi-card" data-filter-status="">
             <div class="kpi-icon-wrap kpi-icon-total">
-                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <i class="fa-solid fa-users"></i>
             </div>
             <div class="kpi-info">
                 <span class="kpi-label">Tổng khách hàng</span>
@@ -178,7 +180,7 @@
 
         <div class="customer-kpi-card" data-filter-status="TIEM_NANG" style="cursor:pointer;">
             <div class="kpi-icon-wrap kpi-icon-prospect">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <i class="fa-solid fa-bullseye"></i>
             </div>
             <div class="kpi-info">
                 <span class="kpi-label">Tiềm năng (trang này)</span>
@@ -188,7 +190,7 @@
 
         <div class="customer-kpi-card" data-filter-status="DANG_GIAO_DICH" style="cursor:pointer;">
             <div class="kpi-icon-wrap kpi-icon-dealing">
-                <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                <i class="fa-solid fa-chart-line"></i>
             </div>
             <div class="kpi-info">
                 <span class="kpi-label">Đang giao dịch (trang này)</span>
@@ -198,7 +200,7 @@
 
         <div class="customer-kpi-card" data-filter-status="CHINH_THUC" style="cursor:pointer;">
             <div class="kpi-icon-wrap kpi-icon-won">
-                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                <i class="fa-solid fa-circle-check"></i>
             </div>
             <div class="kpi-info">
                 <span class="kpi-label">Đã thành khách (trang này)</span>
@@ -213,7 +215,7 @@
         <div class="saved-views-header">
             <div class="saved-views-nav-left">
                 <span class="saved-views-label">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <i class="fa-solid fa-filter"></i>
                     Góc nhìn / Bộ lọc:
                 </span>
                 <!-- Desktop Tabs -->
@@ -227,12 +229,12 @@
             </div>
             <div class="saved-views-actions">
                 <button id="btnQuickDuplicates" class="crm-btn crm-btn-secondary" type="button" title="Lọc nhanh danh sách khách hàng có dấu hiệu trùng lặp (CRM-64)">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24" style="color:#d97706;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#d97706;"></i>
                     <span>Trùng lặp trên trang</span>
                     <span id="badgeDuplicatesCount" class="tax-badge" style="background:#fef3c7; color:#b45309; border-color:#fcd34d; font-weight:700; margin-left:2px;">0</span>
                 </button>
                 <button id="btnOpenSaveViewModal" class="crm-btn crm-btn-secondary btn-save-view" type="button" title="Lưu lại bộ lọc hiện tại thành một góc nhìn tùy chỉnh">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <i class="fa-solid fa-floppy-disk"></i>
                     <span>Lưu bộ lọc</span>
                 </button>
             </div>
@@ -242,7 +244,7 @@
         <div class="customer-toolbar-main">
             <!-- Global Smart Search -->
             <div class="toolbar-search-box">
-                <svg class="toolbar-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                <i class="fa-solid fa-magnifying-glass toolbar-search-icon"></i>
                 <input id="customerSearch" class="crm-input toolbar-search-input" type="search" placeholder="Tìm thông minh: Tên công ty, MST, SĐT, Email...">
             </div>
 
@@ -273,11 +275,11 @@
             <!-- Actions: Advanced Drawer Toggle & Reset -->
             <div class="toolbar-action-buttons">
                 <button id="btnToggleAdvFilter" class="crm-btn crm-btn-secondary" type="button" title="Mở bộ lọc nâng cao (Quy mô, Vùng miền, Phụ trách)">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    <i class="fa-solid fa-sliders"></i>
                     <span>Bộ lọc nâng cao</span>
                 </button>
                 <button id="btnResetFilters" class="crm-btn crm-btn-secondary" type="button" title="Đặt lại toàn bộ tiêu chí lọc">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    <i class="fa-solid fa-rotate-left"></i>
                     <span>Đặt lại</span>
                 </button>
             </div>
@@ -329,20 +331,20 @@
                             <th class="sortable col-name" data-sort="name">
                                 <span class="th-content">
                                     Doanh nghiệp / MST
-                                    <span class="sort-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                                    <span class="sort-icon"><i class="fa-solid fa-angle-down"></i></span>
                                 </span>
                             </th>
                             <th class="col-contact">Liên hệ chính</th>
                             <th class="sortable col-meta" data-sort="industry">
                                 <span class="th-content">
                                     Ngành nghề & Quy mô
-                                    <span class="sort-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                                    <span class="sort-icon"><i class="fa-solid fa-angle-down"></i></span>
                                 </span>
                             </th>
                             <th class="sortable" data-sort="status">
                                 <span class="th-content">
                                     Vòng đời
-                                    <span class="sort-icon"><svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                                    <span class="sort-icon"><i class="fa-solid fa-angle-down"></i></span>
                                 </span>
                             </th>
                             <th class="col-owner">Phụ trách & Phạm vi</th>
@@ -356,7 +358,7 @@
             <!-- Empty State -->
             <div id="customerEmpty" class="customer-empty" style="display:none; padding:48px 24px; text-align:center;">
                 <div class="empty-icon" style="margin:0 auto 12px; width:48px; height:48px; border-radius:50%; background:var(--crm-surface-soft); display:grid; place-items:center; color:var(--crm-muted);">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    <i class="fa-solid fa-user-plus" style="font-size:24px;"></i>
                 </div>
                 <strong style="font-size:16px; color:var(--crm-text); display:block; margin-bottom:4px;">Không tìm thấy khách hàng nào</strong>
                 <span style="font-size:13px; color:var(--crm-muted);">Thử thay đổi từ khóa tìm kiếm hoặc bấm “Thêm mới khách hàng” để khai báo hồ sơ.</span>
@@ -384,14 +386,14 @@
             <p>Hồ sơ chuẩn hóa theo định danh Mã số thuế doanh nghiệp (CRM-61)</p>
         </div>
         <button id="closeCustomerDrawer" type="button" class="drawer-close-btn" aria-label="Đóng">
-            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            <i class="fa-solid fa-xmark"></i>
         </button>
     </header>
 
     <!-- CRM-64: REALTIME DUPLICATE DETECTION ALERT BANNER -->
     <div id="drawerDuplicateAlert" class="drawer-duplicate-alert" style="display:none;">
         <div class="drawer-dup-head">
-            <svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <i class="fa-solid fa-triangle-exclamation"></i>
             <span>Cảnh báo: Phát hiện thông tin nghi trùng lặp (CRM-64)</span>
         </div>
         <div class="drawer-dup-body">
@@ -400,7 +402,7 @@
         </div>
         <div class="drawer-dup-actions">
             <button type="button" class="btn-drawer-merge" id="btnDrawerOpenMerge">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M8 7v10M8 12h8m0-5v10m-3-12 3 2 3-2m-6 14 3-2 3 2"/></svg>
+                <i class="fa-solid fa-code-merge"></i>
                 So sánh đối chiếu & Gộp khách hàng ngay
             </button>
         </div>
@@ -413,7 +415,7 @@
         <!-- NHÓM 1: THÔNG TIN PHÁP LÝ & ĐỊNH DANH -->
         <div class="form-section-card">
             <h3 class="form-section-title">
-                <svg viewBox="0 0 24 24"><path d="M3 21h18M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4M5 21V10.85M19 21V10.85M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"/></svg>
+                <i class="fa-solid fa-building"></i>
                 1. Thông tin Pháp lý & Định danh Doanh nghiệp
             </h3>
 
@@ -472,7 +474,7 @@
         <!-- NHÓM 2: THÔNG TIN LIÊN LẠC & ĐỊA ĐIỂM -->
         <div class="form-section-card">
             <h3 class="form-section-title">
-                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <i class="fa-solid fa-phone"></i>
                 2. Kênh Liên lạc & Văn phòng Trụ sở
             </h3>
 
@@ -509,7 +511,7 @@
         <!-- NHÓM 3: PHÂN CÔNG QUẢN LÝ NỘI BỘ -->
         <div class="form-section-card">
             <h3 class="form-section-title">
-                <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <i class="fa-solid fa-user-gear"></i>
                 3. Phân công Quản trị & Phụ trách
             </h3>
 
@@ -529,7 +531,7 @@
     <footer class="customer-drawer-footer">
         <button id="cancelCustomer" class="crm-btn crm-btn-secondary" type="button">Hủy bỏ</button>
         <button id="btnSaveCustomer" form="customerForm" class="crm-btn crm-btn-primary" type="submit">
-            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <i class="fa-solid fa-floppy-disk"></i>
             Lưu hồ sơ
         </button>
     </footer>
@@ -560,14 +562,14 @@
     <header class="adv-filter-drawer-header">
         <div class="adv-filter-header-content">
             <span class="adv-filter-tag">
-                <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <i class="fa-solid fa-filter"></i>
                 BỘ LỌC ĐA TIÊU CHÍ (CRM-67)
             </span>
             <h2 id="advFilterTitle" class="adv-filter-title">Bộ lọc Nâng cao</h2>
             <p class="adv-filter-subtitle">Khoanh vùng nhanh danh sách khách hàng doanh nghiệp theo nhiều chiều điều kiện kết hợp.</p>
         </div>
         <button id="btnCloseAdvFilter" class="adv-filter-close-btn" type="button" aria-label="Đóng bộ lọc">
-            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <i class="fa-solid fa-xmark"></i>
         </button>
     </header>
 
@@ -576,7 +578,7 @@
         <div class="adv-filter-section-card">
             <div class="adv-filter-section-head">
                 <div class="adv-filter-icon-badge icon-badge-size">
-                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <i class="fa-solid fa-users"></i>
                 </div>
                 <div>
                     <h3 class="adv-filter-section-title">Quy mô Doanh nghiệp</h3>
@@ -594,7 +596,7 @@
         <div class="adv-filter-section-card">
             <div class="adv-filter-section-head">
                 <div class="adv-filter-icon-badge icon-badge-geo">
-                    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <i class="fa-solid fa-location-dot"></i>
                 </div>
                 <div>
                     <h3 class="adv-filter-section-title">Khu vực Địa lý (Vùng / Miền)</h3>
@@ -612,7 +614,7 @@
         <div class="adv-filter-section-card">
             <div class="adv-filter-section-head">
                 <div class="adv-filter-icon-badge icon-badge-owner">
-                    <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <i class="fa-solid fa-user-tie"></i>
                 </div>
                 <div>
                     <h3 class="adv-filter-section-title">Người phụ trách (Sale Owner)</h3>
@@ -629,11 +631,11 @@
 
     <footer class="adv-filter-drawer-footer">
         <button id="btnResetAdvFilter" class="crm-btn crm-btn-secondary btn-reset-adv" type="button">
-            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <i class="fa-solid fa-rotate-right"></i>
             Đặt lại
         </button>
         <button id="btnApplyAdvFilter" class="crm-btn crm-btn-primary btn-apply-adv" type="button">
-            <svg class="crm-inline-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <i class="fa-solid fa-check"></i>
             Áp dụng bộ lọc
         </button>
     </footer>
@@ -646,7 +648,7 @@
 <div id="saveViewModal" class="crm-card save-view-dialog" style="display:none;">
     <div class="save-view-dialog-header">
         <div class="save-view-dialog-icon">
-            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <i class="fa-solid fa-bookmark" style="font-size:20px; color:var(--crm-primary);"></i>
         </div>
         <div>
             <h3 style="margin:0; font-size:16px;">Lưu bộ lọc tùy chỉnh (Saved View)</h3>
@@ -662,7 +664,7 @@
     <div style="display:flex; justify-content:flex-end; gap:10px;">
         <button id="btnCancelSaveView" class="crm-btn crm-btn-secondary" type="button">Hủy</button>
         <button id="btnConfirmSaveView" class="crm-btn crm-btn-primary" type="button">
-            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+            <i class="fa-solid fa-floppy-disk"></i>
             Lưu góc nhìn
         </button>
     </div>
@@ -676,7 +678,7 @@
     <header class="merge-modal-header">
         <div class="merge-modal-title-group">
             <span class="merge-modal-tag">
-                <svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <i class="fa-solid fa-code-merge"></i>
                 QUẢN LÝ TRÙNG LẶP & HỢP NHẤT DỮ LIỆU (CRM-64)
             </span>
             <h2 id="mergeModalTitle" class="merge-modal-title">Đối chiếu & Gộp Khách hàng Trùng lặp</h2>
@@ -687,12 +689,12 @@
             <div class="role-simulator-box" title="Chuyển đổi vai trò để kiểm thử phân quyền gộp khách hàng">
                 <span class="role-sim-label">Vai trò:</span>
                 <select id="roleSimulatorSelect" class="role-sim-select" aria-label="Mô phỏng vai trò người dùng">
-                    <option value="TEAM_LEAD">👑 Trưởng nhóm (Team Lead / Admin)</option>
-                    <option value="SALE">👤 Nhân viên Sale (Chỉ xem)</option>
+                    <option value="TEAM_LEAD">Trưởng nhóm (Team Lead / Admin)</option>
+                    <option value="SALE">Nhân viên Sale (Chỉ xem)</option>
                 </select>
             </div>
             <button id="btnCloseMergeModal" type="button" class="merge-close-btn" aria-label="Đóng cửa sổ">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
     </header>
@@ -701,7 +703,7 @@
         <!-- 1. Reason alert banner -->
         <div class="merge-reason-banner">
             <div class="merge-reason-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M22 12A10 10 0 1 1 2 12a10 10 0 0 1 20 0Z"/></svg>
+                <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <div class="merge-reason-content">
                 <h4>Dấu hiệu trùng lặp phát hiện bởi hệ thống:</h4>
@@ -782,26 +784,26 @@
         <div class="merge-data-preview-card">
             <div class="preview-card-head">
                 <h4 class="preview-card-title">
-                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <i class="fa-solid fa-shield-halved" style="color:var(--crm-success);"></i>
                     Chính sách bảo toàn dữ liệu đầy đủ (Comprehensive Data Merge):
                 </h4>
             </div>
             <div class="preview-badge-pills">
                 <div class="preview-pill" id="pillContactsCount">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+                    <i class="fa-solid fa-address-book"></i>
                     <span>Người liên hệ: <strong id="txtContactsCount">0 + 0 = 0 liên hệ</strong></span>
                 </div>
                 <div class="preview-pill" id="pillDealsCount">
-                    <svg viewBox="0 0 24 24"><path d="m12 3 8 9-8 9-8-9 8-9Z"/></svg>
+                    <i class="fa-solid fa-bullseye"></i>
                     <span>Cơ hội bán hàng: <strong id="txtDealsCount">0 + 0 = 0 deals</strong></span>
                 </div>
                 <div class="preview-pill" id="pillActivitiesCount">
-                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
                     <span>Lịch sử chăm sóc: <strong id="txtActivitiesCount">Gộp toàn bộ hoạt động</strong></span>
                 </div>
             </div>
             <div class="secondary-retire-note">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;color:var(--crm-muted);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <i class="fa-solid fa-circle-info" style="color:var(--crm-muted); font-size:16px;"></i>
                 <span>Hồ sơ phụ sẽ được chuyển trạng thái <strong>"Đã gộp" (MERGED / Inactive)</strong> và liên kết vĩnh viễn đến Hồ sơ gốc trong hệ thống.</span>
             </div>
         </div>
@@ -814,7 +816,7 @@
         <div class="merge-footer-buttons">
             <button id="btnCancelMerge" class="crm-btn crm-btn-secondary" type="button">Hủy bỏ</button>
             <button id="btnConfirmMerge" class="btn-confirm-merge" type="button">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <i class="fa-solid fa-code-merge"></i>
                 Xác nhận gộp khách hàng
             </button>
         </div>
@@ -828,7 +830,7 @@
         <header class="crm-import-modal-head">
             <div class="crm-import-title-group">
                 <div class="crm-import-icon-badge">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <i class="fa-solid fa-file-excel" style="font-size:24px; color:var(--crm-success);"></i>
                 </div>
                 <div>
                     <h2 id="importModalTitle" class="crm-import-modal-title">Nhập danh sách Khách hàng từ Excel (CRM-66)</h2>
@@ -836,7 +838,7 @@
                 </div>
             </div>
             <button type="button" class="crm-import-close-btn crm-import-close-trigger" aria-label="Đóng cửa sổ">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <i class="fa-solid fa-xmark"></i>
             </button>
         </header>
 
@@ -875,14 +877,14 @@
                     <!-- Template Toolbar -->
                     <div class="crm-template-toolbar">
                         <div class="crm-template-info">
-                            <div class="crm-template-info-icon">📥</div>
+                            <div class="crm-template-info-icon"><i class="fa-solid fa-cloud-arrow-down" style="font-size:22px; color:var(--crm-primary);"></i></div>
                             <div>
                                 <strong>Tệp mẫu Excel chuẩn hệ thống</strong>
                                 <p>Tải file mẫu để điền đầy đủ các cột bắt buộc: Tên công ty, MST, Trạng thái, Email, SĐT...</p>
                             </div>
                         </div>
                         <button id="btnDownloadTemplate" type="button" class="crm-btn crm-btn-secondary" title="Tải tệp mẫu Excel">
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <i class="fa-solid fa-download"></i>
                             Tải tệp mẫu Excel
                         </button>
                     </div>
@@ -891,7 +893,7 @@
                     <input id="importFileInput" type="file" accept=".xlsx" hidden>
                     <div id="importDropZone" class="crm-drop-zone">
                         <div class="crm-drop-icon">
-                            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size:42px; color:var(--crm-primary);"></i>
                         </div>
                         <div class="crm-drop-prompt-main">Kéo & thả tệp Excel hoặc CSV vào đây</div>
                         <div class="crm-drop-prompt-sub">hoặc nhấn vào khung để duyệt tệp từ máy tính của bạn</div>
@@ -906,7 +908,7 @@
                     <!-- Selected File Info Card -->
                     <div id="importFileCard" class="crm-file-card">
                         <div class="crm-file-meta">
-                            <div class="crm-file-icon">📊</div>
+                            <div class="crm-file-icon"><i class="fa-solid fa-file-excel" style="font-size:26px; color:#10b981;"></i></div>
                             <div>
                                 <div id="importFileName" class="crm-file-name">ten_file.xlsx</div>
                                 <div id="importFileSize" class="crm-file-size">0 KB</div>
@@ -926,28 +928,28 @@
                     <!-- KPI Summary Stats -->
                     <div class="crm-import-kpi-bar">
                         <div class="crm-import-kpi-card kpi-total active" data-filter="ALL" title="Hiển thị tất cả bản ghi">
-                            <div class="import-kpi-icon">📋</div>
+                            <div class="import-kpi-icon"><i class="fa-solid fa-list-check"></i></div>
                             <div class="import-kpi-info">
                                 <span>Tổng số dòng</span>
                                 <strong id="previewStatTotal">0</strong>
                             </div>
                         </div>
                         <div class="crm-import-kpi-card kpi-valid" data-filter="VALID" title="Lọc các dòng hợp lệ">
-                            <div class="import-kpi-icon">✓</div>
+                            <div class="import-kpi-icon"><i class="fa-solid fa-circle-check" style="color:var(--crm-success);"></i></div>
                             <div class="import-kpi-info">
                                 <span>Hợp lệ</span>
                                 <strong id="previewStatValid" style="color:var(--crm-success);">0</strong>
                             </div>
                         </div>
                         <div class="crm-import-kpi-card kpi-error" data-filter="ERROR" title="Lọc các dòng bị lỗi xác thực">
-                            <div class="import-kpi-icon">✕</div>
+                            <div class="import-kpi-icon"><i class="fa-solid fa-circle-xmark" style="color:var(--crm-danger);"></i></div>
                             <div class="import-kpi-info">
                                 <span>Lỗi xác thực</span>
                                 <strong id="previewStatError" style="color:var(--crm-danger);">0</strong>
                             </div>
                         </div>
                         <div class="crm-import-kpi-card kpi-duplicate" data-filter="DUPLICATE" title="Lọc các dòng bị trùng lặp">
-                            <div class="import-kpi-icon">⚠️</div>
+                            <div class="import-kpi-icon"><i class="fa-solid fa-triangle-exclamation" style="color:var(--crm-warning);"></i></div>
                             <div class="import-kpi-info">
                                 <span>Trùng lặp</span>
                                 <strong id="previewStatDuplicate" style="color:var(--crm-warning);">0</strong>
@@ -958,7 +960,7 @@
                     <!-- Global Conflict Resolution Toolbar -->
                     <div class="crm-conflict-toolbar">
                         <div class="crm-conflict-text">
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size:18px; color:#d97706;"></i>
                             <span><strong>Xử lý bản ghi trùng lặp:</strong> Phát hiện khách hàng có cùng Mã số thuế hoặc Tên trong hệ thống/tệp tin.</span>
                         </div>
                         <div class="crm-conflict-actions">
@@ -1018,7 +1020,7 @@
                     <!-- Summary Report Card -->
                     <div id="importReportCard" class="crm-summary-report-card" style="display:none;">
                         <div class="crm-report-header">
-                            <div class="crm-report-badge-icon">✓</div>
+                            <div class="crm-report-badge-icon"><i class="fa-solid fa-circle-check" style="font-size:32px; color:var(--crm-success);"></i></div>
                             <div class="crm-report-title">
                                 <h3>Hoàn tất Xử lý Nhập dữ liệu Khách hàng</h3>
                                 <p>Hệ thống đã phân loại và lưu trữ thành công các bản ghi vào cơ sở dữ liệu CRM.</p>
@@ -1049,10 +1051,10 @@
                         <div id="reportErrorSection" class="crm-error-log-section" style="display:none;">
                             <div class="crm-error-log-head">
                                 <div class="crm-error-log-title">
-                                    <span>⚠️ Danh sách các dòng bị lỗi không thể nhập (<span id="reportErrorCount">0</span> dòng):</span>
+                                    <span><i class="fa-solid fa-triangle-exclamation" style="color:var(--crm-warning);"></i> Danh sách các dòng bị lỗi không thể nhập (<span id="reportErrorCount">0</span> dòng):</span>
                                 </div>
                                 <button id="btnDownloadErrorLog" type="button" class="crm-btn crm-btn-secondary" style="font-size:12px; padding:4px 10px;">
-                                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    <i class="fa-solid fa-download"></i>
                                     Tải danh sách dòng lỗi (.csv)
                                 </button>
                             </div>
@@ -1090,10 +1092,10 @@
                 </button>
                 <button id="btnImportNext" type="button" class="crm-btn crm-btn-primary" style="display:none;">
                     Tiếp tục kiểm tra
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
                 <button id="btnImportExecute" type="button" class="crm-btn crm-btn-primary" style="display:none;">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
                     Tiến hành nhập dữ liệu
                 </button>
                 <button id="btnImportFinish" type="button" class="crm-btn crm-btn-primary" style="display:none;">
@@ -1113,8 +1115,8 @@
 <script src="js/pages/customer-import.js"></script>
 <script src="js/pages/customers.js"></script>
 <script src="js/page-transition.js"></script>
-<script src="js/theme.js"></script>
-<script src="js/shared-shell.js"></script>
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
 <script src="js/ui-core.js"></script>
 <script src="js/ui-effects.js"></script>
 </body>

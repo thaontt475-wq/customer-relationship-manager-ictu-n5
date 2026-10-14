@@ -152,7 +152,7 @@
             let badgeHtml = view.badge ? `<span class="view-tab-badge">${escapeHtml(view.badge)}</span>` : "";
             let deleteHtml = !view.isPreset ? `
                 <span class="btn-delete-view" title="Xóa bộ lọc đã lưu" data-view-id="${view.id}">
-                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <i class="fa-solid fa-xmark"></i>
                 </span>` : "";
 
             tabBtn.innerHTML = `
@@ -286,7 +286,7 @@
             chips.push({ key: "scopeFilter", label: `Phạm vi: ${filterCriteria.scopeFilter === "SELF" ? "Cá nhân (SELF)" : "Nhóm (TEAM)"}` });
         }
         if (filterCriteria.isDuplicateOnly) {
-            chips.push({ key: "isDuplicateOnly", label: "⚠️ Chỉ khách trùng lặp" });
+            chips.push({ key: "isDuplicateOnly", label: "Chỉ khách trùng lặp" });
         }
 
         if (chips.length === 0) {
@@ -298,7 +298,7 @@
 
         const labelPrefix = document.createElement("span");
         labelPrefix.className = "chips-title";
-        labelPrefix.innerHTML = `<svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Đang lọc theo:`;
+        labelPrefix.innerHTML = `<i class="fa-solid fa-filter"></i> Đang lọc theo:`;
         elements.activeChipsContainer.appendChild(labelPrefix);
 
         chips.forEach(chip => {
@@ -307,7 +307,7 @@
             chipEl.innerHTML = `
                 <span>${escapeHtml(chip.label)}</span>
                 <button type="button" class="chip-remove-btn" title="Xóa điều kiện này" data-key="${chip.key}">
-                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             `;
 
@@ -323,7 +323,7 @@
         clearAllBtn.type = "button";
         clearAllBtn.className = "btn-clear-all-chips";
         clearAllBtn.innerHTML = `
-            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/></svg>
+            <i class="fa-solid fa-trash-can"></i>
             Xóa tất cả bộ lọc
         `;
         clearAllBtn.addEventListener("click", resetAllFilters);
@@ -510,7 +510,7 @@
             updateMatchCount: (count, total) => {
                 if (elements.filterMatchCountBadge) {
                     elements.filterMatchCountBadge.innerHTML = `
-                        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <i class="fa-solid fa-circle-check"></i>
                         Tìm thấy <strong>${count}</strong> / ${total} khách hàng phù hợp
                     `;
                     elements.filterMatchCountBadge.style.display = "inline-flex";

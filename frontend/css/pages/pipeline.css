@@ -958,3 +958,173 @@
     }
 
 }
+
+/* =========================================================
+   PIPELINE KANBAN DARK THEME
+========================================================= */
+html[data-theme="dark"] .pipeline-column,
+[data-theme="dark"] .pipeline-column {
+    background: #172033 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="dark"] .column-head,
+[data-theme="dark"] .column-head {
+    background: #1e293b !important;
+    border-bottom: 1px solid #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .column-head strong,
+[data-theme="dark"] .column-head strong {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .column-count,
+[data-theme="dark"] .column-count {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .column-total,
+[data-theme="dark"] .column-total {
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .column-body,
+[data-theme="dark"] .column-body {
+    background: #131c2e !important;
+}
+
+html[data-theme="dark"] .column-body.drag-over,
+[data-theme="dark"] .column-body.drag-over,
+html[data-theme="dark"] .column-body.pointer-drop-active,
+[data-theme="dark"] .column-body.pointer-drop-active {
+    background: rgba(59, 130, 246, 0.15) !important;
+    outline-color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .opportunity-card,
+[data-theme="dark"] .opportunity-card {
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .opportunity-card:hover,
+[data-theme="dark"] .opportunity-card:hover {
+    background: #243248 !important;
+    border-color: #60a5fa !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 0 1px #3b82f6 !important;
+    transform: translateY(-2px) !important;
+}
+
+html[data-theme="dark"] .opportunity-card h3,
+[data-theme="dark"] .opportunity-card h3 {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .opportunity-customer,
+[data-theme="dark"] .opportunity-customer {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .opportunity-value,
+[data-theme="dark"] .opportunity-value {
+    color: #38bdf8 !important;
+}
+
+html[data-theme="dark"] .opportunity-meta,
+[data-theme="dark"] .opportunity-meta {
+    color: #94a3b8 !important;
+    border-top: 1px solid #334155 !important;
+}
+
+html[data-theme="dark"] .card-avatar,
+[data-theme="dark"] .card-avatar {
+    background: #334155 !important;
+    color: #93c5fd !important;
+    border: 1px solid #475569 !important;
+html[data-theme="dark"] .pipeline-filter,
+[data-theme="dark"] .pipeline-filter {
+    background: #172033 !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-theme="dark"] .pipeline-filter input,
+html[data-theme="dark"] .pipeline-filter select,
+[data-theme="dark"] .pipeline-filter input,
+[data-theme="dark"] .pipeline-filter select {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .card-menu-btn,
+[data-theme="dark"] .card-menu-btn {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .card-menu-btn:hover,
+[data-theme="dark"] .card-menu-btn:hover {
+    background: #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .card-menu,
+[data-theme="dark"] .card-menu {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6) !important;
+}
+
+html[data-theme="dark"] .card-menu button,
+[data-theme="dark"] .card-menu button {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .card-menu button:hover,
+[data-theme="dark"] .card-menu button:hover {
+    background: #283548 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .opportunity-drawer,
+[data-theme="dark"] .opportunity-drawer {
+    background: #172033 !important;
+    border-left: 1px solid #334155 !important;
+    color: #f8fafc !important;
+    box-shadow: -18px 0 45px rgba(0, 0, 0, 0.5) !important;
+}
+
+html[data-theme="dark"] .opportunity-drawer header,
+html[data-theme="dark"] .opportunity-drawer footer,
+[data-theme="dark"] .opportunity-drawer header,
+[data-theme="dark"] .opportunity-drawer footer {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+html[data-theme="dark"] .close-deal-modal,
+[data-theme="dark"] .close-deal-modal {
+    background: #172033 !important;
+    border: 1px solid #334155 !important;
+    color: #f8fafc !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6) !important;
+}
+
+html[data-theme="dark"] .close-deal-head,
+[data-theme="dark"] .close-deal-head {
+    background: #1e293b !important;
+    border-bottom: 1px solid #334155 !important;
+}
+
+html[data-theme="dark"] .pipeline-drag-ghost,
+[data-theme="dark"] .pipeline-drag-ghost {
+    background: #1e293b !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6) !important;
+}
+

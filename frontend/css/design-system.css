@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css');
 
 :root {
     --crm-primary: #2563eb;
@@ -42,6 +43,70 @@
         0 10px 28px rgba(15,23,42,.08);
 
     --crm-transition: 220ms ease;
+}
+
+:root[data-theme="dark"],
+html[data-theme="dark"] {
+    --crm-primary: #3b82f6;
+    --crm-primary-dark: #2563eb;
+    --crm-primary-soft: rgba(59, 130, 246, 0.15);
+    --crm-primary-active: #1d4ed8;
+    --crm-purple: #a855f7;
+    --crm-cyan: #06b6d4;
+
+    --crm-bg: #0b1220;
+    --crm-surface: #172033;
+    --crm-surface-soft: #1e293b;
+
+    --crm-border: #334155;
+    --crm-border-strong: #475569;
+
+    --crm-text: #f8fafc;
+    --crm-text-2: #cbd5e1;
+    --crm-muted: #94a3b8;
+    --crm-muted-2: #64748b;
+
+    --crm-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
+    --crm-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+
+html[data-theme="dark"] body {
+    background: var(--crm-bg);
+    color: var(--crm-text);
+}
+
+html[data-theme="dark"] .crm-card {
+    background: var(--crm-surface);
+    border-color: var(--crm-border);
+    color: var(--crm-text);
+}
+
+html[data-theme="dark"] .crm-btn-secondary {
+    background: #1e293b;
+    color: var(--crm-text-2);
+    border-color: var(--crm-border);
+}
+
+html[data-theme="dark"] .crm-btn-secondary:hover:not(:active):not(:disabled) {
+    background: #27354f;
+    border-color: #60a5fa;
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .crm-input {
+    background: #111827;
+    border-color: var(--crm-border);
+    color: var(--crm-text);
+}
+
+html[data-theme="dark"] .crm-input:hover:not(:focus):not(:disabled) {
+    border-color: #64748b;
+}
+
+html[data-theme="dark"] .crm-input:focus {
+    border-color: var(--crm-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    background: #0f172a;
 }
 
 * {
@@ -206,3 +271,52 @@ input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color:
 .crm-inline-icon { display: inline-block; width: 20px; height: 20px; flex-shrink: 0; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
 .crm-nav-icon .crm-inline-icon, .crm-bottom-item .crm-inline-icon { display: block; }
 .crm-user-arrow .crm-inline-icon { width: 16px; height: 16px; }
+
+/* =====================================================
+   ENTERPRISE REMIX ICON STYLES
+===================================================== */
+i[class^="ri-"], i[class*=" ri-"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    font-size: 1.15em;
+    line-height: 1;
+}
+
+.crm-nav-icon i[class^="ri-"],
+.crm-nav-icon i[class*=" ri-"] {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.field-icon i[class^="ri-"],
+.field-icon i[class*=" ri-"] {
+    font-size: 1.15rem;
+}
+
+.btn-icon-sm i[class^="ri-"],
+.btn-icon-sm i[class*=" ri-"] {
+    margin-right: 4px;
+    font-size: 1rem;
+}
+
+.crm-btn i[class^="ri-"],
+.crm-btn i[class*=" ri-"] {
+    margin-right: 6px;
+    font-size: 1.1em;
+}
+
+.crm-btn i:only-child,
+.action-icon-btn i:only-child,
+.btn-icon-sm i:only-child {
+    margin-right: 0;
+}
+
+.crm-toast-icon i {
+    font-size: 1.25rem;
+}
+
+.action-icon-btn i {
+    font-size: 1.1rem;
+}
