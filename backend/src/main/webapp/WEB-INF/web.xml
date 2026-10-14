@@ -19,6 +19,11 @@
         <filter-name>AuthenticationFilter</filter-name>
         <filter-class>com.crm.filter.AuthenticationFilter</filter-class>
     </filter>
+    <filter>
+        <filter-name>NavigationFilter</filter-name>
+        <filter-class>com.crm.filter.NavigationFilter</filter-class>
+    </filter>
+
     <filter-mapping>
         <filter-name>CorsFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
@@ -29,6 +34,14 @@
         <filter-name>AuthenticationFilter</filter-name>
         <url-pattern>/api/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
+        <dispatcher>ERROR</dispatcher>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>NavigationFilter</filter-name>
+        <url-pattern>/api/navigation/*</url-pattern>
+        <url-pattern>/api/menu/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
 
     <session-config>

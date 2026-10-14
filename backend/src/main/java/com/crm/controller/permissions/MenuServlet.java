@@ -2,24 +2,42 @@ package com.crm.controller.permissions;
 
 import com.crm.dto.common.ApiResponse;
 import com.crm.service.permissions.MenuService;
-import com.crm.service.permissions.PermissionService;
 import com.crm.util.ResponseUtil;
 
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-@WebServlet("/api/navigation/menu")
+/**
+ * Controller (Servlet) tiếp nhận request điều hướng menu và thông tin người dùng (CRM-26).
+ * Kiến trúc: Filter -> Servlet -> Service -> DAO -> JDBC -> MySQL 8.0.
+ *
+ * Tiêu chí đáp ứng:
+ * - AC 1: Trả về danh sách menu chỉ bao gồm các chức năng được phân quyền.
+ * - AC 2: Trả về thông tin người dùng gồm Tên, vai trò và nhóm kinh doanh.
+ * - AC 3: Cung cấp đầy đủ cấu trúc menu tương thích hiển thị trên màn hình 360px và desktop.
+ */
+@WebServlet({"/api/navigation/menu", "/api/menu"})
 public class MenuServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = Logger.getLogger(MenuServlet.class.getName());
 
-    private final PermissionService permissionService =
-            new PermissionService();
+    private final MenuService menuService;
 
-    private final MenuService menuService =
-            new MenuService();
+    public MenuServlet() {
+        this.menuService = new MenuService();
+    }
 
+    public MenuServlet(MenuService menuService) {
+        this.menuService = menuService != null ? menuService : new MenuService();
+    }
 
     @Override
     protected void doGet(
@@ -27,81 +45,43 @@ public class MenuServlet extends HttpServlet {
             HttpServletResponse response
     ) throws IOException {
 
-        response.setHeader(
-                "Cache-Control",
-                "no-store"
-        );
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        response.setHeader("Pragma", "no-cache");
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
-
-        if (
-                session == null
-                ||
-                session.getAttribute("userId") == null
-        ) {
-
+        if (session == null || session.getAttribute("userId") == null) {
             ResponseUtil.json(
                     response,
-                    401,
-                    ApiResponse.error(
-                            "Chưa đăng nhập",
-                            null
-                    )
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    ApiResponse.error("Chưa đăng nhập", null)
             );
-
             return;
         }
 
-
         try {
+            long userId = ((Number) session.getAttribute("userId")).longValue();
 
-            long userId =
-                    ((Number) session
-                            .getAttribute("userId"))
-                            .longValue();
+            // Gọi Service để xử lý nghiệp vụ lấy dữ liệu menu và user profile
+            Map<String, Object> data = menuService.getNavigationData(userId);
 
-
-            Set<String> permissions =
-                    permissionService
-                            .getPermissions(
-                                    userId
-                            );
-
-
-            Map<String, Object> data =
-                    new LinkedHashMap<>();
-
-
-            data.put(
-                    "menuItems",
-                    menuService.getMenu(
-                            permissions
-                    )
-            );
-
+            // Gán attributes vào request để hỗ trợ server-side rendering / JSP forward nếu cần
+            request.setAttribute("menuItems", data.get("menuItems"));
+            request.setAttribute("userNavigationProfile", data.get("user"));
+            request.setAttribute("currentUserProfile", data.get("userProfile"));
 
             ResponseUtil.json(
                     response,
-                    200,
-                    ApiResponse.success(
-                            "Lấy menu thành công",
-                            data
-                    )
+                    HttpServletResponse.SC_OK,
+                    ApiResponse.success("Lấy menu thành công", data)
             );
 
         } catch (Exception e) {
-
-            e.printStackTrace();
-
+            LOGGER.log(Level.SEVERE, "Lỗi xử lý lấy menu điều hướng người dùng", e);
             ResponseUtil.json(
                     response,
-                    500,
-                    ApiResponse.error(
-                            "Không thể lấy menu điều hướng",
-                            null
-                    )
+                    HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    ApiResponse.error("Không thể lấy menu điều hướng", null)
             );
         }
     }
