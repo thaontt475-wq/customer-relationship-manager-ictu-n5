@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Khách hàng tiềm năng (Leads) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/leads.css?v=20261014_s409">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="leads.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-users-viewfinder"></i></span>
+            <span class="crm-nav-label">Quản lý Lead (CRM-123)</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản trị</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead, Khách hàng, Cơ hội... (Ctrl K)">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" id="themeToggleBtn" type="button" aria-label="Đổi giao diện">
+            <i class="fa-solid fa-moon theme-icon-moon"></i>
+            <i class="fa-solid fa-sun theme-icon-sun"></i>
+        </button>
+
+        <button class="crm-icon-btn" id="topNotificationBtn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot" style="display:inline-block;"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">NQ</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Sales Rep</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html"><i class="fa-solid fa-id-card"></i> Hồ sơ cá nhân</a>
+                <a href="change-password.html"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a>
+                <button type="button" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main leads-page">
+
+    <!-- 1. BREADCRUMB & HEADER -->
+    <section class="leads-page-head">
+        <div class="leads-head-text">
+            <p class="leads-kicker">CRM / Quản lý Khách hàng tiềm năng / Sprint 4 (CRM-123)</p>
+            <h1>Danh sách Khách hàng tiềm năng (Leads)</h1>
+            <p>Quản lý tập trung vòng đời Lead với bộ lọc nâng cao đa tiêu chí, tự động làm nổi bật các Lead quá hạn phản hồi SLA và lưu cấu hình bộ lọc cá nhân (Saved Filters / Quick Views) giúp tối ưu hiệu suất làm việc của đội ngũ kinh doanh.</p>
+        </div>
+
+        <div class="leads-head-actions">
+            <button id="btnRefreshLeads" class="crm-btn crm-btn-secondary" type="button" title="Làm mới dữ liệu">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Làm mới</span>
+            </button>
+            <button id="btnResetMockData" class="crm-btn crm-btn-secondary" type="button" title="Khôi phục dữ liệu mẫu chuẩn Sprint 4">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>Dữ liệu mẫu</span>
+            </button>
+            <button id="btnExportExcel" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu Excel / CSV">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Xuất Excel</span>
+            </button>
+            <button id="btnOpenCreateLead" class="crm-btn crm-btn-primary" type="button" title="Thêm mới Lead thủ công">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Thêm Lead mới</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. KPI METRICS CARDS -->
+    <section class="leads-kpis">
+        <div class="leads-kpi-card" data-quick-filter="ALL" title="Xem tất cả Lead">
+            <div class="kpi-icon-wrap kpi-icon-total">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Tổng số Lead</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val" id="statTotalLeads">0</span>
+                    <span class="kpi-subtext">Đang quản lý</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="leads-kpi-card" data-quick-filter="HOT" title="Lọc nhanh Lead nóng">
+            <div class="kpi-icon-wrap kpi-icon-hot">
+                <i class="fa-solid fa-fire"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Lead Nóng (Hot Tier)</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val text-danger" id="statHotLeads">0</span>
+                    <span class="kpi-badge badge-hot">Ưu tiên cao</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="leads-kpi-card kpi-card-alert" data-quick-filter="OVERDUE" title="Xem Lead quá hạn SLA cần phản hồi gấp">
+            <div class="kpi-icon-wrap kpi-icon-overdue">
+                <i class="fa-solid fa-stopwatch"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Quá hạn SLA phản hồi</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val text-urgent" id="statOverdueSla">0</span>
+                    <span class="kpi-badge badge-urgent"><i class="fa-solid fa-circle-exclamation"></i> Cần xử lý gấp</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="leads-kpi-card" data-quick-filter="IN_PROGRESS" title="Xem Lead đang chăm sóc">
+            <div class="kpi-icon-wrap kpi-icon-progress">
+                <i class="fa-solid fa-comments"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Đang chăm sóc</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val text-primary" id="statInProgress">0</span>
+                    <span class="kpi-subtext">Tương tác tuần này</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. SAVED FILTERS / QUICK VIEWS HEADER -->
+    <section class="saved-filters-wrapper">
+        <div class="saved-filters-nav">
+            <div class="saved-filters-label">
+                <i class="fa-solid fa-filter"></i>
+                <span>Góc nhìn / Bộ lọc lưu sẵn:</span>
+            </div>
+            <div class="saved-filter-tabs" id="savedFilterTabs" role="tablist">
+                <!-- System Default & Custom Tabs dynamically rendered by JS -->
+            </div>
+        </div>
+
+        <div class="saved-filters-actions">
+            <button id="btnOpenSaveFilterModal" class="crm-btn crm-btn-secondary btn-save-view" type="button" title="Lưu lại bộ lọc hiện tại thành góc nhìn tùy biến">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Lưu bộ lọc hiện tại</span>
+            </button>
+            <button id="btnResetAllFilters" class="crm-btn crm-btn-secondary" type="button" title="Khôi phục toàn bộ tiêu chí lọc về mặc định">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>Xóa bộ lọc</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- 4. ADVANCED FILTER TOOLBAR -->
+    <section class="leads-filter-toolbar-card">
+        <div class="advanced-filter-row">
+            
+            <!-- 4.1 Live Search Input -->
+            <div class="filter-col-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="leadSearchInput" type="search" placeholder="Tìm theo Tên, Công ty, Mã Lead, Email, SĐT...">
+            </div>
+
+            <!-- 4.2 Status Filter -->
+            <div class="filter-col-select">
+                <label for="filterStatus" class="sr-only">Trạng thái</label>
+                <select id="filterStatus" class="crm-select">
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="NEW">Mới (New)</option>
+                    <option value="IN_PROGRESS">Đang chăm sóc (In Progress)</option>
+                    <option value="QUALIFIED">Đủ điều kiện (Qualified)</option>
+                    <option value="CONVERTED">Đã chuyển đổi (Converted)</option>
+                    <option value="LOST">Đóng / Mất (Closed/Lost)</option>
+                </select>
+            </div>
+
+            <!-- 4.3 Temperature / Tier Filter -->
+            <div class="filter-col-select">
+                <label for="filterTier" class="sr-only">Phân loại nhiệt độ</label>
+                <select id="filterTier" class="crm-select">
+                    <option value="ALL">Tất cả nhiệt độ</option>
+                    <option value="HOT">🔥 Nóng (Hot - Điểm ≥ 80)</option>
+                    <option value="WARM">🌤️ Ấm (Warm - Điểm 50-79)</option>
+                    <option value="COLD">❄️ Lạnh (Cold - Điểm &lt; 50)</option>
+                </select>
+            </div>
+
+            <!-- 4.4 Lead Source Filter -->
+            <div class="filter-col-select">
+                <label for="filterSource" class="sr-only">Nguồn Lead</label>
+                <select id="filterSource" class="crm-select">
+                    <option value="ALL">Tất cả nguồn</option>
+                    <option value="WEBSITE">Website Form</option>
+                    <option value="EXCEL">Nhập Excel</option>
+                    <option value="EVENT">Sự kiện / Hội thảo</option>
+                    <option value="REFERRAL">Giới thiệu / Đối tác</option>
+                    <option value="CAMPAIGN">Chiến dịch Marketing</option>
+                </select>
+            </div>
+
+            <!-- 4.5 Owner Filter -->
+            <div class="filter-col-select">
+                <label for="filterOwner" class="sr-only">Người phụ trách</label>
+                <select id="filterOwner" class="crm-select">
+                    <option value="ALL">Tất cả phụ trách</option>
+                    <option value="CURRENT_USER">Của tôi (Nông Quang Tiệp)</option>
+                    <option value="UNASSIGNED">Chưa phân bổ</option>
+                    <option value="Trần Anh Quân">Trần Anh Quân</option>
+                    <option value="Hoàng Mai Linh">Hoàng Mai Linh</option>
+                    <option value="Đặng Quốc Việt">Đặng Quốc Việt</option>
+                </select>
+            </div>
+
+            <!-- 4.6 Date Range Filter -->
+            <div class="filter-col-select">
+                <label for="filterDateRange" class="sr-only">Khoảng thời gian</label>
+                <select id="filterDateRange" class="crm-select">
+                    <option value="ALL">Tất cả thời gian</option>
+                    <option value="TODAY">Hôm nay</option>
+                    <option value="LAST_7_DAYS">7 ngày qua</option>
+                    <option value="THIS_MONTH">Tháng này</option>
+                    <option value="CUSTOM">Tùy chọn từ ngày - đến ngày...</option>
+                </select>
+            </div>
+
+            <!-- 4.7 Sort Selector -->
+            <div class="filter-col-select">
+                <label for="filterSort" class="sr-only">Sắp xếp</label>
+                <select id="filterSort" class="crm-select">
+                    <option value="SLA_URGENT">Ưu tiên SLA quá hạn</option>
+                    <option value="SCORE_DESC">Điểm tiềm năng (Cao → Thấp)</option>
+                    <option value="DATE_DESC">Ngày tạo (Mới nhất)</option>
+                    <option value="COMPANY_ASC">Tên công ty (A → Z)</option>
+                </select>
+            </div>
+
+        </div>
+
+        <!-- Custom Date Range Sub-row (conditionally shown) -->
+        <div id="customDateRangeWrap" class="custom-date-row" style="display: none;">
+            <div class="custom-date-inner">
+                <i class="fa-solid fa-calendar-day"></i>
+                <span>Từ ngày:</span>
+                <input type="date" id="customDateFrom" class="crm-input date-input">
+                <span>Đến ngày:</span>
+                <input type="date" id="customDateTo" class="crm-input date-input">
+                <button type="button" id="btnApplyCustomDate" class="crm-btn crm-btn-primary btn-sm">Áp dụng</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. LEADS DATA TABLE CARD -->
+    <section class="leads-table-card">
+        
+        <!-- Table Toolbar Header -->
+        <div class="table-card-header">
+            <div class="table-header-left">
+                <h2 id="tableTitle">Tất cả Lead</h2>
+                <span class="table-badge-count" id="tableRecordCount">0 bản ghi</span>
+                
+                <!-- Active Filters Tags Container -->
+                <div class="active-filter-tags" id="activeFilterTags">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <div class="table-header-right">
+                <div class="page-size-selector">
+                    <label for="pageSizeSelect">Hiển thị:</label>
+                    <select id="pageSizeSelect" class="crm-select select-sm">
+                        <option value="10" selected>10 dòng</option>
+                        <option value="25">25 dòng</option>
+                        <option value="50">50 dòng</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Responsive Table Container -->
+        <div class="table-responsive">
+            <table class="crm-table leads-data-table" id="leadsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 140px;">Mã Lead & Nhiệt độ</th>
+                        <th style="width: 220px;">Họ tên Người đại diện</th>
+                        <th>Khách hàng Doanh nghiệp</th>
+                        <th style="width: 170px;">Liên hệ</th>
+                        <th style="width: 130px;">Nguồn & Ngày tạo</th>
+                        <th style="width: 160px;">Người phụ trách</th>
+                        <th style="width: 190px;">Trạng thái & Hạn SLA</th>
+                        <th style="width: 140px; text-align: center;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTableBody">
+                    <!-- Populated by leads.js -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div id="tableEmptyState" class="crm-empty-state" style="display: none;">
+            <div class="empty-icon"><i class="fa-solid fa-filter-circle-xmark"></i></div>
+            <h3>Không tìm thấy Lead nào phù hợp với bộ lọc</h3>
+            <p>Vui lòng thử điều chỉnh hoặc xóa bớt các điều kiện tìm kiếm, trạng thái, nhiệt độ hoặc người phụ trách.</p>
+            <button id="btnClearFiltersFromEmpty" class="crm-btn crm-btn-secondary" type="button">
+                <i class="fa-solid fa-rotate-left"></i> Xóa toàn bộ bộ lọc
+            </button>
+        </div>
+
+        <!-- Table Pagination Footer -->
+        <div class="table-card-footer">
+            <div class="footer-info">
+                Hiển thị <span id="pageStartRecord">0</span> - <span id="pageEndRecord">0</span> trên tổng số <span id="pageTotalRecord">0</span> Leads
+            </div>
+            <div class="footer-pagination" id="paginationControls">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ================= MODAL 1: SAVE CURRENT FILTER VIEW ================= -->
+<div id="saveFilterModal" class="crm-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="crm-modal-dialog modal-save-filter" role="dialog" aria-modal="true" aria-labelledby="saveFilterModalTitle">
+        
+        <div class="crm-modal-header">
+            <div class="modal-header-icon">
+                <i class="fa-solid fa-floppy-disk"></i>
+            </div>
+            <div class="modal-header-text">
+                <h3 id="saveFilterModalTitle">Lưu bộ lọc hiện tại thành Góc nhìn nhanh</h3>
+                <p>Lưu cấu hình tiêu chí lọc để mở nhanh lại chỉ với 1 click từ thanh công cụ.</p>
+            </div>
+            <button id="btnCloseSaveFilterModal" class="crm-modal-close" type="button" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="crm-modal-body">
+            <form id="saveFilterForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="filterNameInput">Tên bộ lọc / Góc nhìn tùy chỉnh <span class="text-danger">*</span></label>
+                    <input type="text" id="filterNameInput" class="crm-input" required placeholder="vd: Lead BĐS Miền Bắc, Lead Nóng Tuần Này...">
+                </div>
+
+                <div class="form-group">
+                    <label>Tiêu chí lọc hiện tại sẽ được lưu:</label>
+                    <div class="filter-criteria-preview" id="filterCriteriaPreview">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="form-group form-check-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="checkSetAsDefault">
+                        <span>Đặt làm góc nhìn mặc định mỗi khi truy cập trang Quản lý Lead</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <div class="crm-modal-footer">
+            <button id="btnCancelSaveFilter" class="crm-btn crm-btn-secondary" type="button">Hủy bỏ</button>
+            <button id="btnConfirmSaveFilter" class="crm-btn crm-btn-primary" type="button">
+                <i class="fa-solid fa-floppy-disk"></i>
+                <span>Lưu bộ lọc</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= MODAL 2: LEAD DETAIL DRAWER / POPUP ================= -->
+<div id="leadDetailModal" class="crm-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="crm-modal-dialog modal-lead-detail" role="dialog" aria-modal="true">
+        <div class="crm-modal-header">
+            <div class="modal-header-icon" id="detailModalIcon">
+                <i class="fa-solid fa-id-card"></i>
+            </div>
+            <div class="modal-header-text">
+                <h3 id="detailLeadFullName">--</h3>
+                <p id="detailLeadCompany">--</p>
+            </div>
+            <button id="btnCloseDetailModal" class="crm-modal-close" type="button" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="crm-modal-body">
+            <div class="detail-grid">
+                <div class="detail-section">
+                    <h4><i class="fa-solid fa-user"></i> Thông tin Người đại diện</h4>
+                    <div class="detail-row"><span class="dt-label">Chức danh:</span> <span class="dt-val" id="dtTitle">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Điện thoại:</span> <span class="dt-val" id="dtPhone">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Email công vụ:</span> <span class="dt-val" id="dtEmail">--</span></div>
+                </div>
+
+                <div class="detail-section">
+                    <h4><i class="fa-solid fa-building"></i> Khách hàng Doanh nghiệp</h4>
+                    <div class="detail-row"><span class="dt-label">Công ty:</span> <span class="dt-val" id="dtCompany">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Mã số thuế:</span> <span class="dt-val" id="dtTax">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Ngành nghề:</span> <span class="dt-val" id="dtIndustry">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Địa chỉ:</span> <span class="dt-val" id="dtAddress">--</span></div>
+                </div>
+
+                <div class="detail-section">
+                    <h4><i class="fa-solid fa-chart-line"></i> Điểm & Phân loại</h4>
+                    <div class="detail-row"><span class="dt-label">Nhiệt độ:</span> <span class="dt-val" id="dtTier">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Điểm tiềm năng:</span> <span class="dt-val" id="dtScore">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Nguồn Lead:</span> <span class="dt-val" id="dtSource">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Giá trị ước tính:</span> <span class="dt-val" id="dtValue">--</span></div>
+                </div>
+
+                <div class="detail-section">
+                    <h4><i class="fa-solid fa-stopwatch"></i> Trạng thái & SLA</h4>
+                    <div class="detail-row"><span class="dt-label">Trạng thái:</span> <span class="dt-val" id="dtStatus">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Người phụ trách:</span> <span class="dt-val" id="dtOwner">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Hạn phản hồi SLA:</span> <span class="dt-val" id="dtSla">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Ghi chú:</span> <span class="dt-val" id="dtNotes">--</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="crm-modal-footer">
+            <button id="btnDismissDetailModal" class="crm-btn crm-btn-secondary" type="button">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL 3: CREATE NEW LEAD MODAL ================= -->
+<div id="createLeadModal" class="crm-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="crm-modal-dialog modal-create-lead" role="dialog" aria-modal="true">
+        <div class="crm-modal-header">
+            <div class="modal-header-icon">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <div class="modal-header-text">
+                <h3>Thêm mới Khách hàng tiềm năng</h3>
+                <p>Khai báo thông tin Lead để đưa vào quy trình phân bổ, chấm điểm và chăm sóc.</p>
+            </div>
+            <button id="btnCloseCreateModal" class="crm-modal-close" type="button" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="crm-modal-body">
+            <form id="createLeadForm" onsubmit="return false;">
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="newFullName">Họ và tên người đại diện <span class="text-danger">*</span></label>
+                        <input type="text" id="newFullName" class="crm-input" required placeholder="Họ và tên">
+                    </div>
+                    <div class="form-group">
+                        <label for="newTitle">Chức danh / Vị trí</label>
+                        <input type="text" id="newTitle" class="crm-input" placeholder="vd: Giám đốc Kinh doanh, CEO">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="newPhone">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="tel" id="newPhone" class="crm-input" required placeholder="09xxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label for="newEmail">Email công vụ <span class="text-danger">*</span></label>
+                        <input type="email" id="newEmail" class="crm-input" required placeholder="email@company.vn">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="newCompanyName">Tên công ty / Doanh nghiệp <span class="text-danger">*</span></label>
+                        <input type="text" id="newCompanyName" class="crm-input" required placeholder="Tên doanh nghiệp">
+                    </div>
+                    <div class="form-group">
+                        <label for="newIndustry">Ngành nghề</label>
+                        <select id="newIndustry" class="crm-select">
+                            <option value="CNTT & Viễn thông">CNTT & Viễn thông</option>
+                            <option value="Bất động sản & Xây dựng">Bất động sản & Xây dựng</option>
+                            <option value="Sản xuất & Chế tạo">Sản xuất & Chế tạo</option>
+                            <option value="Tài chính & Ngân hàng">Tài chính & Ngân hàng</option>
+                            <option value="Bán lẻ & Chuỗi F&B">Bán lẻ & Chuỗi F&B</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="newSource">Nguồn Lead</label>
+                        <select id="newSource" class="crm-select">
+                            <option value="WEBSITE">Website Form</option>
+                            <option value="EXCEL">Nhập Excel</option>
+                            <option value="EVENT">Sự kiện / Hội thảo</option>
+                            <option value="REFERRAL">Giới thiệu / Đối tác</option>
+                            <option value="CAMPAIGN">Chiến dịch Marketing</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="newTier">Nhiệt độ dự kiến</label>
+                        <select id="newTier" class="crm-select">
+                            <option value="HOT">🔥 Nóng (Hot)</option>
+                            <option value="WARM" selected>🌤️ Ấm (Warm)</option>
+                            <option value="COLD">❄️ Lạnh (Cold)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="newNotes">Ghi chú nhu cầu</label>
+                    <textarea id="newNotes" class="crm-textarea" rows="2" placeholder="Nhu cầu giải pháp, quy mô nhân sự..."></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="crm-modal-footer">
+            <button id="btnCancelCreateModal" class="crm-btn crm-btn-secondary" type="button">Hủy bỏ</button>
+            <button id="btnSubmitCreateLead" class="crm-btn crm-btn-primary" type="button">
+                <i class="fa-solid fa-plus"></i>
+                <span>Thêm Lead</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Region -->
+<div id="crmToastContainer" class="crm-toast-region"></div>
+
+<!-- Scripts -->
+<script src="js/shared-shell.js?v=20261014_s409"></script>
+<script src="js/pages/leads.js?v=20261014_s409"></script>
+
+</body>
+</html>
