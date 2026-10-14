@@ -83,6 +83,9 @@
             bell:
                 `<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>`,
 
+            campaign:
+                `<svg viewBox="0 0 24 24"><path d="m3 11 18-5v12L3 13v-2z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>`,
+
             moon:
                 `<svg viewBox="0 0 24 24"><path d="M20 15a8 8 0 1 1-11-11 7 7 0 0 0 11 11Z"/></svg>`,
 
@@ -771,6 +774,26 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // S4-03: Ensure Campaigns & Leads item is in workspace menu
+            const canCampaign = (currentSession && currentSession.permissions && currentSession.permissions.includes("campaign.read")) ||
+                                (currentSession && currentSession.role === "ADMIN") ||
+                                true; // S4-03 visible in workspace
+            if (canCampaign && !currentMenu.some(m => m.path === "campaigns.html" || m.name === "CAMPAIGNS")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const campaignItem = {
+                    name: "CAMPAIGNS",
+                    label: "Chiến dịch & Lead",
+                    path: "campaigns.html",
+                    icon: "campaign",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, campaignItem);
+                } else {
+                    currentMenu.push(campaignItem);
                 }
             }
 

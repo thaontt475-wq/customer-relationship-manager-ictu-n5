@@ -1,5 +1,5 @@
 // campaigns.js - Frontend controller for S4-03 Campaigns & Lead Association
-const API_BASE = "http://localhost:8080/crm/api";
+const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
 
 let currentPage = 1;
 let currentSize = 10;
@@ -48,10 +48,11 @@ async function apiFetch(url, options = {}) {
         };
         options.body = JSON.stringify(options.body);
     }
-    const response = await fetch(API_BASE + url, options);
-    const data = await response.json();
+    const cleanUrl = url.startsWith("/") ? url : "/" + url;
+    const response = await fetch(`${API_BASE}/api${cleanUrl}`, options);
+    const data = await response.json().catch(() => ({ success: false, message: "Phản hồi máy chủ không đúng định dạng JSON" }));
     if (!response.ok || !data.success) {
-        throw new Error(data.message || "Đã xảy ra lỗi khi gọi máy chủ");
+        throw new Error(data.message || `Lỗi yêu cầu máy chủ (${response.status})`);
     }
     return data;
 }

@@ -7,6 +7,7 @@ import com.crm.service.campaigns.CampaignService;
 import com.crm.util.JsonUtil;
 import com.crm.util.ResponseUtil;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +24,25 @@ import java.util.NoSuchElementException;
 })
 public class CampaignServlet extends HttpServlet {
 
-    private final CampaignService campaignService = new CampaignService();
+    private final CampaignService campaignService;
+
+    public CampaignServlet() {
+        this(new CampaignService());
+    }
+
+    public CampaignServlet(CampaignService campaignService) {
+        this.campaignService = campaignService;
+    }
+
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        if (session == null || !(session.getAttribute("userId") instanceof Number)) {
+            ResponseUtil.json(resp, 401, ApiResponse.error("Chưa đăng nhập", null));
+            return;
+        }
+        super.service(req, resp);
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -196,11 +215,7 @@ public class CampaignServlet extends HttpServlet {
     }
 
     private long requireUser(HttpServletRequest req) {
-        HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
-            throw new SecurityException("Phiên đăng nhập không hợp lệ hoặc đã hết hạn.");
-        }
-        return (Long) session.getAttribute("userId");
+        return com.crm.service.permissions.AuthorizationService.currentUserId(req);
     }
 
     private long parseFirstId(String pathInfo) {

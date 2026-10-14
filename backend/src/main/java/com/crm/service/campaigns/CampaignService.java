@@ -19,8 +19,17 @@ import java.util.NoSuchElementException;
 
 public class CampaignService {
 
-    private final CampaignDAO campaignDAO = new CampaignDAO();
-    private final CampaignLeadDAO campaignLeadDAO = new CampaignLeadDAO();
+    private final CampaignDAO campaignDAO;
+    private final CampaignLeadDAO campaignLeadDAO;
+
+    public CampaignService() {
+        this(new CampaignDAO(), new CampaignLeadDAO());
+    }
+
+    public CampaignService(CampaignDAO campaignDAO, CampaignLeadDAO campaignLeadDAO) {
+        this.campaignDAO = campaignDAO;
+        this.campaignLeadDAO = campaignLeadDAO;
+    }
 
     public Map<String, Object> search(String keyword, String status, int page, int size) throws SQLException {
         if (page < 1) page = 1;
