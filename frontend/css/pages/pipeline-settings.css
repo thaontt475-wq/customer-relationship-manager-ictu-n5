@@ -559,5 +559,138 @@
     .stage-drawer {
         width: 100%;
         visibility: hidden;
+    }
 }
+
+/* =========================================================
+   PIPELINE SETTINGS DARK THEME
+========================================================= */
+html[data-theme="dark"] .settings-nav,
+[data-theme="dark"] .settings-nav {
+    background: #172033 !important;
+    border-color: #334155 !important;
 }
+
+html[data-theme="dark"] .settings-nav a,
+[data-theme="dark"] .settings-nav a {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .settings-nav a:hover,
+[data-theme="dark"] .settings-nav a:hover {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .settings-nav a.active,
+[data-theme="dark"] .settings-nav a.active {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .stages-panel,
+[data-theme="dark"] .stages-panel {
+    background: #172033 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="dark"] .stages-header,
+[data-theme="dark"] .stages-header {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+html[data-theme="dark"] .stages-header h2,
+[data-theme="dark"] .stages-header h2 {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .stage-item,
+[data-theme="dark"] .stage-item {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-theme="dark"] .stage-item:hover,
+[data-theme="dark"] .stage-item:hover {
+    background: #243248 !important;
+    border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .stage-order-buttons button,
+[data-theme="dark"] .stage-order-buttons button {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .stage-order-buttons button:hover,
+[data-theme="dark"] .stage-order-buttons button:hover {
+    background: #1e293b !important;
+    border-color: #60a5fa !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .stage-name strong,
+[data-theme="dark"] .stage-name strong {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .stage-name span,
+[data-theme="dark"] .stage-name span {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .probability-badge,
+[data-theme="dark"] .probability-badge {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .stage-condition,
+[data-theme="dark"] .stage-condition {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .stage-actions button,
+[data-theme="dark"] .stage-actions button {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .stage-actions button:hover,
+[data-theme="dark"] .stage-actions button:hover {
+    background: #1e293b !important;
+    border-color: #60a5fa !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .stage-drawer,
+[data-theme="dark"] .stage-drawer {
+    background: #172033 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .stage-drawer header,
+html[data-theme="dark"] .stage-drawer form footer,
+[data-theme="dark"] .stage-drawer header,
+[data-theme="dark"] .stage-drawer form footer {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+html[data-theme="dark"] .stage-drawer input,
+html[data-theme="dark"] .stage-drawer select,
+html[data-theme="dark"] .stage-drawer textarea,
+[data-theme="dark"] .stage-drawer input,
+[data-theme="dark"] .stage-drawer select,
+[data-theme="dark"] .stage-drawer textarea {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}

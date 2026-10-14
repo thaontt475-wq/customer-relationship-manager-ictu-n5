@@ -370,7 +370,7 @@
             const churnInfo = record.churnRisk;
             const churnBadge = churnInfo?.isRisk
                 ? `<span class="churn-risk-badge" title="${escapeHtml(churnInfo.reasons?.join(' • ') || 'Khách hàng có rủi ro rời bỏ')}" style="cursor:help;">
-                     ⚠️ Rủi ro rời bỏ
+                     <i class="fa-solid fa-triangle-exclamation"></i> Rủi ro rời bỏ
                    </span>`
                 : "";
 
@@ -389,7 +389,7 @@
                         data-id-a="${record.id}" data-id-b="${primaryMatch.record.id}"
                         title="Dấu hiệu trùng lặp: ${escapeHtml(matchReasonSummary)}. Nhấp để đối chiếu & gộp ngay!">
                         <span class="duplicate-pulse-dot"></span>
-                        <span>⚠️ Có dấu hiệu trùng lặp (${escapeHtml(matchCompany)})</span>
+                        <span><i class="fa-solid fa-triangle-exclamation"></i> Có dấu hiệu trùng lặp (${escapeHtml(matchCompany)})</span>
                     </button>
                 `;
 
@@ -397,7 +397,7 @@
                     <button type="button" class="action-icon-btn btn-merge-duplicate btn-trigger-merge"
                         data-id-a="${record.id}" data-id-b="${primaryMatch.record.id}"
                         title="Đối chiếu & Gộp khách hàng trùng (CRM-64)">
-                        <svg viewBox="0 0 24 24"><path d="M8 7v10M8 12h8m0-5v10m-3-12 3 2 3-2m-6 14 3-2 3 2"/></svg>
+                        <i class="fa-solid fa-code-merge"></i>
                     </button>
                 `;
             }
@@ -433,11 +433,11 @@
                             if (!window.CorporateHierarchyManager) return "";
                             const hier = window.CorporateHierarchyManager.getHierarchyStorage();
                             if (hier.parents && hier.parents[record.id]) {
-                                return `<button type="button" class="corporate-role-badge corporate-role-child" style="cursor:pointer; border:none; font-size:10.5px; padding:2px 7px;" onclick="window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Thuộc tập đoàn - Nhấp để xem cây phân cấp (CRM-65)">🏢 Công ty con</button>`;
+                                return `<button type="button" class="corporate-role-badge corporate-role-child" style="cursor:pointer; border:none; font-size:10.5px; padding:2px 7px;" onclick="window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Thuộc tập đoàn - Nhấp để xem cây phân cấp (CRM-65)"><i class="fa-solid fa-building"></i> Công ty con</button>`;
                             }
                             const hasChildren = Object.values(hier.parents || {}).some(pId => Number(pId) === Number(record.id));
                             if (hasChildren) {
-                                return `<button type="button" class="corporate-role-badge corporate-role-parent" style="cursor:pointer; border:none; font-size:10.5px; padding:2px 7px;" onclick="window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Tập đoàn mẹ - Nhấp để xem cây phân cấp (CRM-65)">👑 Tập đoàn mẹ</button>`;
+                                return `<button type="button" class="corporate-role-badge corporate-role-parent" style="cursor:pointer; border:none; font-size:10.5px; padding:2px 7px;" onclick="window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Tập đoàn mẹ - Nhấp để xem cây phân cấp (CRM-65)"><i class="fa-solid fa-crown"></i> Tập đoàn mẹ</button>`;
                             }
                             return "";
                         })()}
@@ -446,12 +446,12 @@
 </div>
                     <div class="customer-tax-wrap">
                         <span class="tax-badge" title="Mã số thuế doanh nghiệp">
-                            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="13" y2="12"/><line x1="7" y1="16" x2="10" y2="16"/></svg>
+                            <i class="fa-solid fa-id-card"></i>
                             MST: ${escapeHtml(record.taxCode || "Chưa cập nhật")}
                         </span>
                         ${record.website ? `
                             <a href="${formatUrl(record.website)}" target="_blank" rel="noopener" class="tax-badge" style="text-decoration:none;" title="Truy cập website">
-                                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                                <i class="fa-solid fa-globe"></i>
                                 Website
                             </a>` : ""}
                     </div>
@@ -464,18 +464,18 @@
                             if (primaryC) {
                                 return `
                                     <div style="margin-bottom:4px; font-weight:700; color:var(--crm-text); font-size:12.5px; display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                                        <span>⭐ ${escapeHtml(primaryC.fullName)}</span>
+                                        <span style="display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-id-badge" style="color:var(--crm-primary); font-size:12px;"></i> ${escapeHtml(primaryC.fullName)}</span>
                                         ${window.ContactsManager.renderDecisionRoleBadge(primaryC.decisionRole)}
                                     </div>
                                     <div style="font-size:11.5px; color:var(--crm-muted); margin-bottom:4px;">
                                         ${escapeHtml(primaryC.jobTitle)} (${custContacts.length} liên hệ)
                                     </div>
                                     <div class="contact-item" title="Email liên hệ chính">
-                                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                        <i class="fa-solid fa-envelope"></i>
                                         <span>${escapeHtml(primaryC.email || record.email || "—")}</span>
                                     </div>
                                     <div class="contact-item" title="Số điện thoại / Hotline">
-                                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                        <i class="fa-solid fa-phone"></i>
                                         <span>${escapeHtml(primaryC.phone || record.phone || "—")}</span>
                                     </div>
                                 `;
@@ -483,11 +483,11 @@
                         }
                         return `
                             <div class="contact-item" title="Email liên hệ">
-                                <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                <i class="fa-solid fa-envelope"></i>
                                 <span>${escapeHtml(record.email || "—")}</span>
                             </div>
                             <div class="contact-item" title="Số điện thoại / Hotline">
-                                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                <i class="fa-solid fa-phone"></i>
                                 <span>${escapeHtml(record.phone || "—")}</span>
                             </div>
                         `;
@@ -495,11 +495,11 @@
                 </td>
                 <td class="col-meta">
                     <div class="meta-pill" title="Ngành nghề kinh doanh">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        <i class="fa-solid fa-briefcase"></i>
                         ${escapeHtml(industry)}
                     </div>
                     <div class="meta-pill" style="margin-top:4px;" title="Quy mô doanh nghiệp">
-                        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <i class="fa-solid fa-users"></i>
                         ${escapeHtml(companySize)}
                     </div>
                 </td>
@@ -519,19 +519,19 @@
                     <div class="row-action-btn-group">
                         ${mergeActionBtnHtml}
                         <button type="button" class="action-icon-btn btn-corporate-tree" onclick="window.CorporateHierarchyManager && window.CorporateHierarchyManager.openHierarchyModal(${record.id})" title="Cây phân cấp & Tập đoàn Mẹ - Con (CRM-65)" style="color:#7c3aed;">
-                            <svg viewBox="0 0 24 24"><path d="M3 21h18M3 7v14M21 7v14M6 18h2v3H6zm8 0h2v3h-2zm-4 0h2v3h-2zm4-6h2v3h-2zm-4 0h2v3h-2zm-4 0h2v3H6zm12-5V3H6v4"/></svg>
+                            <i class="fa-solid fa-sitemap"></i>
                         </button>
                         <a href="contacts.html?customerId=${record.id}" class="action-icon-btn" title="Quản lý Người liên hệ & Vai trò mua (CRM-62)" style="color:var(--crm-primary);">
-                            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <i class="fa-solid fa-address-book"></i>
                         </a>
                         <a href="customer-360.html?id=${record.id}" class="action-icon-btn btn-view" title="Xem hồ sơ 360°">
-                            <svg viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <i class="fa-solid fa-eye"></i>
                         </a>
                         <button type="button" class="action-icon-btn btn-edit" data-id="${record.id}" title="Chỉnh sửa hồ sơ">
-                            <svg viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                         <button type="button" class="action-icon-btn btn-danger btn-delete" data-id="${record.id}" title="Xóa khách hàng">
-                            <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 </td>
@@ -716,7 +716,7 @@
                 dupSummaryEl.textContent = `Doanh nghiệp này trùng lặp với "${matchRec.companyName || matchRec.name}" (MST: ${matchRec.taxCode || 'N/A'}, Sale: ${matchRec.ownerName || 'Chưa rõ'}).`;
             }
             if (dupReasonsEl) {
-                dupReasonsEl.innerHTML = topMatch.reasons.map(r => `<span class="drawer-dup-tag">⚠️ ${escapeHtml(r)}</span>`).join("");
+                dupReasonsEl.innerHTML = topMatch.reasons.map(r => `<span class="drawer-dup-tag"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(r)}</span>`).join("");
             }
 
             const openMergeBtn = document.getElementById("btnDrawerOpenMerge");
@@ -1037,7 +1037,7 @@
         // 1. Dấu hiệu trùng lặp
         const reasonTagsContainer = document.getElementById("mergeReasonTags");
         if (reasonTagsContainer) {
-            reasonTagsContainer.innerHTML = reasons.map(r => `<span class="merge-reason-badge">⚠️ ${escapeHtml(r)}</span>`).join("");
+            reasonTagsContainer.innerHTML = reasons.map(r => `<span class="merge-reason-badge"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(r)}</span>`).join("");
         }
 
         // 2. Thẻ chọn Master Record
@@ -1268,7 +1268,7 @@
             if (permStatusEl) {
                 permStatusEl.innerHTML = `
                     <div class="permission-granted">
-                        <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;color:#16a34a;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <i class="fa-solid fa-circle-check" style="font-size:16px;color:#16a34a;"></i>
                         <span><strong>Quyền Trưởng nhóm:</strong> Được phép thực hiện gộp khách hàng (CRM-64).</span>
                     </div>
                 `;
@@ -1281,7 +1281,7 @@
             if (permStatusEl) {
                 permStatusEl.innerHTML = `
                     <div class="permission-denied">
-                        <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px;height:16px;color:#d97706;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <i class="fa-solid fa-lock" style="font-size:16px;color:#d97706;"></i>
                         <span><strong>Chỉ xem đối chiếu:</strong> Nhân viên Sale không có quyền gộp. Cần Trưởng nhóm phê duyệt.</span>
                     </div>
                 `;
@@ -1581,7 +1581,7 @@
 
     function renderErrorState(message) {
         if (tableBody) {
-            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--crm-danger); font-weight:600;">⚠️ ${escapeHtml(message)}</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--crm-danger); font-weight:600;"><i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(message)}</td></tr>`;
         }
     }
 
@@ -1668,8 +1668,8 @@
         toast.className = `crm-toast crm-toast-${type}`;
         toast.style.cssText = "position:fixed; bottom:24px; right:24px; z-index:1100; min-width:300px; padding:14px 18px; border-radius:8px; box-shadow:var(--crm-shadow); animation:fadeInUp 0.3s ease; display:flex; align-items:center; gap:10px; background:var(--crm-surface); border:1px solid var(--crm-border);";
 
-        const icon = type === "success" ? "✓" : "⚠️";
-        toast.innerHTML = `<span style="font-weight:bold; color:var(--crm-${type}); font-size:16px;">${icon}</span> <span style="font-size:13.5px; color:var(--crm-text);">${escapeHtml(message)}</span>`;
+        const iconHtml = type === "success" ? '<i class="fa-solid fa-circle-check" style="color:var(--crm-success); font-size:18px;"></i>' : '<i class="fa-solid fa-triangle-exclamation" style="color:var(--crm-warning); font-size:18px;"></i>';
+        toast.innerHTML = `<span style="display:flex; align-items:center;">${iconHtml}</span> <span style="font-size:13.5px; color:var(--crm-text);">${escapeHtml(message)}</span>`;
 
         document.body.appendChild(toast);
         setTimeout(() => {

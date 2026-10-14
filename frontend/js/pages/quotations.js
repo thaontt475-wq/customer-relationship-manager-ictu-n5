@@ -148,20 +148,20 @@ function render() {
                 <td>
                     <div class="quote-actions">
                         <a class="quote-action" href="quote-editor.html?id=${encodeURIComponent(quote.id)}">
-                            Xem / Sửa
+                            <i class="fa-solid fa-pen-to-square"></i> Xem / Sửa
                         </a>
                         ${
                             quote.status === "pending" || (quote.status === "draft" && quote.requiresApproval)
-                            ? `<button type="button" class="quote-action" style="color:#10b981;cursor:pointer;" data-approve-quote="${quote.id}">Duyệt</button>`
+                            ? `<button type="button" class="quote-action" style="color:#10b981;cursor:pointer;" data-approve-quote="${quote.id}"><i class="fa-solid fa-check"></i> Duyệt</button>`
                             : ""
                         }
                         ${
                             quote.status === "approved"
-                            ? `<a class="quote-action contract" href="contract-create.html?id=${encodeURIComponent(quote.id)}">Tạo HĐ</a>`
+                            ? `<a class="quote-action contract" href="contract-create.html?id=${encodeURIComponent(quote.id)}"><i class="fa-solid fa-file-signature"></i> Tạo HĐ</a>`
                             : ""
                         }
                         <button type="button" class="quote-action" style="color:#ef4444;cursor:pointer;" data-delete-quote="${quote.id}">
-                            Xóa
+                            <i class="fa-solid fa-trash-can"></i> Xóa
                         </button>
                     </div>
                 </td>
@@ -188,20 +188,20 @@ function render() {
                     <span>Hiệu lực: ${escapeHtml(quote.validUntil || "—")}</span>
                 </div>
                 <div class="quote-mobile-actions">
-                    <a class="crm-btn crm-btn-secondary" style="text-decoration:none" href="quote-editor.html?id=${encodeURIComponent(quote.id)}">
-                        Xem / Sửa
+                    <a class="crm-btn crm-btn-secondary" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;" href="quote-editor.html?id=${encodeURIComponent(quote.id)}">
+                        <i class="fa-solid fa-pen-to-square"></i> Xem / Sửa
                     </a>
                     ${
                         quote.status === "pending" || (quote.status === "draft" && quote.requiresApproval)
-                        ? `<button type="button" class="crm-btn crm-btn-secondary" style="color:#10b981" data-approve-quote="${quote.id}">Duyệt</button>`
+                        ? `<button type="button" class="crm-btn crm-btn-secondary" style="color:#10b981; display:inline-flex; align-items:center; gap:4px;" data-approve-quote="${quote.id}"><i class="fa-solid fa-check"></i> Duyệt</button>`
                         : ""
                     }
                     ${
                         quote.status === "approved"
-                        ? `<a class="crm-btn crm-btn-primary" style="text-decoration:none" href="contract-create.html?id=${encodeURIComponent(quote.id)}">Tạo Hợp đồng</a>`
+                        ? `<a class="crm-btn crm-btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;" href="contract-create.html?id=${encodeURIComponent(quote.id)}"><i class="fa-solid fa-file-signature"></i> Tạo Hợp đồng</a>`
                         : `<button class="crm-btn crm-btn-secondary" disabled>Chưa duyệt</button>`
                     }
-                    <button type="button" class="crm-btn crm-btn-secondary" style="color:#ef4444" data-delete-quote="${quote.id}">Xóa</button>
+                    <button type="button" class="crm-btn crm-btn-secondary" style="color:#ef4444; display:inline-flex; align-items:center; gap:4px;" data-delete-quote="${quote.id}"><i class="fa-solid fa-trash-can"></i> Xóa</button>
                 </div>
             `;
             mobileList.appendChild(card);
