@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
 <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
 <link rel="stylesheet" href="css/pages/customers.css?v=20261014_dark2">
-<link rel="stylesheet" href="css/pages/campaigns.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/campaigns.css?v=20261014_dark3">
 <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
@@ -371,12 +371,12 @@
     <div class="modal-card modal-lg">
         <div class="modal-header">
             <div class="modal-title-wrap">
-                <div class="modal-icon-badge" style="background: rgba(37,99,235,0.12); color: var(--crm-primary, #2563eb);">
+                <div class="modal-icon-badge">
                     <i class="fa-solid fa-users-gear"></i>
                 </div>
                 <div>
                     <h3>Quản lý Leads - <span id="leadModalCampaignTitle" style="color: var(--crm-primary, #2563eb);"></span></h3>
-                    <p class="modal-subtitle">Gán khách hàng tiềm năng vào chiến dịch và cập nhật trạng thái tương tác</p>
+                    <p class="modal-subtitle">Gán khách hàng tiềm năng vào chiến dịch và cập nhật trạng thái tương tác chuyển đổi</p>
                 </div>
             </div>
             <button class="modal-close" onclick="closeLeadModal()" aria-label="Đóng">
@@ -388,19 +388,20 @@
             <!-- Add Lead Box -->
             <div class="campaign-lead-assign-box">
                 <div class="lead-assign-title">
-                    <i class="fa-solid fa-user-plus"></i> Thêm Lead vào chiến dịch:
+                    <span class="badge-mini-icon"><i class="fa-solid fa-user-plus"></i></span>
+                    <span>Thêm Lead vào chiến dịch:</span>
                 </div>
                 <div class="lead-assign-controls">
-                    <div style="flex: 2; min-width: 250px;">
+                    <div style="flex: 2; min-width: 260px;">
                         <select id="availableLeadsSelect" style="width: 100%;"></select>
                     </div>
-                    <div style="flex: 1; min-width: 170px;">
+                    <div style="flex: 1; min-width: 190px;">
                         <select id="initialLeadStatusSelect" style="width: 100%;">
-                            <option value="SENT">SENT (Đã gửi tiếp cận)</option>
-                            <option value="OPENED">OPENED (Đã mở thư/quan tâm)</option>
-                            <option value="RESPONDED">RESPONDED (Có phản hồi)</option>
-                            <option value="CONVERTED">CONVERTED (Đã chuyển đổi)</option>
-                            <option value="BOUNCED">BOUNCED (Thất bại)</option>
+                            <option value="SENT">📨 SENT (Đã gửi tiếp cận)</option>
+                            <option value="OPENED">👀 OPENED (Đã mở thư/quan tâm)</option>
+                            <option value="RESPONDED">💬 RESPONDED (Có phản hồi)</option>
+                            <option value="CONVERTED">🎯 CONVERTED (Đã chuyển đổi)</option>
+                            <option value="BOUNCED">⚠️ BOUNCED (Thất bại)</option>
                         </select>
                     </div>
                     <button id="btnAddLeadToCampaign" class="crm-btn crm-btn-primary" type="button">
@@ -411,14 +412,14 @@
 
             <!-- Linked Leads Table -->
             <div class="linked-leads-table-wrap">
-                <table class="campaign-table" style="margin: 0;">
+                <table class="campaign-table" style="margin: 0; min-width: 680px;">
                     <thead>
                         <tr>
-                            <th>Khách hàng tiềm năng (Lead)</th>
-                            <th>Công ty / Doanh nghiệp</th>
-                            <th>Liên hệ</th>
-                            <th style="width: 175px;">Trạng thái tương tác</th>
-                            <th style="width: 70px; text-align: right;">Gỡ</th>
+                            <th style="min-width: 230px;">Khách hàng tiềm năng (Lead)</th>
+                            <th style="min-width: 170px;">Công ty / Doanh nghiệp</th>
+                            <th style="min-width: 140px;">Liên hệ</th>
+                            <th style="min-width: 185px;">Trạng thái tương tác</th>
+                            <th style="width: 60px; text-align: center;">Gỡ</th>
                         </tr>
                     </thead>
                     <tbody id="linkedLeadsList">

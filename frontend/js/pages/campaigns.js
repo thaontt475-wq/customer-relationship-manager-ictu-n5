@@ -757,50 +757,103 @@ async function loadLinkedLeads() {
     renderLinkedLeads(leads);
 }
 
+function getInitials(name) {
+    if (!name) return "L";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[parts.length - 2][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getAvatarColor(name) {
+    const gradients = [
+        "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+        "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+        "linear-gradient(135deg, #10b981, #047857)",
+        "linear-gradient(135deg, #f59e0b, #d97706)",
+        "linear-gradient(135deg, #ec4899, #be185d)",
+        "linear-gradient(135deg, #06b6d4, #0e7490)"
+    ];
+    let hash = 0;
+    for (let i = 0; i < (name || "").length; i++) hash += name.charCodeAt(i);
+    return gradients[Math.abs(hash) % gradients.length];
+}
+
 function renderLinkedLeads(leads) {
     const listContainer = document.getElementById("linkedLeadsList");
     const summaryText = document.getElementById("leadModalSummaryText");
     if (!listContainer) return;
 
     if (!leads || leads.length === 0) {
-        listContainer.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-secondary, #64748b); padding: 2rem;">
-            <i class="fa-regular fa-folder-open" style="font-size: 1.5rem; display:block; margin-bottom: 0.35rem;"></i>
-            Chưa có Khách hàng tiềm năng (Lead) nào trong chiến dịch này.
+        listContainer.innerHTML = `<tr><td colspan="5" class="leads-empty-state">
+            <div class="empty-icon"><i class="fa-regular fa-folder-open"></i></div>
+            <div class="empty-text">Chưa có Khách hàng tiềm năng (Lead) nào trong chiến dịch này.</div>
+            <div class="empty-subtext">Hãy chọn Lead từ danh sách phía trên và nhấn "Gán Lead" để bắt đầu.</div>
         </td></tr>`;
-        if (summaryText) summaryText.innerText = "Tổng số Lead: 0";
+        if (summaryText) {
+            summaryText.innerHTML = `
+                <div class="lead-stats-container">
+                    <span class="kpi-chip"><i class="fa-solid fa-users"></i> Tổng số: <strong>0 Leads</strong></span>
+                </div>
+            `;
+        }
         return;
     }
 
     const convertedCount = leads.filter(l => l.status === "CONVERTED").length;
     const conversionRate = leads.length > 0 ? ((convertedCount / leads.length) * 100).toFixed(1) : 0;
     if (summaryText) {
-        summaryText.innerHTML = `Tổng số: <strong>${leads.length}</strong> Leads | Đã chuyển đổi: <strong>${convertedCount}</strong> (${conversionRate}%)`;
+        summaryText.innerHTML = `
+            <div class="lead-stats-container">
+                <span class="kpi-chip"><i class="fa-solid fa-users"></i> Tổng số: <strong>${leads.length} Leads</strong></span>
+                <span class="kpi-chip kpi-chip-success"><i class="fa-solid fa-circle-check"></i> Đã chuyển đổi: <strong>${convertedCount} (${conversionRate}%)</strong></span>
+            </div>
+        `;
     }
 
-    listContainer.innerHTML = leads.map(l => `
-        <tr>
+    listContainer.innerHTML = leads.map(l => {
+        const initials = getInitials(l.leadName);
+        const avatarBg = getAvatarColor(l.leadName);
+        return `
+        <tr class="lead-row">
             <td>
-                <div style="font-weight: 600; color: var(--text-primary, #1e293b);">${escapeHtml(l.leadName)}</div>
-                ${l.email ? `<div style="font-size: 0.75rem; color: var(--text-secondary, #64748b);">${escapeHtml(l.email)}</div>` : ''}
+                <div class="lead-cell-name">
+                    <div class="lead-avatar" style="background: ${avatarBg};">${initials}</div>
+                    <div class="lead-name-meta">
+                        <div class="lead-fullname">${escapeHtml(l.leadName)}</div>
+                        ${l.email ? `<div class="lead-email"><i class="fa-regular fa-envelope"></i> ${escapeHtml(l.email)}</div>` : ''}
+                    </div>
+                </div>
             </td>
-            <td>${escapeHtml(l.companyName || '-')}</td>
-            <td>${escapeHtml(l.phone || '-')}</td>
             <td>
-                <select onchange="handleUpdateLeadStatus(${l.leadId}, this.value)" style="padding: 4px 8px; border: 1px solid var(--border-color, #cbd5e1); border-radius: 4px; font-size: 0.8125rem; background: var(--bg-surface, #fff); color: var(--text-primary, #1e293b);">
-                    <option value="SENT" ${l.status === 'SENT' ? 'selected' : ''}>SENT (Đã gửi)</option>
-                    <option value="OPENED" ${l.status === 'OPENED' ? 'selected' : ''}>OPENED (Đã mở)</option>
-                    <option value="RESPONDED" ${l.status === 'RESPONDED' ? 'selected' : ''}>RESPONDED (Phản hồi)</option>
-                    <option value="CONVERTED" ${l.status === 'CONVERTED' ? 'selected' : ''}>CONVERTED (Chuyển đổi)</option>
-                    <option value="BOUNCED" ${l.status === 'BOUNCED' ? 'selected' : ''}>BOUNCED (Trả về / Thất bại)</option>
-                </select>
+                <div class="lead-company">
+                    <i class="fa-regular fa-building"></i>
+                    <span>${escapeHtml(l.companyName || 'Khách vãng lai')}</span>
+                </div>
             </td>
-            <td style="text-align: right;">
-                <button class="crm-btn crm-btn-secondary btn-sm" onclick="handleUnlinkLead(${l.leadId})" title="Gỡ khỏi chiến dịch" style="color: #ef4444;">
+            <td>
+                <div class="lead-phone">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>${escapeHtml(l.phone || '-')}</span>
+                </div>
+            </td>
+            <td>
+                <div class="lead-status-wrapper">
+                    <select class="lead-status-select select-status-${l.status}" onchange="handleUpdateLeadStatus(${l.leadId}, this.value, this)">
+                        <option value="SENT" ${l.status === 'SENT' ? 'selected' : ''}>📨 SENT (Đã gửi)</option>
+                        <option value="OPENED" ${l.status === 'OPENED' ? 'selected' : ''}>👀 OPENED (Đã mở)</option>
+                        <option value="RESPONDED" ${l.status === 'RESPONDED' ? 'selected' : ''}>💬 RESPONDED (Phản hồi)</option>
+                        <option value="CONVERTED" ${l.status === 'CONVERTED' ? 'selected' : ''}>🎯 CONVERTED (Chuyển đổi)</option>
+                        <option value="BOUNCED" ${l.status === 'BOUNCED' ? 'selected' : ''}>⚠️ BOUNCED (Thất bại)</option>
+                    </select>
+                </div>
+            </td>
+            <td style="text-align: center;">
+                <button class="btn-icon-danger" onclick="handleUnlinkLead(${l.leadId})" title="Gỡ Lead khỏi chiến dịch">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             </td>
-        </tr>
-    `).join("");
+        </tr>`;
+    }).join("");
 }
 
 async function loadAvailableLeadsDropdown() {
@@ -883,7 +936,11 @@ async function handleAddLeadToCampaign() {
     loadAvailableLeadsDropdown();
 }
 
-async function handleUpdateLeadStatus(leadId, newStatus) {
+async function handleUpdateLeadStatus(leadId, newStatus, selectEl) {
+    if (selectEl) {
+        selectEl.className = `lead-status-select select-status-${newStatus}`;
+    }
+
     if (!isOfflineMode) {
         try {
             await apiFetch(`/campaigns/${activeCampaignId}/leads/${leadId}`, {
@@ -891,6 +948,7 @@ async function handleUpdateLeadStatus(leadId, newStatus) {
                 body: { status: newStatus }
             });
             notify("Đã cập nhật trạng thái tương tác của Lead!", "success");
+            loadLinkedLeads();
             return;
         } catch (err) {
             console.warn("API update lead status failed, using mock:", err.message);
@@ -904,6 +962,7 @@ async function handleUpdateLeadStatus(leadId, newStatus) {
         item.status = newStatus;
         saveMockCampaignLeads(cl);
         notify("Đã cập nhật trạng thái tương tác Lead!", "success");
+        loadLinkedLeads();
     }
 }
 
