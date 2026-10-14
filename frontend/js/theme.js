@@ -19,8 +19,8 @@
 
         const normalized =
             theme === "dark"
-            ? "dark"
-            : "light";
+                ? "dark"
+                : "light";
 
 
         document.documentElement
@@ -60,17 +60,21 @@
             return;
         }
 
+        const isDark =
+            theme === "dark";
 
         button.innerHTML =
-            theme === "dark"
-            ? "☀"
-            : "☾";
+            isDark
+                ? '<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>'
+                : '<i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>';
 
+        const label =
+            isDark
+                ? "Chuyển sang giao diện sáng"
+                : "Chuyển sang giao diện tối";
 
-        button.title =
-            theme === "dark"
-            ? "Chuyển sang giao diện sáng"
-            : "Chuyển sang giao diện tối";
+        button.title = label;
+        button.setAttribute("aria-label", label);
     }
 
 
@@ -81,8 +85,8 @@
 
         applyTheme(
             current === "dark"
-            ? "light"
-            : "dark"
+                ? "light"
+                : "dark"
         );
     }
 

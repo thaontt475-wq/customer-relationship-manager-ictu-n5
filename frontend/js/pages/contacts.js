@@ -21,7 +21,7 @@
             code: "DECISION_MAKER",
             label: "Người quyết định",
             englishLabel: "Decision Maker",
-            icon: "👑",
+            icon: '<i class="fa-solid fa-crown"></i>',
             cssClass: "role-decision-maker",
             accentClass: "accent-decision-maker",
             kpiClass: "kpi-purple",
@@ -31,7 +31,7 @@
             code: "INFLUENCER",
             label: "Người ảnh hưởng",
             englishLabel: "Influencer",
-            icon: "⚡",
+            icon: '<i class="fa-solid fa-bolt"></i>',
             cssClass: "role-influencer",
             accentClass: "accent-influencer",
             kpiClass: "kpi-blue",
@@ -41,7 +41,7 @@
             code: "END_USER",
             label: "Người dùng cuối",
             englishLabel: "End User",
-            icon: "👤",
+            icon: '<i class="fa-solid fa-user"></i>',
             cssClass: "role-end-user",
             accentClass: "accent-end-user",
             kpiClass: "kpi-green",
@@ -51,7 +51,7 @@
             code: "BLOCKER",
             label: "Người cản trở",
             englishLabel: "Blocker / Gatekeeper",
-            icon: "⚠️",
+            icon: '<i class="fa-solid fa-triangle-exclamation"></i>',
             cssClass: "role-blocker",
             accentClass: "accent-blocker",
             kpiClass: "kpi-red",
@@ -94,16 +94,14 @@
         toast.className = `crm-toast crm-toast-${type}`;
         toast.innerHTML = `
             <span class="crm-toast-icon">
-                <svg viewBox="0 0 24 24">
-                    ${type === "success" 
-                        ? '<path d="M20 6L9 17l-5-5"/>' 
-                        : (type === "error" 
-                            ? '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' 
-                            : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>')}
-                </svg>
+                ${type === "success" 
+                    ? '<i class="fa-solid fa-circle-check"></i>' 
+                    : (type === "error" 
+                        ? '<i class="fa-solid fa-circle-xmark"></i>' 
+                        : '<i class="fa-solid fa-triangle-exclamation"></i>')}
             </span>
             <span class="crm-toast-copy">${escapeHtml(message)}</span>
-            <button class="crm-toast-close" type="button" aria-label="Đóng">✕</button>
+            <button class="crm-toast-close" type="button" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             <div class="crm-toast-progress"></div>
         `;
 
@@ -245,7 +243,7 @@
         if (!isPrimary) return "";
         return `
             <span class="primary-contact-badge" title="Đầu mối giao dịch và liên lạc trọng yếu của doanh nghiệp">
-                <span class="star-icon">⭐</span>
+                <span class="star-icon"><i class="fa-solid fa-id-badge" style="color:var(--crm-primary); font-size:12px;"></i></span>
                 <span>Đầu mối chính</span>
             </span>
         `;
@@ -378,7 +376,7 @@
                 </div>
 
                 <div class="contact-company-row">
-                    <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M13 7l6 4v10M9 9v.01M9 13v.01M9 17v.01M17 13v.01M17 17v.01"/></svg>
+                    <i class="fa-solid fa-building" style="font-size:14px;"></i>
                     <a href="customer-360.html?id=${contact.customerId}" class="contact-company-link" title="Xem hồ sơ 360° ${escapeHtml(contact.companyName)}">
                         ${escapeHtml(contact.companyName)}
                     </a>
@@ -386,11 +384,11 @@
 
                 <div class="contact-comms-list">
                     <div class="contact-comm-item" title="Email công việc">
-                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <i class="fa-solid fa-envelope" style="font-size:14px;"></i>
                         <a href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email)}</a>
                     </div>
                     <div class="contact-comm-item" title="Số điện thoại di động">
-                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <i class="fa-solid fa-phone" style="font-size:14px;"></i>
                         <a href="tel:${escapeHtml(contact.phone)}">${escapeHtml(contact.phone)}</a>
                     </div>
                 </div>
@@ -403,7 +401,7 @@
 
                 ${latestHistory ? `
                     <div class="contact-history-badge">
-                        <span>🔄</span>
+                        <span><i class="fa-solid fa-right-left"></i></span>
                         <span>Từng là <em>${escapeHtml(latestHistory.oldJobTitle)}</em> tại <strong>${escapeHtml(latestHistory.fromCompanyName)}</strong></span>
                     </div>
                 ` : ""}
@@ -412,25 +410,25 @@
                     <div style="display:flex; gap:6px;">
                         ${!contact.isPrimary ? `
                             <button class="contact-action-btn btn-set-primary" type="button" data-action="set-primary" data-id="${contact.id}" title="Chỉ định làm Đầu mối liên hệ chính của công ty">
-                                ⭐ Đặt đầu mối chính
+                                <i class="fa-solid fa-id-badge" style="color:var(--crm-primary); margin-right:4px;"></i> Đặt đầu mối chính
                             </button>
                         ` : ""}
                         <button class="contact-action-btn btn-transfer" type="button" data-action="transfer" data-id="${contact.id}" title="Chuyển sang doanh nghiệp khác khi chuyển công tác">
-                            🔄 Chuyển công ty
+                            <i class="fa-solid fa-right-left" style="margin-right:4px;"></i> Chuyển công ty
                         </button>
                     </div>
 
                     <div style="display:flex; gap:4px;">
                         ${historyList.length ? `
                             <button class="contact-action-btn" type="button" data-action="view-history" data-id="${contact.id}" title="Xem lịch sử điều chuyển công tác (${historyList.length})">
-                                📜 Lịch sử
+                                <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử
                             </button>
                         ` : ""}
                         <button class="contact-action-btn" type="button" data-action="edit" data-id="${contact.id}" title="Chỉnh sửa thông tin liên hệ">
-                            ✏️ Sửa
+                            <i class="fa-solid fa-pen-to-square"></i> Sửa
                         </button>
                         <button class="contact-action-btn" type="button" data-action="delete" data-id="${contact.id}" title="Xóa người liên hệ" style="color:var(--crm-danger);">
-                            🗑️
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -473,7 +471,7 @@
                 </td>
                 <td>
                     ${contact.isPrimary 
-                        ? `<span class="primary-contact-badge">⭐ Đầu mối chính</span>` 
+                        ? `<span class="primary-contact-badge"><i class="fa-solid fa-id-badge" style="color:var(--crm-primary); margin-right:4px;"></i> Đầu mối chính</span>` 
                         : `<button class="contact-action-btn btn-set-primary" style="padding:2px 8px; font-size:11px;" data-action="set-primary" data-id="${contact.id}">+ Đặt làm chính</button>`
                     }
                 </td>
@@ -485,11 +483,11 @@
                 <td>
                     <div style="display:flex; gap:6px; align-items:center;">
                         <button class="contact-action-btn btn-transfer" style="padding:3px 8px; font-size:11.5px;" data-action="transfer" data-id="${contact.id}" title="Điều chuyển sang công ty mới">
-                            🔄 Chuyển
+                            <i class="fa-solid fa-right-left" style="margin-right:4px;"></i> Chuyển
                         </button>
                         ${historyList.length ? `
                             <button class="contact-action-btn" style="padding:3px 8px; font-size:11.5px;" data-action="view-history" data-id="${contact.id}" title="Xem lịch sử chuyển công tác">
-                                📜 (${historyList.length})
+                                <i class="fa-solid fa-clock-rotate-left" style="margin-right:4px;"></i> (${historyList.length})
                             </button>
                         ` : ""}
                         <button class="contact-action-btn" style="padding:3px 8px; font-size:11.5px;" data-action="edit" data-id="${contact.id}" title="Sửa">
@@ -858,7 +856,7 @@
                                     <div class="history-timeline-date">Ngày điều chuyển: ${escapeHtml(formattedDate)}</div>
                                     <div class="history-timeline-content">
                                         <div class="history-timeline-title">
-                                            👤 ${escapeHtml(h.contactName)}: 
+                                            <i class="fa-solid fa-user" style="margin-right:4px;"></i> ${escapeHtml(h.contactName)}: 
                                             <span style="color:var(--crm-muted); text-decoration:line-through;">${escapeHtml(h.fromCompanyName)}</span>
                                             ➔ <span style="color:var(--crm-primary); font-weight:800;">${escapeHtml(h.toCompanyName)}</span>
                                         </div>
@@ -1102,7 +1100,7 @@
                                     </div>
                                 </div>
                                 <div>
-                                    ${c.isPrimary ? '<span title="Đầu mối chính" style="font-size:16px;">⭐</span>' : ''}
+                                    ${c.isPrimary ? '<span title="Đầu mối chính" style="font-size:14px; color:var(--crm-primary);"><i class="fa-solid fa-id-badge"></i></span>' : ''}
                                 </div>
                             </div>
 
@@ -1111,21 +1109,21 @@
                             </div>
 
                             <div style="font-size:12px; color:var(--crm-muted); display:flex; flex-direction:column; gap:2px;">
-                                <div>✉ <a href="mailto:${escapeHtml(c.email)}" style="color:inherit; text-decoration:none;">${escapeHtml(c.email)}</a></div>
-                                <div>☎ <a href="tel:${escapeHtml(c.phone)}" style="color:inherit; text-decoration:none;">${escapeHtml(c.phone)}</a></div>
+                                <div><i class="fa-solid fa-envelope" style="margin-right:4px;"></i> <a href="mailto:${escapeHtml(c.email)}" style="color:inherit; text-decoration:none;">${escapeHtml(c.email)}</a></div>
+                                <div><i class="fa-solid fa-phone" style="margin-right:4px;"></i> <a href="tel:${escapeHtml(c.phone)}" style="color:inherit; text-decoration:none;">${escapeHtml(c.phone)}</a></div>
                             </div>
 
                             <div class="c360-contact-actions">
                                 ${!c.isPrimary ? `
                                     <button class="contact-action-btn btn-set-primary" style="padding:2px 6px; font-size:11px;" data-action="set-primary" data-id="${c.id}" title="Đặt làm đầu mối chính">
-                                        ⭐ Đầu mối chính
+                                        <i class="fa-solid fa-id-badge" style="color:var(--crm-primary); margin-right:4px;"></i> Đầu mối chính
                                     </button>
                                 ` : ""}
                                 <button class="contact-action-btn btn-transfer" style="padding:2px 6px; font-size:11px;" data-action="transfer" data-id="${c.id}" title="Chuyển công ty">
-                                    🔄 Chuyển
+                                    <i class="fa-solid fa-right-left" style="margin-right:4px;"></i> Chuyển
                                 </button>
                                 <button class="contact-action-btn" style="padding:2px 6px; font-size:11px;" data-action="edit" data-id="${c.id}" title="Sửa">
-                                    ✏️
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                             </div>
                         </div>
