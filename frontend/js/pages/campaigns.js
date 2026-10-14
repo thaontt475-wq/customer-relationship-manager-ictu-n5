@@ -521,43 +521,44 @@ function renderCampaignTable(items, pagination) {
 
     tableBody.innerHTML = items.map(c => `
         <tr>
-            <td>
-                <strong style="color: var(--crm-primary, #3b82f6); font-family: monospace; font-size: 0.9rem;">
-                    ${escapeHtml(c.code)}
-                </strong>
+            <td class="td-code">
+                <span class="campaign-code-tag">${escapeHtml(c.code)}</span>
             </td>
-            <td>
-                <div style="font-weight: 700; color: var(--crm-text, #0f172a); font-size: 0.9375rem;">
-                    ${escapeHtml(c.name)}
-                </div>
-                ${c.description ? `<div style="font-size: 0.75rem; color: var(--crm-muted, #94a3b8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; margin-top: 2px;">${escapeHtml(c.description)}</div>` : ''}
+            <td class="td-name">
+                <div class="campaign-name-title" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</div>
+                ${c.description ? `<div class="campaign-desc-subtitle" title="${escapeHtml(c.description)}">${escapeHtml(c.description)}</div>` : ''}
             </td>
-            <td><span class="status-badge status-${c.status}">${c.status}</span></td>
-            <td>${getTypeBadge(c.type)}</td>
-            <td>
-                <strong style="color: var(--crm-text, #0f172a);">${formatCurrency(c.budget)}</strong>
-                ${c.expectedRevenue ? `<div style="font-size: 0.72rem; color: var(--crm-muted, #94a3b8);">Kỳ vọng: ${formatCurrency(c.expectedRevenue)}</div>` : ''}
+            <td class="td-status"><span class="status-badge status-${c.status}">${c.status}</span></td>
+            <td class="td-type">${getTypeBadge(c.type)}</td>
+            <td class="td-budget">
+                <div class="budget-main">${formatCurrency(c.budget)}</div>
+                ${c.expectedRevenue ? `<div class="budget-sub">Kỳ vọng: ${formatCurrency(c.expectedRevenue)}</div>` : ''}
             </td>
-            <td style="text-align: center;">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Xem danh sách Lead của chiến dịch" style="border-radius: 12px; padding: 2px 10px;">
-                    <i class="fa-solid fa-users" style="color: var(--crm-primary, #2563eb);"></i>
-                    <strong style="color: var(--crm-text, #0f172a);">${c.leadCount || 0}</strong>
-                </button>
-            </td>
-            <td style="font-size: 0.8125rem; color: var(--crm-muted, #94a3b8); white-space: nowrap;">
-                <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>
-                ${c.startDate ? `${c.startDate}` : '...'} ~ ${c.endDate ? `${c.endDate}` : '...'}
-            </td>
-            <td style="text-align: right; white-space: nowrap;">
-                <button class="crm-btn crm-btn-secondary btn-sm" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Quản lý Leads">
+            <td class="td-leads" style="text-align: center;">
+                <button type="button" class="lead-pill-btn" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Xem danh sách Lead (${c.leadCount || 0})">
                     <i class="fa-solid fa-users"></i>
+                    <strong>${c.leadCount || 0}</strong>
                 </button>
-                <button class="crm-btn crm-btn-secondary btn-sm" onclick="openEditModal(${c.id})" title="Chỉnh sửa">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                </button>
-                <button class="crm-btn crm-btn-secondary btn-sm" onclick="handleDeleteCampaign(${c.id})" title="Xóa" style="color: #ef4444;">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+            </td>
+            <td class="td-date">
+                <div class="date-range-wrap">
+                    <span>${c.startDate ? c.startDate : '...'}</span>
+                    <span class="date-sep">~</span>
+                    <span>${c.endDate ? c.endDate : '...'}</span>
+                </div>
+            </td>
+            <td class="td-actions" style="text-align: right;">
+                <div class="action-btn-group">
+                    <button class="crm-btn crm-btn-secondary action-icon-btn" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Quản lý Leads">
+                        <i class="fa-solid fa-users"></i>
+                    </button>
+                    <button class="crm-btn crm-btn-secondary action-icon-btn" onclick="openEditModal(${c.id})" title="Chỉnh sửa">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="crm-btn crm-btn-secondary action-icon-btn btn-delete-action" onclick="handleDeleteCampaign(${c.id})" title="Xóa">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join("");
