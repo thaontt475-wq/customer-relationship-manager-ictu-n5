@@ -747,15 +747,15 @@ function createCard(record) {
     const canNext = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
 
     card.innerHTML = `
-        <button class="card-menu-btn" type="button" data-card-menu="${record.id}">⋮</button>
+        <button class="card-menu-btn" type="button" data-card-menu="${record.id}"><i class="fa-solid fa-ellipsis-vertical"></i></button>
 
         <div class="card-menu" data-menu="${record.id}">
-            <button type="button" data-edit-opportunity="${record.id}">Sửa</button>
-            ${canPrev ? `<button type="button" data-prev-stage="${record.id}">← Giai đoạn trước</button>` : ""}
-            ${canNext ? `<button type="button" data-next-stage="${record.id}">Giai đoạn tiếp →</button>` : ""}
-            <button type="button" class="won" data-close-won="${record.id}">✓ Đóng Thắng</button>
-            <button type="button" class="lost" data-close-lost="${record.id}">✕ Đóng Thua</button>
-            <button type="button" style="color:#ef4444;" data-delete-opportunity="${record.id}">🗑 Xóa</button>
+            <button type="button" data-edit-opportunity="${record.id}"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+            ${canPrev ? `<button type="button" data-prev-stage="${record.id}"><i class="fa-solid fa-arrow-left"></i> Giai đoạn trước</button>` : ""}
+            ${canNext ? `<button type="button" data-next-stage="${record.id}">Giai đoạn tiếp <i class="fa-solid fa-arrow-right"></i></button>` : ""}
+            <button type="button" class="won" data-close-won="${record.id}"><i class="fa-solid fa-circle-check"></i> Đóng Thắng</button>
+            <button type="button" class="lost" data-close-lost="${record.id}"><i class="fa-solid fa-circle-xmark"></i> Đóng Thua</button>
+            <button type="button" style="color:#ef4444;" data-delete-opportunity="${record.id}"><i class="fa-solid fa-trash-can"></i> Xóa</button>
         </div>
 
         <h3>${escapeHtml(record.name)}</h3>
