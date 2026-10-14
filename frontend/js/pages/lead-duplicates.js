@@ -469,19 +469,19 @@
                     </td>
 
                     <!-- Độ tin cậy -->
-                    <td style="text-align: center;">
+                    <td class="col-score">
                         ${scorePill}
                     </td>
 
                     <!-- Thao tác -->
-                    <td style="text-align: right;">
+                    <td class="col-actions">
                         <div class="dup-actions">
                             ${pair.isCustomerMatch ? `
-                                <button type="button" class="crm-btn crm-btn-success crm-btn-sm btn-attach-cust" data-pair-id="${escapeHtml(pair.id)}" title="Gắn Lead này vào Khách hàng hiện có trong CRM">
+                                <button type="button" class="crm-btn btn-attach-cust" data-pair-id="${escapeHtml(pair.id)}" title="Gắn Lead này vào Khách hàng hiện có trong CRM">
                                     <i class="fa-solid fa-link"></i> Gắn vào KH
                                 </button>
                             ` : ""}
-                            <button type="button" class="crm-btn crm-btn-primary crm-btn-sm btn-open-merge" data-pair-id="${escapeHtml(pair.id)}" title="So sánh song song và gộp 2 bản ghi">
+                            <button type="button" class="crm-btn crm-btn-primary btn-open-merge" data-pair-id="${escapeHtml(pair.id)}" title="So sánh song song và gộp 2 bản ghi">
                                 <i class="fa-solid fa-code-merge"></i> So sánh & Gộp
                             </button>
                             <button type="button" class="crm-icon-btn btn-dismiss-pair" data-pair-id="${escapeHtml(pair.id)}" title="Bỏ qua cảnh báo này">

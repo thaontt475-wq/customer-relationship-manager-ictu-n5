@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
     <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/pages/lead-duplicates.css?v=20261014_s404">
+    <link rel="stylesheet" href="css/pages/lead-duplicates.css?v=20261014_s404_v2">
 </head>
 
 <body class="crm-private">
@@ -222,12 +222,12 @@
         <table class="dup-table">
             <thead>
                 <tr>
-                    <th style="width: 50px; text-align: center;">#</th>
-                    <th>Bản ghi Lead hiện hành (A)</th>
-                    <th>Bản ghi đối chiếu trùng lặp (B)</th>
-                    <th>Tiêu chí trùng khớp</th>
-                    <th style="text-align: center;">Độ tin cậy</th>
-                    <th style="text-align: right; width: 260px;">Thao tác xử lý</th>
+                    <th style="width: 44px; text-align: center;">#</th>
+                    <th style="min-width: 200px;">Bản ghi Lead hiện hành (A)</th>
+                    <th style="min-width: 200px;">Bản ghi đối chiếu trùng lặp (B)</th>
+                    <th style="min-width: 200px;">Tiêu chí trùng khớp</th>
+                    <th class="col-score">Độ tin cậy</th>
+                    <th class="col-actions">Thao tác xử lý</th>
                 </tr>
             </thead>
             <tbody id="dupTableBody">
@@ -378,6 +378,6 @@
 <!-- Scripts -->
 <script src="js/theme.js?v=20261014_v3"></script>
 <script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/pages/lead-duplicates.js?v=20261014_s404"></script>
+<script src="js/pages/lead-duplicates.js?v=20261014_s404_v2"></script>
 </body>
 </html>
