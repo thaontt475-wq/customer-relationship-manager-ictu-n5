@@ -2,6 +2,35 @@
 /* Aligned with Corporate CRM Design System tokens */
 
 /* ===================================================================
+   0. ZOOM & BORDER-RADIUS BOUNDARY GUARDS
+=================================================================== */
+body.crm-private {
+    overflow-x: hidden;
+}
+
+.crm-main.customer-page {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.customer-kpi-bar {
+    max-width: 100%;
+}
+
+.customer-kpi-card {
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.customer-toolbar-wrapper {
+    overflow: hidden;
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+/* ===================================================================
    1. SINGLE-ROW FILTER TOOLBAR (PR #136 STANDARD)
 =================================================================== */
 .campaign-single-row-filter {
@@ -73,25 +102,56 @@
 /* ===================================================================
    2. CAMPAIGN TABLE & DATA CONTAINER
 =================================================================== */
+.campaign-table-card,
 .campaign-table-container {
     background: var(--crm-surface, #fff);
     border: 1px solid var(--crm-border, #e2e8f0);
     border-radius: var(--crm-radius-md, 12px);
-    overflow-x: auto;
     box-shadow: var(--crm-shadow-sm, 0 4px 14px rgba(15,23,42,.04));
     margin-bottom: 1.25rem;
+    overflow: hidden; /* Cắt góc sạch 100%, bảo vệ viền bo tròn khi zoom in/out */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
+    contain: paint;
+}
+
+.campaign-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+.campaign-table-scroll::-webkit-scrollbar {
+    height: 7px;
+}
+.campaign-table-scroll::-webkit-scrollbar-track {
+    background: var(--crm-surface-soft, #f8fafc);
+}
+.campaign-table-scroll::-webkit-scrollbar-thumb {
+    background: var(--crm-border-strong, #cbd5e1);
+    border-radius: 10px;
+}
+.campaign-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--crm-muted, #94a3b8);
 }
 
 .campaign-table {
     width: 100%;
-    border-collapse: collapse;
+    min-width: 980px;
+    border-collapse: separate; /* 'separate' + border-spacing: 0 triệt tiêu lỗi tràn viền của border-collapse: collapse */
+    border-spacing: 0;
     font-size: 0.875rem;
     text-align: left;
 }
 
 .campaign-table th {
     background: var(--crm-surface-soft, #f8fafc);
-    padding: 12px 16px;
+    padding: 13px 18px;
     font-weight: 700;
     color: var(--crm-muted, #64748b);
     border-bottom: 1px solid var(--crm-border, #e2e8f0);
@@ -101,8 +161,15 @@
     letter-spacing: 0.03em;
 }
 
+.campaign-table thead tr th:first-child {
+    border-top-left-radius: 11px;
+}
+.campaign-table thead tr th:last-child {
+    border-top-right-radius: 11px;
+}
+
 .campaign-table td {
-    padding: 14px 16px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--crm-border, #e2e8f0);
     color: var(--crm-text, #0f172a);
     vertical-align: middle;
@@ -110,10 +177,22 @@
 
 .campaign-table tbody tr {
     transition: background-color 150ms ease;
+    background: var(--crm-surface, #fff);
 }
 
 .campaign-table tbody tr:hover {
     background: var(--crm-surface-soft, #f8fafc);
+}
+
+.campaign-table tbody tr:last-child td {
+    border-bottom: none; /* Khử đường kẻ đáy để khít hoàn toàn viền dưới */
+}
+
+.campaign-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 11px;
+}
+.campaign-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 11px;
 }
 
 /* ===================================================================
