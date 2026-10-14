@@ -842,7 +842,8 @@
                     loadLeadsData();
                 }
             } else if (event.data.type === "crm-form-resize" && event.data.height && dom.livePreviewIframe) {
-                dom.livePreviewIframe.style.height = `${Math.max(500, event.data.height + 20)}px`;
+                const targetH = Math.min(620, Math.max(520, Math.round(event.data.height)));
+                dom.livePreviewIframe.style.height = `${targetH}px`;
             }
         });
 

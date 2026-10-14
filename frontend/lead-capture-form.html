@@ -48,11 +48,18 @@
             background: transparent;
             color: var(--form-text);
             line-height: 1.5;
-            min-height: 100vh;
+            min-height: auto;
+            margin: 0;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 16px;
+            padding: 12px 16px;
+        }
+
+        body.standalone {
+            min-height: 100vh;
+            align-items: center;
+            padding: 24px 16px;
         }
 
         .lead-form-container {
@@ -575,15 +582,20 @@
                 validateField(emailInput, EMAIL_REGEX.test(emailInput.value.trim()));
             });
 
-            // Auto resize notifier for parent iframe
+            // Check if opened as standalone window
+            if (window.self === window.top) {
+                document.body.classList.add("standalone");
+            }
+
+            // Safe height notifier for parent iframe (one-time on load and after submit)
             function notifyHeight() {
                 try {
-                    const height = document.documentElement.scrollHeight || document.body.scrollHeight;
+                    const card = document.querySelector(".lead-form-container");
+                    const height = card ? (card.offsetHeight + 24) : 560;
                     window.parent.postMessage({ type: "crm-form-resize", height: height }, "*");
                 } catch (_) {}
             }
             window.addEventListener("load", notifyHeight);
-            window.addEventListener("resize", notifyHeight);
 
             // 3. Form Submission Handler
             form.addEventListener("submit", async function(e) {
