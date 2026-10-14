@@ -93,7 +93,13 @@
                 `<i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>`,
 
             sun:
-                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`
+                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
+
+            convert:
+                `<i class="fa-solid fa-arrows-split-up-and-left"></i>`,
+
+            lead:
+                `<i class="fa-solid fa-user-plus"></i>`
         };
 
         return icons[name] || `<i class="fa-solid fa-circle-notch"></i>`;
@@ -775,6 +781,23 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // CRM-122: Ensure Lead Conversion (3-in-1: Customer, Contact, Opportunity) item is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-conversion.html" || m.name === "LEAD_CONVERSION")) {
+                const leadItem = {
+                    name: "LEAD_CONVERSION",
+                    label: "Chuyển đổi Lead (CRM-122)",
+                    path: "lead-conversion.html",
+                    icon: "convert",
+                    section: "workspace"
+                };
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex, 0, leadItem);
+                } else {
+                    currentMenu.push(leadItem);
                 }
             }
 
