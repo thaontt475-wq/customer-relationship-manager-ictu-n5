@@ -93,7 +93,10 @@
                 `<i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>`,
 
             sun:
-                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`
+                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
+
+            sla:
+                `<i class="fa-solid fa-stopwatch"></i>`
         };
 
         return icons[name] || `<i class="fa-solid fa-circle-notch"></i>`;
@@ -775,6 +778,23 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // CRM-121: Ensure Lead SLA Response item is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-sla-response.html" || m.name === "LEAD_SLA_RESPONSE")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const slaItem = {
+                    name: "LEAD_SLA_RESPONSE",
+                    label: "Tiếp nhận Lead SLA (CRM-121)",
+                    path: "lead-sla-response.html",
+                    icon: "sla",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, slaItem);
+                } else {
+                    currentMenu.push(slaItem);
                 }
             }
 
