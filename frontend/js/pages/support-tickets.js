@@ -34,10 +34,10 @@
 
     // Categories
     const CATEGORIES = {
-        TECHNICAL: { label: "Sự cố kỹ thuật / Lỗi", icon: "⚙️" },
-        COMPLAINT: { label: "Khiếu nại dịch vụ / SLA", icon: "⚠️" },
-        BILLING: { label: "Hóa đơn / Hợp đồng", icon: "💳" },
-        FEATURE_REQUEST: { label: "Đề xuất tính năng / Quota", icon: "💡" }
+        TECHNICAL: { label: "Sự cố kỹ thuật / Lỗi", icon: '<i class="fa-solid fa-wrench"></i>' },
+        COMPLAINT: { label: "Khiếu nại dịch vụ / SLA", icon: '<i class="fa-solid fa-triangle-exclamation"></i>' },
+        BILLING: { label: "Hóa đơn / Hợp đồng", icon: '<i class="fa-solid fa-file-invoice-dollar"></i>' },
+        FEATURE_REQUEST: { label: "Đề xuất tính năng / Quota", icon: '<i class="fa-solid fa-lightbulb"></i>' }
     };
 
     const SUPPORT_AGENTS=[];
@@ -348,7 +348,7 @@
             <div class="churn-banner-container" style="animation:fadeIn 0.3s ease;">
                 <div class="churn-alert-banner">
                     <div style="display:flex; gap:16px; align-items:flex-start; flex:1; min-width:300px;">
-                        <div style="font-size:32px; line-height:1; flex-shrink:0;">⚠️</div>
+                        <div style="font-size:32px; line-height:1; flex-shrink:0; color:var(--crm-danger);"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div>
                             <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
                                 <h3 style="margin:0; font-size:16.5px; font-weight:800; color:var(--crm-danger);">
@@ -363,11 +363,11 @@
                                 — ${escapeHtml(evalInfo.reasons.join(" • ") || "Nhiều phản ánh kỹ thuật chưa giải quyết")}.
                             </p>
                             <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
-                                <a href="customer-360.html?id=${cust.id}" class="crm-btn crm-btn-secondary" style="font-size:12px; padding:4px 12px; text-decoration:none;">
-                                    🔍 Xem hồ sơ 360° khách hàng
+                                <a href="customer-360.html?id=${cust.id}" class="crm-btn crm-btn-secondary" style="font-size:12px; padding:4px 12px; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid fa-eye"></i> Xem hồ sơ 360° khách hàng
                                 </a>
-                                <button type="button" class="crm-btn crm-btn-secondary btn-quick-churn-modal" data-id="${cust.id}" style="font-size:12px; padding:4px 12px;">
-                                    ⚙️ Quản lý cờ rủi ro
+                                <button type="button" class="crm-btn crm-btn-secondary btn-quick-churn-modal" data-id="${cust.id}" style="font-size:12px; padding:4px 12px; display:inline-flex; align-items:center; gap:4px;">
+                                    <i class="fa-solid fa-gear"></i> Quản lý cờ rủi ro
                                 </button>
                             </div>
                         </div>
@@ -376,15 +376,15 @@
                     <!-- Sales Alert Box -->
                     <div class="sales-alert-box" style="min-width:280px; flex-shrink:0;">
                         <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; color:var(--crm-danger); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            <i class="fa-solid fa-user-tie" style="font-size:14px;"></i>
                             Sale phụ trách cần phối hợp
                         </div>
                         <div style="font-weight:700; font-size:14.5px; color:var(--crm-text); margin-bottom:4px;">
                             ${escapeHtml(salesRepName)}
                         </div>
-                        <div style="font-size:12px; color:var(--crm-muted); display:flex; flex-direction:column; gap:3px;">
-                            <span>📧 ${escapeHtml(salesRepEmail)}</span>
-                            <span>☎ ${escapeHtml(salesRepPhone)}</span>
+                        <div style="font-size:12px; color:var(--crm-muted); display:flex; flex-direction:column; gap:4px;">
+                            <span><i class="fa-solid fa-envelope"></i> ${escapeHtml(salesRepEmail)}</span>
+                            <span><i class="fa-solid fa-phone"></i> ${escapeHtml(salesRepPhone)}</span>
                         </div>
                     </div>
                 </div>
@@ -467,7 +467,7 @@
             const churnInfo = evaluateCustomerChurnRisk(t.customerId);
             const churnBadge = churnInfo.isRisk
                 ? `<span class="churn-risk-badge" title="${escapeHtml(churnInfo.reasons.join(' • ') || 'Rủi ro rời bỏ')}">
-                     ⚠️ Rủi ro rời bỏ
+                     <i class="fa-solid fa-triangle-exclamation"></i> Rủi ro rời bỏ
                    </span>`
                 : "";
 
@@ -526,11 +526,11 @@
                 <td style="text-align:right;">
                     <div style="display:inline-flex; gap:6px;">
                         <button type="button" class="crm-btn crm-btn-secondary btn-edit-ticket" data-id="${t.id}" style="padding:4px 8px; font-size:12px;" title="Chỉnh sửa & cập nhật tiến độ">
-                            ✏️
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button type="button" class="crm-btn crm-btn-secondary btn-delete-ticket" data-id="${t.id}" title="Xóa phiếu">Xóa</button>
+                        <button type="button" class="crm-btn crm-btn-secondary btn-delete-ticket" data-id="${t.id}" title="Xóa phiếu"><i class="fa-solid fa-trash-can"></i></button>
                         <button hidden type="button" class="crm-btn crm-btn-secondary btn-manage-churn" data-customer-id="${t.customerId}" style="padding:4px 8px; font-size:12px;" title="Cờ rủi ro rời bỏ">
-                            🚩
+                            <i class="fa-solid fa-flag"></i>
                         </button>
                     </div>
                 </td>
@@ -704,10 +704,10 @@
 
         const churnEval = evaluateCustomerChurnRisk(customerId);
         const churnBadge = churnEval.isRisk
-            ? `<span class="churn-risk-badge" style="background:#fee2e2; color:#b91c1c; font-size:11px; padding:2px 7px; border-radius:4px; font-weight:700;">
-                 ⚠️ RỦI RO RỜI BỎ (${churnEval.riskLevel})
+            ? `<span class="churn-risk-badge" style="background:#fee2e2; color:#b91c1c; font-size:11px; padding:2px 7px; border-radius:4px; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                 <i class="fa-solid fa-triangle-exclamation"></i> RỦI RO RỜI BỎ (${churnEval.riskLevel})
                </span>`
-            : `<span style="color:var(--crm-success); font-weight:600; font-size:11.5px;">✓ Khách hàng ổn định</span>`;
+            : `<span style="color:var(--crm-success); font-weight:600; font-size:11.5px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-circle-check"></i> Khách hàng ổn định</span>`;
 
         preview.style.display = "block";
         preview.innerHTML = `

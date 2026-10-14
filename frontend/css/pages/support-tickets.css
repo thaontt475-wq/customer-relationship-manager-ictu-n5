@@ -230,19 +230,18 @@
 
 /* Toolbar */
 .support-toolbar {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(220px, 1.8fr) minmax(130px, 1fr) minmax(130px, 1fr) minmax(140px, 1fr) minmax(130px, 1fr) auto;
+    gap: 10px;
     align-items: center;
-    gap: 14px;
-    padding: 14px 18px;
+    padding: 12px 16px;
     margin-bottom: 18px;
-    flex-wrap: wrap;
 }
 
 .search-input-wrap {
     position: relative;
-    flex: 1;
-    min-width: 260px;
+    width: 100%;
+    min-width: 0;
 }
 
 .search-input-wrap svg {
@@ -262,17 +261,41 @@
 .search-input-wrap input {
     padding-left: 38px;
     width: 100%;
+    height: 40px;
 }
 
 .filters-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    display: contents;
 }
 
 .filters-wrap select {
-    min-width: 140px;
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+}
+
+.filters-wrap button {
+    height: 40px;
+    width: 40px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+@media (max-width: 1100px) {
+    .support-toolbar {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    .search-input-wrap {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+    .support-toolbar {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Tickets Table */
@@ -749,3 +772,55 @@
 .churn-reasons-list li {
     margin-bottom: 4px;
 }
+
+/* =========================================================
+   SUPPORT TICKETS DARK THEME
+========================================================= */
+[data-theme="dark"] .support-tab-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .support-tab-btn:hover {
+    background: #243248;
+    border-color: #60a5fa;
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .support-tab-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .support-toolbar {
+    background: #172033;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .support-toolbar input,
+[data-theme="dark"] .support-toolbar select {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .filters-wrap button {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .filters-wrap button:hover {
+    background: #1e293b !important;
+    border-color: #60a5fa !important;
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .churn-risk-dialog {
+    background: #172033;
+    border: 1px solid #334155;
+    color: #f8fafc;
+}
+
