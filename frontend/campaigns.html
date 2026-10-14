@@ -278,72 +278,87 @@
 <div id="campaignModal" class="modal-overlay">
     <div class="modal-card">
         <div class="modal-header">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-bullhorn" style="color: var(--color-primary, #2563eb);"></i>
-                <h3 id="campaignModalTitle">Tạo mới Chiến dịch</h3>
+            <div class="modal-title-wrap">
+                <div class="modal-icon-badge">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                    <h3 id="campaignModalTitle">Tạo mới Chiến dịch</h3>
+                    <p class="modal-subtitle">Thiết lập thông tin ngân sách, thời gian và mục tiêu chiến dịch</p>
+                </div>
             </div>
-            <button class="modal-close" onclick="closeCampaignModal()" aria-label="Đóng">&times;</button>
+            <button class="modal-close" onclick="closeCampaignModal()" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
         <form id="campaignForm">
             <input type="hidden" id="campaignId">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Mã chiến dịch <span style="color:#ef4444;">*</span></label>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="campaignCode" required placeholder="VD: CAMP-2026-001" style="flex: 1;">
-                        <button type="button" class="btn btn-secondary btn-sm" id="btnAutoGenerateCode" title="Sinh mã tự động">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        </button>
+            <div class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="campaignCode">Mã chiến dịch <span class="req-star">*</span></label>
+                        <div class="input-with-action">
+                            <input type="text" id="campaignCode" required placeholder="VD: CAMP-2026-001">
+                            <button type="button" class="btn-action-inline" id="btnAutoGenerateCode" title="Sinh mã tự động">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Gợi ý
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Tên chiến dịch <span style="color:#ef4444;">*</span></label>
-                    <input type="text" id="campaignName" required placeholder="Tên chiến dịch tiếp thị...">
-                </div>
-                <div class="form-group">
-                    <label>Hình thức triển khai</label>
-                    <select id="campaignType">
-                        <option value="EMAIL">Email Marketing</option>
-                        <option value="EVENT">Hội thảo / Sự kiện</option>
-                        <option value="TELEMARKETING">Telesales</option>
-                        <option value="ADS">Quảng cáo số (Ads)</option>
-                        <option value="OTHER">Khác</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Trạng thái</label>
-                    <select id="campaignStatus">
-                        <option value="PLANNING">PLANNING (Lên kế hoạch)</option>
-                        <option value="ACTIVE">ACTIVE (Đang triển khai)</option>
-                        <option value="PAUSED">PAUSED (Tạm dừng)</option>
-                        <option value="COMPLETED">COMPLETED (Hoàn thành)</option>
-                        <option value="CANCELLED">CANCELLED (Hủy bỏ)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Ngày bắt đầu</label>
-                    <input type="date" id="campaignStartDate">
-                </div>
-                <div class="form-group">
-                    <label>Ngày kết thúc</label>
-                    <input type="date" id="campaignEndDate">
-                </div>
-                <div class="form-group">
-                    <label>Ngân sách dự kiến (VNĐ)</label>
-                    <input type="number" id="campaignBudget" min="0" step="1000000" value="0">
-                </div>
-                <div class="form-group">
-                    <label>Doanh thu kỳ vọng (VNĐ)</label>
-                    <input type="number" id="campaignExpectedRevenue" min="0" step="1000000" value="0">
-                </div>
-                <div class="form-group full-width">
-                    <label>Mô tả chi tiết & Mục tiêu chiến dịch</label>
-                    <textarea id="campaignDescription" rows="3" placeholder="Ghi chú mục tiêu, đối tượng hướng đến, thông điệp chính..."></textarea>
+                    <div class="form-group">
+                        <label for="campaignName">Tên chiến dịch <span class="req-star">*</span></label>
+                        <input type="text" id="campaignName" required placeholder="Tên chiến dịch tiếp thị...">
+                    </div>
+                    <div class="form-group">
+                        <label for="campaignType">Hình thức triển khai</label>
+                        <select id="campaignType">
+                            <option value="EMAIL">📧 Email Marketing</option>
+                            <option value="EVENT">🎪 Hội thảo / Sự kiện</option>
+                            <option value="TELEMARKETING">📞 Telesales</option>
+                            <option value="ADS">📢 Quảng cáo số (Ads)</option>
+                            <option value="OTHER">🔖 Khác</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="campaignStatus">Trạng thái</label>
+                        <select id="campaignStatus">
+                            <option value="PLANNING">📋 PLANNING (Lên kế hoạch)</option>
+                            <option value="ACTIVE">🟢 ACTIVE (Đang triển khai)</option>
+                            <option value="PAUSED">⏸️ PAUSED (Tạm dừng)</option>
+                            <option value="COMPLETED">✅ COMPLETED (Hoàn thành)</option>
+                            <option value="CANCELLED">❌ CANCELLED (Hủy bỏ)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="campaignStartDate">Ngày bắt đầu</label>
+                        <input type="date" id="campaignStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="campaignEndDate">Ngày kết thúc</label>
+                        <input type="date" id="campaignEndDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="campaignBudget">Ngân sách dự kiến (VNĐ)</label>
+                        <div class="currency-input-wrap">
+                            <input type="number" id="campaignBudget" min="0" step="1000000" value="0">
+                            <span class="currency-unit">đ</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="campaignExpectedRevenue">Doanh thu kỳ vọng (VNĐ)</label>
+                        <div class="currency-input-wrap">
+                            <input type="number" id="campaignExpectedRevenue" min="0" step="1000000" value="0">
+                            <span class="currency-unit">đ</span>
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="campaignDescription">Mô tả chi tiết & Mục tiêu chiến dịch</label>
+                        <textarea id="campaignDescription" rows="3" placeholder="Ghi chú mục tiêu, đối tượng hướng đến, thông điệp chính..."></textarea>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeCampaignModal()">Hủy bỏ</button>
-                <button type="submit" class="btn btn-primary">
+                <button type="button" class="crm-btn crm-btn-secondary" onclick="closeCampaignModal()">Hủy bỏ</button>
+                <button type="submit" class="crm-btn crm-btn-primary">
                     <i class="fa-solid fa-floppy-disk"></i> Lưu chiến dịch
                 </button>
             </div>
@@ -353,59 +368,71 @@
 
 <!-- ================= MODAL QUẢN LÝ LEAD CỦA CHIẾN DỊCH (S4-03-INT) ================= -->
 <div id="campaignLeadModal" class="modal-overlay">
-    <div class="modal-card" style="max-width: 860px;">
+    <div class="modal-card modal-lg">
         <div class="modal-header">
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-users-gear" style="color: var(--color-primary, #2563eb);"></i>
-                <h3>Danh sách Lead - <span id="leadModalCampaignTitle" style="color: var(--color-primary, #2563eb);"></span></h3>
+            <div class="modal-title-wrap">
+                <div class="modal-icon-badge" style="background: rgba(37,99,235,0.12); color: var(--crm-primary, #2563eb);">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <div>
+                    <h3>Quản lý Leads - <span id="leadModalCampaignTitle" style="color: var(--crm-primary, #2563eb);"></span></h3>
+                    <p class="modal-subtitle">Gán khách hàng tiềm năng vào chiến dịch và cập nhật trạng thái tương tác</p>
+                </div>
             </div>
-            <button class="modal-close" onclick="closeLeadModal()" aria-label="Đóng">&times;</button>
+            <button class="modal-close" onclick="closeLeadModal()" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
 
-        <!-- Add Lead Box -->
-        <div class="campaign-lead-assign-box">
-            <div style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; color: var(--text-primary, #1e293b); display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-user-plus" style="color: var(--color-primary, #2563eb);"></i>
-                Thêm Lead vào chiến dịch:
+        <div class="modal-body">
+            <!-- Add Lead Box -->
+            <div class="campaign-lead-assign-box">
+                <div class="lead-assign-title">
+                    <i class="fa-solid fa-user-plus"></i> Thêm Lead vào chiến dịch:
+                </div>
+                <div class="lead-assign-controls">
+                    <div style="flex: 2; min-width: 250px;">
+                        <select id="availableLeadsSelect" style="width: 100%;"></select>
+                    </div>
+                    <div style="flex: 1; min-width: 170px;">
+                        <select id="initialLeadStatusSelect" style="width: 100%;">
+                            <option value="SENT">SENT (Đã gửi tiếp cận)</option>
+                            <option value="OPENED">OPENED (Đã mở thư/quan tâm)</option>
+                            <option value="RESPONDED">RESPONDED (Có phản hồi)</option>
+                            <option value="CONVERTED">CONVERTED (Đã chuyển đổi)</option>
+                            <option value="BOUNCED">BOUNCED (Thất bại)</option>
+                        </select>
+                    </div>
+                    <button id="btnAddLeadToCampaign" class="crm-btn crm-btn-primary" type="button">
+                        <i class="fa-solid fa-plus"></i> Gán Lead
+                    </button>
+                </div>
             </div>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <select id="availableLeadsSelect" style="flex: 2; min-width: 250px; padding: 0.5rem; border: 1px solid var(--border-color, #cbd5e1); border-radius: 6px; font-size: 0.875rem; background: var(--bg-surface, #fff); color: var(--text-primary, #1e293b);"></select>
-                <select id="initialLeadStatusSelect" style="flex: 1; min-width: 150px; padding: 0.5rem; border: 1px solid var(--border-color, #cbd5e1); border-radius: 6px; font-size: 0.875rem; background: var(--bg-surface, #fff); color: var(--text-primary, #1e293b);">
-                    <option value="SENT">SENT (Đã gửi tiếp cận)</option>
-                    <option value="OPENED">OPENED (Đã mở thư/quan tâm)</option>
-                    <option value="RESPONDED">RESPONDED (Có phản hồi)</option>
-                    <option value="CONVERTED">CONVERTED (Đã chuyển đổi)</option>
-                    <option value="BOUNCED">BOUNCED (Thất bại)</option>
-                </select>
-                <button id="btnAddLeadToCampaign" class="crm-btn crm-btn-primary btn-sm" type="button">
-                    <i class="fa-solid fa-plus"></i> Gán Lead
-                </button>
-            </div>
-        </div>
 
-        <!-- Linked Leads Table -->
-        <div style="max-height: 380px; overflow-y: auto; border: 1px solid var(--border-color, #e2e8f0); border-radius: 6px;">
-            <table class="campaign-table" style="margin: 0;">
-                <thead>
-                    <tr>
-                        <th>Khách hàng tiềm năng (Lead)</th>
-                        <th>Công ty / Doanh nghiệp</th>
-                        <th>Liên hệ</th>
-                        <th style="width: 170px;">Trạng thái tương tác</th>
-                        <th style="width: 80px; text-align: right;">Gỡ</th>
-                    </tr>
-                </thead>
-                <tbody id="linkedLeadsList">
-                    <!-- Render by campaigns.js -->
-                </tbody>
-            </table>
+            <!-- Linked Leads Table -->
+            <div class="linked-leads-table-wrap">
+                <table class="campaign-table" style="margin: 0;">
+                    <thead>
+                        <tr>
+                            <th>Khách hàng tiềm năng (Lead)</th>
+                            <th>Công ty / Doanh nghiệp</th>
+                            <th>Liên hệ</th>
+                            <th style="width: 175px;">Trạng thái tương tác</th>
+                            <th style="width: 70px; text-align: right;">Gỡ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="linkedLeadsList">
+                        <!-- Render by campaigns.js -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="modal-footer" style="justify-content: space-between; align-items: center;">
-            <div id="leadModalSummaryText" style="font-size: 0.8125rem; color: var(--text-secondary, #64748b);">
+            <div id="leadModalSummaryText" class="lead-modal-summary">
                 <!-- e.g. Tổng cộng: 4 Leads -->
             </div>
-            <button type="button" class="btn btn-secondary" onclick="closeLeadModal()">Đóng</button>
+            <button type="button" class="crm-btn crm-btn-secondary" onclick="closeLeadModal()">Đóng</button>
         </div>
     </div>
 </div>
