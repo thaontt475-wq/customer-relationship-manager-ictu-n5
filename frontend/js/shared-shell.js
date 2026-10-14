@@ -782,7 +782,7 @@
             }
 
             // CRM-119: Ensure Lead Scoring item is in workspace menu
-            if (!currentMenu.some(m => m.path === "lead-scoring.html" || m.name === "LEAD_SCORING")) {
+            if (currentSession?.permissions?.includes("lead.read") && !currentMenu.some(m => m.path === "lead-scoring.html" || m.name === "LEAD_SCORING")) {
                 const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
                 const scoringItem = {
                     name: "LEAD_SCORING",

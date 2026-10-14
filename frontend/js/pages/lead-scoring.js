@@ -3,421 +3,18 @@
  * CRM-119 / S4-05: Cấu hình Chấm điểm Lead theo Tiêu chí khai báo
  * Author: Senior Frontend Developer (Nông Quang Tiệp)
  * Scope: HTML5, CSS3, Vanilla ES6+ - Zero JSP Policy - No Backend Modification
- * RESTful Endpoints Ready:
- *   - GET  /api/leads/scoring-rules
- *   - POST /api/leads/scoring-rules
- *   - POST /api/leads/re-score
- *   - GET  /api/leads?include_score=true
+ * API: /api/lead-scoring/*; scores and mutations are persisted by the backend.
  * ===================================================================
  */
 
 (function () {
     "use strict";
 
-    // 1. STORAGE KEYS & CONSTANTS
-    const STORAGE_KEY_RULES = "crm_lead_scoring_rules";
-    const STORAGE_KEY_LEADS = "crm_leads_scoring_data";
-    const STORAGE_KEY_THRESHOLDS = "crm_lead_scoring_thresholds";
-
-    const DEFAULT_THRESHOLDS = {
-        hot: 70,
-        warm: 40
-    };
-
-    const DEFAULT_RULES = [
-        // NHÓM 1: NGÀNH NGHỀ PHÙ HỢP (INDUSTRY FIT)
-        {
-            id: "R-IND-01",
-            group: "INDUSTRY",
-            name: "Công nghệ thông tin & Viễn thông",
-            field: "industry",
-            operator: "CONTAINS",
-            value: "CNTT",
-            points: 20,
-            description: "Ngành mục tiêu chiến lược của phần mềm CRM B2B.",
-            isActive: true
-        },
-        {
-            id: "R-IND-02",
-            group: "INDUSTRY",
-            name: "Bất động sản & Xây dựng",
-            field: "industry",
-            operator: "CONTAINS",
-            value: "Bất động sản",
-            points: 15,
-            description: "Nhu cầu quản lý sàn giao dịch và dữ liệu khách mua cao.",
-            isActive: true
-        },
-        {
-            id: "R-IND-03",
-            group: "INDUSTRY",
-            name: "Dược phẩm & Y tế",
-            field: "industry",
-            operator: "CONTAINS",
-            value: "Dược phẩm",
-            points: 15,
-            description: "Doanh nghiệp phân phối thuốc và thiết bị y tế có đội ngũ Sales lớn.",
-            isActive: true
-        },
-        {
-            id: "R-IND-04",
-            group: "INDUSTRY",
-            name: "Bán lẻ & Chuỗi F&B",
-            field: "industry",
-            operator: "CONTAINS",
-            value: "Bán lẻ",
-            points: 10,
-            description: "Phục vụ chương trình khách hàng thân thiết và tích điểm.",
-            isActive: true
-        },
-        {
-            id: "R-IND-05",
-            group: "INDUSTRY",
-            name: "Sản xuất & Công nghiệp",
-            field: "industry",
-            operator: "CONTAINS",
-            value: "Sản xuất",
-            points: 10,
-            description: "Mô hình B2B truyền thống, chu kỳ bán hàng dài.",
-            isActive: true
-        },
-        {
-            id: "R-IND-06",
-            group: "INDUSTRY",
-            name: "Giáo dục & Đào tạo",
-            field: "industry",
-            operator: "CONTAINS",
-            value: "Giáo dục",
-            points: 5,
-            description: "Tuyển sinh và tư vấn khóa học.",
-            isActive: true
-        },
-
-        // NHÓM 2: QUY MÔ DOANH NGHIỆP (COMPANY SIZE)
-        {
-            id: "R-SIZE-01",
-            group: "COMPANY_SIZE",
-            name: "Doanh nghiệp lớn (> 100 nhân sự)",
-            field: "employeeCount",
-            operator: "GREATER_THAN",
-            value: "100",
-            points: 20,
-            description: "Ngân sách phần mềm dồi dào, cần phân quyền sâu theo phòng ban.",
-            isActive: true
-        },
-        {
-            id: "R-SIZE-02",
-            group: "COMPANY_SIZE",
-            name: "Doanh nghiệp vừa (20 - 100 nhân sự)",
-            field: "employeeCount",
-            operator: "GREATER_THAN",
-            value: "20",
-            points: 10,
-            description: "Quy mô chuẩn, thời gian triển khai nhanh gọn từ 2-4 tuần.",
-            isActive: true
-        },
-        {
-            id: "R-SIZE-03",
-            group: "COMPANY_SIZE",
-            name: "Doanh nghiệp nhỏ (< 20 nhân sự)",
-            field: "employeeCount",
-            operator: "LESS_THAN",
-            value: "20",
-            points: 5,
-            description: "Chỉ cần gói Starter cơ bản, tỷ lệ chốt thấp hơn.",
-            isActive: true
-        },
-
-        // NHÓM 3: NGUỒN TIẾP CẬN LEAD (LEAD SOURCE)
-        {
-            id: "R-SRC-01",
-            group: "SOURCE",
-            name: "Khách hàng cũ hoặc Đối tác giới thiệu (Referral)",
-            field: "source",
-            operator: "CONTAINS",
-            value: "Giới thiệu",
-            points: 25,
-            description: "Độ tin cậy cực cao, tỷ lệ chuyển đổi thành công trên 45%.",
-            isActive: true
-        },
-        {
-            id: "R-SRC-02",
-            group: "SOURCE",
-            name: "Website Form / Landing Page trực tuyến",
-            field: "source",
-            operator: "CONTAINS",
-            value: "Website",
-            points: 15,
-            description: "Khách hàng chủ động tìm kiếm giải pháp và để lại thông tin.",
-            isActive: true
-        },
-        {
-            id: "R-SRC-03",
-            group: "SOURCE",
-            name: "Hội thảo / Sự kiện chuyên ngành (Event/Expo)",
-            field: "source",
-            operator: "CONTAINS",
-            value: "Sự kiện",
-            points: 10,
-            description: "Khách hàng đã gặp mặt trực tiếp đội ngũ chuyên viên.",
-            isActive: true
-        },
-        {
-            id: "R-SRC-04",
-            group: "SOURCE",
-            name: "Tiếp thị cuộc gọi lạnh (Cold Call)",
-            field: "source",
-            operator: "CONTAINS",
-            value: "Cold Call",
-            points: 5,
-            description: "Khách hàng thụ động, cần nhiều thời gian thuyết phục.",
-            isActive: true
-        },
-        {
-            id: "R-SRC-05",
-            group: "SOURCE",
-            name: "Danh sách mua ngoài / Chưa thẩm định",
-            field: "source",
-            operator: "CONTAINS",
-            value: "Mua ngoài",
-            points: -10,
-            description: "Data thô chất lượng kém, thường sai thông tin người đại diện.",
-            isActive: true
-        },
-
-        // NHÓM 4: MỨC ĐỘ QUAN TÂM & HÀNH VI (ENGAGEMENT & INTENT)
-        {
-            id: "R-INT-01",
-            group: "INTENT",
-            name: "Yêu cầu Demo giải pháp / Báo giá gấp",
-            field: "recentActivity",
-            operator: "CONTAINS",
-            value: "Demo",
-            points: 30,
-            description: "Tín hiệu mua hàng mạnh mẽ nhất, cần liên hệ trong vòng 30 phút.",
-            isActive: true
-        },
-        {
-            id: "R-INT-02",
-            group: "INTENT",
-            name: "Tải Bảng giá & Hồ sơ năng lực (Profile)",
-            field: "recentActivity",
-            operator: "CONTAINS",
-            value: "Tải bảng giá",
-            points: 10,
-            description: "Khách hàng đang trong giai đoạn khảo giá và so sánh nhà cung cấp.",
-            isActive: true
-        },
-        {
-            id: "R-INT-03",
-            group: "INTENT",
-            name: "Mở Email & Click link tài liệu 3+ lần",
-            field: "recentActivity",
-            operator: "CONTAINS",
-            value: "Click link",
-            points: 10,
-            description: "Mức độ quan tâm cao đối với nội dung chuyên môn.",
-            isActive: true
-        },
-        {
-            id: "R-INT-04",
-            group: "INTENT",
-            name: "Điền khảo sát nhu cầu sử dụng CRM",
-            field: "recentActivity",
-            operator: "CONTAINS",
-            value: "Khảo sát",
-            points: 5,
-            description: "Cung cấp đầy đủ thông tin về quy mô và nỗi đau nghiệp vụ.",
-            isActive: true
-        },
-        {
-            id: "R-INT-05",
-            group: "INTENT",
-            name: "Không phản hồi / Không nghe máy trong 14 ngày",
-            field: "recentActivity",
-            operator: "CONTAINS",
-            value: "Không phản hồi",
-            points: -15,
-            description: "Tương tác nguội lạnh, cần chuyển sang danh sách nuôi dưỡng dài hạn.",
-            isActive: true
-        }
-    ];
-
-    // 2. MOCK LEADS DATA (RICH B2B REALISTIC ENTERPRISE DATA)
-    const DEFAULT_LEADS = [
-        {
-            id: "LD-901",
-            fullName: "Trịnh Đình Trọng",
-            title: "Giám đốc Vận hành (COO)",
-            email: "trong.td@vinatech.vn",
-            phone: "0912345678",
-            companyName: "Công ty CP Tập đoàn Công nghệ VinaTech",
-            industry: "CNTT & Viễn thông",
-            employeeCount: 180,
-            source: "Website Form / Đăng ký dùng thử",
-            recentActivity: "Yêu cầu Demo trực tiếp cho 45 Sales",
-            avatar: "TĐ",
-            createdAt: "2026-10-14T08:30:00Z"
-        },
-        {
-            id: "LD-902",
-            fullName: "Nguyễn Thị Phương Thảo",
-            title: "Trưởng phòng Kinh doanh B2B",
-            email: "thao.ntp@hoanggiagroup.com",
-            phone: "0987654321",
-            companyName: "Tập đoàn Địa ốc Hoàng Gia Land",
-            industry: "Bất động sản & Xây dựng",
-            employeeCount: 250,
-            source: "Khách hàng cũ giới thiệu (Referral)",
-            recentActivity: "Yêu cầu Demo giải pháp và báo giá gói Enterprise",
-            avatar: "PT",
-            createdAt: "2026-10-14T09:15:00Z"
-        },
-        {
-            id: "LD-903",
-            fullName: "Vũ Hải Đăng",
-            title: "Phó Giám đốc Kỹ thuật",
-            email: "dang.vh@vinasmart.vn",
-            phone: "0908889999",
-            companyName: "Công ty Cổ phần VinaSmart Global",
-            industry: "CNTT & Phần mềm Nhúng",
-            employeeCount: 65,
-            source: "Hội thảo / Sự kiện TechExpo 2026",
-            recentActivity: "Tải Bảng giá & Tài liệu API tích hợp",
-            avatar: "HĐ",
-            createdAt: "2026-10-13T14:20:00Z"
-        },
-        {
-            id: "LD-904",
-            fullName: "Lê Hoàng Cường",
-            title: "Tổng Giám đốc (CEO)",
-            email: "cuong.lh@duochoalinh.vn",
-            phone: "0903456789",
-            companyName: "Công ty Dược phẩm Hoa Linh Pharma",
-            industry: "Dược phẩm & Y tế",
-            employeeCount: 120,
-            source: "Website Form trực tuyến",
-            recentActivity: "Yêu cầu Demo module quản lý Trình Dược viên",
-            avatar: "HC",
-            createdAt: "2026-10-13T11:00:00Z"
-        },
-        {
-            id: "LD-905",
-            fullName: "Trần Thu Hà",
-            title: "Trưởng phòng Mua sắm & CNTT",
-            email: "ha.tran@bachhoasach.vn",
-            phone: "0912345679",
-            companyName: "Chuỗi Bách Hóa Sạch Miền Bắc",
-            industry: "Bán lẻ & Chuỗi F&B",
-            employeeCount: 85,
-            source: "Đối tác giới thiệu (Referral)",
-            recentActivity: "Điền khảo sát nhu cầu tích điểm CRM",
-            avatar: "TH",
-            createdAt: "2026-10-12T16:45:00Z"
-        },
-        {
-            id: "LD-906",
-            fullName: "Phạm Thu Dung",
-            title: "Giám đốc Marketing (CMO)",
-            email: "dung.pt@sunshinemedia.vn",
-            phone: "0933221100",
-            companyName: "Sunshine Media & Communications",
-            industry: "CNTT & Truyền thông số",
-            employeeCount: 45,
-            source: "Website Form / Tải Ebook",
-            recentActivity: "Mở Email & Click link xem tính năng Pipeline 4 lần",
-            avatar: "TD",
-            createdAt: "2026-10-12T10:10:00Z"
-        },
-        {
-            id: "LD-907",
-            fullName: "Đỗ Minh Tuấn",
-            title: "Chủ tịch HĐQT",
-            email: "tuan.dm@anphatplastic.com",
-            phone: "0944556677",
-            companyName: "Nhựa Công nghiệp An Phát Holdings",
-            industry: "Sản xuất & Công nghiệp",
-            employeeCount: 320,
-            source: "Gặp trực tiếp tại Triển lãm Quốc tế",
-            recentActivity: "Tải Bảng giá và yêu cầu gửi hồ sơ năng lực công ty",
-            avatar: "MT",
-            createdAt: "2026-10-11T15:30:00Z"
-        },
-        {
-            id: "LD-908",
-            fullName: "Nguyễn Văn Hùng",
-            title: "Trưởng ban Đào tạo",
-            email: "hung.nv@eduplus.vn",
-            phone: "0977889900",
-            companyName: "Học viện Kỹ năng Doanh nghiệp EduPlus",
-            industry: "Giáo dục & Đào tạo",
-            employeeCount: 25,
-            source: "Website Form tư vấn",
-            recentActivity: "Điền form khảo sát thông tin",
-            avatar: "VH",
-            createdAt: "2026-10-11T09:00:00Z"
-        },
-        {
-            id: "LD-909",
-            fullName: "Bùi Hoàng Nam",
-            title: "Chuyên viên Mua hàng",
-            email: "nam.bh@danhsachthotrangvang.vn",
-            phone: "0966112233",
-            companyName: "Cửa hàng Thiết bị Văn phòng Nam Phát",
-            industry: "Bán lẻ & Phân phối nhỏ",
-            employeeCount: 8,
-            source: "Danh sách mua ngoài / Data thô",
-            recentActivity: "Không phản hồi sau 3 cuộc gọi liên hệ",
-            avatar: "HN",
-            createdAt: "2026-10-10T14:00:00Z"
-        },
-        {
-            id: "LD-910",
-            fullName: "Hoàng Gia Bảo",
-            title: "Nhân viên Bán lẻ",
-            email: "bao.hg@coldcalllead.com",
-            phone: "0922334455",
-            companyName: "Đại lý Tạp hóa Hoàng Bảo",
-            industry: "Khác",
-            employeeCount: 5,
-            source: "Tiếp thị cuộc gọi lạnh (Cold Call)",
-            recentActivity: "Không phản hồi, báo nhầm máy",
-            avatar: "GB",
-            createdAt: "2026-10-09T16:20:00Z"
-        },
-        {
-            id: "LD-911",
-            fullName: "Lâm Quốc Cường",
-            title: "Giám đốc Kinh doanh",
-            email: "cuong.lq@megalogistics.vn",
-            phone: "0918765432",
-            companyName: "Công ty Tiếp vận Quốc tế Mega Logistics",
-            industry: "Sản xuất & Vận tải Logistics",
-            employeeCount: 140,
-            source: "Website Form trực tuyến",
-            recentActivity: "Tải Bảng giá & Yêu cầu Demo cho 15 nhân viên",
-            avatar: "QC",
-            createdAt: "2026-10-14T10:00:00Z"
-        },
-        {
-            id: "LD-912",
-            fullName: "Dương Minh Châu",
-            title: "Phụ trách Nhân sự & Vận hành",
-            email: "chau.dm@fintechviet.com",
-            phone: "0909123888",
-            companyName: "Công ty Cổ phần Giải pháp Tài chính FinTech Việt",
-            industry: "CNTT & Dịch vụ Tài chính",
-            employeeCount: 55,
-            source: "Đối tác chiến lược giới thiệu (Referral)",
-            recentActivity: "Yêu cầu Demo giải pháp tích hợp SSO & ERP",
-            avatar: "MC",
-            createdAt: "2026-10-14T07:45:00Z"
-        }
-    ];
-
     // 3. STATE MANAGEMENT
     let scoringRules = [];
-    let scoringThresholds = { ...DEFAULT_THRESHOLDS };
+    let scoringThresholds = { hot: null, warm: null };
+    let serverConfig = null;
+    let ready = false, busy = false, canManage = false, canScore = false;
     let scoredLeads = [];
     let currentTab = "ranking"; // 'ranking' | 'rules'
     let editingCriteriaId = null;
@@ -500,196 +97,86 @@
         };
     }
 
-    // 4. BUSINESS LOGIC: SCORING ENGINE
-    function calculateLeadScore(lead, rules, thresholds) {
-        let totalScore = 0;
-        const breakdown = [];
-
-        // Match against active rules
-        rules.forEach(rule => {
-            if (!rule.isActive) return;
-
-            let matched = false;
-            const fieldValue = lead[rule.field];
-
-            if (fieldValue !== undefined && fieldValue !== null) {
-                if (rule.operator === "EQUALS") {
-                    matched = String(fieldValue).trim().toLowerCase() === String(rule.value).trim().toLowerCase();
-                } else if (rule.operator === "CONTAINS") {
-                    matched = String(fieldValue).toLowerCase().includes(String(rule.value).toLowerCase());
-                } else if (rule.operator === "GREATER_THAN") {
-                    const numField = parseFloat(fieldValue) || 0;
-                    const numTarget = parseFloat(rule.value) || 0;
-                    matched = numField >= numTarget;
-                } else if (rule.operator === "LESS_THAN") {
-                    const numField = parseFloat(fieldValue) || 0;
-                    const numTarget = parseFloat(rule.value) || 0;
-                    matched = numField <= numTarget;
-                }
-            }
-
-            if (matched) {
-                totalScore += rule.points;
-                breakdown.push({
-                    ruleId: rule.id,
-                    ruleName: rule.name,
-                    group: rule.group,
-                    points: rule.points,
-                    actualValue: fieldValue,
-                    description: rule.description
-                });
-            }
-        });
-
-        // Minimum score floor at 0
-        totalScore = Math.max(0, totalScore);
-
-        // Classify
-        let classification = "COLD";
-        if (totalScore >= thresholds.hot) {
-            classification = "HOT";
-        } else if (totalScore >= thresholds.warm) {
-            classification = "WARM";
-        } else {
-            classification = "COLD";
-        }
-
-        return {
-            ...lead,
-            score: totalScore,
-            classification: classification,
-            breakdown: breakdown
-        };
+    // Backend is the source of scores, classifications, criteria and thresholds.
+    const endpoint = "/api/lead-scoring";
+    function applyConfig(config) {
+        serverConfig = config;
+        scoringRules = config.rules;
+        scoringThresholds = config.thresholds;
     }
-
-    function recalculateAllLeads() {
-        scoredLeads = scoredLeads.map(lead => calculateLeadScore(lead, scoringRules, scoringThresholds));
-        saveLeadsToStorage();
-        updateKpis();
-        renderLeadsTable();
+    function normalizeLead(lead) {
+        return { ...lead, id: String(lead.id), industry: lead.industry || "",
+            title: lead.title || "", source: lead.source || "", recentActivity: lead.recentActivity || "" };
     }
-
-    // 5. DATA PERSISTENCE & RESTful SERVICE LAYER
-    function loadInitialData() {
-        // Load Thresholds
-        try {
-            const rawThresh = localStorage.getItem(STORAGE_KEY_THRESHOLDS);
-            scoringThresholds = rawThresh ? JSON.parse(rawThresh) : { ...DEFAULT_THRESHOLDS };
-        } catch (_) {
-            scoringThresholds = { ...DEFAULT_THRESHOLDS };
-        }
-
-        // Load Rules
-        try {
-            const rawRules = localStorage.getItem(STORAGE_KEY_RULES);
-            scoringRules = rawRules ? JSON.parse(rawRules) : [...DEFAULT_RULES];
-        } catch (_) {
-            scoringRules = [...DEFAULT_RULES];
-        }
-
-        // Load Leads
-        try {
-            const rawLeads = localStorage.getItem(STORAGE_KEY_LEADS);
-            scoredLeads = rawLeads ? JSON.parse(rawLeads) : [...DEFAULT_LEADS];
-        } catch (_) {
-            scoredLeads = [...DEFAULT_LEADS];
-        }
-
-        // Sync and score
-        recalculateAllLeads();
+    function syncControls() {
+        const configured = serverConfig?.configured === true;
+        const manageDisabled = !ready || busy || !canManage || !configured;
+        for (const key of ["btnSaveThresholds", "btnAddCriteriaBtn", "btnOpenAddCriteriaGroup", "btnSaveCriteria", "inputHotThreshold", "inputWarmThreshold"])
+            if (dom[key]) dom[key].disabled = manageDisabled;
+        if (dom.btnReScoreAll) dom.btnReScoreAll.disabled = !ready || busy || !canScore || !configured;
+        // No unapproved defaults can overwrite a server configuration.
+        if (dom.btnResetDefaultRules) { dom.btnResetDefaultRules.disabled = true; dom.btnResetDefaultRules.title = "Chưa có bộ mặc định nghiệp vụ được phê duyệt"; }
+        dom.ruleGroupsGrid?.querySelectorAll("button,input").forEach(el => { el.disabled = manageDisabled; });
     }
-
-    function saveRulesToStorage() {
-        try {
-            localStorage.setItem(STORAGE_KEY_RULES, JSON.stringify(scoringRules));
-        } catch (e) {
-            console.error("Failed to save rules to localStorage", e);
-        }
+    function renderAll() { updateKpis(); renderRulesGrid(); renderLeadsTable(); syncControls(); }
+    function showLoadError(error) {
+        ready = false; syncControls();
+        if (dom.scoringEmptyState) dom.scoringEmptyState.style.display = "none";
+        if (dom.leadScoringTableBody) dom.leadScoringTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px">' + escapeHtml(error.message) + ' <button type="button" id="scoringRetry">Thử tải lại</button></td></tr>';
+        document.getElementById("scoringRetry")?.addEventListener("click", loadInitialData);
+        showToast(error.message, "error");
     }
-
-    function saveThresholdsToStorage() {
-        try {
-            localStorage.setItem(STORAGE_KEY_THRESHOLDS, JSON.stringify(scoringThresholds));
-        } catch (e) {
-            console.error("Failed to save thresholds to localStorage", e);
+    async function fetchState() {
+        const config = await window.CrmApi.request(endpoint + "/config");
+        const items = [];
+        for (let page = 1; ; page++) {
+            const data = await window.CrmApi.request(endpoint + "/leads?" + new URLSearchParams({page, size:100}));
+            if (data.version !== config.version) throw new Error("Cấu hình vừa thay đổi; hãy tải lại dữ liệu.");
+            items.push(...data.items.map(normalizeLead));
+            if (page >= data.totalPages || !data.items.length) break;
         }
+        applyConfig(config); scoredLeads = items; ready = true; renderAll();
     }
-
-    function saveLeadsToStorage() {
+    async function loadInitialData() {
+        ready = false; syncControls();
+        if (dom.scoringEmptyState) dom.scoringEmptyState.style.display = "none";
+        if (dom.leadScoringTableBody) dom.leadScoringTableBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px">Đang tải dữ liệu từ máy chủ...</td></tr>';
         try {
-            localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(scoredLeads));
-        } catch (e) {
-            console.error("Failed to save leads to localStorage", e);
-        }
+            if (!window.CrmApi) throw new Error("Không tải được thư viện kết nối API.");
+            const session = await window.CrmApi.session();
+            canManage = session.permissions?.includes("lead.scoring.manage") === true;
+            canScore = session.permissions?.includes("lead.score") === true;
+            await fetchState();
+            if (!serverConfig.configured) showToast("Chưa có cấu hình chấm điểm nghiệp vụ được xác nhận. Lead chưa được phân loại.", "warning");
+        } catch (error) { showLoadError(error); }
     }
-
-    // RESTful API Connector (Contract with Nguyễn Văn Thắng)
+    async function runMutation(request, message) {
+        if (busy || !ready) return false;
+        busy = true; syncControls();
+        try {
+            const result = await request();
+            try { await fetchState(); }
+            catch (error) { showLoadError(new Error("Máy chủ đã lưu thành công nhưng chưa tải được dữ liệu mới: " + error.message)); return true; }
+            showToast(typeof message === "function" ? message(result) : message, "success");
+            return true;
+        } catch (error) {
+            showToast(error.message, "error");
+            if (error.status === 409) {
+                try { await fetchState(); } catch (refreshError) { showLoadError(refreshError); }
+            } else renderAll();
+            return false;
+        }
+        finally { busy = false; syncControls(); }
+    }
+    async function saveRules(rules, message) {
+        return runMutation(() => window.LeadScoringService.saveScoringRules(rules), message);
+    }
     window.LeadScoringService = {
-        async getScoringRules() {
-            try {
-                if (window.CrmApi) {
-                    const data = await window.CrmApi.request("/api/leads/scoring-rules");
-                    if (data && Array.isArray(data)) {
-                        scoringRules = data;
-                        saveRulesToStorage();
-                        return data;
-                    }
-                }
-            } catch (err) {
-                console.warn("[CRM-119 API] /api/leads/scoring-rules unavailable, using local rules.", err);
-            }
-            return scoringRules;
-        },
-
-        async saveScoringRules(rules) {
-            scoringRules = rules;
-            saveRulesToStorage();
-            try {
-                if (window.CrmApi) {
-                    await window.CrmApi.request("/api/leads/scoring-rules", {
-                        method: "POST",
-                        body: JSON.stringify(rules)
-                    });
-                }
-            } catch (err) {
-                console.warn("[CRM-119 API] POST /api/leads/scoring-rules unavailable, saved locally.", err);
-            }
-            return scoringRules;
-        },
-
-        async reScoreAll() {
-            try {
-                if (window.CrmApi) {
-                    const res = await window.CrmApi.request("/api/leads/re-score", { method: "POST" });
-                    if (res && Array.isArray(res.items)) {
-                        scoredLeads = res.items;
-                        saveLeadsToStorage();
-                        return res;
-                    }
-                }
-            } catch (err) {
-                console.warn("[CRM-119 API] POST /api/leads/re-score unavailable, re-scoring client-side.", err);
-            }
-            recalculateAllLeads();
-            return { success: true, count: scoredLeads.length };
-        },
-
-        async getScoredLeads(filter = {}) {
-            try {
-                if (window.CrmApi) {
-                    const query = new URLSearchParams({ include_score: "true", ...filter });
-                    const res = await window.CrmApi.request(`/api/leads?${query}`);
-                    if (res && Array.isArray(res.items)) {
-                        scoredLeads = res.items;
-                        saveLeadsToStorage();
-                        return res.items;
-                    }
-                }
-            } catch (err) {
-                console.warn("[CRM-119 API] GET /api/leads?include_score=true unavailable, using local leads.", err);
-            }
-            return scoredLeads;
-        }
+        getScoringRules: () => window.CrmApi.request(endpoint + "/config"),
+        saveScoringRules: rules => window.CrmApi.request(endpoint + "/rules", {method:"POST", body:JSON.stringify({version:serverConfig.version,rules})}),
+        reScoreAll: () => window.CrmApi.request(endpoint + "/re-score", {method:"POST", body:"{}"}),
+        getScoredLeads: (filter = {}) => window.CrmApi.request(endpoint + "/leads?" + new URLSearchParams({size:100,...filter})),
+        getLead: id => window.CrmApi.request(endpoint + "/leads/" + encodeURIComponent(id))
     };
 
     // 6. UI RENDERING: KPIS & SPECTRUM
@@ -715,12 +202,22 @@
         if (dom.tabLeadsCount) dom.tabLeadsCount.textContent = total;
         if (dom.tabRulesCount) dom.tabRulesCount.textContent = scoringRules.length;
 
+        if (!serverConfig?.configured) {
+            for (const key of ["kpiHotThresholdBadge","kpiWarmThresholdBadge","kpiColdThresholdBadge"]) if (dom[key]) dom[key].textContent = "Chưa cấu hình";
+            if (dom.kpiAvgScore) dom.kpiAvgScore.textContent = "Chưa có điểm được tính";
+        }
         updateSpectrumDisplay();
     }
 
     function updateSpectrumDisplay() {
         const hot = scoringThresholds.hot;
         const warm = scoringThresholds.warm;
+        if (hot == null || warm == null) {
+            if (dom.inputHotThreshold) dom.inputHotThreshold.value = "";
+            if (dom.inputWarmThreshold) dom.inputWarmThreshold.value = "";
+            for (const key of ["displayColdThreshold","spectrumWarmMark","spectrumHotMark"]) if (dom[key]) dom[key].textContent = "Chưa cấu hình";
+            return;
+        }
 
         if (dom.inputHotThreshold) dom.inputHotThreshold.value = hot;
         if (dom.inputWarmThreshold) dom.inputWarmThreshold.value = warm;
@@ -748,7 +245,7 @@
 
         return scoredLeads.filter(lead => {
             if (classification !== "ALL" && lead.classification !== classification) return false;
-            if (industry !== "ALL" && !lead.industry.toLowerCase().includes(industry.toLowerCase())) return false;
+            if (industry !== "ALL" && !String(lead.industry || "").toLowerCase().includes(industry.toLowerCase())) return false;
 
             if (query) {
                 const searchStr = `${lead.fullName} ${lead.phone} ${lead.email} ${lead.companyName} ${lead.title} ${lead.source}`.toLowerCase();
@@ -780,8 +277,8 @@
         let html = "";
         filtered.forEach((lead, idx) => {
             const classBadge = getClassificationBadge(lead.classification);
-            const scorePercent = Math.min(Math.round((lead.score / 100) * 100), 100);
-            const classColor = lead.classification.toLowerCase();
+            const scorePercent = Math.max(0, Math.min(lead.score ?? 0, 100));
+            const classColor = String(lead.classification || "UNCONFIGURED").toLowerCase();
 
             html += `
                 <tr data-lead-id="${escapeHtml(lead.id)}">
@@ -810,7 +307,7 @@
                         <div class="company-cell-meta">
                             <span><i class="fa-solid fa-building text-purple"></i> ${escapeHtml(lead.industry)}</span>
                             <span>&bull;</span>
-                            <span><i class="fa-solid fa-users text-primary"></i> ${lead.employeeCount} nhân sự</span>
+                            <span><i class="fa-solid fa-users text-primary"></i> ${lead.employeeCount ?? "—"} nhân sự</span>
                         </div>
                     </td>
 
@@ -828,7 +325,7 @@
                     <td class="col-score">
                         <div class="score-meter-wrap">
                             <div class="score-meter-head">
-                                <span class="score-value-bold">${lead.score} <small style="font-size: 11px; font-weight: 600;">điểm</small></span>
+                                <span class="score-value-bold">${lead.score ?? "—"} <small style="font-size: 11px; font-weight: 600;">điểm</small></span>
                                 <span class="score-scale-max">/ 100+</span>
                             </div>
                             <div class="score-progress-bar">
@@ -869,6 +366,7 @@
     }
 
     function getClassificationBadge(classification) {
+        if (classification === "UNCONFIGURED") return '<span class="class-badge">Chưa cấu hình</span>';
         if (classification === "HOT") {
             return `<span class="class-badge hot"><i class="fa-solid fa-fire-flame-curved"></i> Hot Lead</span>`;
         }
@@ -893,7 +391,7 @@
         callButtons.forEach(btn => {
             btn.addEventListener("click", () => {
                 const phone = btn.getAttribute("data-phone");
-                showToast(`📞 Đang kích hoạt cuộc gọi thoại tới số ${phone}...`, "info");
+                if (phone) location.href = "tel:" + encodeURIComponent(phone);
             });
         });
 
@@ -903,7 +401,7 @@
             btn.addEventListener("click", () => {
                 const leadId = btn.getAttribute("data-lead-id");
                 const targetLead = scoredLeads.find(l => l.id === leadId);
-                showToast(`🎯 Chuyển đổi thành công Lead "${targetLead?.fullName}" sang Cơ hội bán hàng!`, "success");
+                showToast("Chức năng chuyển đổi Lead thuộc S4-08, chưa được tích hợp tại trang này.", "warning");
             });
         });
     }
@@ -1016,6 +514,7 @@
 
         dom.ruleGroupsGrid.innerHTML = html;
         attachRuleEvents();
+        syncControls();
     }
 
     function attachRuleEvents() {
@@ -1031,16 +530,12 @@
         // Toggle active status
         const toggleCheckboxes = dom.ruleGroupsGrid.querySelectorAll(".rule-active-toggle");
         toggleCheckboxes.forEach(chk => {
-            chk.addEventListener("change", () => {
+            chk.addEventListener("change", async () => {
                 const ruleId = chk.getAttribute("data-rule-id");
+                const active = chk.checked;
                 const rule = scoringRules.find(r => r.id === ruleId);
-                if (rule) {
-                    rule.isActive = chk.checked;
-                    saveRulesToStorage();
-                    recalculateAllLeads();
-                    renderRulesGrid();
-                    showToast(`Đã ${rule.isActive ? "kích hoạt" : "vô hiệu hóa"} tiêu chí "${rule.name}"`, "info");
-                }
+                if (rule) await saveRules(scoringRules.map(r => r.id === ruleId ? {...r,isActive:active} : r), "Đã cập nhật trạng thái tiêu chí.");
+                else renderRulesGrid();
             });
         });
 
@@ -1056,16 +551,10 @@
         // Delete rule
         const deleteButtons = dom.ruleGroupsGrid.querySelectorAll(".btn-delete-rule");
         deleteButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
+            btn.addEventListener("click", async () => {
                 const ruleId = btn.getAttribute("data-rule-id");
                 const rule = scoringRules.find(r => r.id === ruleId);
-                if (confirm(`Bạn có chắc chắn muốn xóa tiêu chí "${rule?.name}" không?`)) {
-                    scoringRules = scoringRules.filter(r => r.id !== ruleId);
-                    saveRulesToStorage();
-                    recalculateAllLeads();
-                    renderRulesGrid();
-                    showToast(`Đã xóa tiêu chí "${rule?.name}" thành công!`, "success");
-                }
+                if (confirm('Xóa tiêu chí "' + rule?.name + '"?')) await saveRules(scoringRules.filter(r => r.id !== ruleId), "Đã xóa tiêu chí và cập nhật điểm Lead.");
             });
         });
     }
@@ -1112,13 +601,15 @@
         dom.pointsHintBadge.style.color = val > 0 ? "#15803d" : (val < 0 ? "#b91c1c" : "var(--crm-text)");
     }
 
-    function saveCriteriaFromModal() {
+    async function saveCriteriaFromModal() {
+        if (!canManage || busy || !ready || !dom.criteriaForm?.reportValidity()) return;
         const name = dom.criteriaName ? dom.criteriaName.value.trim() : "";
         const group = dom.criteriaGroup ? dom.criteriaGroup.value : "INDUSTRY";
         const field = dom.criteriaField ? dom.criteriaField.value : "industry";
         const operator = dom.criteriaOperator ? dom.criteriaOperator.value : "EQUALS";
         const value = dom.criteriaValue ? dom.criteriaValue.value.trim() : "";
-        const points = parseInt(dom.criteriaPoints.value, 10) || 0;
+        const points = Number(dom.criteriaPoints.value);
+        if (!Number.isInteger(points)) { showToast("Điểm phải là số nguyên.", "error"); return; }
         const description = dom.criteriaDescription ? dom.criteriaDescription.value.trim() : "";
         const isActive = dom.criteriaIsActive ? dom.criteriaIsActive.checked : true;
 
@@ -1127,48 +618,22 @@
             return;
         }
 
-        if (editingCriteriaId) {
-            const rule = scoringRules.find(r => r.id === editingCriteriaId);
-            if (rule) {
-                rule.name = name;
-                rule.group = group;
-                rule.field = field;
-                rule.operator = operator;
-                rule.value = value;
-                rule.points = points;
-                rule.description = description;
-                rule.isActive = isActive;
-            }
-            showToast(`✨ Đã cập nhật tiêu chí "${name}" thành công!`, "success");
-        } else {
-            const newRule = {
-                id: `R-CUST-${Date.now().toString().slice(-5)}`,
-                name,
-                group,
-                field,
-                operator,
-                value,
-                points,
-                description,
-                isActive
-            };
-            scoringRules.push(newRule);
-            showToast(`✨ Đã thêm tiêu chí mới "${name}" thành công!`, "success");
-        }
-
-        saveRulesToStorage();
-        closeCriteriaModal();
-        recalculateAllLeads();
-        renderRulesGrid();
+        const rule = { id: editingCriteriaId || "R-" + crypto.randomUUID(), name, group, field, operator, value, points, description, isActive };
+        const rules = editingCriteriaId ? scoringRules.map(r => r.id === editingCriteriaId ? rule : r) : [...scoringRules,rule];
+        if (await saveRules(rules, "Đã lưu tiêu chí và cập nhật điểm Lead.")) closeCriteriaModal();
     }
 
     // 10. MODALS: SCORE BREAKDOWN MODAL
-    function openBreakdownModal(leadId) {
-        const lead = scoredLeads.find(l => l.id === leadId);
+    async function openBreakdownModal(leadId) {
+        let lead;
+        try { lead = normalizeLead(await window.LeadScoringService.getLead(leadId)); }
+        catch (error) { showToast(error.message, "error"); return; }
         if (!lead || !dom.breakdownModalBody) return;
 
         const classBadge = getClassificationBadge(lead.classification);
-        const recommendation = lead.classification === "HOT"
+        const recommendation = lead.classification === "UNCONFIGURED"
+            ? "Chưa có cấu hình nghiệp vụ được xác nhận. Lead chưa được chấm điểm hoặc phân loại."
+            : lead.classification === "HOT"
             ? "🔥 <strong>Khuyến nghị Sales:</strong> Lead Nóng có độ quan tâm và tính phù hợp rất cao. Hãy gọi điện thoại trực tiếp trong ca làm việc để chốt cuộc hẹn demo hoặc ký hợp đồng."
             : (lead.classification === "WARM"
                 ? "🌤️ <strong>Khuyến nghị Sales:</strong> Lead Ấm có tiềm năng tốt nhưng cần thêm tài liệu. Hãy gửi email case study, hồ sơ giải pháp và xếp lịch follow-up sau 3 ngày."
@@ -1189,7 +654,7 @@
                             <strong>${escapeHtml(item.ruleName)}</strong>
                             <div style="font-size: 11px; color: var(--crm-muted);">${escapeHtml(item.description || "")}</div>
                         </td>
-                        <td><code>${escapeHtml(String(item.actualValue || ""))}</code></td>
+                        <td><code>${escapeHtml(String(item.actualValue ?? ""))}</code></td>
                         <td style="text-align: right;"><span class="points-pill ${pillClass}">${pointsStr}</span></td>
                     </tr>
                 `;
@@ -1218,13 +683,13 @@
                 </div>
 
                 <div class="breakdown-score-badge-large">
-                    <div style="font-size: 28px; font-weight: 800; color: var(--crm-text); line-height: 1;">${lead.score} <small style="font-size: 13px;">điểm</small></div>
+                    <div style="font-size: 28px; font-weight: 800; color: var(--crm-text); line-height: 1;">${lead.score ?? "—"} <small style="font-size: 13px;">điểm</small></div>
                     <div style="margin-top: 6px;">${classBadge}</div>
                 </div>
             </div>
 
             <div style="margin-bottom: 12px; font-size: 13px; color: var(--crm-text-2);">
-                Chi tiết các điều kiện tiêu chuẩn và điểm số được tính lũy kế:
+                Chi tiết tiêu chí do máy chủ tính. Tổng điểm trước giới hạn: ${lead.rawScore ?? "—"}; điểm lưu: ${lead.score ?? "—"}.
             </div>
 
             <table class="breakdown-table">
@@ -1242,7 +707,7 @@
                 <tfoot>
                     <tr class="breakdown-total-row">
                         <td colspan="3" style="text-align: right; padding: 12px;">TỔNG ĐIỂM CHẤT LƯỢNG LEAD:</td>
-                        <td style="text-align: right; font-size: 15px; color: var(--crm-primary); padding: 12px;">${lead.score}đ</td>
+                        <td style="text-align: right; font-size: 15px; color: var(--crm-primary); padding: 12px;">${lead.score ?? "—"}đ</td>
                     </tr>
                 </tfoot>
             </table>
@@ -1254,7 +719,7 @@
 
         if (dom.btnActionFromBreakdown) {
             dom.btnActionFromBreakdown.onclick = () => {
-                showToast(`📞 Đang quay số gọi tới ${lead.fullName} (${lead.phone})...`, "info");
+                if (lead.phone) location.href = "tel:" + encodeURIComponent(lead.phone);
                 closeBreakdownModal();
             };
         }
@@ -1334,39 +799,18 @@
             });
         }
 
-        // Save Thresholds in Tab 2
-        if (dom.btnSaveThresholds) {
-            dom.btnSaveThresholds.addEventListener("click", () => {
-                const hotVal = parseInt(dom.inputHotThreshold?.value, 10) || 70;
-                const warmVal = parseInt(dom.inputWarmThreshold?.value, 10) || 40;
-
-                if (warmVal >= hotVal) {
-                    alert("Ngưỡng điểm Lead Ấm phải nhỏ hơn ngưỡng Lead Nóng!");
-                    return;
-                }
-
-                scoringThresholds.hot = hotVal;
-                scoringThresholds.warm = warmVal;
-                saveThresholdsToStorage();
-                recalculateAllLeads();
-                showToast(`💾 Đã lưu cấu hình ngưỡng điểm: Nóng ≥ ${hotVal}đ, Ấm: ${warmVal} - ${hotVal - 1}đ!`, "success");
-            });
-        }
-
-        // Reset default rules
-        if (dom.btnResetDefaultRules) {
-            dom.btnResetDefaultRules.addEventListener("click", () => {
-                if (confirm("Bạn có chắc chắn muốn khôi phục danh sách tiêu chí về mặc định của hệ thống không?")) {
-                    scoringRules = [...DEFAULT_RULES];
-                    scoringThresholds = { ...DEFAULT_THRESHOLDS };
-                    saveRulesToStorage();
-                    saveThresholdsToStorage();
-                    recalculateAllLeads();
-                    renderRulesGrid();
-                    showToast("✨ Đã khôi phục toàn bộ tiêu chí chuẩn!", "success");
-                }
-            });
-        }
+        // Save thresholds on the server, preserving the explicitly configured policy.
+        dom.btnSaveThresholds?.addEventListener("click", async () => {
+            const hot = Number(dom.inputHotThreshold.value), warm = Number(dom.inputWarmThreshold.value);
+            if (!Number.isInteger(hot) || !Number.isInteger(warm) || warm < 0 || warm >= hot) {
+                showToast("Ngưỡng phải là số nguyên và 0 <= Ấm < Nóng.", "error"); return;
+            }
+            if (!serverConfig?.configured) { showToast("Chưa xác nhận cấu hình nghiệp vụ.", "warning"); return; }
+            await runMutation(() => window.CrmApi.request(endpoint + "/config", {method:"PUT", body:JSON.stringify({
+                version:serverConfig.version, thresholds:{hot,warm}, aggregation:serverConfig.aggregation,
+                minScore:serverConfig.minScore,maxScore:serverConfig.maxScore,rules:scoringRules
+            })}), "Đã lưu ngưỡng và cập nhật phân loại Lead.");
+        });
 
         // Open Add Criteria Modal buttons
         if (dom.btnAddCriteriaBtn) {
@@ -1398,7 +842,7 @@
             });
         }
 
-        // Re-score All (Simulation & API call)
+        // Re-score the current user's data scope on the backend.
         if (dom.btnReScoreAll) {
             dom.btnReScoreAll.addEventListener("click", handleReScoreAll);
         }
@@ -1431,35 +875,14 @@
     }
 
     async function handleReScoreAll() {
-        if (!dom.btnReScoreAll) return;
-        const btn = dom.btnReScoreAll;
-        const originalHtml = btn.innerHTML;
-
-        btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang tính toán lại...`;
-
-        try {
-            // Call API Service
-            await window.LeadScoringService.reScoreAll();
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = originalHtml;
-                showToast(`⚡ Đã hoàn tất chấm điểm tự động cho ${scoredLeads.length} Lead theo quy tắc mới nhất!`, "success");
-            }, 600);
-        } catch (err) {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-            showToast("Có lỗi khi chấm điểm lại Lead!", "error");
-        }
+        await runMutation(() => window.LeadScoringService.reScoreAll(), result => "Đã chấm lại điểm cho " + result.count + " Lead trong phạm vi dữ liệu.");
     }
 
     // 13. BOOTSTRAP INITIALIZATION
     document.addEventListener("DOMContentLoaded", () => {
         initDom();
-        loadInitialData();
-        renderRulesGrid();
-        renderLeadsTable();
         setupEventListeners();
+        loadInitialData();
     });
 
 })();
