@@ -191,52 +191,70 @@
     background: var(--crm-card-bg);
     border: 1px solid var(--crm-border);
     border-radius: var(--crm-radius, 10px);
-    padding: 12px 18px;
+    padding: 10px 16px;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 14px;
     box-shadow: var(--crm-shadow, 0 1px 3px rgba(0,0,0,0.05));
     flex-wrap: wrap;
+    overflow: visible !important;
 }
 
 .saved-filters-nav {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
     min-width: 0;
-    overflow-x: auto;
-    padding-bottom: 2px;
+    flex-wrap: wrap;
+    overflow: visible !important;
 }
 
 .saved-filters-label {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--crm-muted);
     white-space: nowrap;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .saved-filter-tabs {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
+    gap: 6px;
+    flex-wrap: wrap;
+    overflow: visible !important;
+}
+
+.saved-filters-wrapper,
+.saved-filters-nav,
+.saved-filter-tabs {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.saved-filters-wrapper::-webkit-scrollbar,
+.saved-filters-nav::-webkit-scrollbar,
+.saved-filter-tabs::-webkit-scrollbar {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
 }
 
 .filter-tab {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
+    gap: 5px;
+    padding: 5px 11px;
     border-radius: 6px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     background: var(--crm-input-bg, var(--crm-bg));
     color: var(--crm-text);
@@ -245,6 +263,7 @@
     white-space: nowrap;
     transition: all 0.2s ease;
     user-select: none;
+    flex-shrink: 0;
 }
 
 .filter-tab:hover {

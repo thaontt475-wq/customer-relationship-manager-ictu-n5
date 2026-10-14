@@ -275,7 +275,7 @@
         },
         {
             id: "view_hot_today",
-            name: "🔥 Lead nóng cần gọi hôm nay",
+            name: "🔥 Lead nóng",
             isSystem: true,
             filter: {
                 keyword: "",
@@ -289,7 +289,7 @@
         },
         {
             id: "view_sla_overdue",
-            name: "⚠️ Lead quá hạn SLA",
+            name: "⚠️ Quá hạn SLA",
             isSystem: true,
             isUrgentBadge: true,
             filter: {
@@ -305,7 +305,7 @@
         },
         {
             id: "view_unassigned",
-            name: "🆕 Lead mới chưa phân bổ",
+            name: "🆕 Chưa phân bổ",
             isSystem: true,
             filter: {
                 keyword: "",
@@ -319,7 +319,7 @@
         },
         {
             id: "view_my_leads",
-            name: "👤 Lead của tôi đang chăm sóc",
+            name: "👤 Lead của tôi",
             isSystem: true,
             filter: {
                 keyword: "",
