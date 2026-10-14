@@ -288,7 +288,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Modal Link Leads listeners
     document.getElementById("btnAddLeadToCampaign")?.addEventListener("click", handleAddLeadToCampaign);
+
+    // Confirmation dialog listeners
+    document.getElementById("btnCancelConfirm")?.addEventListener("click", closeConfirmDialog);
+    document.getElementById("btnAcceptConfirm")?.addEventListener("click", () => {
+        if (typeof pendingConfirmCallback === "function") {
+            const cb = pendingConfirmCallback;
+            closeConfirmDialog();
+            cb();
+        }
+    });
 });
+
+let pendingConfirmCallback = null;
+
+function showConfirmDialog({ title, message, confirmText = "Xác nhận xóa", onConfirm }) {
+    const modal = document.getElementById("confirmDeleteModal");
+    const titleEl = document.getElementById("confirmDialogTitle");
+    const msgEl = document.getElementById("confirmDialogMessage");
+    const confirmBtn = document.getElementById("btnAcceptConfirm");
+
+    if (!modal) {
+        if (confirm(message.replace(/<[^>]+>/g, ""))) onConfirm();
+        return;
+    }
+
+    if (titleEl) titleEl.innerText = title;
+    if (msgEl) msgEl.innerHTML = message;
+    if (confirmBtn) {
+        confirmBtn.innerHTML = `<i class="fa-solid fa-trash-can"></i> ${escapeHtml(confirmText)}`;
+    }
+
+    pendingConfirmCallback = onConfirm;
+    modal.classList.add("active");
+}
+
+function closeConfirmDialog() {
+    const modal = document.getElementById("confirmDeleteModal");
+    if (modal) modal.classList.remove("active");
+    pendingConfirmCallback = null;
+}
 
 function applyFilters() {
     const searchInput = document.getElementById("searchCampaignInput");
@@ -465,29 +504,29 @@ function renderCampaignTable(items, pagination) {
     tableBody.innerHTML = items.map(c => `
         <tr>
             <td>
-                <strong style="color: var(--color-primary, #2563eb); font-family: monospace; font-size: 0.9rem;">
+                <strong style="color: var(--crm-primary, #3b82f6); font-family: monospace; font-size: 0.9rem;">
                     ${escapeHtml(c.code)}
                 </strong>
             </td>
             <td>
-                <div style="font-weight: 600; color: var(--text-primary, #1e293b); font-size: 0.9375rem;">
+                <div style="font-weight: 700; color: var(--crm-text, #0f172a); font-size: 0.9375rem;">
                     ${escapeHtml(c.name)}
                 </div>
-                ${c.description ? `<div style="font-size: 0.75rem; color: var(--text-secondary, #64748b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; margin-top: 2px;">${escapeHtml(c.description)}</div>` : ''}
+                ${c.description ? `<div style="font-size: 0.75rem; color: var(--crm-muted, #94a3b8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; margin-top: 2px;">${escapeHtml(c.description)}</div>` : ''}
             </td>
             <td><span class="status-badge status-${c.status}">${c.status}</span></td>
             <td>${getTypeBadge(c.type)}</td>
             <td>
-                <strong>${formatCurrency(c.budget)}</strong>
-                ${c.expectedRevenue ? `<div style="font-size: 0.72rem; color: var(--text-secondary, #64748b);">Kỳ vọng: ${formatCurrency(c.expectedRevenue)}</div>` : ''}
+                <strong style="color: var(--crm-text, #0f172a);">${formatCurrency(c.budget)}</strong>
+                ${c.expectedRevenue ? `<div style="font-size: 0.72rem; color: var(--crm-muted, #94a3b8);">Kỳ vọng: ${formatCurrency(c.expectedRevenue)}</div>` : ''}
             </td>
             <td style="text-align: center;">
                 <button type="button" class="btn btn-secondary btn-sm" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Xem danh sách Lead của chiến dịch" style="border-radius: 12px; padding: 2px 10px;">
-                    <i class="fa-solid fa-users" style="color: var(--color-primary, #2563eb);"></i>
-                    <strong>${c.leadCount || 0}</strong>
+                    <i class="fa-solid fa-users" style="color: var(--crm-primary, #2563eb);"></i>
+                    <strong style="color: var(--crm-text, #0f172a);">${c.leadCount || 0}</strong>
                 </button>
             </td>
-            <td style="font-size: 0.8125rem; color: var(--text-secondary, #64748b);">
+            <td style="font-size: 0.8125rem; color: var(--crm-muted, #94a3b8); white-space: nowrap;">
                 <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>
                 ${c.startDate ? `${c.startDate}` : '...'} ~ ${c.endDate ? `${c.endDate}` : '...'}
             </td>
@@ -676,32 +715,42 @@ async function handleSaveCampaign(e) {
     loadCampaigns();
 }
 
-async function handleDeleteCampaign(id) {
-    if (!confirm("Bạn có chắc chắn muốn xóa chiến dịch này không?")) return;
+function handleDeleteCampaign(id) {
+    const campaigns = getMockCampaigns();
+    const c = campaigns.find(item => item.id === id);
+    const campaignName = c ? c.name : `Chiến dịch #${id}`;
+    const campaignCode = c ? c.code : "";
 
-    if (!isOfflineMode) {
-        try {
-            await apiFetch(`/campaigns/${id}`, { method: "DELETE" });
+    showConfirmDialog({
+        title: "Xác nhận xóa chiến dịch",
+        message: `Bạn có chắc chắn muốn xóa chiến dịch <strong>"${escapeHtml(campaignName)}"</strong>${campaignCode ? ` (<span style="color:var(--crm-primary);font-family:monospace;">${escapeHtml(campaignCode)}</span>)` : ""}? Thao tác này sẽ gỡ toàn bộ Lead liên kết và không thể hoàn tác.`,
+        confirmText: "Xóa chiến dịch",
+        onConfirm: async () => {
+            if (!isOfflineMode) {
+                try {
+                    await apiFetch(`/campaigns/${id}`, { method: "DELETE" });
+                    notify("Đã xóa chiến dịch thành công!", "success");
+                    loadCampaigns();
+                    return;
+                } catch (err) {
+                    console.warn("API delete failed, falling back to mock delete:", err.message);
+                }
+            }
+
+            // Mock delete
+            let currentList = getMockCampaigns();
+            currentList = currentList.filter(item => item.id !== id);
+            saveMockCampaigns(currentList);
+
+            // Also remove linked leads
+            let cl = getMockCampaignLeads();
+            cl = cl.filter(item => item.campaignId !== id);
+            saveMockCampaignLeads(cl);
+
             notify("Đã xóa chiến dịch thành công!", "success");
             loadCampaigns();
-            return;
-        } catch (err) {
-            console.warn("API delete failed, falling back to mock delete:", err.message);
         }
-    }
-
-    // Mock delete
-    let campaigns = getMockCampaigns();
-    campaigns = campaigns.filter(c => c.id !== id);
-    saveMockCampaigns(campaigns);
-
-    // Also remove linked leads
-    let cl = getMockCampaignLeads();
-    cl = cl.filter(item => item.campaignId !== id);
-    saveMockCampaignLeads(cl);
-
-    notify("Đã xóa chiến dịch thành công!", "success");
-    loadCampaigns();
+    });
 }
 
 // ================= LEAD ASSOCIATION (S4-03-INT) =================
@@ -966,31 +1015,40 @@ async function handleUpdateLeadStatus(leadId, newStatus, selectEl) {
     }
 }
 
-async function handleUnlinkLead(leadId) {
-    if (!confirm("Bạn có chắc chắn muốn gỡ Lead này khỏi chiến dịch?")) return;
+function handleUnlinkLead(leadId) {
+    const allLeads = getMockLeads();
+    const lead = allLeads.find(l => l.id === leadId);
+    const leadName = lead ? lead.fullName : `Lead #${leadId}`;
 
-    if (!isOfflineMode) {
-        try {
-            await apiFetch(`/campaigns/${activeCampaignId}/leads/${leadId}`, {
-                method: "DELETE"
-            });
+    showConfirmDialog({
+        title: "Gỡ Lead khỏi chiến dịch",
+        message: `Bạn có chắc chắn muốn gỡ khách hàng tiềm năng <strong>"${escapeHtml(leadName)}"</strong> khỏi chiến dịch này không?`,
+        confirmText: "Gỡ Lead",
+        onConfirm: async () => {
+            if (!isOfflineMode) {
+                try {
+                    await apiFetch(`/campaigns/${activeCampaignId}/leads/${leadId}`, {
+                        method: "DELETE"
+                    });
+                    notify("Đã gỡ Lead khỏi chiến dịch!", "success");
+                    loadLinkedLeads();
+                    loadAvailableLeadsDropdown();
+                    return;
+                } catch (err) {
+                    console.warn("API unlink lead failed, using mock:", err.message);
+                }
+            }
+
+            // Mock unlink
+            let cl = getMockCampaignLeads();
+            cl = cl.filter(i => !(i.campaignId === activeCampaignId && i.leadId === leadId));
+            saveMockCampaignLeads(cl);
+
             notify("Đã gỡ Lead khỏi chiến dịch!", "success");
             loadLinkedLeads();
             loadAvailableLeadsDropdown();
-            return;
-        } catch (err) {
-            console.warn("API unlink lead failed, using mock:", err.message);
         }
-    }
-
-    // Mock unlink
-    let cl = getMockCampaignLeads();
-    cl = cl.filter(i => !(i.campaignId === activeCampaignId && i.leadId === leadId));
-    saveMockCampaignLeads(cl);
-
-    notify("Đã gỡ Lead khỏi chiến dịch!", "success");
-    loadLinkedLeads();
-    loadAvailableLeadsDropdown();
+    });
 }
 
 // Export Campaigns to CSV

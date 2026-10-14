@@ -791,3 +791,102 @@ html[data-theme="dark"] .campaign-mode-banner.online-mode {
         align-items: stretch;
     }
 }
+
+/* ===================================================================
+   8. ENTERPRISE CONFIRMATION DIALOG (SWEETALERT / LINEAR STYLE)
+=================================================================== */
+.modal-confirm-card {
+    max-width: 440px !important;
+    text-align: center;
+    border-radius: var(--crm-radius-lg, 16px);
+    overflow: hidden;
+    background: var(--crm-surface, #ffffff);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--crm-border, #e2e8f0);
+}
+
+.confirm-modal-body {
+    padding: 28px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--crm-surface, #ffffff);
+}
+
+.confirm-icon-wrap {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 16px;
+    animation: pulseIcon 1.5s infinite;
+}
+
+.confirm-icon-danger {
+    background: rgba(239, 68, 68, 0.14);
+    color: var(--crm-danger, #ef4444);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.confirm-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--crm-text, #0f172a);
+    margin: 0 0 8px;
+}
+
+.confirm-message {
+    font-size: 0.875rem;
+    color: var(--crm-muted, #64748b);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.confirm-message strong {
+    color: var(--crm-text, #0f172a);
+}
+
+.confirm-modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px 24px 20px;
+    background: var(--crm-surface-soft, #f8fafc);
+    border-top: 1px solid var(--crm-border, #e2e8f0);
+    justify-content: center;
+}
+
+.confirm-modal-footer button {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 18px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.crm-btn-danger {
+    background: var(--crm-danger, #ef4444) !important;
+    color: #ffffff !important;
+    border: 1px solid transparent !important;
+    border-radius: var(--crm-radius-sm, 8px);
+    transition: all 180ms ease;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.crm-btn-danger:hover {
+    background: #dc2626 !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+    transform: translateY(-1px);
+}
+
