@@ -93,7 +93,10 @@
                 `<i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>`,
 
             sun:
-                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`
+                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
+
+            assignment:
+                `<i class="fa-solid fa-users-gear"></i>`
         };
 
         return icons[name] || `<i class="fa-solid fa-circle-notch"></i>`;
@@ -775,6 +778,23 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // CRM-120: Ensure Lead Assignment item is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-assignment.html" || m.name === "LEAD_ASSIGNMENT")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const assignmentItem = {
+                    name: "LEAD_ASSIGNMENT",
+                    label: "Phân bổ Lead (CRM-120)",
+                    path: "lead-assignment.html",
+                    icon: "assignment",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, assignmentItem);
+                } else {
+                    currentMenu.push(assignmentItem);
                 }
             }
 
