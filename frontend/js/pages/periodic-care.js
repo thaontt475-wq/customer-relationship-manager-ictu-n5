@@ -246,24 +246,24 @@
             if (!customer.lastInteractionAt) {
                 daysBadgeHtml = '<span class="days-badge days-badge-warning">Chưa có tương tác</span>';
             } else if (customer.isContactedRecently || days < currentDaysThreshold) {
-                daysBadgeHtml = `<span class="days-badge days-badge-ok"><svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M20 6 9 17l-5-5"/></svg> ${days === 0 ? "Hôm nay" : days + " ngày (Đã CS)"}</span>`;
+                daysBadgeHtml = `<span class="days-badge days-badge-ok"><i class="fa-solid fa-check"></i> ${days === 0 ? "Hôm nay" : days + " ngày (Đã CS)"}</span>`;
             } else if (days >= 60) {
-                daysBadgeHtml = `<span class="days-badge days-badge-critical" title="Nguy cấp: Đã ${days} ngày chưa được tương tác!"><svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ${days} ngày (RỦI RO CAO)</span>`;
+                daysBadgeHtml = `<span class="days-badge days-badge-critical" title="Nguy cấp: Đã ${days} ngày chưa được tương tác!"><i class="fa-solid fa-triangle-exclamation"></i> ${days} ngày (RỦI RO CAO)</span>`;
             } else if (days >= 45) {
-                daysBadgeHtml = `<span class="days-badge days-badge-danger" title="Cảnh báo: Đã ${days} ngày chưa tương tác!"><svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg> ${days} ngày (Quá hạn)</span>`;
+                daysBadgeHtml = `<span class="days-badge days-badge-danger" title="Cảnh báo: Đã ${days} ngày chưa tương tác!"><i class="fa-solid fa-triangle-exclamation"></i> ${days} ngày (Quá hạn)</span>`;
             } else {
-                daysBadgeHtml = `<span class="days-badge days-badge-warning" title="Cần chú ý liên hệ định kỳ"><svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg> ${days} ngày</span>`;
+                daysBadgeHtml = `<span class="days-badge days-badge-warning" title="Cần chú ý liên hệ định kỳ"><i class="fa-solid fa-clock"></i> ${days} ngày</span>`;
             }
 
             // VIP Tag for Contract Value
             let vipBadgeHtml = "";
             const val = customer.contractValue || 0;
             if (val >= 2000000000) {
-                vipBadgeHtml = `<span class="contract-ultra-vip-tag">💎 MEGA VIP</span>`;
+                vipBadgeHtml = `<span class="contract-ultra-vip-tag"><i class="fa-solid fa-gem"></i> MEGA VIP</span>`;
             } else if (val >= 500000000) {
-                vipBadgeHtml = `<span class="contract-vip-tag">⭐ VIP ENTERPRISE</span>`;
+                vipBadgeHtml = `<span class="contract-vip-tag"><i class="fa-solid fa-crown"></i> VIP ENTERPRISE</span>`;
             } else if (val >= 50000000) {
-                vipBadgeHtml = `<span class="contract-vip-tag">ƯU TIÊN</span>`;
+                vipBadgeHtml = `<span class="contract-vip-tag"><i class="fa-solid fa-award"></i> ƯU TIÊN</span>`;
             }
 
             // Interaction Channel Icon
@@ -276,7 +276,7 @@
                     <div class="customer-name-cell">
                         <a href="customer-360.html?id=${customer.id}" class="customer-company-title" title="Xem hồ sơ 360 độ của doanh nghiệp">
                             <span>${escapeHtml(customer.name)}</span>
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px; color:var(--crm-muted);"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:14px; color:var(--crm-muted);"></i>
                         </a>
                         <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                             <span class="customer-tax-pill">MST: ${customer.taxCode || '—'}</span>
@@ -312,7 +312,7 @@
                 <td style="text-align:right;">
                     <div class="table-actions-cell" style="justify-content:flex-end;">
                         <button type="button" class="btn-action-contact" data-id="${customer.id}" title="Ghi nhận vừa gọi điện / gặp gỡ khách hàng này">
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:14px; height:14px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <i class="fa-solid fa-phone" style="font-size:14px;"></i>
                             <span>${customer.isContactedRecently ? "Cập nhật CS" : "Đã liên hệ"}</span>
                         </button>
                         <a href="customer-360.html?id=${customer.id}" class="btn-action-view360" title="Mở Customer 360 độ">
@@ -716,11 +716,11 @@
     }
 
     function getChannelIcon(type) {
-        if (type === "CALL") return "📞";
-        if (type === "MEETING") return "🤝";
-        if (type === "EMAIL") return "✉️";
-        if (type === "SUPPORT") return "🛠️";
-        return "💬";
+        if (type === "CALL") return '<i class="fa-solid fa-phone"></i>';
+        if (type === "MEETING") return '<i class="fa-solid fa-users"></i>';
+        if (type === "EMAIL") return '<i class="fa-solid fa-envelope"></i>';
+        if (type === "SUPPORT") return '<i class="fa-solid fa-headset"></i>';
+        return '<i class="fa-solid fa-comment-dots"></i>';
     }
 
     function escapeHtml(str) {
@@ -739,16 +739,16 @@
         const toast = document.createElement("div");
         toast.className = `crm-toast crm-toast-${type}`;
 
-        const iconSvg = type === "success"
-            ? `<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`
+        const iconHtml = type === "success"
+            ? '<i class="fa-solid fa-circle-check"></i>'
             : type === "warning"
-            ? `<svg viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
-            : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+            ? '<i class="fa-solid fa-triangle-exclamation"></i>'
+            : '<i class="fa-solid fa-circle-xmark"></i>';
 
         toast.innerHTML = `
-            <div class="crm-toast-icon">${iconSvg}</div>
+            <div class="crm-toast-icon">${iconHtml}</div>
             <div class="crm-toast-copy">${escapeHtml(message)}</div>
-            <button type="button" class="crm-toast-close" aria-label="Đóng"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <button type="button" class="crm-toast-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             <div class="crm-toast-progress"></div>
         `;
 
