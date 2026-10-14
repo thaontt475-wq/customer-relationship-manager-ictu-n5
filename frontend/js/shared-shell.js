@@ -93,7 +93,13 @@
                 `<i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>`,
 
             sun:
-                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`
+                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
+
+            lead:
+                `<i class="fa-solid fa-users-viewfinder"></i>`,
+
+            filter:
+                `<i class="fa-solid fa-filter"></i>`
         };
 
         return icons[name] || `<i class="fa-solid fa-circle-notch"></i>`;
@@ -775,6 +781,23 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // CRM-123: Ensure Lead Management & Saved Filters (S4-09) item is in workspace menu
+            if (!currentMenu.some(m => m.path === "leads.html" || m.name === "LEADS")) {
+                const leadItem = {
+                    name: "LEADS",
+                    label: "Quản lý Lead (CRM-123)",
+                    path: "leads.html",
+                    icon: "lead",
+                    section: "workspace"
+                };
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex, 0, leadItem);
+                } else {
+                    currentMenu.push(leadItem);
                 }
             }
 
