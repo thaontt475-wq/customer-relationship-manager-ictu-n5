@@ -1,10 +1,13 @@
-/* campaigns.css - Style for Campaign & Lead management (S4-03) */
+/* campaigns.css - Style for Campaign & Lead management (Story S4-03) */
+/* Aligned with Corporate CRM Design System tokens */
 
-/* Single-row Filter Layout (PR #136 Standard) */
+/* ===================================================================
+   1. SINGLE-ROW FILTER TOOLBAR (PR #136 STANDARD)
+=================================================================== */
 .campaign-single-row-filter {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 10px;
     flex-wrap: wrap;
     width: 100%;
 }
@@ -17,59 +20,65 @@
 
 .campaign-search-input-wrap i {
     position: absolute;
-    left: 0.85rem;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-secondary, #94a3b8);
+    color: var(--crm-muted, #94a3b8);
     font-size: 0.875rem;
     pointer-events: none;
 }
 
 .campaign-search-input-wrap input {
     width: 100%;
-    padding: 0.5rem 0.85rem 0.5rem 2.25rem;
-    border: 1px solid var(--border-color, #cbd5e1);
-    border-radius: 6px;
-    background: var(--bg-surface, #fff);
-    color: var(--text-primary, #1e293b);
+    padding: 9px 12px 9px 36px;
+    border: 1px solid var(--crm-border-strong, #cbd5e1);
+    border-radius: var(--crm-radius-sm, 8px);
+    background: var(--crm-surface, #fff);
+    color: var(--crm-text, #0f172a);
     font-size: 0.875rem;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition: all 180ms ease;
+    box-sizing: border-box;
 }
 
 .campaign-search-input-wrap input:focus {
     outline: none;
-    border-color: var(--color-primary, #3b82f6);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    border-color: var(--crm-primary, #3b82f6);
+    background: var(--crm-surface, #fff);
+    box-shadow: 0 0 0 3px var(--crm-primary-soft, rgba(59, 130, 246, 0.15));
 }
 
 .campaign-select-wrap {
     flex: 1;
-    min-width: 175px;
+    min-width: 180px;
 }
 
 .campaign-select-wrap select {
     width: 100%;
-    padding: 0.5rem 0.85rem;
-    border: 1px solid var(--border-color, #cbd5e1);
-    border-radius: 6px;
-    background: var(--bg-surface, #fff);
-    color: var(--text-primary, #1e293b);
+    padding: 9px 12px;
+    border: 1px solid var(--crm-border-strong, #cbd5e1);
+    border-radius: var(--crm-radius-sm, 8px);
+    background: var(--crm-surface, #fff);
+    color: var(--crm-text, #0f172a);
     font-size: 0.875rem;
-    transition: border-color 0.15s ease;
+    transition: all 180ms ease;
+    box-sizing: border-box;
 }
 
 .campaign-select-wrap select:focus {
     outline: none;
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--crm-primary, #3b82f6);
+    box-shadow: 0 0 0 3px var(--crm-primary-soft, rgba(59, 130, 246, 0.15));
 }
 
-/* Campaign Table Container */
+/* ===================================================================
+   2. CAMPAIGN TABLE & DATA CONTAINER
+=================================================================== */
 .campaign-table-container {
-    background: var(--bg-surface, #fff);
-    border: 1px solid var(--border-color, #e2e8f0);
-    border-radius: 8px;
+    background: var(--crm-surface, #fff);
+    border: 1px solid var(--crm-border, #e2e8f0);
+    border-radius: var(--crm-radius-md, 12px);
     overflow-x: auto;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    box-shadow: var(--crm-shadow-sm, 0 4px 14px rgba(15,23,42,.04));
     margin-bottom: 1.25rem;
 }
 
@@ -81,38 +90,43 @@
 }
 
 .campaign-table th {
-    background: var(--bg-subtle, #f8fafc);
-    padding: 0.75rem 1rem;
-    font-weight: 600;
-    color: var(--text-secondary, #64748b);
-    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    background: var(--crm-surface-soft, #f8fafc);
+    padding: 12px 16px;
+    font-weight: 700;
+    color: var(--crm-muted, #64748b);
+    border-bottom: 1px solid var(--crm-border, #e2e8f0);
     white-space: nowrap;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .campaign-table td {
-    padding: 0.85rem 1rem;
-    border-bottom: 1px solid var(--border-color, #e2e8f0);
-    color: var(--text-primary, #1e293b);
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--crm-border, #e2e8f0);
+    color: var(--crm-text, #0f172a);
     vertical-align: middle;
 }
 
 .campaign-table tbody tr {
-    transition: background-color 0.15s ease;
+    transition: background-color 150ms ease;
 }
 
 .campaign-table tbody tr:hover {
-    background: var(--bg-subtle, #f8fafc);
+    background: var(--crm-surface-soft, #f8fafc);
 }
 
-/* Status Badges */
+/* ===================================================================
+   3. BADGES & CHIPS
+=================================================================== */
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.65rem;
+    gap: 5px;
+    padding: 3px 10px;
     border-radius: 9999px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
@@ -123,85 +137,83 @@
 .status-COMPLETED { background: #f3e8ff; color: #7e22ce; }
 .status-CANCELLED { background: #fee2e2; color: #b91c1c; }
 
-/* Type Badges */
+html[data-theme="dark"] .status-PLANNING { background: rgba(3, 105, 161, 0.25); color: #38bdf8; }
+html[data-theme="dark"] .status-ACTIVE { background: rgba(21, 128, 61, 0.25); color: #4ade80; }
+html[data-theme="dark"] .status-PAUSED { background: rgba(180, 83, 9, 0.25); color: #facc15; }
+html[data-theme="dark"] .status-COMPLETED { background: rgba(126, 34, 206, 0.25); color: #c084fc; }
+html[data-theme="dark"] .status-CANCELLED { background: rgba(185, 28, 28, 0.25); color: #f87171; }
+
 .type-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 6px;
     font-size: 0.8125rem;
-    background: var(--bg-subtle, #f1f5f9);
-    color: var(--text-secondary, #475569);
-    font-weight: 500;
+    background: var(--crm-surface-soft, #f1f5f9);
+    color: var(--crm-text-2, #475569);
+    font-weight: 600;
+    border: 1px solid var(--crm-border, #e2e8f0);
 }
 
-/* Buttons */
+/* ===================================================================
+   4. BUTTONS & UI CONTROLS
+=================================================================== */
 .btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--crm-radius-sm, 8px);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     border: none;
-    transition: background 0.15s ease, transform 0.1s ease;
+    transition: all 180ms ease;
     text-decoration: none;
 }
 
-.btn-primary { background: var(--color-primary, #2563eb); color: #fff; }
-.btn-primary:hover { opacity: 0.92; }
+.btn-primary { 
+    background: var(--crm-primary, #2563eb); 
+    color: #fff; 
+}
+.btn-primary:hover { 
+    background: var(--crm-primary-dark, #1d4ed8);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+}
 
 .btn-secondary {
-    background: var(--bg-subtle, #f1f5f9);
-    color: var(--text-primary, #475569);
-    border: 1px solid var(--border-color, #cbd5e1);
+    background: var(--crm-surface-soft, #f1f5f9);
+    color: var(--crm-text, #475569);
+    border: 1px solid var(--crm-border-strong, #cbd5e1);
 }
 .btn-secondary:hover {
-    background: var(--border-color, #e2e8f0);
+    background: var(--crm-border, #e2e8f0);
 }
 
-.btn-danger { background: #ef4444; color: #fff; }
+.btn-danger { background: var(--crm-danger, #ef4444); color: #fff; }
 .btn-danger:hover { background: #dc2626; }
 
 .btn-sm {
-    padding: 0.25rem 0.5rem;
+    padding: 4px 10px;
     font-size: 0.75rem;
-}
-
-/* Lead Assign Box in Modal */
-.campaign-lead-assign-box {
-    background: var(--bg-subtle, #f8fafc);
-    border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 6px;
-    padding: 1rem;
-    margin-bottom: 1.25rem;
 }
 
-/* Pagination */
-.campaign-pagination-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-/* Mode Banner */
+/* ===================================================================
+   5. MODE BANNER & PAGINATION
+=================================================================== */
 .campaign-mode-banner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg-subtle, #f1f5f9);
-    border: 1px solid var(--border-color, #cbd5e1);
-    border-radius: 6px;
-    padding: 0.65rem 1rem;
+    background: var(--crm-surface-soft, #f1f5f9);
+    border: 1px solid var(--crm-border, #cbd5e1);
+    border-radius: var(--crm-radius-md, 12px);
+    padding: 10px 16px;
     margin-bottom: 1.25rem;
     font-size: 0.875rem;
-    color: var(--text-secondary, #475569);
+    color: var(--crm-text-2, #475569);
 }
 
 .campaign-mode-banner.mock-mode {
@@ -216,19 +228,43 @@
     color: #166534;
 }
 
-/* Modal styles */
+html[data-theme="dark"] .campaign-mode-banner.mock-mode {
+    background: rgba(161, 98, 7, 0.2);
+    border-color: rgba(202, 138, 4, 0.4);
+    color: #fde047;
+}
+
+html[data-theme="dark"] .campaign-mode-banner.online-mode {
+    background: rgba(22, 101, 52, 0.2);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #86efac;
+}
+
+.campaign-pagination-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+/* ===================================================================
+   6. ENTERPRISE MODALS (CREATE, EDIT, LEADS) - 100% DESIGN SYSTEM
+=================================================================== */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(5px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 9999;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    backdrop-filter: blur(2px);
+    transition: opacity 200ms ease, visibility 200ms ease;
+    padding: 16px;
 }
 
 .modal-overlay.active {
@@ -237,22 +273,27 @@
 }
 
 .modal-card {
-    background: var(--bg-surface, #fff);
-    color: var(--text-primary, #1e293b);
-    border: 1px solid var(--border-color, #e2e8f0);
-    border-radius: 8px;
-    width: 90%;
+    background: var(--crm-surface, #ffffff);
+    color: var(--crm-text, #0f172a);
+    border: 1px solid var(--crm-border, #e2e8f0);
+    border-radius: var(--crm-radius-lg, 16px);
+    width: 100%;
     max-width: 680px;
     max-height: 90vh;
-    overflow-y: auto;
-    padding: 1.5rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    animation: modalSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.35);
+    animation: modalCardPop 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes modalSlideIn {
+.modal-card.modal-lg {
+    max-width: 860px;
+}
+
+@keyframes modalCardPop {
     from {
-        transform: translateY(20px) scale(0.98);
+        transform: translateY(16px) scale(0.98);
         opacity: 0;
     }
     to {
@@ -262,45 +303,85 @@
 }
 
 .modal-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--crm-border, #e2e8f0);
+    background: var(--crm-surface-soft, #f8fafc);
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border-color, #e2e8f0);
-    padding-bottom: 0.75rem;
-    margin-bottom: 1rem;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--crm-primary-soft, rgba(37,99,235,0.12));
+    color: var(--crm-primary, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
     margin: 0;
-    font-size: 1.125rem;
-    color: var(--text-primary, #1e293b);
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--crm-text, #0f172a);
+    line-height: 1.25;
+}
+
+.modal-subtitle {
+    margin: 3px 0 0;
+    font-size: 0.8125rem;
+    color: var(--crm-muted, #64748b);
 }
 
 .modal-close {
-    background: none;
+    background: transparent;
     border: none;
-    font-size: 1.5rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    color: var(--crm-muted, #64748b);
+    font-size: 1.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    color: var(--text-secondary, #64748b);
-    line-height: 1;
+    transition: all 150ms ease;
 }
 
 .modal-close:hover {
-    color: var(--text-primary, #1e293b);
+    background: var(--crm-border, #e2e8f0);
+    color: var(--crm-text, #0f172a);
+}
+
+.modal-body {
+    padding: 22px 24px;
+    overflow-y: auto;
+    max-height: calc(90vh - 145px);
+    background: var(--crm-surface, #ffffff);
 }
 
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 16px 18px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
-    margin-bottom: 0.75rem;
+    gap: 6px;
 }
 
 .form-group.full-width {
@@ -309,54 +390,148 @@
 
 .form-group label {
     font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary, #475569);
+    font-weight: 600;
+    color: var(--crm-text, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.form-group label .req-star {
+    color: var(--crm-danger, #ef4444);
+    font-weight: 700;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border-color, #cbd5e1);
-    border-radius: 6px;
-    background: var(--bg-surface, #fff);
-    color: var(--text-primary, #1e293b);
+    width: 100%;
+    padding: 9px 13px;
+    border: 1px solid var(--crm-border-strong, #cbd5e1);
+    border-radius: var(--crm-radius-sm, 8px);
+    background: var(--crm-bg, #f6f8fc);
+    color: var(--crm-text, #0f172a);
     font-size: 0.875rem;
+    font-family: inherit;
+    transition: all 180ms ease;
+    box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: var(--color-primary, #3b82f6);
+    border-color: var(--crm-primary, #3b82f6);
+    background: var(--crm-surface, #fff);
+    box-shadow: 0 0 0 3px var(--crm-primary-soft, rgba(59, 130, 246, 0.15));
+}
+
+.input-with-action {
+    display: flex;
+    gap: 8px;
+}
+
+.input-with-action input {
+    flex: 1;
+}
+
+.btn-action-inline {
+    padding: 0 12px;
+    background: var(--crm-surface-soft, #f1f5f9);
+    border: 1px solid var(--crm-border-strong, #cbd5e1);
+    border-radius: var(--crm-radius-sm, 8px);
+    color: var(--crm-primary, #2563eb);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: all 150ms ease;
+}
+
+.btn-action-inline:hover {
+    background: var(--crm-primary-soft, rgba(37,99,235,0.12));
+    border-color: var(--crm-primary, #2563eb);
+}
+
+.currency-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.currency-input-wrap input {
+    padding-right: 30px;
+}
+
+.currency-unit {
+    position: absolute;
+    right: 12px;
+    color: var(--crm-muted, #94a3b8);
+    font-weight: 600;
+    font-size: 0.85rem;
+    pointer-events: none;
 }
 
 .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--crm-border, #e2e8f0);
+    background: var(--crm-surface-soft, #f8fafc);
     display: flex;
+    align-items: center;
     justify-content: flex-end;
-    gap: 0.75rem;
-    margin-top: 1.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color, #e2e8f0);
+    gap: 12px;
 }
 
-/* Dark theme specific adjustments */
-[data-theme="dark"] .status-PLANNING { background: rgba(3, 105, 161, 0.25); color: #38bdf8; }
-[data-theme="dark"] .status-ACTIVE { background: rgba(21, 128, 61, 0.25); color: #4ade80; }
-[data-theme="dark"] .status-PAUSED { background: rgba(180, 83, 9, 0.25); color: #facc15; }
-[data-theme="dark"] .status-COMPLETED { background: rgba(126, 34, 206, 0.25); color: #c084fc; }
-[data-theme="dark"] .status-CANCELLED { background: rgba(185, 28, 28, 0.25); color: #f87171; }
-
-[data-theme="dark"] .campaign-mode-banner.mock-mode {
-    background: rgba(161, 98, 7, 0.2);
-    border-color: rgba(202, 138, 4, 0.4);
-    color: #fde047;
+/* ===================================================================
+   7. LEAD MODAL SPECIFICS
+=================================================================== */
+.campaign-lead-assign-box {
+    background: var(--crm-surface-soft, #f8fafc);
+    border: 1px solid var(--crm-border, #e2e8f0);
+    border-radius: var(--crm-radius-md, 12px);
+    padding: 14px 18px;
+    margin-bottom: 18px;
 }
 
-[data-theme="dark"] .campaign-mode-banner.online-mode {
-    background: rgba(22, 101, 52, 0.2);
-    border-color: rgba(34, 197, 94, 0.4);
-    color: #86efac;
+.lead-assign-title {
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+    color: var(--crm-text, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lead-assign-title i {
+    color: var(--crm-primary, #2563eb);
+}
+
+.lead-assign-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.linked-leads-table-wrap {
+    border: 1px solid var(--crm-border, #e2e8f0);
+    border-radius: var(--crm-radius-md, 12px);
+    overflow: hidden;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.lead-modal-summary {
+    font-size: 0.8125rem;
+    color: var(--crm-muted, #64748b);
+}
+
+.lead-modal-summary strong {
+    color: var(--crm-text, #0f172a);
 }
 
 @media (max-width: 768px) {
@@ -365,5 +540,9 @@
     }
     .form-group.full-width {
         grid-column: span 1;
+    }
+    .lead-assign-controls {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
