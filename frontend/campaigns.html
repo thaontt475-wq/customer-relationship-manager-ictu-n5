@@ -435,6 +435,26 @@
             </div>
             <button type="button" class="crm-btn crm-btn-secondary" onclick="closeLeadModal()">Đóng</button>
         </div>
+</div>
+
+<!-- ================= MODAL XÁC NHẬN XÓA CHUYÊN NGHIỆP ================= -->
+<div id="confirmDeleteModal" class="modal-overlay">
+    <div class="modal-card modal-confirm-card">
+        <div class="confirm-modal-body">
+            <div class="confirm-icon-wrap confirm-icon-danger">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirmDialogTitle" class="confirm-title">Xác nhận xóa chiến dịch</h3>
+            <p id="confirmDialogMessage" class="confirm-message">
+                Bạn có chắc chắn muốn xóa chiến dịch này không? Toàn bộ dữ liệu liên kết Lead sẽ bị gỡ bỏ và không thể hoàn tác.
+            </p>
+        </div>
+        <div class="confirm-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelConfirm">Hủy bỏ</button>
+            <button type="button" class="crm-btn crm-btn-danger" id="btnAcceptConfirm">
+                <i class="fa-solid fa-trash-can"></i> Xác nhận xóa
+            </button>
+        </div>
     </div>
 </div>
 
