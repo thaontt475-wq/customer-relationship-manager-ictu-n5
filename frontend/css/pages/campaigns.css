@@ -795,6 +795,10 @@ html[data-theme="dark"] .campaign-mode-banner.online-mode {
 /* ===================================================================
    8. ENTERPRISE CONFIRMATION DIALOG (SWEETALERT / LINEAR STYLE)
 =================================================================== */
+#confirmDeleteModal {
+    z-index: 10005;
+}
+
 .modal-confirm-card {
     max-width: 440px !important;
     text-align: center;
@@ -803,6 +807,14 @@ html[data-theme="dark"] .campaign-mode-banner.online-mode {
     background: var(--crm-surface, #ffffff);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);
     border: 1px solid var(--crm-border, #e2e8f0);
+    transform: scale(0.92);
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
+    opacity: 0;
+}
+
+.modal-overlay.active .modal-confirm-card {
+    transform: scale(1);
+    opacity: 1;
 }
 
 .confirm-modal-body {

@@ -298,6 +298,24 @@ document.addEventListener("DOMContentLoaded", () => {
             cb();
         }
     });
+
+    const confirmModal = document.getElementById("confirmDeleteModal");
+    if (confirmModal) {
+        confirmModal.addEventListener("click", (e) => {
+            if (e.target === confirmModal) {
+                closeConfirmDialog();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            const cm = document.getElementById("confirmDeleteModal");
+            if (cm && cm.classList.contains("active")) {
+                closeConfirmDialog();
+            }
+        }
+    });
 });
 
 let pendingConfirmCallback = null;
@@ -1094,3 +1112,19 @@ function formatCurrency(val) {
     if (!val && val !== 0) return "0 đ";
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
 }
+
+// Global window mappings for inline event handlers
+window.handleDeleteCampaign = handleDeleteCampaign;
+window.showConfirmDialog = showConfirmDialog;
+window.closeConfirmDialog = closeConfirmDialog;
+window.openCampaignModal = openCampaignModal;
+window.closeCampaignModal = closeCampaignModal;
+window.openEditModal = openEditModal;
+window.openLeadModal = openLeadModal;
+window.closeLeadModal = closeLeadModal;
+window.handleUnlinkLead = handleUnlinkLead;
+window.handleUpdateLeadStatus = handleUpdateLeadStatus;
+window.exportCampaignsToCSV = exportCampaignsToCSV;
+window.changePage = changePage;
+window.loadCampaigns = loadCampaigns;
+
