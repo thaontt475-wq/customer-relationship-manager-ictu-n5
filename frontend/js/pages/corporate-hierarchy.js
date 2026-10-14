@@ -261,7 +261,7 @@
         toast.className = `crm-toast crm-toast-${type}`;
         toast.style.cssText = "position:fixed; bottom:24px; right:24px; z-index:1150; min-width:320px; padding:14px 20px; border-radius:10px; box-shadow:var(--crm-shadow); animation:fadeInUp 0.3s ease; display:flex; align-items:center; gap:12px; background:var(--crm-surface); border:1.5px solid var(--crm-border);";
 
-        const icon = type === "success" ? "✓" : "⚠️";
+        const icon = type === "success" ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-triangle-exclamation"></i>';
         const color = type === "success" ? "var(--crm-success)" : "var(--crm-danger)";
         toast.innerHTML = `
             <span style="font-weight:900; color:${color}; font-size:18px;">${icon}</span>
@@ -303,8 +303,8 @@
                 const pName = parentCust ? (parentCust.companyName || parentCust.name) : `Công ty mẹ #${hier.parents[cId]}`;
                 parentDisplayEl.innerHTML = `
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-                        <a href="customer-360.html?id=${hier.parents[cId]}" style="color:var(--crm-primary); font-weight:700; text-decoration:none;">
-                            🏢 ${escapeHtml(pName)}
+                        <a href="customer-360.html?id=${hier.parents[cId]}" style="color:var(--crm-primary); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="fa-solid fa-building"></i> ${escapeHtml(pName)}
                         </a>
                         <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.openHierarchyModal(${cId})" style="padding:2px 6px; font-size:11px; height:auto;">
                             Đổi
@@ -314,7 +314,7 @@
             } else if (hasGroup && isRoot) {
                 parentDisplayEl.innerHTML = `
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-                        <span style="color:#d97706; font-weight:700;">👑 Công ty Mẹ (${summary.totalEntities - 1} cty con)</span>
+                        <span style="color:#d97706; font-weight:700; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-crown"></i> Công ty Mẹ (${summary.totalEntities - 1} cty con)</span>
                         <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.openHierarchyModal(${cId})" style="padding:2px 6px; font-size:11px; height:auto;">
                             Quản lý
                         </button>
@@ -345,26 +345,26 @@
                 <div class="group-kpi-header">
                     <div class="group-kpi-title-box">
                         <div class="group-kpi-icon-badge">
-                            <svg viewBox="0 0 24 24"><path d="M3 21h18M3 7v14M21 7v14M6 18h2v3H6zm8 0h2v3h-2zm-4 0h2v3h-2zm4-6h2v3h-2zm-4 0h2v3h-2zm-4 0h2v3H6zm12-5V3H6v4"/></svg>
+                            <i class="fa-solid fa-building-columns" style="font-size:24px;"></i>
                         </div>
                         <div>
-                            <span class="group-kpi-tag">
-                                🏢 CRM-65: TỔNG HỢP TẬP ĐOÀN & PHÂN CẤP DOANH NGHIỆP
+                            <span class="group-kpi-tag" style="display:inline-flex; align-items:center; gap:6px;">
+                                <i class="fa-solid fa-building-columns"></i> CRM-65: TỔNG HỢP TẬP ĐOÀN & PHÂN CẤP DOANH NGHIỆP
                             </span>
                             <h2 class="group-kpi-main-title">
                                 ${escapeHtml(summary.parentName)}
-                                ${isChild ? `<span class="corporate-role-badge corporate-role-child">Thành viên trực thuộc</span>` : `<span class="corporate-role-badge corporate-role-parent">Công ty Mẹ / Trụ sở chính</span>`}
+                                ${isChild ? `<span class="corporate-role-badge corporate-role-child"><i class="fa-solid fa-building"></i> Thành viên trực thuộc</span>` : `<span class="corporate-role-badge corporate-role-parent"><i class="fa-solid fa-crown"></i> Công ty Mẹ / Trụ sở chính</span>`}
                             </h2>
                         </div>
                     </div>
 
                     <div class="group-kpi-actions">
                         <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.openHierarchyModal(${cId})">
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                            <i class="fa-solid fa-circle-plus"></i>
                             Khai báo Quan hệ Mẹ - Con
                         </button>
                         <button type="button" class="crm-btn crm-btn-primary" onclick="window.CorporateHierarchyManager.openTreeModal(${rootId})">
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><path d="M6.5 10v7H14"/></svg>
+                            <i class="fa-solid fa-sitemap"></i>
                             Xem Cây Phân cấp Toàn diện
                         </button>
                     </div>
@@ -374,7 +374,7 @@
                 <div class="group-kpi-metrics-grid">
                     <div class="group-metric-tile highlight">
                         <span class="group-metric-label">
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            <i class="fa-solid fa-file-signature" style="font-size:16px;"></i>
                             Tổng Giá Trị Hợp Đồng Tập Đoàn
                         </span>
                         <div class="group-metric-value">${formatCurrencyVND(summary.totalGroupRevenue)}</div>
@@ -382,19 +382,19 @@
                     </div>
 
                     <div class="group-metric-tile">
-                        <span class="group-metric-label">Số Pháp Nhân Thành Viên</span>
+                        <span class="group-metric-label"><i class="fa-solid fa-building"></i> Số Pháp Nhân Thành Viên</span>
                         <div class="group-metric-value" style="color:var(--crm-primary);">${summary.totalEntities} <span style="font-size:14px;font-weight:500;">đơn vị</span></div>
                         <span class="group-metric-sub">1 Mẹ + ${summary.totalEntities - 1} Công ty con</span>
                     </div>
 
                     <div class="group-metric-tile">
-                        <span class="group-metric-label">Doanh Thu Công Ty Mẹ</span>
+                        <span class="group-metric-label"><i class="fa-solid fa-crown"></i> Doanh Thu Công Ty Mẹ</span>
                         <div class="group-metric-value">${formatShortMoney(summary.parentRevenue)}</div>
                         <span class="group-metric-sub">Trực tiếp từ hợp đồng mẹ</span>
                     </div>
 
                     <div class="group-metric-tile">
-                        <span class="group-metric-label">Đóng Góp Các Công Ty Con</span>
+                        <span class="group-metric-label"><i class="fa-solid fa-chart-pie"></i> Đóng Góp Các Công Ty Con</span>
                         <div class="group-metric-value" style="color:var(--crm-cyan);">${formatShortMoney(summary.subsidiariesRevenue)}</div>
                         <span class="group-metric-sub">${summary.totalGroupRevenue > 0 ? ((summary.subsidiariesRevenue / summary.totalGroupRevenue) * 100).toFixed(1) : 0}% trên tổng doanh thu</span>
                     </div>
@@ -404,7 +404,7 @@
                 <div class="corporate-breakdown-card" style="margin-bottom:0;">
                     <div class="corporate-card-head">
                         <h3>
-                            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            <i class="fa-solid fa-table-list" style="font-size:16px;"></i>
                             Bảng Phân Rã Giá Trị Hợp Đồng Từng Pháp Nhân Thành Viên
                         </h3>
                         <span style="font-size:12.5px; color:var(--crm-muted); font-weight:600;">
@@ -429,13 +429,13 @@
                                 ${summary.breakdown.map(item => {
                                     const isCurrentItem = item.id === cId;
                                     const roleClass = item.role === "PARENT" ? "corporate-role-parent" : "corporate-role-child";
-                                    const roleIcon = item.role === "PARENT" ? "👑" : "🏢";
+                                    const roleIcon = item.role === "PARENT" ? '<i class="fa-solid fa-crown" style="color:#d97706; font-size:16px;"></i>' : '<i class="fa-solid fa-building" style="color:var(--crm-primary); font-size:16px;"></i>';
 
                                     return `
                                         <tr style="${isCurrentItem ? 'background:rgba(37,99,235,0.06); font-weight:600;' : ''}">
                                             <td>
                                                 <div style="display:flex; align-items:center; gap:10px;">
-                                                    <span style="font-size:16px;">${roleIcon}</span>
+                                                    <span>${roleIcon}</span>
                                                     <div>
                                                         <a href="customer-360.html?id=${item.id}" style="color:var(--crm-text); text-decoration:none; font-weight:700;">
                                                             ${escapeHtml(item.name)}
@@ -450,7 +450,7 @@
                                                 </span>
                                             </td>
                                             <td><code>${escapeHtml(item.taxCode)}</code></td>
-                                            <td>👤 ${escapeHtml(item.ownerName)}</td>
+                                            <td><i class="fa-solid fa-user"></i> ${escapeHtml(item.ownerName)}</td>
                                             <td style="font-weight:700; color:var(--crm-text);">
                                                 ${formatCurrencyVND(item.contractValue)}
                                             </td>
@@ -464,12 +464,12 @@
                                             </td>
                                             <td style="text-align:right;">
                                                 <div style="display:inline-flex; gap:6px;">
-                                                    <a href="customer-360.html?id=${item.id}" class="crm-btn crm-btn-secondary" style="padding:4px 8px; font-size:12px; height:auto; text-decoration:none;" title="Xem Hồ sơ 360">
-                                                        👁️ 360
+                                                    <a href="customer-360.html?id=${item.id}" class="crm-btn crm-btn-secondary" style="padding:4px 8px; font-size:12px; height:auto; text-decoration:none; display:inline-flex; align-items:center; gap:4px;" title="Xem Hồ sơ 360">
+                                                        <i class="fa-solid fa-eye"></i> 360
                                                     </a>
                                                     ${item.role !== "PARENT" ? `
-                                                        <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.promptUnbindParent(${item.id})" style="padding:4px 8px; font-size:12px; height:auto; color:var(--crm-danger);" title="Gỡ khỏi tập đoàn">
-                                                            ❌ Gỡ
+                                                        <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.promptUnbindParent(${item.id})" style="padding:4px 8px; font-size:12px; height:auto; color:var(--crm-danger); display:inline-flex; align-items:center; gap:4px;" title="Gỡ khỏi tập đoàn">
+                                                            <i class="fa-solid fa-xmark"></i> Gỡ
                                                         </button>
                                                     ` : ''}
                                                 </div>
@@ -515,8 +515,8 @@
                         return `
                             <div class="hierarchy-side-item ${isParent ? 'is-parent' : 'is-child'}" style="${isCurrent ? 'border-color:var(--crm-primary); background:rgba(37,99,235,0.04);' : ''}">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-                                    <span class="corporate-role-badge ${isParent ? 'corporate-role-parent' : 'corporate-role-child'}" style="font-size:10px; padding:1px 6px;">
-                                        ${isParent ? '👑 CÔNG TY MẸ' : '🏢 CÔNG TY CON'}
+                                    <span class="corporate-role-badge ${isParent ? 'corporate-role-parent' : 'corporate-role-child'}" style="font-size:10px; padding:1px 6px; display:inline-flex; align-items:center; gap:4px;">
+                                        ${isParent ? '<i class="fa-solid fa-crown"></i> CÔNG TY MẸ' : '<i class="fa-solid fa-building"></i> CÔNG TY CON'}
                                     </span>
                                     <span style="font-size:11.5px; font-weight:700; color:var(--crm-success);">
                                         ${formatShortMoney(item.contractValue)}
@@ -529,7 +529,7 @@
                                 </div>
                                 <div style="font-size:11.5px; color:var(--crm-muted); display:flex; justify-content:space-between;">
                                     <span>MST: ${escapeHtml(item.taxCode)}</span>
-                                    <span>👤 ${escapeHtml(item.ownerName)}</span>
+                                    <span><i class="fa-solid fa-user"></i> ${escapeHtml(item.ownerName)}</span>
                                 </div>
                             </div>
                         `;
@@ -537,8 +537,8 @@
                 </div>
 
                 <div style="margin-top:14px;">
-                    <button type="button" class="crm-btn crm-btn-secondary full-button" onclick="window.CorporateHierarchyManager.openTreeModal(${rootId})" style="width:100%;">
-                        🌳 Mở Sơ đồ Cây Phân cấp Toàn diện
+                    <button type="button" class="crm-btn crm-btn-secondary full-button" onclick="window.CorporateHierarchyManager.openTreeModal(${rootId})" style="width:100%; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+                        <i class="fa-solid fa-sitemap"></i> Mở Sơ đồ Cây Phân cấp Toàn diện
                     </button>
                 </div>
             </div>
@@ -555,7 +555,7 @@
         const isCollapsed = collapsedSet && collapsedSet.has(Number(treeNode.id));
 
         const roleClass = treeNode.depth === 0 ? "is-parent" : (treeNode.depth === 1 ? "is-child" : "is-grandchild");
-        const roleBadge = treeNode.depth === 0 ? "👑 CÔNG TY MẸ" : (treeNode.depth === 1 ? "🏢 CÔNG TY CON CẤP 1" : "🏬 CÔNG TY CHÁU");
+        const roleBadge = treeNode.depth === 0 ? '<i class="fa-solid fa-crown"></i> CÔNG TY MẸ' : (treeNode.depth === 1 ? '<i class="fa-solid fa-building"></i> CÔNG TY CON CẤP 1' : '<i class="fa-solid fa-city"></i> CÔNG TY CHÁU');
         const roleBadgeClass = treeNode.depth === 0 ? "corporate-role-parent" : (treeNode.depth === 1 ? "corporate-role-child" : "corporate-role-grandchild");
 
         let html = `
@@ -563,7 +563,7 @@
                 <!-- Node Card -->
                 <div class="tree-node-card ${roleClass} ${isCurrent ? 'is-current' : ''}">
                     <div class="tree-node-head">
-                        <span class="corporate-role-badge ${roleBadgeClass}" style="font-size:10px; padding:2px 7px;">
+                        <span class="corporate-role-badge ${roleBadgeClass}" style="font-size:10px; padding:2px 7px; display:inline-flex; align-items:center; gap:4px;">
                             ${roleBadge}
                         </span>
                         <span style="font-size:11.5px; color:var(--crm-muted); font-weight:600;">
@@ -578,10 +578,10 @@
                     </h4>
 
                     <div class="tree-node-meta-row">
-                        <span>🏷️ MST: <strong>${escapeHtml(treeNode.taxCode)}</strong></span>
+                        <span><i class="fa-solid fa-id-card"></i> MST: <strong>${escapeHtml(treeNode.taxCode)}</strong></span>
                     </div>
                     <div class="tree-node-meta-row">
-                        <span>👤 Sale: ${escapeHtml(treeNode.ownerName)}</span>
+                        <span><i class="fa-solid fa-user"></i> Sale: ${escapeHtml(treeNode.ownerName)}</span>
                     </div>
 
                     <div class="tree-node-revenue-box">
@@ -590,11 +590,11 @@
                     </div>
 
                     <div class="tree-node-actions">
-                        <a href="customer-360.html?id=${treeNode.id}" class="crm-btn crm-btn-secondary" style="flex:1; padding:3px 6px; font-size:11px; height:auto; text-align:center; text-decoration:none;">
-                            👁️ 360
+                        <a href="customer-360.html?id=${treeNode.id}" class="crm-btn crm-btn-secondary" style="flex:1; padding:3px 6px; font-size:11px; height:auto; text-align:center; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px;">
+                            <i class="fa-solid fa-eye"></i> 360
                         </a>
-                        <button type="button" class="crm-btn crm-btn-secondary" ${CrmApi.canSync("customer.update") ? "" : "hidden"} onclick="window.CorporateHierarchyManager.openHierarchyModal(${treeNode.id})" style="padding:3px 6px; font-size:11px; height:auto;" title="Quản lý quan hệ">
-                            ⚙️ Thiết lập
+                        <button type="button" class="crm-btn crm-btn-secondary" ${CrmApi.canSync("customer.update") ? "" : "hidden"} onclick="window.CorporateHierarchyManager.openHierarchyModal(${treeNode.id})" style="padding:3px 6px; font-size:11px; height:auto; display:inline-flex; align-items:center; gap:4px;" title="Quản lý quan hệ">
+                            <i class="fa-solid fa-gear"></i> Thiết lập
                         </button>
                     </div>
 
@@ -649,13 +649,13 @@
                     <h2 id="hierModalTitle">Khai báo Phân cấp Tập đoàn Doanh nghiệp</h2>
                     <p>Thiết lập quan hệ pháp nhân mẹ - con, tổng hợp doanh thu và bảo toàn cấu trúc tổ chức.</p>
                 </div>
-                <button type="button" class="corporate-modal-close" onclick="window.CorporateHierarchyManager.closeHierarchyModal()" aria-label="Đóng">✕</button>
+                <button type="button" class="corporate-modal-close" onclick="window.CorporateHierarchyManager.closeHierarchyModal()" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             </header>
 
             <div class="corporate-modal-body">
                 <!-- Validation Cycle Warning Banner -->
                 <div id="hierCycleAlert" class="cycle-warning-banner">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:20px; flex-shrink:0;"></i>
                     <span id="hierCycleAlertText">Vòng lặp quan hệ phát hiện!</span>
                 </div>
 
@@ -676,13 +676,13 @@
                 <!-- TAB 1: GÁN HOẶC ĐỔI CÔNG TY MẸ -->
                 <div style="margin-bottom:28px;">
                     <h4 style="margin:0 0 10px; font-size:14.5px; font-weight:700; color:var(--crm-text); display:flex; align-items:center; gap:8px;">
-                        <span>👑 1. Khai báo / Gán Công ty Mẹ (parent_customer_id)</span>
+                        <span><i class="fa-solid fa-crown"></i> 1. Khai báo / Gán Công ty Mẹ (parent_customer_id)</span>
                     </h4>
 
                     <!-- Current Parent Display -->
                     <div id="currentParentDisplayBox" class="current-association-box">
                         <div class="current-assoc-info">
-                            <div class="current-assoc-avatar">🏢</div>
+                            <div class="current-assoc-avatar"><i class="fa-solid fa-building"></i></div>
                             <div>
                                 <div style="font-size:11px; font-weight:700; color:var(--crm-muted); text-transform:uppercase;">Công ty mẹ hiện tại:</div>
                                 <div id="currentParentName" style="font-weight:700; font-size:14px; color:var(--crm-text);">Chưa có công ty mẹ (Đơn vị độc lập)</div>
@@ -690,7 +690,7 @@
                             </div>
                         </div>
                         <button id="btnUnbindParent" type="button" class="crm-btn crm-btn-secondary" style="color:var(--crm-danger); border-color:var(--crm-danger); display:none;">
-                            ❌ Gỡ bỏ công ty mẹ
+                            <i class="fa-solid fa-circle-xmark"></i> Gỡ bỏ công ty mẹ
                         </button>
                     </div>
 
@@ -700,7 +700,7 @@
                             Tìm kiếm và chọn Công ty mẹ mới:
                         </label>
                         <div class="corporate-search-input-box">
-                            <svg class="corporate-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                            <i class="fa-solid fa-magnifying-glass corporate-search-icon"></i>
                             <input id="inputSearchParent" class="crm-input" type="search" placeholder="Gõ tên công ty hoặc MST để tìm kiếm..." autocomplete="off">
                         </div>
                         <div id="dropdownParentResults" class="corporate-dropdown-results"></div>
@@ -710,7 +710,7 @@
                 <!-- TAB 2: QUẢN LÝ CÔNG TY CON TRỰC THUỘC -->
                 <div>
                     <h4 style="margin:0 0 10px; font-size:14.5px; font-weight:700; color:var(--crm-text); display:flex; align-items:center; gap:8px;">
-                        <span>🏢 2. Danh sách Công ty Con trực thuộc (<span id="modalChildrenCount">0</span>)</span>
+                        <span><i class="fa-solid fa-building"></i> 2. Danh sách Công ty Con trực thuộc (<span id="modalChildrenCount">0</span>)</span>
                     </h4>
 
                     <div id="modalChildrenList" style="margin-bottom:14px;">
@@ -723,7 +723,7 @@
                             Thêm công ty con vào dưới trướng doanh nghiệp này:
                         </label>
                         <div class="corporate-search-input-box">
-                            <svg class="corporate-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+                            <i class="fa-solid fa-magnifying-glass corporate-search-icon"></i>
                             <input id="inputSearchChild" class="crm-input" type="search" placeholder="Tìm công ty để gán làm công ty con..." autocomplete="off">
                         </div>
                         <div id="dropdownChildResults" class="corporate-dropdown-results"></div>
@@ -845,12 +845,12 @@
             return `
                 <div class="corporate-dropdown-item ${isDisabled ? 'disabled' : ''}" data-cand-id="${c.id}" ${isDisabled ? 'title="Không thể chọn do vi phạm logic phân cấp"' : ''}>
                     <div>
-                        <div class="corporate-item-title">
-                            🏢 ${escapeHtml(c.companyName || c.name)} ${reasonTag}
+                        <div class="corporate-item-title" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-building" style="color:var(--crm-primary);"></i> ${escapeHtml(c.companyName || c.name)} ${reasonTag}
                         </div>
                         <div class="corporate-item-meta">
                             <span>MST: <code>${escapeHtml(c.taxCode || '—')}</code></span>
-                            <span>👤 ${escapeHtml(c.ownerName || c.owner || '—')}</span>
+                            <span><i class="fa-solid fa-user"></i> ${escapeHtml(c.ownerName || c.owner || '—')}</span>
                         </div>
                     </div>
                     ${!isDisabled ? `
@@ -907,12 +907,12 @@
             return `
                 <div class="corporate-dropdown-item ${isDisabled ? 'disabled' : ''}" data-child-id="${c.id}">
                     <div>
-                        <div class="corporate-item-title">
-                            🏢 ${escapeHtml(c.companyName || c.name)} ${tag}
+                        <div class="corporate-item-title" style="display:flex; align-items:center; gap:6px;">
+                            <i class="fa-solid fa-building" style="color:var(--crm-primary);"></i> ${escapeHtml(c.companyName || c.name)} ${tag}
                         </div>
                         <div class="corporate-item-meta">
                             <span>MST: <code>${escapeHtml(c.taxCode || '—')}</code></span>
-                            <span>👤 ${escapeHtml(c.ownerName || c.owner || '—')}</span>
+                            <span><i class="fa-solid fa-user"></i> ${escapeHtml(c.ownerName || c.owner || '—')}</span>
                         </div>
                     </div>
                     ${!isDisabled ? `
@@ -1011,11 +1011,11 @@
                 return `
                     <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--crm-surface); border:1px solid var(--crm-border); border-radius:8px; margin-bottom:8px;">
                         <div>
-                            <div style="font-weight:700; font-size:13.5px; color:var(--crm-text);">🏢 ${escapeHtml(name)}</div>
+                            <div style="font-weight:700; font-size:13.5px; color:var(--crm-text); display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-building" style="color:var(--crm-primary);"></i> ${escapeHtml(name)}</div>
                             <div style="font-size:12px; color:var(--crm-muted);">MST: ${escapeHtml(tax)} · Phụ trách: ${escapeHtml(owner)}</div>
                         </div>
-                        <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.promptUnbindParent(${chId})" style="color:var(--crm-danger); font-size:12px; padding:3px 8px; height:auto;" title="Gỡ công ty con">
-                            ❌ Gỡ liên kết
+                        <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.promptUnbindParent(${chId})" style="color:var(--crm-danger); font-size:12px; padding:3px 8px; height:auto; display:inline-flex; align-items:center; gap:4px;" title="Gỡ công ty con">
+                            <i class="fa-solid fa-xmark"></i> Gỡ liên kết
                         </button>
                     </div>
                 `;
@@ -1067,7 +1067,7 @@
                     <h2 id="treeModalTitle">Cây Cấu Trúc Tổ Chức Tập Đoàn</h2>
                     <p>Sơ đồ phân nhánh Mẹ - Con - Cháu kèm giá trị hợp đồng và người phụ trách từng pháp nhân.</p>
                 </div>
-                <button type="button" class="corporate-modal-close" onclick="window.CorporateHierarchyManager.closeTreeModal()" aria-label="Đóng">✕</button>
+                <button type="button" class="corporate-modal-close" onclick="window.CorporateHierarchyManager.closeTreeModal()" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>
             </header>
 
             <div class="corporate-modal-body" style="background:var(--crm-bg); padding:20px;">
@@ -1079,8 +1079,8 @@
             </div>
 
             <footer class="corporate-modal-footer">
-                <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.expandAllNodes()">
-                    ➕ Mở rộng tất cả nhánh
+                <button type="button" class="crm-btn crm-btn-secondary" onclick="window.CorporateHierarchyManager.expandAllNodes()" style="display:inline-flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-plus"></i> Mở rộng tất cả nhánh
                 </button>
                 <button type="button" class="crm-btn crm-btn-primary" onclick="window.CorporateHierarchyManager.closeTreeModal()">
                     Đóng
@@ -1183,8 +1183,8 @@
                     <select id="customerParentSelect" class="crm-input" style="flex:1;">
                         <option value="">-- Đơn vị độc lập (Không có công ty mẹ) --</option>
                     </select>
-                    <button type="button" id="btnOpenHierarchyFromDrawer" class="crm-btn crm-btn-secondary" style="white-space:nowrap;" title="Quản lý chi tiết cây phân cấp">
-                        🌳 Cây phân cấp
+                    <button type="button" id="btnOpenHierarchyFromDrawer" class="crm-btn crm-btn-secondary" style="white-space:nowrap; display:inline-flex; align-items:center; gap:4px;" title="Quản lý chi tiết cây phân cấp">
+                        <i class="fa-solid fa-sitemap"></i> Cây phân cấp
                     </button>
                 </div>
                 <span class="field-helper">Chọn công ty mẹ để gộp doanh thu và quản lý cấu trúc tổ chức tập đoàn.</span>
