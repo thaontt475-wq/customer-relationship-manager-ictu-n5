@@ -33,17 +33,17 @@
         toast.classList.remove("paused");
     }
 
-    const symbols = {
-        success: '<path d="m5 12 4 4L19 6"/>',
-        error: '<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6m0-6-6 6"/>',
-        warning: '<path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5m0 3v1"/>',
-        info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>'
+    const iconClasses = {
+        success: 'fa-solid fa-circle-check',
+        error: 'fa-solid fa-circle-xmark',
+        warning: 'fa-solid fa-triangle-exclamation',
+        info: 'fa-solid fa-circle-info'
     };
 
     // Display-only API: it never writes storage, submits forms or assumes success.
     window.crmToast = (message, type = "info", options = {}) => {
         if (!String(message ?? "").trim()) return null;
-        if (!Object.hasOwn(symbols, type)) type = "info";
+        if (!Object.hasOwn(iconClasses, type)) type = "info";
         if (!region) {
             region = document.createElement("section");
             region.className = "crm-toast-region";
@@ -56,7 +56,7 @@
         toast.setAttribute("aria-atomic", "true");
         const icon = document.createElement("span");
         icon.className = "crm-toast-icon";
-        icon.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${symbols[type]}</svg>`;
+        icon.innerHTML = `<i class="${iconClasses[type]}"></i>`;
         const copy = document.createElement("span");
         copy.className = "crm-toast-copy";
         copy.textContent = String(message);
@@ -64,7 +64,7 @@
         close.type = "button";
         close.className = "crm-toast-close";
         close.setAttribute("aria-label", "Đóng thông báo");
-        close.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+        close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
         const progress = document.createElement("span");
         progress.className = "crm-toast-progress";
         progress.setAttribute("aria-hidden", "true");
@@ -134,43 +134,53 @@
 
 // Normalize dynamic icon slots only; never inspect customer/user content.
 (() => {
-    const paths = {
-    "▦": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/>",
-    "♙": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4 3.6-7 8-7s8 3 8 7\"/>",
-    "◇": "<path d=\"m12 3 8 9-8 9-8-9 8-9Z\"/>",
-    "☑": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><path d=\"m7 12 3 3 7-7\"/>",
-    "✓": "<path d=\"m5 12 4 4L19 6\"/>",
-    "□": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M8 3v4m8-4v4M3 10h18\"/>",
-    "✉": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"m3 6 9 7 9-7\"/>",
-    "☎": "<path d=\"M5 3h4l2 5-3 2c2 3 3 4 6 6l2-3 5 2v4c0 2-2 3-4 2C9 19 5 15 3 7 2 5 3 3 5 3Z\"/>",
-    "✎": "<path d=\"m16 3 5 5-12 12-6 1 1-6L16 3ZM14 5l5 5\"/>",
-    "☰": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>",
-    "🔒": "<rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3m-4 4v3\"/>",
-    "⚠": "<path d=\"m12 3 10 18H2L12 3Z\"/><path d=\"M12 9v5m0 3v1\"/>",
-    "🎉": "<path d=\"m4 20 4-12 8 8L4 20Zm7-15 1-2m5 7 4-1m-6-3 3-3\"/>",
-    "😞": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 9h1m6 0h1m-8 7c2-3 6-3 8 0\"/>",
-    "◉": "<path d=\"M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>",
-    "⊘": "<path d=\"M3 3l18 18M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z\"/>",
-    "○": "<circle cx=\"12\" cy=\"12\" r=\"8\"/>",
-    "⌂": "<path d=\"m3 10 9-7 9 7v11H3V10Zm6 11v-7h6v7\"/>",
-    "◈": "<path d=\"m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10\"/>",
-    "⇧": "<path d=\"M12 16V3m-5 5 5-5 5 5M4 16v5h16v-5\"/>",
-    "☷": "<path d=\"M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1\"/>",
-    "⊞": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M12 3v18M3 12h18\"/>",
-    "◎": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/>",
-    "⌘": "<rect x=\"9\" y=\"3\" width=\"6\" height=\"5\"/><rect x=\"3\" y=\"16\" width=\"6\" height=\"5\"/><rect x=\"15\" y=\"16\" width=\"6\" height=\"5\"/><path d=\"M12 8v4M6 16v-4h12v4\"/>",
-    "⚙": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"m9 3 6 0 1 4 4 1 1 6-4 2-1 4-6 1-2-4-4-1-1-6 4-2 1-4Z\"/>",
-    "×": "<path d=\"m6 6 12 12M18 6 6 18\"/>",
-    "‹": "<path d=\"m15 5-7 7 7 7\"/>",
-    "›": "<path d=\"m9 5 7 7-7 7\"/>",
-    "⌄": "<path d=\"m6 9 6 6 6-6\"/>",
-    "↻": "<path d=\"M20 7v5h-5M20 12a8 8 0 1 0-2 5\"/>",
-    "♧": "<path d=\"M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4\"/>"
-};
-    paths["☹️"] = paths["😞"];
-    paths["▣"] = paths["□"];
-    paths["⋮"] = '<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>';
-    const slots = ".crm-mobile-menu, .crm-user-arrow, .recent-icon, .activity-icon, .org-node-icon, .task-check, .deal-emoji, .password-toggle, .password-rule, .mobile-card-contact > span, .timeline-type, .row-action-button, .card-menu-btn, .card-menu button";
+    const glyphIcons = {
+        "▦": "fa-solid fa-chart-pie",
+        "♙": "fa-solid fa-users",
+        "◇": "fa-solid fa-chart-line",
+        "▤": "fa-solid fa-file-signature",
+        "📄": "fa-solid fa-file-signature",
+        "☑": "fa-solid fa-circle-check",
+        "✓": "fa-solid fa-check",
+        "□": "fa-regular fa-square",
+        "▣": "fa-solid fa-square-check",
+        "✉": "fa-solid fa-envelope",
+        "☎": "fa-solid fa-phone",
+        "✎": "fa-solid fa-pen-to-square",
+        "☰": "fa-solid fa-bars",
+        "🔒": "fa-solid fa-lock",
+        "⚠": "fa-solid fa-triangle-exclamation",
+        "🎉": "fa-solid fa-trophy",
+        "😞": "fa-regular fa-face-frown",
+        "☹️": "fa-regular fa-face-frown",
+        "◉": "fa-solid fa-eye",
+        "⊘": "fa-solid fa-ban",
+        "○": "fa-regular fa-circle",
+        "⌂": "fa-solid fa-house",
+        "◈": "fa-solid fa-box",
+        "⇧": "fa-solid fa-arrow-up-from-bracket",
+        "☷": "fa-solid fa-list-check",
+        "⊞": "fa-solid fa-border-all",
+        "◎": "fa-solid fa-bullseye",
+        "⌘": "fa-solid fa-building",
+        "⚙": "fa-solid fa-gear",
+        "×": "fa-solid fa-xmark",
+        "‹": "fa-solid fa-angle-left",
+        "›": "fa-solid fa-angle-right",
+        "⌄": "fa-solid fa-angle-down",
+        "↻": "fa-solid fa-rotate-right",
+        "♧": "fa-solid fa-bell",
+        "⋮": "fa-solid fa-ellipsis-vertical",
+        "✍️": "fa-solid fa-signature",
+        "✨": "fa-solid fa-bullseye",
+        "⭐": "fa-solid fa-id-badge",
+        "👤": "fa-solid fa-user",
+        "💼": "fa-solid fa-briefcase",
+        "🏢": "fa-solid fa-building",
+        "✕": "fa-solid fa-xmark"
+    };
+
+    const slots = ".crm-nav-icon, .crm-mobile-menu, .crm-user-arrow, .recent-icon, .activity-icon, .org-node-icon, .task-check, .deal-emoji, .password-toggle, .password-rule, .mobile-card-contact > span, .timeline-type, .row-action-button, .card-menu-btn, .card-menu button";
     function normalize(scope) {
         const elements = [...scope.querySelectorAll(slots)];
         if (scope.matches?.(slots)) elements.unshift(scope);
@@ -178,14 +188,13 @@
             for (const text of [...element.childNodes]) {
                 if (text.nodeType !== Node.TEXT_NODE) continue;
                 const value = text.textContent.trim();
-                const glyph = Object.keys(paths).find(key => value.startsWith(key));
+                const glyph = Object.keys(glyphIcons).find(key => value.startsWith(key));
                 if (!glyph) continue;
-                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                svg.setAttribute("viewBox", "0 0 24 24");
-                svg.setAttribute("class", "crm-inline-icon");
-                svg.setAttribute("aria-hidden", "true");
-                svg.innerHTML = paths[glyph];
-                text.replaceWith(svg, document.createTextNode(value.slice(glyph.length) ? " " + value.slice(glyph.length) : ""));
+                const iconElem = document.createElement("i");
+                iconElem.className = glyphIcons[glyph];
+                iconElem.setAttribute("aria-hidden", "true");
+                const remaining = value.slice(glyph.length).trim();
+                text.replaceWith(iconElem, remaining ? document.createTextNode(" " + remaining) : document.createTextNode(""));
             }
         }
     }
@@ -194,7 +203,7 @@
         const scopes = new Set();
         for (const record of records) {
             if (record.target instanceof Element && record.target.matches(slots)) scopes.add(record.target);
-            for (const node of record.addedNodes) if (node instanceof Element && !node.closest("svg")) scopes.add(node);
+            for (const node of record.addedNodes) if (node instanceof Element && !node.closest("i")) scopes.add(node);
         }
         for (const scope of scopes) normalize(scope);
     }).observe(document.body, {childList: true, subtree: true});

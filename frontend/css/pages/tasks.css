@@ -414,3 +414,107 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* =========================================================
+   TASKS DARK THEME
+========================================================= */
+html[data-theme="dark"] .tasks-filter,
+[data-theme="dark"] .tasks-filter {
+    background: #172033 !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-theme="dark"] .tasks-filter input,
+html[data-theme="dark"] .tasks-filter select,
+[data-theme="dark"] .tasks-filter input,
+[data-theme="dark"] .tasks-filter select {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .tasks-card,
+[data-theme="dark"] .tasks-card {
+    background: #172033 !important;
+    border: 1px solid #334155 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="dark"] .task-row,
+[data-theme="dark"] .task-row {
+    background: #1e293b !important;
+    border: 1px solid #334155 !important;
+    color: #f8fafc !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-theme="dark"] .task-row:hover,
+[data-theme="dark"] .task-row:hover {
+    background: #243248 !important;
+    border-color: #475569 !important;
+}
+
+html[data-theme="dark"] .task-row strong,
+[data-theme="dark"] .task-row strong {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .task-row span,
+[data-theme="dark"] .task-row span {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .task-check,
+[data-theme="dark"] .task-check {
+    background: #111827 !important;
+    border-color: #475569 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .task-actions button,
+[data-theme="dark"] .task-actions button {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .task-actions button:hover,
+[data-theme="dark"] .task-actions button:hover {
+    background: #1e293b !important;
+    border-color: #60a5fa !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .priority.high,
+[data-theme="dark"] .priority.high {
+    background: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+}
+
+html[data-theme="dark"] .priority.medium,
+[data-theme="dark"] .priority.medium {
+    background: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+}
+
+html[data-theme="dark"] .priority.low,
+[data-theme="dark"] .priority.low {
+    background: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .task-drawer,
+[data-theme="dark"] .task-drawer {
+    background: #172033 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .task-drawer header,
+html[data-theme="dark"] .task-drawer footer,
+[data-theme="dark"] .task-drawer header,
+[data-theme="dark"] .task-drawer footer {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
