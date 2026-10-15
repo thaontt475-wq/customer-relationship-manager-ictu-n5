@@ -38,7 +38,7 @@ public class CorsFilter implements Filter {
 
         if (
                 origin != null &&
-                ALLOWED_ORIGINS.contains(origin)
+                (ALLOWED_ORIGINS.contains(origin) || httpRequest.getRequestURI().contains("/api/leads"))
         ) {
 
             httpResponse.setHeader(
