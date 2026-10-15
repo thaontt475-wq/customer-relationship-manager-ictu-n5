@@ -96,75 +96,26 @@
        =================================================================== */
 
     function init() {
-        seedInitialLeadsIfEmpty();
+        clearMockLeads();
         bindNavigationTabs();
         bindGeneratorEvents();
         bindFilterEvents();
         bindModalEvents();
         bindWindowListeners();
 
-        // Initial Load
+        // Initial Load from Database
         loadLeadsData();
         updateEmbedCodeAndPreview();
     }
 
     /**
-     * Dữ liệu mẫu chuẩn Enterprise B2B phục vụ Demo & Test
+     * Xóa sạch dữ liệu ảo / mock seed khỏi localStorage
      */
-    function seedInitialLeadsIfEmpty() {
+    function clearMockLeads() {
         try {
-            const stored = localStorage.getItem(STORAGE_KEY_LEADS);
-            if (!stored || JSON.parse(stored).length === 0) {
-                const sampleLeads = [
-                    {
-                        id: "LEAD-101",
-                        fullName: "Nguyễn Minh Quang",
-                        phone: "0987123456",
-                        email: "quang.nm@digitech.vn",
-                        companyName: "Công ty Cổ phần Công nghệ DigiTech VN",
-                        notes: "Cần báo giá và tư vấn triển khai CRM cho đội ngũ 35 nhân viên Sales B2B.",
-                        source: "Website Form",
-                        status: "NEW", // NEW, CONTACTED, CONVERTED, REJECTED
-                        createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString() // 45 phút trước
-                    },
-                    {
-                        id: "LEAD-102",
-                        fullName: "Trần Thu Hà",
-                        phone: "0912345678",
-                        email: "ha.tran@hoalinhpharma.com",
-                        companyName: "Tập đoàn Dược phẩm Hoa Linh",
-                        notes: "Quan tâm đến giải pháp quản trị hợp đồng điện tử và phân quyền chi nhánh.",
-                        source: "Website Form",
-                        status: "CONTACTED",
-                        createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString() // 3 giờ trước
-                    },
-                    {
-                        id: "LEAD-103",
-                        fullName: "Lê Hoàng Nam",
-                        phone: "0905678910",
-                        email: "nam.lh@datxanhgroup.vn",
-                        companyName: "Bất động sản Đất Xanh Miền Bắc",
-                        notes: "Đang tìm hiểu phân hệ tích hợp Lead Form tự động từ 5 Landing Page dự án.",
-                        source: "Landing Page",
-                        status: "CONVERTED",
-                        createdAt: new Date(Date.now() - 26 * 3600 * 1000).toISOString() // hôm qua
-                    },
-                    {
-                        id: "LEAD-104",
-                        fullName: "Phạm Thị Mai",
-                        phone: "0933221100",
-                        email: "mai.pt@bachhoasach.vn",
-                        companyName: "Chuỗi Siêu thị Bách Hóa Sạch",
-                        notes: "Cần đặt lịch hẹn demo trực tiếp vào thứ 6 tuần này qua Google Meet.",
-                        source: "Website Form",
-                        status: "NEW",
-                        createdAt: new Date(Date.now() - 20 * 60 * 1000).toISOString() // 20 phút trước
-                    }
-                ];
-                localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(sampleLeads));
-            }
+            localStorage.removeItem(STORAGE_KEY_LEADS);
         } catch (e) {
-            console.error("Lỗi khi khởi tạo seed data Lead:", e);
+            console.error("Lỗi khi dọn dẹp mock data:", e);
         }
     }
 
@@ -343,11 +294,10 @@
        =================================================================== */
 
     /**
-     * Tải danh sách Lead từ BE (POST /api/leads) hoặc fallback localStorage
+     * Tải danh sách Lead thực tế từ Database thông qua REST API
      */
     async function loadLeadsData() {
         try {
-            // Thử gọi REST API BE của Tiến
             const response = await fetch(API_ENDPOINT, {
                 method: "GET",
                 headers: { "Accept": "application/json" }
@@ -363,18 +313,13 @@
                 } else if (data && data.data && Array.isArray(data.data.items)) {
                     list = data.data.items;
                 }
-                if (list) {
-                    allLeads = list;
-                    localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(list));
-                } else {
-                    fallbackReadLeads();
-                }
+                allLeads = list || [];
             } else {
-                fallbackReadLeads();
+                allLeads = [];
             }
         } catch (err) {
-            // BE chưa chạy hoặc endpoint chưa có -> đọc an toàn từ localStorage
-            fallbackReadLeads();
+            console.error("Lỗi khi tải dữ liệu Lead từ Database:", err);
+            allLeads = [];
         }
 
         updateKpiCounters();
@@ -697,9 +642,9 @@
     }
 
     /**
-     * Tạo nhanh 1 Lead Test ngẫu nhiên để kiểm thử tương tác
+     * Tạo nhanh 1 Lead Test thực tế và lưu thẳng vào MySQL Database
      */
-    function handleGenerateRandomLead() {
+    async function handleGenerateRandomLead() {
         const sampleNames = ["Vũ Đức Đạt", "Hoàng Kim Ngân", "Đặng Thanh Tùng", "Bùi Mai Hương", "Phan Quốc Bảo"];
         const sampleCompanies = ["Tập đoàn SunTech Global", "Công ty CP Logistics Á Châu", "Thương mại Điện tử VinaShop", "Nội thất Hiện đại EcoHome", "Tài chính Số FinSmart"];
         const sampleNeeds = [
@@ -715,24 +660,34 @@
         const randPhone = "09" + Math.floor(10000000 + Math.random() * 90000000);
         const emailSlug = randName.toLowerCase().replace(/\s+/g, ".") + "@" + randComp.toLowerCase().replace(/[^a-z0-9]/g, "") + ".vn";
 
-        const newLead = {
-            id: `LEAD-${Date.now().toString().slice(-4)}`,
-            fullName: randName,
-            phone: randPhone,
-            email: emailSlug,
-            companyName: randComp,
-            notes: randNeed,
-            source: "Website Form",
-            status: "NEW",
-            createdAt: new Date().toISOString()
-        };
+        try {
+            const res = await fetch(API_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    fullName: randName,
+                    phone: randPhone,
+                    email: emailSlug,
+                    companyName: randComp,
+                    notes: randNeed,
+                    source: "Website Form"
+                })
+            });
 
-        allLeads.unshift(newLead);
-        saveLeadsLocally();
-        updateKpiCounters();
-        renderLeadsTable();
-
-        showToast(`Đã tạo Lead mẫu "${randName}" từ Web Form!`, "success");
+            if (res.ok) {
+                showToast(`Đã thêm Lead "${randName}" vào Database!`, "success");
+                await loadLeadsData();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast(err.message || "Không thể tạo Lead vào Database", "danger");
+            }
+        } catch (e) {
+            console.error("Lỗi khi tạo Lead vào database:", e);
+            showToast("Không thể kết nối đến máy chủ Database", "danger");
+        }
     }
 
     /* ===================================================================
