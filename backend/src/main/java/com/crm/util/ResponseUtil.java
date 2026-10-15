@@ -33,4 +33,16 @@ public final class ResponseUtil {
                 )
         );
     }
+
+    public static void rawJson(
+            HttpServletResponse response,
+            int status,
+            Object body
+    ) throws IOException {
+        response.setStatus(status);
+        response.setHeader("Cache-Control", "no-store");
+        response.setContentType("application/json; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(JsonUtil.getGson().toJson(body));
+    }
 }
