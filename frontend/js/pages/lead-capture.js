@@ -355,9 +355,19 @@
 
             if (response.ok) {
                 const data = await response.json();
+                let list = null;
                 if (Array.isArray(data)) {
-                    allLeads = data;
-                    localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(data));
+                    list = data;
+                } else if (data && Array.isArray(data.data)) {
+                    list = data.data;
+                } else if (data && data.data && Array.isArray(data.data.items)) {
+                    list = data.data.items;
+                }
+                if (list) {
+                    allLeads = list;
+                    localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(list));
+                } else {
+                    fallbackReadLeads();
                 }
             } else {
                 fallbackReadLeads();

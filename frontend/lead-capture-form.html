@@ -646,7 +646,8 @@
 
                 try {
                     // Try real backend API endpoint
-                    const response = await fetch("/api/leads", {
+                    const apiUrl = (window.CRM_BACKEND_BASE || (window.location.pathname.startsWith("/crm") ? "/crm/api/leads" : "/api/leads"));
+                    const response = await fetch(apiUrl, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
