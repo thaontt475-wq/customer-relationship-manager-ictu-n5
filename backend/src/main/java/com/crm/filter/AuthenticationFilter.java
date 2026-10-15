@@ -38,12 +38,8 @@ public class AuthenticationFilter
                         "/api/auth/reset-password"
                 ) ||
                 uri.contains(
-                        "/api/leads/web-form"
+                        "/api/leads"
                 ) ||
-                uri.contains(
-                        "/api/leads/embed-code"
-                ) ||
-                (uri.endsWith("/api/leads") && "POST".equalsIgnoreCase(req.getMethod())) ||
                 "OPTIONS".equalsIgnoreCase(
                         req.getMethod()
                 )

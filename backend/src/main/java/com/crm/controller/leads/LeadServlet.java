@@ -62,14 +62,20 @@ public class LeadServlet extends HttpServlet {
             List<Lead> leads = dao.findAll(page, size, status, source);
             int total = dao.count(status, source);
 
-            java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
-            data.put("items", leads);
-            data.put("total", total);
-            data.put("page", page);
-            data.put("size", size);
-            data.put("totalPages", (int) Math.ceil((double) total / size));
-
-            ResponseUtil.json(response, 200, ApiResponse.success("Lấy danh sách Lead thành công", data));
+            if ("wrapper".equalsIgnoreCase(request.getParameter("format"))) {
+                java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
+                data.put("items", leads);
+                data.put("total", total);
+                data.put("page", page);
+                data.put("size", size);
+                data.put("totalPages", (int) Math.ceil((double) total / size));
+                ResponseUtil.json(response, 200, ApiResponse.success("Lấy danh sách Lead thành công", data));
+            } else {
+                response.setStatus(200);
+                response.setContentType("application/json; charset=UTF-8");
+                response.setHeader("Cache-Control", "no-store");
+                response.getWriter().write(JsonUtil.getGson().toJson(leads));
+            }
         } catch (Exception e) {
             ResponseUtil.json(response, 500, ApiResponse.error("Lỗi khi tải danh sách Lead: " + e.getMessage(), null));
         }
