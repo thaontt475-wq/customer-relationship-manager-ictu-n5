@@ -129,14 +129,14 @@
         <div>
             <p class="lead-kicker">Marketing & Tăng trưởng / Sprint 4 (S4-02)</p>
             <h1>Tạo Lead thủ công & Nhập hàng loạt từ Excel (CRM-116)</h1>
-            <p>Thu thập và tiếp nhận thông tin khách hàng tiềm năng từ sự kiện, danh thiếp hoặc nhập liệu hàng loạt từ tệp Excel/CSV với kiểm tra lỗi tự động từng dòng.</p>
+            <p>Thu thập và tiếp nhận thông tin khách hàng tiềm năng từ sự kiện, danh thiếp hoặc nhập liệu hàng loạt từ tệp Excel .xlsx với kiểm tra lỗi tự động từng dòng.</p>
         </div>
 
         <div class="lead-head-actions">
             <button type="button" class="crm-btn crm-btn-secondary" id="btnDownloadExcelTemplate" title="Tải tệp mẫu Excel chuẩn">
                 <i class="fa-solid fa-file-excel text-success"></i> Tải mẫu Excel (.xlsx)
             </button>
-            <button type="button" class="crm-btn crm-btn-secondary" id="btnDownloadCsvTemplate" title="Tải tệp mẫu CSV">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnDownloadCsvTemplate" hidden title="Tải tệp mẫu CSV">
                 <i class="fa-solid fa-file-csv text-primary"></i> Tải mẫu .CSV
             </button>
         </div>
@@ -154,7 +154,7 @@
         </button>
         <button type="button" class="lead-tab-item" data-tab="list" id="tabBtnList">
             <i class="fa-solid fa-table-list"></i>
-            Danh sách Lead đã tiếp nhận
+            Lead vừa thao tác (tối đa 20)
             <span class="badge-count" id="badgeTotalLeads">0</span>
         </button>
     </nav>
@@ -189,8 +189,8 @@
                     <!-- Row 2: Điện thoại & Email -->
                     <div class="form-row-2col">
                         <div class="form-group">
-                            <label for="manualPhone">Số điện thoại di động <span class="required-star">*</span></label>
-                            <input type="tel" id="manualPhone" class="crm-input" placeholder="Ví dụ: 0912345678" required>
+                            <label for="manualPhone">Số điện thoại (hoặc email)</label>
+                            <input type="tel" id="manualPhone" class="crm-input" placeholder="Ví dụ: 0912345678">
                             <div class="error-feedback" id="errPhone">Số điện thoại phải là số hợp lệ 10 chữ số (bắt đầu bằng 0 hoặc +84).</div>
                         </div>
 
@@ -255,7 +255,7 @@
 
                     <!-- Action Buttons -->
                     <div class="form-actions-bar">
-                        <button type="button" class="crm-btn crm-btn-secondary" id="btnFillDemoManualLead">
+                        <button type="button" class="crm-btn crm-btn-secondary" id="btnFillDemoManualLead" hidden>
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Điền mẫu nhanh
                         </button>
                         <button type="reset" class="crm-btn crm-btn-secondary" id="btnResetManualForm">
@@ -315,7 +315,7 @@
                 <div class="step-badge">1</div>
                 <div>
                     <div class="step-meta-title">Tải lên tệp Excel</div>
-                    <div class="step-meta-desc">Chọn tệp .xlsx, .xls hoặc .csv</div>
+                    <div class="step-meta-desc">Chọn tệp .xlsx</div>
                 </div>
             </div>
             <div class="step-node" id="stepNode2">
@@ -343,14 +343,14 @@
 
             <!-- DROPZONE -->
             <div class="dropzone-container" id="dropzoneContainer">
-                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" hidden>
+                <input type="file" id="excelFileInput" accept=".xlsx" hidden>
                 <i class="fa-solid fa-file-excel dropzone-icon"></i>
-                <div class="dropzone-title">Kéo & thả file Excel (.xlsx, .xls, .csv) vào đây</div>
+                <div class="dropzone-title">Kéo & thả file Excel (.xlsx) vào đây</div>
                 <div class="dropzone-subtitle">hoặc nhấn vào khung để duyệt file từ máy tính của bạn</div>
                 <div class="format-pills">
                     <span class="format-pill"><i class="fa-solid fa-check"></i> .XLSX</span>
-                    <span class="format-pill"><i class="fa-solid fa-check"></i> .XLS</span>
-                    <span class="format-pill"><i class="fa-solid fa-check"></i> .CSV</span>
+                    
+                    
                     <span class="format-pill">Tối đa 5MB</span>
                 </div>
             </div>
@@ -370,7 +370,7 @@
             </div>
 
             <!-- SANDBOX KIỂM THỬ NHANH (UAT READY) -->
-            <div class="demo-sandbox-box">
+            <div class="demo-sandbox-box" hidden>
                 <div class="demo-sandbox-text">
                     <i class="fa-solid fa-flask-vial text-primary"></i>
                     <strong>Sandbox Kiểm thử Nhanh (UAT Testing):</strong> Bạn chưa có sẵn file Excel? Hãy nạp nhanh bộ dữ liệu mẫu có sẵn để kiểm tra giao diện và tính năng bắt lỗi:
@@ -562,7 +562,7 @@
 <div id="leadManualToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
 
 <!-- SheetJS (XLSX) Library for full client-side Excel handling -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 
 <!-- Scripts -->
 <script src="js/theme.js?v=20261014_v3"></script>
