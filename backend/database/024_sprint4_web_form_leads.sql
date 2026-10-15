@@ -37,3 +37,11 @@ INSERT IGNORE INTO permissions (code, name) VALUES
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id FROM roles r CROSS JOIN permissions p
 WHERE r.code = 'ADMIN' AND p.code LIKE 'lead.%';
+
+-- Apply Lead scope only; existing modules retain their configured scopes.
+INSERT INTO role_module_scopes (role_id, module_code, scope_type)
+SELECT r.id, 'lead', CASE r.code WHEN 'ADMIN' THEN 'ALL' WHEN 'DIRECTOR' THEN 'ALL'
+    WHEN 'TEAM_LEAD' THEN 'TEAM' ELSE 'SELF' END
+FROM roles r
+WHERE r.code IN ('ADMIN','DIRECTOR','TEAM_LEAD','SALES_REP','MARKETING')
+ON DUPLICATE KEY UPDATE scope_type = VALUES(scope_type);

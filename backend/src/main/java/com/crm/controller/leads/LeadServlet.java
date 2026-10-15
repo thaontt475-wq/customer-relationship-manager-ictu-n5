@@ -8,6 +8,7 @@ import com.crm.service.leads.LeadService;
 import com.crm.util.IpRateLimiter;
 import com.crm.util.JsonUtil;
 import com.crm.util.ResponseUtil;
+import com.google.gson.JsonParseException;
 
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -39,6 +40,23 @@ public class LeadServlet extends HttpServlet {
         String pathInfo = request.getPathInfo();
         String action = request.getParameter("action");
 
+        if (!"/health".equals(pathInfo)) {
+            var session = request.getSession(false);
+            if (session == null || !(session.getAttribute("userId") instanceof Number)) {
+                ResponseUtil.json(response, 401, ApiResponse.error("Chưa đăng nhập", null));
+                return;
+            }
+            try {
+                new com.crm.service.permissions.AuthorizationService().requirePermission(request, "lead.read");
+            } catch (SecurityException e) {
+                ResponseUtil.json(response, 403, ApiResponse.error("Bạn không có quyền xem Lead", null));
+                return;
+            } catch (Exception e) {
+                ResponseUtil.json(response, 500, ApiResponse.error("Không thể kiểm tra quyền Lead", null));
+                return;
+            }
+        }
+
         // 1. Generate Embed Code API
         if ("/embed-code".equalsIgnoreCase(pathInfo) || "embed-code".equalsIgnoreCase(action)) {
             handleEmbedCode(request, response);
@@ -57,10 +75,16 @@ public class LeadServlet extends HttpServlet {
             int size = parseInt(request.getParameter("size"), 20);
             String status = request.getParameter("status");
             String source = request.getParameter("source");
+            var scope = new com.crm.service.permissions.DataScopeService().resolve(
+                    ((Number) request.getSession(false).getAttribute("userId")).longValue(), "lead", "read");
+            if (page < 1 || size < 1 || size > 100) {
+                ResponseUtil.json(response, 400, ApiResponse.error("Phân trang Lead không hợp lệ", null));
+                return;
+            }
 
             com.crm.dao.leads.LeadDAO dao = new com.crm.dao.leads.LeadDAO();
-            List<Lead> leads = dao.findAll(page, size, status, source);
-            int total = dao.count(status, source);
+            List<Lead> leads = dao.findAll(page, size, status, source, scope);
+            int total = dao.count(status, source, scope);
 
             if ("wrapper".equalsIgnoreCase(request.getParameter("format"))) {
                 java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
@@ -77,7 +101,7 @@ public class LeadServlet extends HttpServlet {
                 response.getWriter().write(JsonUtil.getGson().toJson(leads));
             }
         } catch (Exception e) {
-            ResponseUtil.json(response, 500, ApiResponse.error("Lỗi khi tải danh sách Lead: " + e.getMessage(), null));
+            ResponseUtil.json(response, 500, ApiResponse.error("Không thể tải danh sách Lead", null));
         }
     }
 
@@ -107,12 +131,12 @@ public class LeadServlet extends HttpServlet {
 
             ResponseUtil.json(response, 201, ApiResponse.success("Tiếp nhận thông tin Lead thành công", created));
 
-        } catch (IllegalArgumentException e) {
+        } catch (JsonParseException | IllegalArgumentException e) {
             ResponseUtil.json(response, 400, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {
             System.err.println("Error processing lead web-form submission: " + e.getMessage());
             e.printStackTrace();
-            ResponseUtil.json(response, 500, ApiResponse.error("Lỗi hệ thống khi lưu trữ thông tin Lead: " + e.getMessage(), null));
+            ResponseUtil.json(response, 500, ApiResponse.error("Không thể lưu Lead. Vui lòng thử lại.", null));
         }
     }
 

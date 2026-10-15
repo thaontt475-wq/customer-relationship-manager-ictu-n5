@@ -136,7 +136,8 @@ public class LeadDAO {
     /**
      * Lists leads with pagination and optional status filter.
      */
-    public List<Lead> findAll(int page, int size, String status, String source) throws SQLException {
+    public List<Lead> findAll(int page, int size, String status, String source,
+            com.crm.service.permissions.DataScopeContext scope) throws SQLException {
         List<Lead> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM leads WHERE is_deleted = 0");
         List<Object> params = new ArrayList<>();
@@ -150,6 +151,7 @@ public class LeadDAO {
             params.add(source.trim());
         }
 
+        scope.appendOwnerPredicate("assigned_to", sql, params);
         sql.append(" ORDER BY id DESC LIMIT ? OFFSET ?");
         int offset = Math.max(0, (page - 1) * size);
         params.add(size);
@@ -172,7 +174,8 @@ public class LeadDAO {
     /**
      * Counts leads with optional filters.
      */
-    public int count(String status, String source) throws SQLException {
+    public int count(String status, String source,
+            com.crm.service.permissions.DataScopeContext scope) throws SQLException {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM leads WHERE is_deleted = 0");
         List<Object> params = new ArrayList<>();
 
@@ -185,6 +188,7 @@ public class LeadDAO {
             params.add(source.trim());
         }
 
+        scope.appendOwnerPredicate("assigned_to", sql, params);
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {

@@ -126,7 +126,7 @@ public class LeadService {
         if (formId == null || formId.isBlank()) {
             formId = "crm-web-lead-form";
         }
-        formId = formId.trim();
+        formId = formId.trim().replaceAll("[^A-Za-z0-9_-]", "-");
 
         if (baseUrl == null || baseUrl.isBlank()) {
             baseUrl = "http://localhost:8080/crm";
@@ -143,7 +143,8 @@ public class LeadService {
         if (title == null || title.isBlank()) {
             title = "Biểu mẫu Đăng ký Tư vấn | Corporate CRM";
         }
-        title = title.trim();
+        title = title.trim().replace("&", "&amp;").replace("\"", "&quot;")
+                .replace("<", "&lt;").replace(">", "&gt;").replace("'", "&#39;");
 
         String formUrl = baseUrl + "/lead-capture-form.html?formId=" + formId + "&theme=" + theme;
         String previewUrl = formUrl + "&preview=true";

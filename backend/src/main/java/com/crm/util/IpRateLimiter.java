@@ -91,33 +91,8 @@ public final class IpRateLimiter {
             return "unknown";
         }
 
-        String[] headerCandidates = {
-                "X-Forwarded-For",
-                "Proxy-Client-IP",
-                "WL-Proxy-Client-IP",
-                "HTTP_X_FORWARDED_FOR",
-                "HTTP_X_FORWARDED",
-                "HTTP_X_CLUSTER_CLIENT_IP",
-                "HTTP_CLIENT_IP",
-                "HTTP_FORWARDED_FOR",
-                "HTTP_FORWARDED",
-                "X-Real-IP"
-        };
-
-        for (String header : headerCandidates) {
-            String ipList = request.getHeader(header);
-            if (ipList != null && !ipList.isBlank() && !"unknown".equalsIgnoreCase(ipList)) {
-                // In case of multiple proxies, first IP is original client
-                String[] parts = ipList.split(",");
-                for (String part : parts) {
-                    String ip = part.trim();
-                    if (!ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
-                        return normalizeIp(ip);
-                    }
-                }
-            }
-        }
-
+        // Proxy headers are client-controlled. A trusted container RemoteIpValve may
+        // resolve the original address before this method is called.
         return normalizeIp(request.getRemoteAddr());
     }
 
