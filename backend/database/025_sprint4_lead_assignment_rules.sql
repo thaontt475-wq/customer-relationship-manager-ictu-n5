@@ -99,7 +99,7 @@ INSERT IGNORE INTO lead_assignment_rules (id, rule_code, name, priority_order, r
 (2, 'RULE-02', 'Phân bổ Lead Công nghệ thông tin & Viễn thông', 2, 'NATIONWIDE', 'CNTT', 'ROUND_ROBIN', '["USR-105", "USR-106"]', 'Lead phần mềm, API tích hợp và ERP giao cho đội ngũ chuyên môn IT.', 1, 42, 1),
 (3, 'RULE-03', 'Điều phối Thị trường Miền Nam (Round-Robin)', 3, 'SOUTH', 'ALL', 'ROUND_ROBIN', '["USR-104", "USR-105"]', 'Tất cả khách hàng tiềm năng tại TP.HCM và các tỉnh Nam Bộ.', 1, 35, 0),
 (4, 'RULE-04', 'Điều phối Thị trường Miền Trung (Đà Nẵng & lân cận)', 4, 'CENTRAL', 'ALL', 'DEDICATED', '["USR-103"]', 'Chỉ định trực tiếp Trưởng nhóm chi nhánh miền Trung quản lý.', 1, 19, 0),
-(5, 'RULE-05', 'Khách hàng Doanh nghiệp Toàn quốc - Cân bằng tải', 5, 'NATIONWIDE', 'ALL', 'LOAD_BALANCED', '["USR-101", "USR-104", "USR-106"]', 'Tự động phân cho nhân viên đang có số Lead thấp nhất để giảm quá tải.', 1, 26, 0);
+(5, 'RULE-05', 'Khách hàng Doanh nghiệp Toàn quốc - Cân bằng tải', 5, 'NATIONWIDE', 'Doanh nghiệp', 'LOAD_BALANCED', '["USR-101", "USR-104", "USR-106"]', 'Tự động phân cho nhân viên đang có số Lead thấp nhất để giảm quá tải.', 1, 26, 0);
 
 -- 6. Seed dữ liệu mẫu cho Lịch sử phân bổ
 INSERT IGNORE INTO lead_assignment_history (id, lead_id, lead_name, lead_phone, company_name, rep_id, rep_name, rep_dept, method, note, assigned_at) VALUES
@@ -114,4 +114,12 @@ INSERT IGNORE INTO users (id, full_name, email, password_hash, status, session_v
 (104, 'Phạm Thu Dung', 'dung.pt@company.com', '$2a$10$Xpt0Qh4R1tD2J0d4oHkP.OYt6Yc1f2K4r3l5s6t7u8v9w0x1y2z3a', 'ACTIVE', 1, 'TEAM', 3, '0912104104'),
 (105, 'Vũ Hải Đăng', 'dang.vh@company.com', '$2a$10$Xpt0Qh4R1tD2J0d4oHkP.OYt6Yc1f2K4r3l5s6t7u8v9w0x1y2z3a', 'ACTIVE', 1, 'TEAM', 3, '0912105105'),
 (106, 'Đỗ Minh Tuấn', 'tuan.dm@company.com', '$2a$10$Xpt0Qh4R1tD2J0d4oHkP.OYt6Yc1f2K4r3l5s6t7u8v9w0x1y2z3a', 'ACTIVE', 1, 'ALL', 1, '0912106106');
+
+-- 8. Seed dữ liệu Lead thực tế trong hàng chờ phân bổ (Pending Assignment Queue)
+INSERT IGNORE INTO leads (id, full_name, title, company_name, phone, email, region, region_code, industry, status, assigned_to, unassigned_reason, source) VALUES
+(101, 'Trịnh Xuân Bách', 'Tổng Giám đốc', 'Hệ thống Anh ngữ EduSmart', '0912111222', 'bach.tx@giaoducthongminh.edu.vn', 'Miền Bắc (Hà Nội)', 'NORTH', 'Giáo dục & Đào tạo', 'PENDING_ASSIGNMENT', NULL, 'Chưa có quy tắc chỉ định riêng cho ngành Giáo dục', 'WEBSITE'),
+(102, 'Ngô Phương Thảo', 'Trưởng phòng Thu mua', 'HTX Nông nghiệp Công nghệ cao Xanh', '0988776655', 'thao.np@nongnghiepxanh.vn', 'Miền Trung (Đà Nẵng)', 'CENTRAL', 'Sản xuất & Chế biến', 'PENDING_ASSIGNMENT', NULL, 'Chờ phê duyệt phân bổ đặc thù Miền Trung', 'WEB_FORM'),
+(103, 'Lý Minh Triết', 'Giám đốc Kinh doanh', 'Dược phẩm Sông Tiền Cần Thơ', '0934567890', 'triet.lm@duochaugiang.com', 'Miền Nam (Cần Thơ)', 'SOUTH', 'Dược phẩm & Y tế', 'PENDING_ASSIGNMENT', NULL, 'Khách hàng yêu cầu chuyên gia Dược phẩm miền Nam', 'HOTLINE'),
+(104, 'Bùi Thái Dương', 'Chủ tịch HĐQT', 'Vận tải Biển Hải Phòng Logistics', '0977665544', 'duong.bt@vantaibien.vn', 'Miền Bắc (Hải Phòng)', 'NORTH', 'Sản xuất & Vận tải', 'PENDING_ASSIGNMENT', NULL, 'Lead VIP cần Trưởng phòng chỉ định nhân sự chuyên trách', 'PARTNER');
+
 
