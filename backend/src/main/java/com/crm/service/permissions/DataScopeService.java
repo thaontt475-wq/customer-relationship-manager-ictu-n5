@@ -7,7 +7,7 @@ import java.util.*;
 /** Resolves action-specific scope from database roles, never from request parameters. */
 public class DataScopeService {
     public DataScopeContext resolve(long currentUserId, String module, String action) throws SQLException {
-        if (!Set.of("customer", "opportunity", "activity", "quote", "contract").contains(module)) {
+        if (!Set.of("customer", "opportunity", "activity", "quote", "contract", "lead").contains(module)) {
             throw new IllegalArgumentException("Module phạm vi dữ liệu không hợp lệ");
         }
         String permission = module + "." + action;
@@ -37,6 +37,19 @@ public class DataScopeService {
                     while (rs.next()) {
                         ScopeType candidate = ScopeType.valueOf(rs.getString(1));
                         effective = effective == null ? candidate : ScopeType.widest(effective, candidate);
+                    }
+                }
+            }
+            if (effective == null) {
+                try (PreparedStatement statement = connection.prepareStatement("SELECT data_scope FROM users WHERE id = ?")) {
+                    statement.setLong(1, currentUserId);
+                    try (ResultSet rs = statement.executeQuery()) {
+                        if (rs.next()) {
+                            String ds = rs.getString(1);
+                            if (ds != null && !ds.isBlank()) {
+                                effective = ScopeType.valueOf(ds.trim());
+                            }
+                        }
                     }
                 }
             }
