@@ -627,13 +627,13 @@
                 }
 
                 const leadPayload = {
-                    id: "LD-" + Date.now().toString().slice(-6),
                     fullName: nameInput.value.trim(),
                     phone: phoneClean,
                     email: emailInput.value.trim(),
                     companyName: companyInput ? companyInput.value.trim() : "",
                     notes: notesInput ? notesInput.value.trim() : "",
                     source: sourceParam,
+                    formId: urlParams.get("formId") || "crm-web-lead-form",
                     createdAt: new Date().toISOString(),
                     status: "NEW",
                     utmSource: urlParams.get("utm_source") || "website",
@@ -646,7 +646,10 @@
 
                 try {
                     // Try real backend API endpoint
-                    const apiUrl = (window.CRM_BACKEND_BASE || (window.location.pathname.startsWith("/crm") ? "/crm/api/leads" : "/api/leads"));
+                    const backendBase = window.CRM_BACKEND_BASE || (window.location.pathname.startsWith("/crm/")
+                        ? window.location.origin + "/crm"
+                        : `${window.location.protocol}//${window.location.hostname}:8080/crm`);
+                    const apiUrl = backendBase.replace(/\/+$/, "") + "/api/leads/web-form";
                     const response = await fetch(apiUrl, {
                         method: "POST",
                         headers: {
@@ -656,21 +659,10 @@
                         body: JSON.stringify(leadPayload)
                     });
 
-                    if (!response.ok && response.status !== 404 && response.status !== 500) {
-                        const errData = await response.json().catch(() => ({}));
-                        throw new Error(errData.message || "Không thể gửi biểu mẫu.");
+                    const result = await response.json().catch(() => null);
+                    if (!response.ok || !result?.success || !result.data?.id) {
+                        throw new Error(result?.message || "Không thể gửi biểu mẫu. Vui lòng thử lại.");
                     }
-
-                    // If API is not available or returned 404/500, fallback to localStorage mock store
-                    saveToLocalStorage(leadPayload);
-
-                } catch (err) {
-                    console.warn("Backend API not reachable, saving to local store:", err);
-                    saveToLocalStorage(leadPayload);
-                } finally {
-                    submitBtn.classList.remove("loading");
-                    submitBtn.disabled = false;
-
                     // Transition to Success Screen
                     formContent.style.display = "none";
                     successView.style.display = "block";
@@ -680,23 +672,16 @@
                     try {
                         window.parent.postMessage({
                             type: "crm-form-submitted",
-                            lead: leadPayload
+                            lead: result.data
                         }, "*");
                     } catch (_) {}
+                } catch (err) {
+                    showToast(err.message || "Không thể kết nối máy chủ. Vui lòng thử lại.", true);
+                } finally {
+                    submitBtn.classList.remove("loading");
+                    submitBtn.disabled = false;
                 }
             });
-
-            // Save to LocalStorage Mock Store
-            function saveToLocalStorage(lead) {
-                try {
-                    const raw = localStorage.getItem("crm_captured_leads");
-                    const list = raw ? JSON.parse(raw) : [];
-                    list.unshift(lead);
-                    localStorage.setItem("crm_captured_leads", JSON.stringify(list));
-                } catch (e) {
-                    console.error("Could not write lead to localStorage:", e);
-                }
-            }
 
             // Reset form for another submission
             btnSendAnother.addEventListener("click", () => {

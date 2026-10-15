@@ -38,7 +38,12 @@ public class CorsFilter implements Filter {
 
         if (
                 origin != null &&
-                (ALLOWED_ORIGINS.contains(origin) || httpRequest.getRequestURI().contains("/api/leads"))
+                (ALLOWED_ORIGINS.contains(origin) ||
+                        ("POST".equalsIgnoreCase(httpRequest.getMethod()) ||
+                         ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod()) &&
+                          "POST".equalsIgnoreCase(httpRequest.getHeader("Access-Control-Request-Method")))) &&
+                        (httpRequest.getRequestURI().equals(httpRequest.getContextPath() + "/api/leads") ||
+                         httpRequest.getRequestURI().equals(httpRequest.getContextPath() + "/api/leads/web-form")))
         ) {
 
             httpResponse.setHeader(
@@ -48,7 +53,7 @@ public class CorsFilter implements Filter {
 
             httpResponse.setHeader(
                     "Access-Control-Allow-Credentials",
-                    "true"
+                    String.valueOf(ALLOWED_ORIGINS.contains(origin))
             );
         }
 

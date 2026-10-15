@@ -256,7 +256,7 @@
         }
 
         // Sinh mã nhúng
-        const absoluteUrl = `${origin}/crm/${formUrl}?${queryString}`;
+        const absoluteUrl = new URL(fullPreviewSrc, window.location.href).href;
         const embedSnippet = `<iframe src="${absoluteUrl}" width="100%" height="560" style="border:none; border-radius:14px; box-shadow:0 15px 35px rgba(0,0,0,0.1); max-width:540px; margin:0 auto; display:block;" title="Biểu mẫu thu thập Lead Website" loading="lazy"></iframe>`;
 
         if (dom.txtEmbedCode) {
@@ -300,6 +300,7 @@
         try {
             const response = await fetch(API_ENDPOINT, {
                 method: "GET",
+                credentials: "include",
                 headers: { "Accept": "application/json" }
             });
 
@@ -316,6 +317,7 @@
                 allLeads = list || [];
             } else {
                 allLeads = [];
+                showToast("Không thể tải danh sách Lead từ máy chủ", "danger");
             }
         } catch (err) {
             console.error("Lỗi khi tải dữ liệu Lead từ Database:", err);
@@ -549,7 +551,7 @@
                 const target = e.currentTarget;
                 const action = target.dataset.action;
                 const id = target.dataset.id;
-                const lead = allLeads.find(l => l.id === id);
+                const lead = allLeads.find(l => String(l.id) === String(id));
                 if (!lead) return;
 
                 if (action === "view") {
@@ -571,74 +573,14 @@
      * Chuyển đổi Lead thành Khách hàng chính thức trong hệ thống CRM
      */
     function handleConvertLeadToCustomer(lead) {
-        if (!lead) return;
-
-        if (lead.status === "CONVERTED") {
-            showToast("Lead này đã được chuyển thành Khách hàng trước đó!", "warning");
-            return;
-        }
-
-        const confirmMsg = `Bạn có chắc chắn muốn chuyển đổi Lead "${lead.fullName}" (${lead.companyName || "Cá nhân"}) thành Khách hàng chính thức trong CRM?`;
-        if (!window.confirm(confirmMsg)) return;
-
-        // 1. Cập nhật trạng thái Lead
-        lead.status = "CONVERTED";
-        lead.convertedAt = new Date().toISOString();
-        saveLeadsLocally();
-
-        // 2. Thêm vào kho khách hàng UI (LocalStorage crm_ui_customers)
-        try {
-            let customers = [];
-            const rawCustomers = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
-            if (rawCustomers) {
-                customers = JSON.parse(rawCustomers);
-            }
-
-            const newCustomerId = `CUST-${Date.now().toString().slice(-4)}`;
-            const newCustomer = {
-                id: newCustomerId,
-                code: `KH-${Date.now().toString().slice(-4)}`,
-                name: lead.companyName || lead.fullName,
-                contactPerson: lead.fullName,
-                phone: lead.phone,
-                email: lead.email,
-                address: "Chưa cập nhật",
-                taxCode: "",
-                industry: "Công nghệ / Dịch vụ",
-                source: "Website Form (CRM-113)",
-                status: "ACTIVE",
-                notes: `Chuyển đổi từ Lead Web Form ngày ${new Date().toLocaleDateString("vi-VN")}. Nhu cầu ban đầu: ${lead.notes || "Không"}`,
-                createdAt: new Date().toISOString()
-            };
-
-            customers.unshift(newCustomer);
-            localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(customers));
-        } catch (e) {
-            console.warn("Không thể lưu trực tiếp vào crm_ui_customers:", e);
-        }
-
-        // 3. Phản hồi giao diện
-        updateKpiCounters();
-        renderLeadsTable();
-        if (dom.leadDetailModal && dom.leadDetailModal.classList.contains("active")) {
-            closeLeadDetailModal();
-        }
-
-        showToast(`Đã chuyển đổi thành công Khách hàng "${lead.companyName || lead.fullName}"!`, "success");
+        showToast("Chức năng chuyển đổi Lead hiện chưa khả dụng.", "warning");
     }
 
     /**
      * Xóa Lead khỏi danh sách
      */
     function handleDeleteLead(lead) {
-        if (!lead) return;
-        if (!window.confirm(`Xác nhận xóa Lead "${lead.fullName}" khỏi hệ thống?`)) return;
-
-        allLeads = allLeads.filter(l => l.id !== lead.id);
-        saveLeadsLocally();
-        updateKpiCounters();
-        renderLeadsTable();
-        showToast("Đã xóa Lead thành công", "info");
+        showToast("Chức năng xóa Lead hiện chưa khả dụng. Dữ liệu chưa được thay đổi.", "warning");
     }
 
     /**
@@ -707,12 +649,7 @@
         if (dom.btnModalMarkContacted) {
             dom.btnModalMarkContacted.addEventListener("click", () => {
                 if (!currentSelectedLead) return;
-                currentSelectedLead.status = "CONTACTED";
-                saveLeadsLocally();
-                updateKpiCounters();
-                renderLeadsTable();
-                closeLeadDetailModal();
-                showToast("Đã đánh dấu Lead là ĐÃ LIÊN HỆ TƯ VẤN", "info");
+                showToast("Chức năng cập nhật trạng thái hiện chưa khả dụng. Dữ liệu chưa được thay đổi.", "warning");
             });
         }
 
