@@ -21,6 +21,7 @@
 
     const API_DUPLICATES = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`) + "/api/leads/duplicates";
     const API_MERGE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`) + "/api/leads/merge";
+    const API_ATTACH = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`) + "/api/leads/attach-customer";
 
     // State
     let allLeads = [];
@@ -81,14 +82,42 @@
        1. INITIALIZATION & DATA SEEDING
        =================================================================== */
 
-    function init() {
+    async function init() {
         loadBaseData();
         bindFilterEvents();
         bindMergeModalEvents();
         bindAttachModalEvents();
 
-        // Initial scan / render
-        scanAndRenderDuplicates();
+        // Fetch duplicates from real backend if available
+        const loaded = await fetchDuplicatesFromBackend();
+        if (!loaded) {
+            scanAndRenderDuplicates();
+        }
+    }
+
+    async function fetchDuplicatesFromBackend() {
+        try {
+            const resp = await fetch(API_DUPLICATES, {
+                method: "GET",
+                headers: { "Accept": "application/json" },
+                credentials: "include"
+            });
+            if (resp.ok) {
+                let data = await resp.json().catch(() => null);
+                if (data && data.data && Array.isArray(data.data)) {
+                    data = data.data;
+                }
+                if (Array.isArray(data)) {
+                    duplicatePairs = data;
+                    saveDuplicatesLocally();
+                    scanAndRenderDuplicates();
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not fetch duplicates from backend:", e);
+        }
+        return false;
     }
 
     function loadBaseData() {
@@ -308,28 +337,33 @@
         dom.btnScanDuplicates.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang quét...';
 
         try {
-            // Call REST API: GET /api/leads/duplicates
             const resp = await fetch(API_DUPLICATES, {
                 method: "GET",
-                headers: { "Accept": "application/json" }
+                headers: { "Accept": "application/json" },
+                credentials: "include"
             });
             if (resp.ok) {
-                const data = await resp.json().catch(() => null);
+                let data = await resp.json().catch(() => null);
+                if (data && data.data && Array.isArray(data.data)) {
+                    data = data.data;
+                }
                 if (Array.isArray(data)) {
                     duplicatePairs = data;
                     saveDuplicatesLocally();
+                    scanAndRenderDuplicates();
+                    showToast("✓ Đã hoàn tất phân tích đối soát dữ liệu trùng lặp trên toàn hệ thống!", "success");
                 }
+            } else {
+                const errJson = await resp.json().catch(() => null);
+                const errMsg = (errJson && errJson.message) || `Lỗi quét trùng lặp (HTTP ${resp.status})`;
+                showToast(errMsg, "danger");
             }
-        } catch (_) {
-            console.warn("Backend API /api/leads/duplicates offline, giữ nguyên mock.");
-        }
-
-        setTimeout(() => {
+        } catch (err) {
+            showToast("Lỗi kết nối khi quét trùng lặp: " + err.message, "danger");
+        } finally {
             dom.btnScanDuplicates.disabled = false;
             dom.btnScanDuplicates.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Quét lại trùng lặp';
-            scanAndRenderDuplicates();
-            showToast("✓ Đã hoàn tất phân tích đối soát dữ liệu trùng lặp trên toàn hệ thống!", "success");
-        }, 500);
+        }
     }
 
     function handleGenerateRandomDuplicate() {
@@ -768,7 +802,7 @@
         const retainHistory = dom.chkRetainHistory ? dom.chkRetainHistory.checked : true;
 
         const mergedNotes = retainHistory 
-            ? `[Gốc - ${A.source}]: ${A.notes || "Không có"}\n--- Lịch sử bổ sung từ ${B.source} (${B.id}): ${B.notes || "Không có"}`
+            ? `[Gốc - ${A.source || "Bản A"}]: ${A.notes || "Không có"}\n--- Lịch sử bổ sung từ ${B.source || "Bản B"} (${B.id}): ${B.notes || "Không có"}`
             : (selectedFieldValues.notesSelection === "B" ? B.notes : A.notes);
 
         const mergedPayload = {
@@ -789,50 +823,54 @@
         };
 
         try {
-            // Call REST API
             const resp = await fetch(API_MERGE, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     "Accept": "application/json"
                 },
+                credentials: "include",
                 body: JSON.stringify(mergedPayload)
             });
 
-            if (resp.ok) {
-                console.log("Backend merged successfully");
+            const resJson = await resp.json().catch(() => null);
+            if (!resp.ok) {
+                const errMsg = (resJson && resJson.message) || `Lỗi gộp lead (HTTP ${resp.status})`;
+                showToast(errMsg, "danger");
+                dom.btnConfirmMerge.disabled = false;
+                dom.btnConfirmMergeText.textContent = "Xác nhận gộp Lead";
+                return;
             }
-        } catch (_) {
-            console.warn("Backend API /api/leads/merge offline, cập nhật an toàn vào localStorage.");
-        }
 
-        // Update local storage
-        // 1. Update Master Lead in allLeads
-        const masterIdx = allLeads.findIndex(l => l.id === A.id);
-        if (masterIdx !== -1) {
-            allLeads[masterIdx] = { ...allLeads[masterIdx], ...mergedPayload.mergedData };
-        } else {
-            allLeads.unshift(mergedPayload.mergedData);
-        }
+            // Update Master Lead in allLeads
+            const masterIdx = allLeads.findIndex(l => l.id === A.id);
+            if (masterIdx !== -1) {
+                allLeads[masterIdx] = { ...allLeads[masterIdx], ...mergedPayload.mergedData };
+            } else {
+                allLeads.unshift(mergedPayload.mergedData);
+            }
 
-        // 2. Remove duplicate lead from allLeads
-        allLeads = allLeads.filter(l => l.id !== B.id);
-        try {
-            localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(allLeads));
-        } catch (_) {}
+            // Remove duplicate lead from allLeads
+            allLeads = allLeads.filter(l => l.id !== B.id);
+            try {
+                localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(allLeads));
+            } catch (_) {}
 
-        // 3. Remove pair from duplicatePairs
-        duplicatePairs = duplicatePairs.filter(p => p.id !== currentPair.id);
-        saveDuplicatesLocally();
+            duplicatePairs = duplicatePairs.filter(p => p.id !== currentPair.id);
+            saveDuplicatesLocally();
 
-        setTimeout(() => {
             dom.btnConfirmMerge.disabled = false;
             dom.btnConfirmMergeText.textContent = "Xác nhận gộp Lead";
             closeMergeModal();
 
-            scanAndRenderDuplicates();
             showToast(`✓ Đã gộp thành công bản ghi "${B.fullName}" vào Master "${A.fullName}" và bảo toàn toàn bộ lịch sử!`, "success");
-        }, 500);
+            await fetchDuplicatesFromBackend();
+
+        } catch (err) {
+            showToast("Lỗi kết nối khi gộp Lead: " + err.message, "danger");
+            dom.btnConfirmMerge.disabled = false;
+            dom.btnConfirmMergeText.textContent = "Xác nhận gộp Lead";
+        }
     }
 
     /* ===================================================================
@@ -889,35 +927,48 @@
         currentPair = null;
     }
 
-    function executeAttachToCustomer() {
+    async function executeAttachToCustomer() {
         if (!currentPair) return;
         const lead = currentPair.recordA;
         const customer = currentPair.recordB;
 
-        // Remove from duplicatePairs
-        duplicatePairs = duplicatePairs.filter(p => p.id !== currentPair.id);
-        saveDuplicatesLocally();
+        dom.btnConfirmAttach.disabled = true;
+        dom.btnConfirmAttach.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang liên kết...';
 
-        // Update customer notes
         try {
-            const rawCust = localStorage.getItem(STORAGE_KEY_CUSTOMERS);
-            let custs = rawCust ? JSON.parse(rawCust) : [];
-            const idx = custs.findIndex(c => c.id === customer.id);
-            if (idx !== -1) {
-                custs[idx].notes = (custs[idx].notes || "") + `\n[Lead gắn vào ${new Date().toLocaleDateString("vi-VN")}]: ${lead.fullName} (${lead.phone}) - ${lead.notes || ""}`;
-                localStorage.setItem(STORAGE_KEY_CUSTOMERS, JSON.stringify(custs));
+            const resp = await fetch(API_ATTACH, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    leadId: lead.id,
+                    customerId: customer.customerId || customer.id,
+                    notes: lead.notes || ""
+                })
+            });
+
+            const resJson = await resp.json().catch(() => null);
+            if (!resp.ok) {
+                const errMsg = (resJson && resJson.message) || `Lỗi liên kết khách hàng (HTTP ${resp.status})`;
+                showToast(errMsg, "danger");
+                return;
             }
-        } catch (_) {}
 
-        // Remove lead or mark as CONVERTED
-        allLeads = allLeads.filter(l => l.id !== lead.id);
-        try {
-            localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(allLeads));
-        } catch (_) {}
+            closeAttachModal();
+            duplicatePairs = duplicatePairs.filter(p => p.id !== currentPair.id);
+            saveDuplicatesLocally();
+            showToast(`✓ Đã gắn thành công Lead "${lead.fullName}" vào Khách hàng "${customer.companyName || customer.fullName}"!`, "success");
+            await fetchDuplicatesFromBackend();
 
-        closeAttachModal();
-        scanAndRenderDuplicates();
-        showToast(`✓ Đã gắn thành công Lead "${lead.fullName}" vào Khách hàng "${customer.companyName || customer.fullName}"!`, "success");
+        } catch (err) {
+            showToast("Lỗi kết nối khi gắn Lead vào khách hàng: " + err.message, "danger");
+        } finally {
+            dom.btnConfirmAttach.disabled = false;
+            dom.btnConfirmAttach.innerHTML = '<i class="fa-solid fa-link"></i> Xác nhận gắn vào Khách hàng này';
+        }
     }
 
     /* ===================================================================

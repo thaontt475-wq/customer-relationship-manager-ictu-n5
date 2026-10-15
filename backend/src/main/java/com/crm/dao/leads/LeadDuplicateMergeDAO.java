@@ -54,6 +54,7 @@ public class LeadDuplicateMergeDAO {
     public List<Map<String, Object>> findActiveLeads(Connection c, DataScopeContext scope, int limit) throws SQLException {
         boolean hasMergedInto = hasColumn(c, "leads", "merged_into_id");
         boolean hasTitle = hasColumn(c, "leads", "title");
+        boolean hasCustomerId = hasColumn(c, "leads", "customer_id");
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT l.id, l.full_name AS fullName, l.company_name AS companyName, l.email, l.phone, ");
@@ -64,6 +65,9 @@ public class LeadDuplicateMergeDAO {
         }
         if (hasMergedInto) {
             sql.append("l.merged_into_id AS mergedIntoId, ");
+        }
+        if (hasCustomerId) {
+            sql.append("l.customer_id AS customerId, ");
         }
         sql.append("s.name AS sourceName, s.code AS sourceCode ");
         sql.append("FROM leads l ");
@@ -146,6 +150,7 @@ public class LeadDuplicateMergeDAO {
     public Map<String, Object> findLeadById(Connection c, long leadId) throws SQLException {
         boolean hasMergedInto = hasColumn(c, "leads", "merged_into_id");
         boolean hasTitle = hasColumn(c, "leads", "title");
+        boolean hasCustomerId = hasColumn(c, "leads", "customer_id");
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT l.id, l.full_name AS fullName, l.company_name AS companyName, l.email, l.phone, ");
@@ -156,6 +161,9 @@ public class LeadDuplicateMergeDAO {
         }
         if (hasMergedInto) {
             sql.append("l.merged_into_id AS mergedIntoId, ");
+        }
+        if (hasCustomerId) {
+            sql.append("l.customer_id AS customerId, ");
         }
         sql.append("s.name AS sourceName, s.code AS sourceCode ");
         sql.append("FROM leads l LEFT JOIN master_data s ON s.id = l.source_id WHERE l.id = ?");
@@ -191,6 +199,7 @@ public class LeadDuplicateMergeDAO {
 
         boolean hasMergedInto = hasColumn(c, "leads", "merged_into_id");
         boolean hasTitle = hasColumn(c, "leads", "title");
+        boolean hasCustomerId = hasColumn(c, "leads", "customer_id");
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT l.id, l.full_name AS fullName, l.company_name AS companyName, l.email, l.phone, ");
@@ -201,6 +210,9 @@ public class LeadDuplicateMergeDAO {
         }
         if (hasMergedInto) {
             sql.append("l.merged_into_id AS mergedIntoId, ");
+        }
+        if (hasCustomerId) {
+            sql.append("l.customer_id AS customerId, ");
         }
         sql.append("s.name AS sourceName, s.code AS sourceCode ");
         sql.append("FROM leads l LEFT JOIN master_data s ON s.id = l.source_id ");
@@ -424,6 +436,7 @@ public class LeadDuplicateMergeDAO {
         map.put("createdBy", getColLong(rs, "createdBy", "created_by"));
         map.put("title", getColStr(rs, "title"));
         map.put("mergedIntoId", getColLong(rs, "mergedIntoId", "merged_into_id"));
+        map.put("customerId", getColLong(rs, "customerId", "customer_id"));
 
         String sourceName = getColStr(rs, "sourceName", "source_name");
         String sourceCode = getColStr(rs, "sourceCode", "source_code");

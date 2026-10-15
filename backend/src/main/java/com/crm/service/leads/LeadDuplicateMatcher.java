@@ -146,6 +146,11 @@ public class LeadDuplicateMatcher {
 
     public static LeadDuplicatePairDTO matchLeadAndCustomer(Map<String, Object> lead, Map<String, Object> customer) {
         if (lead == null || customer == null) return null;
+        Object leadCustId = lead.get("customerId");
+        Object custId = customer.get("id");
+        if (leadCustId != null && custId != null && Objects.equals(String.valueOf(leadCustId), String.valueOf(custId))) {
+            return null;
+        }
 
         String leadPhone = (String) lead.get("phone");
         String custPhone = (String) customer.get("phone");
@@ -169,7 +174,6 @@ public class LeadDuplicateMatcher {
             return null;
         }
 
-        Object custId = customer.get("id");
         List<String> matchedFields = new ArrayList<>();
         matchedFields.add("Trùng khớp Khách hàng CRM (Mã KH-" + custId + ")");
         if (phoneMatch) {
