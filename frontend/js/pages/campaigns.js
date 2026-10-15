@@ -10,6 +10,7 @@ let currentStatus = "";
 let currentType = "";
 let activeCampaignId = null;
 let isOfflineMode = false;
+let currentCampaignsList = [];
 
 // Mock storage keys
 const STORAGE_CAMPAIGNS = "crm_mock_campaigns_s4";
@@ -422,6 +423,7 @@ async function loadCampaigns() {
             if (currentType) {
                 filteredItems = filteredItems.filter(c => c.type === currentType);
             }
+            currentCampaignsList = filteredItems;
 
             // Also fetch all campaigns for KPI metrics calculation if possible
             const allRes = await apiFetch(`/campaigns?page=1&size=1000`).catch(() => null);
@@ -635,7 +637,9 @@ async function openEditModal(id) {
             openCampaignModal(res.data);
             return;
         } catch (err) {
-            console.warn("API error fetching detail, checking mock:", err.message);
+            console.error("API error fetching detail:", err.message);
+            notify("Không thể tải chi tiết chiến dịch: " + err.message, "error");
+            return;
         }
     }
 
@@ -704,7 +708,9 @@ async function handleSaveCampaign(e) {
             loadCampaigns();
             return;
         } catch (err) {
-            console.warn("API save failed, falling back to mock save:", err.message);
+            console.error("API save failed:", err.message);
+            notify(err.message, "error");
+            return;
         }
     }
 
@@ -752,7 +758,9 @@ function handleDeleteCampaign(id) {
                     loadCampaigns();
                     return;
                 } catch (err) {
-                    console.warn("API delete failed, falling back to mock delete:", err.message);
+                    console.error("API delete failed:", err.message);
+                    notify(err.message, "error");
+                    return;
                 }
             }
 
@@ -802,7 +810,11 @@ async function loadLinkedLeads() {
             renderLinkedLeads(res.data);
             return;
         } catch (err) {
-            console.warn("API leads error, falling back to mock leads:", err.message);
+            console.error("API leads error:", err.message);
+            listContainer.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: #ef4444;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Lỗi tải danh sách Lead: ${escapeHtml(err.message)}
+            </td></tr>`;
+            return;
         }
     }
 
@@ -936,7 +948,9 @@ async function loadAvailableLeadsDropdown() {
             renderAvailableLeadsDropdown(res.data);
             return;
         } catch (err) {
-            console.warn("API available leads error, using mock:", err.message);
+            console.error("API available leads error:", err.message);
+            select.innerHTML = `<option value="">(Lỗi tải danh sách Lead: ${escapeHtml(err.message)})</option>`;
+            return;
         }
     }
 
@@ -985,7 +999,9 @@ async function handleAddLeadToCampaign() {
             loadAvailableLeadsDropdown();
             return;
         } catch (err) {
-            console.warn("API link lead failed, falling back to mock:", err.message);
+            console.error("API link lead failed:", err.message);
+            notify(err.message, "error");
+            return;
         }
     }
 
@@ -1019,7 +1035,9 @@ async function handleUpdateLeadStatus(leadId, newStatus, selectEl) {
             loadLinkedLeads();
             return;
         } catch (err) {
-            console.warn("API update lead status failed, using mock:", err.message);
+            console.error("API update lead status failed:", err.message);
+            notify(err.message, "error");
+            return;
         }
     }
 
@@ -1054,7 +1072,9 @@ function handleUnlinkLead(leadId) {
                     loadAvailableLeadsDropdown();
                     return;
                 } catch (err) {
-                    console.warn("API unlink lead failed, using mock:", err.message);
+                    console.error("API unlink lead failed:", err.message);
+                    notify(err.message, "error");
+                    return;
                 }
             }
 
@@ -1072,7 +1092,7 @@ function handleUnlinkLead(leadId) {
 
 // Export Campaigns to CSV
 function exportCampaignsToCSV() {
-    const campaigns = getMockCampaigns();
+    const campaigns = (currentCampaignsList && currentCampaignsList.length > 0) ? currentCampaignsList : getMockCampaigns();
     if (!campaigns || campaigns.length === 0) {
         notify("Không có dữ liệu chiến dịch để xuất CSV!", "error");
         return;
