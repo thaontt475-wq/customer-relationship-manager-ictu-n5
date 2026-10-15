@@ -284,8 +284,16 @@
         renderHistoryTable();
     }
 
-    function saveRules() {
+    function saveRules(syncBackend = true) {
         localStorage.setItem(STORAGE_KEY_RULES, JSON.stringify(assignmentRules));
+        if (syncBackend && window.CrmApi) {
+            window.CrmApi.request("/api/leads/assignment-rules", {
+                method: "POST",
+                body: JSON.stringify(assignmentRules)
+            }).catch(err => {
+                console.warn("[CRM-120 API] Sync rules failed:", err);
+            });
+        }
     }
 
     function saveQueue() {
@@ -308,7 +316,7 @@
                     const data = await window.CrmApi.request("/api/leads/assignment-rules");
                     if (data && Array.isArray(data)) {
                         assignmentRules = data;
-                        saveRules();
+                        saveRules(false);
                         return data;
                     }
                 }
@@ -320,7 +328,7 @@
 
         async saveAssignmentRules(rules) {
             assignmentRules = rules;
-            saveRules();
+            saveRules(false);
             try {
                 if (window.CrmApi) {
                     const data = await window.CrmApi.request("/api/leads/assignment-rules", {
@@ -435,7 +443,7 @@
                 let industryMatch = false;
 
                 // Region Match
-                if (rule.region === "NATIONWIDE") {
+                if (rule.region === "NATIONWIDE" || rule.region === "ALL") {
                     regionMatch = true;
                 } else if (rule.region === "NORTH" && (lead.region.includes("Bắc") || lead.regionCode === "NORTH")) {
                     regionMatch = true;
@@ -443,12 +451,14 @@
                     regionMatch = true;
                 } else if (rule.region === "SOUTH" && (lead.region.includes("Nam") || lead.regionCode === "SOUTH")) {
                     regionMatch = true;
+                } else if (rule.region.toLowerCase() === (lead.regionCode || "").toLowerCase() || rule.region.toLowerCase() === (lead.region || "").toLowerCase()) {
+                    regionMatch = true;
                 }
 
                 // Industry Match
-                if (rule.industry === "ALL") {
+                if (rule.industry === "ALL" || !rule.industry) {
                     industryMatch = true;
-                } else if (lead.industry.toLowerCase().includes(rule.industry.toLowerCase())) {
+                } else if (lead.industry && (lead.industry.toLowerCase().includes(rule.industry.toLowerCase()) || rule.industry.toLowerCase().includes(lead.industry.toLowerCase()))) {
                     industryMatch = true;
                 }
 
@@ -465,16 +475,16 @@
                 if (matchedRule.mechanism === "ROUND_ROBIN") {
                     const repIndex = (matchedRule.lastAssignedIndex || 0) % matchedRule.reps.length;
                     const repId = matchedRule.reps[repIndex];
-                    targetRep = salesReps.find(r => r.id === repId);
+                    targetRep = salesReps.find(r => String(r.id) === String(repId));
                     matchedRule.lastAssignedIndex = repIndex + 1;
                 } else if (matchedRule.mechanism === "LOAD_BALANCED") {
                     // Pick rep with fewest current leads
-                    const ruleReps = salesReps.filter(r => matchedRule.reps.includes(r.id));
+                    const ruleReps = salesReps.filter(r => matchedRule.reps && matchedRule.reps.map(String).includes(String(r.id)));
                     ruleReps.sort((a, b) => a.currentLeads - b.currentLeads);
                     targetRep = ruleReps[0];
                 } else {
                     // DEDICATED
-                    targetRep = salesReps.find(r => r.id === matchedRule.reps[0]);
+                    targetRep = salesReps.find(r => String(r.id) === String(matchedRule.reps[0]));
                 }
 
                 if (!targetRep) targetRep = salesReps[0];
@@ -716,7 +726,7 @@
         dom.rulesTableBody.querySelectorAll(".rule-toggle-active").forEach(chk => {
             chk.addEventListener("change", () => {
                 const ruleId = chk.getAttribute("data-rule-id");
-                const rule = assignmentRules.find(r => r.id === ruleId);
+                const rule = assignmentRules.find(r => String(r.id) === String(ruleId));
                 if (rule) {
                     rule.isActive = chk.checked;
                     saveRules();
@@ -737,9 +747,9 @@
         dom.rulesTableBody.querySelectorAll(".btn-delete-rule").forEach(btn => {
             btn.addEventListener("click", () => {
                 const ruleId = btn.getAttribute("data-rule-id");
-                const rule = assignmentRules.find(r => r.id === ruleId);
+                const rule = assignmentRules.find(r => String(r.id) === String(ruleId));
                 if (confirm(`Bạn có chắc chắn muốn xóa quy tắc "${rule?.name}" không?`)) {
-                    assignmentRules = assignmentRules.filter(r => r.id !== ruleId);
+                    assignmentRules = assignmentRules.filter(r => String(r.id) !== String(ruleId));
                     // Re-index priorities
                     assignmentRules.forEach((r, i) => r.priority = i + 1);
                     saveRules();
@@ -753,7 +763,7 @@
 
     function movePriority(ruleId, delta) {
         assignmentRules.sort((a, b) => a.priority - b.priority);
-        const index = assignmentRules.findIndex(r => r.id === ruleId);
+        const index = assignmentRules.findIndex(r => String(r.id) === String(ruleId));
         if (index === -1) return;
 
         const targetIndex = index + delta;
@@ -876,7 +886,7 @@
         const filtered = assignmentHistory.filter(h => {
             if (methodFilter === "AUTO" && !h.method.startsWith("Tự động")) return false;
             if (methodFilter === "MANUAL" && !h.method.startsWith("Thủ công")) return false;
-            if (repFilter !== "ALL" && h.repId !== repFilter) return false;
+            if (repFilter !== "ALL" && String(h.repId) !== String(repFilter)) return false;
 
             if (query) {
                 const searchStr = `${h.leadName} ${h.leadPhone} ${h.companyName} ${h.repName} ${h.method} ${h.note}`.toLowerCase();
@@ -963,7 +973,7 @@
         renderRepsChecklist();
 
         if (ruleId) {
-            const rule = assignmentRules.find(r => r.id === ruleId);
+            const rule = assignmentRules.find(r => String(r.id) === String(ruleId));
             if (!rule) return;
             if (dom.ruleModalTitle) dom.ruleModalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-primary"></i> Chỉnh sửa quy tắc phân bổ`;
             if (dom.ruleId) dom.ruleId.value = rule.id;
@@ -979,7 +989,7 @@
             if (dom.repsChecklist) {
                 const checkboxes = dom.repsChecklist.querySelectorAll(".rep-checkbox");
                 checkboxes.forEach(chk => {
-                    chk.checked = rule.reps.includes(chk.value);
+                    chk.checked = rule.reps && rule.reps.map(String).includes(String(chk.value));
                 });
             }
         } else {
@@ -1073,7 +1083,7 @@
         const ruleId = dom.ruleId ? dom.ruleId.value : "";
 
         if (ruleId) {
-            const rule = assignmentRules.find(r => r.id === ruleId);
+            const rule = assignmentRules.find(r => String(r.id) === String(ruleId));
             if (rule) {
                 rule.name = name;
                 rule.region = region;
@@ -1113,7 +1123,7 @@
 
     // 14. MODALS: MANUAL ASSIGN MODAL
     function openManualAssignModal(leadId) {
-        const lead = unassignedQueue.find(l => l.id === leadId);
+        const lead = unassignedQueue.find(l => String(l.id) === String(leadId));
         if (!lead || !dom.manualAssignModal) return;
 
         currentManualAssignLead = lead;
@@ -1123,11 +1133,11 @@
                 <div>
                     <div style="font-size: 15px; font-weight: 800; color: var(--crm-text);">${escapeHtml(lead.fullName)}</div>
                     <div class="lead-meta">${escapeHtml(lead.companyName)} &bull; <i class="fa-solid fa-location-dot text-danger"></i> ${escapeHtml(lead.region)}</div>
-                    <div class="lead-meta">Ngành nghề: <strong>${escapeHtml(lead.industry)}</strong> (${lead.employeeCount} nhân sự)</div>
+                    <div class="lead-meta">Ngành nghề: <strong>${escapeHtml(lead.industry)}</strong> (${lead.employeeCount || "Khách hàng B2B"})</div>
                 </div>
                 <div style="text-align: right;">
                     <span style="font-size: 11.5px; color: #b45309; background: #fef3c7; padding: 4px 8px; border-radius: 4px; font-weight: 600;">
-                        ${escapeHtml(lead.reason)}
+                        ${escapeHtml(lead.reason || lead.unassignedReason || "Chờ phân bổ")}
                     </span>
                 </div>
             `;
@@ -1144,7 +1154,7 @@
         }
 
         if (dom.manualAssignNote) {
-            dom.manualAssignNote.value = `Chỉ định trực tiếp bởi Trưởng nhóm Nông Quang Tiệp cho khách hàng ${lead.companyName}.`;
+            dom.manualAssignNote.value = `Chỉ định trực tiếp bởi Quản trị viên cho khách hàng ${lead.companyName || lead.fullName}.`;
         }
 
         dom.manualAssignModal.classList.add("active");
@@ -1160,28 +1170,50 @@
 
         const repId = dom.manualAssignRepSelect ? dom.manualAssignRepSelect.value : "";
         const note = dom.manualAssignNote ? dom.manualAssignNote.value.trim() : "";
-        const targetRep = salesReps.find(r => r.id === repId);
+        const targetRep = salesReps.find(r => String(r.id) === String(repId));
 
         if (!targetRep) {
             alert("Vui lòng chọn nhân viên kinh doanh tiếp nhận!");
             return;
         }
 
-        // Execute Manual Assign via Service
-        await window.LeadAssignmentService.assignLeadManual(currentManualAssignLead.id, repId, note);
+        const assignBtn = dom.btnConfirmManualAssign;
+        const origText = assignBtn ? assignBtn.innerHTML : "";
+        if (assignBtn) {
+            assignBtn.disabled = true;
+            assignBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang phân công...`;
+        }
 
-        await Promise.allSettled([
-            window.LeadAssignmentService.getUnassignedQueue(),
-            window.LeadAssignmentService.getAssignmentHistory(),
-            window.LeadAssignmentService.getSalesReps()
-        ]);
+        try {
+            // Execute Manual Assign via Service
+            await window.LeadAssignmentService.assignLeadManual(currentManualAssignLead.id, repId, note);
 
-        closeManualAssignModal();
-        updateKpis();
-        renderQueueTable();
-        renderHistoryTable();
+            await Promise.allSettled([
+                window.LeadAssignmentService.getUnassignedQueue(),
+                window.LeadAssignmentService.getAssignmentHistory(),
+                window.LeadAssignmentService.getSalesReps()
+            ]);
 
-        showToast(`🎯 Đã phân bổ thành công Lead "${currentManualAssignLead.fullName}" cho chuyên viên ${targetRep.name}!`, "success");
+            if (assignBtn) {
+                assignBtn.disabled = false;
+                assignBtn.innerHTML = origText;
+            }
+
+            closeManualAssignModal();
+            updateKpis();
+            renderRulesTable();
+            renderQueueTable();
+            renderHistoryTable();
+
+            showToast(`🎯 Đã phân bổ thành công Lead "${currentManualAssignLead.fullName}" cho chuyên viên ${targetRep.name}!`, "success");
+        } catch (err) {
+            if (assignBtn) {
+                assignBtn.disabled = false;
+                assignBtn.innerHTML = origText;
+            }
+            console.error("Manual assign error:", err);
+            showToast("Lỗi khi phân công Lead: " + (err.message || err), "error");
+        }
     }
 
     // 15. EVENT LISTENERS
