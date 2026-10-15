@@ -159,133 +159,11 @@
         }
     ];
 
-    // 4. MOCK UNASSIGNED QUEUE DATA
-    const DEFAULT_QUEUE = [
-        {
-            id: "LD-Q101",
-            fullName: "Trịnh Xuân Bách",
-            phone: "0912111222",
-            email: "bach.tx@giaoducthongminh.edu.vn",
-            title: "Tổng Giám đốc",
-            companyName: "Hệ thống Anh ngữ EduSmart",
-            region: "Miền Bắc (Hà Nội)",
-            regionCode: "NORTH",
-            industry: "Giáo dục & Đào tạo",
-            employeeCount: 45,
-            reason: "Chưa có quy tắc chỉ định riêng cho ngành Giáo dục",
-            createdAt: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-            timeAgo: "25 phút trước"
-        },
-        {
-            id: "LD-Q102",
-            fullName: "Ngô Phương Thảo",
-            phone: "0988776655",
-            email: "thao.np@nongnghiepxanh.vn",
-            title: "Trưởng phòng Thu mua",
-            companyName: "HTX Nông nghiệp Công nghệ cao Xanh",
-            region: "Miền Trung (Quảng Nam)",
-            regionCode: "CENTRAL",
-            industry: "Sản xuất & Chế biến",
-            employeeCount: 80,
-            reason: "Chờ phê duyệt phân bổ đặc thù Miền Trung",
-            createdAt: new Date(Date.now() - 65 * 60 * 1000).toISOString(),
-            timeAgo: "1 giờ trước"
-        },
-        {
-            id: "LD-Q103",
-            fullName: "Lý Minh Triết",
-            phone: "0934567890",
-            email: "triet.lm@duochaugiang.com",
-            title: "Giám đốc Kinh doanh",
-            companyName: "Dược phẩm Sông Tiền Cần Thơ",
-            region: "Miền Nam (Cần Thơ)",
-            regionCode: "SOUTH",
-            industry: "Dược phẩm & Y tế",
-            employeeCount: 110,
-            reason: "Khách hàng yêu cầu chuyên gia Dược phẩm miền Nam",
-            createdAt: new Date(Date.now() - 140 * 60 * 1000).toISOString(),
-            timeAgo: "2 giờ trước"
-        },
-        {
-            id: "LD-Q104",
-            fullName: "Bùi Thái Dương",
-            phone: "0977665544",
-            email: "duong.bt@vantaibien.vn",
-            title: "Chủ tịch HĐQT",
-            companyName: "Vận tải Biển Hải Phòng Logistics",
-            region: "Miền Bắc (Hải Phòng)",
-            regionCode: "NORTH",
-            industry: "Sản xuất & Vận tải",
-            employeeCount: 150,
-            reason: "Lead VIP cần Trưởng phòng chỉ định nhân sự chuyên trách",
-            createdAt: new Date(Date.now() - 210 * 60 * 1000).toISOString(),
-            timeAgo: "3 giờ trước"
-        }
-    ];
+    // 4. UNASSIGNED QUEUE DATA (LOADED FROM DB)
+    const DEFAULT_QUEUE = [];
 
-    // 5. MOCK ASSIGNMENT HISTORY DATA
-    const DEFAULT_HISTORY = [
-        {
-            id: "HIST-501",
-            leadName: "Nguyễn Minh Quang",
-            leadPhone: "0987123456",
-            companyName: "Công ty CP Công nghệ DigiTech VN",
-            repId: "USR-105",
-            repName: "Vũ Hải Đăng",
-            repDept: "Phòng Kinh doanh Miền Nam",
-            method: "Tự động: Quy tắc #2 (CNTT & Viễn thông)",
-            assignedAt: "2026-10-14 09:15",
-            note: "Khớp điều kiện ngành CNTT và khu vực toàn quốc qua Round-Robin."
-        },
-        {
-            id: "HIST-502",
-            leadName: "Nguyễn Thị Phương Thảo",
-            leadPhone: "0987654321",
-            companyName: "Tập đoàn Địa ốc Hoàng Gia Land",
-            repId: "USR-102",
-            repName: "Trần Thu Hà",
-            repDept: "Phòng Kinh doanh Miền Bắc",
-            method: "Tự động: Quy tắc #1 (Bất động sản Miền Bắc)",
-            assignedAt: "2026-10-14 08:45",
-            note: "Khớp điều kiện Bất động sản Miền Bắc qua Round-Robin."
-        },
-        {
-            id: "HIST-503",
-            leadName: "Đỗ Minh Tuấn",
-            leadPhone: "0944556677",
-            companyName: "Nhựa Công nghiệp An Phát Holdings",
-            repId: "USR-101",
-            repName: "Nguyễn Văn Hùng",
-            repDept: "Phòng Kinh doanh Miền Bắc",
-            method: "Tự động: Quy tắc #5 (Cân bằng tải Toàn quốc)",
-            assignedAt: "2026-10-13 16:30",
-            note: "Nhân viên Nguyễn Văn Hùng đang có số lượng Lead thấp nhất."
-        },
-        {
-            id: "HIST-504",
-            leadName: "Trần Thu Hà",
-            leadPhone: "0912345678",
-            companyName: "Tập đoàn Dược phẩm Hoa Linh",
-            repId: "USR-106",
-            repName: "Đỗ Minh Tuấn",
-            repDept: "Khối Khách hàng Lớn (VIP)",
-            method: "Thủ công (Nông Quang Tiệp chỉ định)",
-            assignedAt: "2026-10-13 14:10",
-            note: "Lead quy mô lớn cần Key Account Manager đàm phán hợp đồng khung."
-        },
-        {
-            id: "HIST-505",
-            leadName: "Lâm Quốc Cường",
-            leadPhone: "0918765432",
-            companyName: "Công ty Tiếp vận Mega Logistics",
-            repId: "USR-104",
-            repName: "Phạm Thu Dung",
-            repDept: "Phòng Kinh doanh Miền Nam",
-            method: "Tự động: Quy tắc #3 (Thị trường Miền Nam)",
-            assignedAt: "2026-10-13 10:20",
-            note: "Khớp địa lý TP.HCM qua xoay vòng Round-Robin."
-        }
-    ];
+    // 5. ASSIGNMENT HISTORY DATA (LOADED FROM DB)
+    const DEFAULT_HISTORY = [];
 
     // 6. STATE
     let assignmentRules = [];
@@ -376,39 +254,34 @@
     }
 
     // 7. DATA PERSISTENCE & RESTful SERVICE
-    function loadData() {
-        try {
-            const rawRules = localStorage.getItem(STORAGE_KEY_RULES);
-            assignmentRules = rawRules ? JSON.parse(rawRules) : [...DEFAULT_RULES];
-        } catch (_) {
-            assignmentRules = [...DEFAULT_RULES];
-        }
+    async function loadData() {
+        // Clear old local mock data
+        localStorage.removeItem(STORAGE_KEY_QUEUE);
+        localStorage.removeItem(STORAGE_KEY_HISTORY);
 
-        try {
-            const rawReps = localStorage.getItem(STORAGE_KEY_REPS);
-            salesReps = rawReps ? JSON.parse(rawReps) : [...DEFAULT_REPS];
-        } catch (_) {
-            salesReps = [...DEFAULT_REPS];
-        }
+        // Fetch real data from Backend DB
+        await Promise.allSettled([
+            window.LeadAssignmentService.getAssignmentRules(),
+            window.LeadAssignmentService.getSalesReps(),
+            window.LeadAssignmentService.getUnassignedQueue(),
+            window.LeadAssignmentService.getAssignmentHistory()
+        ]);
 
-        try {
-            const rawQueue = localStorage.getItem(STORAGE_KEY_QUEUE);
-            unassignedQueue = rawQueue ? JSON.parse(rawQueue) : [...DEFAULT_QUEUE];
-        } catch (_) {
-            unassignedQueue = [...DEFAULT_QUEUE];
-        }
-
-        try {
-            const rawHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-            assignmentHistory = rawHistory ? JSON.parse(rawHistory) : [...DEFAULT_HISTORY];
-        } catch (_) {
-            assignmentHistory = [...DEFAULT_HISTORY];
+        if (assignmentRules.length === 0) {
+            try {
+                const rawRules = localStorage.getItem(STORAGE_KEY_RULES);
+                assignmentRules = rawRules ? JSON.parse(rawRules) : [];
+            } catch (_) {}
         }
 
         // Sort rules by priority ascending
         assignmentRules.sort((a, b) => a.priority - b.priority);
 
         updateKpis();
+        populateHistoryRepFilter();
+        renderRulesTable();
+        renderQueueTable();
+        renderHistoryTable();
     }
 
     function saveRules() {
@@ -427,7 +300,7 @@
         localStorage.setItem(STORAGE_KEY_REPS, JSON.stringify(salesReps));
     }
 
-    // RESTful API Connector (Contract with Nguyễn Văn Thắng)
+    // RESTful API Connector
     window.LeadAssignmentService = {
         async getAssignmentRules() {
             try {
@@ -440,7 +313,7 @@
                     }
                 }
             } catch (err) {
-                console.warn("[CRM-120 API] GET /api/leads/assignment-rules unavailable, using local rules.", err);
+                console.warn("[CRM-120 API] GET /api/leads/assignment-rules unavailable.", err);
             }
             return assignmentRules;
         },
@@ -450,13 +323,16 @@
             saveRules();
             try {
                 if (window.CrmApi) {
-                    await window.CrmApi.request("/api/leads/assignment-rules", {
+                    const data = await window.CrmApi.request("/api/leads/assignment-rules", {
                         method: "POST",
                         body: JSON.stringify(rules)
                     });
+                    if (data && Array.isArray(data)) {
+                        assignmentRules = data;
+                    }
                 }
             } catch (err) {
-                console.warn("[CRM-120 API] POST /api/leads/assignment-rules unavailable, saved locally.", err);
+                console.warn("[CRM-120 API] POST /api/leads/assignment-rules unavailable.", err);
             }
             return assignmentRules;
         },
@@ -466,11 +342,11 @@
                 if (window.CrmApi) {
                     await window.CrmApi.request("/api/leads/assign", {
                         method: "POST",
-                        body: JSON.stringify({ leadId, repId, note })
+                        body: JSON.stringify({ leadId: String(leadId), repId, note })
                     });
                 }
             } catch (err) {
-                console.warn("[CRM-120 API] POST /api/leads/assign unavailable, assigned locally.", err);
+                console.warn("[CRM-120 API] POST /api/leads/assign unavailable.", err);
             }
         },
 
@@ -486,9 +362,52 @@
                     }
                 }
             } catch (err) {
-                console.warn("[CRM-120 API] GET /api/leads/assignment-history unavailable, using local history.", err);
+                console.warn("[CRM-120 API] GET /api/leads/assignment-history unavailable.", err);
             }
             return assignmentHistory;
+        },
+
+        async getUnassignedQueue() {
+            try {
+                if (window.CrmApi) {
+                    const data = await window.CrmApi.request("/api/leads/queue");
+                    if (data && Array.isArray(data)) {
+                        unassignedQueue = data;
+                        saveQueue();
+                        return data;
+                    }
+                }
+            } catch (err) {
+                console.warn("[CRM-120 API] GET /api/leads/queue unavailable.", err);
+            }
+            return unassignedQueue;
+        },
+
+        async getSalesReps() {
+            try {
+                if (window.CrmApi) {
+                    const data = await window.CrmApi.request("/api/leads/reps");
+                    if (data && Array.isArray(data)) {
+                        salesReps = data;
+                        saveReps();
+                        return data;
+                    }
+                }
+            } catch (err) {
+                console.warn("[CRM-120 API] GET /api/leads/reps unavailable.", err);
+            }
+            return salesReps;
+        },
+
+        async processAutoAssign() {
+            try {
+                if (window.CrmApi) {
+                    return await window.CrmApi.request("/api/leads/auto-assign", { method: "POST" });
+                }
+            } catch (err) {
+                console.warn("[CRM-120 API] POST /api/leads/auto-assign unavailable.", err);
+            }
+            return null;
         }
     };
 
@@ -612,11 +531,11 @@
 
     // 9. UI RENDERING: KPIS & BADGES
     function updateKpis() {
-        const totalAssigned = assignmentHistory.length + 120; // total lifetime
-        const autoCount = assignmentHistory.filter(h => h.method.startsWith("Tự động")).length + 110;
-        const autoPercent = totalAssigned > 0 ? ((autoCount / totalAssigned) * 100).toFixed(1) : 0;
+        const totalAssigned = assignmentHistory.length;
+        const autoCount = assignmentHistory.filter(h => h.method && h.method.startsWith("Tự động")).length;
+        const autoPercent = totalAssigned > 0 ? ((autoCount / totalAssigned) * 100).toFixed(1) : "0.0";
         const queueCount = unassignedQueue.length;
-        const activeRepsCount = salesReps.filter(r => r.isOnline).length;
+        const activeRepsCount = salesReps.filter(r => r.isOnline !== false).length;
 
         if (dom.kpiTotalAssigned) dom.kpiTotalAssigned.textContent = totalAssigned;
         if (dom.kpiAutoSuccessRate) dom.kpiAutoSuccessRate.textContent = `${autoPercent}%`;
@@ -907,14 +826,14 @@
 
                     <!-- Industry & Size -->
                     <td class="col-queue-industry">
-                        <div style="font-weight: 600; font-size: 12.5px; color: var(--crm-text);">${escapeHtml(lead.industry)}</div>
-                        <div style="font-size: 11.5px; color: var(--crm-muted);"><i class="fa-solid fa-users text-primary"></i> ${lead.employeeCount} nhân sự</div>
+                        <div style="font-weight: 600; font-size: 12.5px; color: var(--crm-text);">${escapeHtml(lead.industry || "Doanh nghiệp")}</div>
+                        <div style="font-size: 11.5px; color: var(--crm-muted);"><i class="fa-solid fa-users text-primary"></i> ${lead.employeeCount ? lead.employeeCount + " nhân sự" : "Khách hàng B2B"}</div>
                     </td>
 
                     <!-- Reason -->
                     <td class="col-queue-reason">
                         <span style="font-size: 12px; color: #b45309; background: #fef3c7; padding: 3px 8px; border-radius: 4px; display: inline-block;">
-                            <i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(lead.reason)}
+                            <i class="fa-solid fa-triangle-exclamation"></i> ${escapeHtml(lead.reason || lead.unassignedReason || "Chưa có quy tắc phù hợp")}
                         </span>
                     </td>
 
@@ -1251,31 +1170,11 @@
         // Execute Manual Assign via Service
         await window.LeadAssignmentService.assignLeadManual(currentManualAssignLead.id, repId, note);
 
-        // Update Rep capacity
-        targetRep.currentLeads = (targetRep.currentLeads || 0) + 1;
-
-        // Add to history
-        const newHist = {
-            id: `HIST-${Date.now().toString().slice(-4)}`,
-            leadName: currentManualAssignLead.fullName,
-            leadPhone: currentManualAssignLead.phone,
-            companyName: currentManualAssignLead.companyName,
-            repId: targetRep.id,
-            repName: targetRep.name,
-            repDept: targetRep.dept,
-            method: "Thủ công (Nông Quang Tiệp chỉ định)",
-            assignedAt: formatNow(),
-            note: note || "Phân bổ thủ công từ hàng chờ."
-        };
-
-        assignmentHistory.unshift(newHist);
-
-        // Remove from queue
-        unassignedQueue = unassignedQueue.filter(l => l.id !== currentManualAssignLead.id);
-
-        saveQueue();
-        saveHistory();
-        saveReps();
+        await Promise.allSettled([
+            window.LeadAssignmentService.getUnassignedQueue(),
+            window.LeadAssignmentService.getAssignmentHistory(),
+            window.LeadAssignmentService.getSalesReps()
+        ]);
 
         closeManualAssignModal();
         updateKpis();
@@ -1385,7 +1284,7 @@
         if (tab === "history") renderHistoryTable();
     }
 
-    function handleProcessQueue() {
+    async function handleProcessQueue() {
         const btn = dom.btnProcessQueueHeader || dom.btnProcessQueueTab;
         const origText = btn ? btn.innerHTML : "";
 
@@ -1394,8 +1293,16 @@
             btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang khớp quy tắc...`;
         }
 
-        setTimeout(() => {
-            const count = processUnassignedQueue();
+        try {
+            const res = await window.LeadAssignmentService.processAutoAssign();
+            await Promise.allSettled([
+                window.LeadAssignmentService.getAssignmentRules(),
+                window.LeadAssignmentService.getUnassignedQueue(),
+                window.LeadAssignmentService.getAssignmentHistory(),
+                window.LeadAssignmentService.getSalesReps()
+            ]);
+
+            const count = res?.assignedCount || 0;
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = origText;
@@ -1405,8 +1312,21 @@
                 showToast(`⚡ Đã tự động phân bổ thành công ${count} Lead từ hàng chờ tới đội ngũ Sales!`, "success");
             } else if (unassignedQueue.length > 0) {
                 showToast(`Không có Lead nào khớp với các quy tắc đang bật. Hãy kiểm tra lại điều kiện phân bổ!`, "warning");
+            } else {
+                showToast("Hàng chờ hiện tại không có Lead nào cần phân bổ!", "info");
             }
-        }, 600);
+
+            updateKpis();
+            renderRulesTable();
+            renderQueueTable();
+            renderHistoryTable();
+        } catch (e) {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
+            showToast("Lỗi khi xử lý phân bổ tự động", "error");
+        }
     }
 
     // 16. TOAST NOTIFICATION UTILITY
@@ -1446,13 +1366,9 @@
     }
 
     // 17. INITIALIZATION
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
         initDom();
-        loadData();
-        populateHistoryRepFilter();
-        renderRulesTable();
-        renderQueueTable();
-        renderHistoryTable();
+        await loadData();
         setupEventListeners();
     });
 
