@@ -2,6 +2,10 @@ package com.crm.dto.leads;
 
 public class WebFormLeadRequest {
 
+    private String requestId;
+    public String getRequestId() { return requestId; }
+    public void setRequestId(String requestId) { this.requestId = requestId; }
+
     private String fullName;
     private String email;
     private String phone;
@@ -174,12 +178,12 @@ public class WebFormLeadRequest {
     }
 
     /**
-     * Resolves the lead source (default: WEB_FORM).
+     * Resolves the explicitly supplied source; missing sources are rejected by the service.
      */
     public String getResolvedSource() {
         if (source != null && !source.isBlank()) {
             return source.trim();
         }
-        return "WEB_FORM";
+        return null;
     }
 }

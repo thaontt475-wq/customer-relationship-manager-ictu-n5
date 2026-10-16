@@ -6,7 +6,7 @@
  * - Trình tạo mã nhúng (Embed Code Generator UI) cho Marketing
  * - Xem trước trực tiếp theo thời gian thực (Live Preview)
  * - Quản lý tập trung Lead, Bộ lọc 1 hàng chuẩn Enterprise
- * - Fallback RESTful API an toàn sang LocalStorage (crm_captured_leads)
+ * - Thu thập và đọc Lead từ API/MySQL
  * - Tích hợp chuyển đổi Lead thành Khách hàng Doanh nghiệp
  * ===================================================================
  */
@@ -14,9 +14,8 @@
 "use strict";
 
 (function () {
-    const STORAGE_KEY_LEADS = "crm_captured_leads";
-    const STORAGE_KEY_CUSTOMERS = "crm_ui_customers";
-    const API_ENDPOINT = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`) + "/api/leads";
+    let registeredFormUrl = null;
+    let loadingLeads = false;
 
     // Trạng thái ứng dụng
     let allLeads = [];
@@ -92,30 +91,34 @@
     };
 
     /* ===================================================================
-       1. INITIALIZATION & MOCK SEEDING
+       1. INITIALIZATION
        =================================================================== */
 
-    function init() {
-        clearMockLeads();
+    async function init() {
+        const actions = [dom.btnGenerateDemoLead, dom.btnEmptyCreateLead, dom.btnCopyEmbedCode];
+        actions.forEach(button => { if (button) button.disabled = true; });
+        document.getElementById("btnOpenPublicForm")?.removeAttribute("href");
         bindNavigationTabs();
         bindGeneratorEvents();
         bindFilterEvents();
         bindModalEvents();
         bindWindowListeners();
 
-        // Initial Load from Database
-        loadLeadsData();
-        updateEmbedCodeAndPreview();
-    }
-
-    /**
-     * Xóa sạch dữ liệu ảo / mock seed khỏi localStorage
-     */
-    function clearMockLeads() {
         try {
-            localStorage.removeItem(STORAGE_KEY_LEADS);
-        } catch (e) {
-            console.error("Lỗi khi dọn dẹp mock data:", e);
+            const session = await CrmApi.session();
+            if (!session.permissions?.includes("lead.read")) throw new Error("Bạn không có quyền xem Lead");
+            if (session.permissions?.includes("lead.create")) {
+                const embed = await CrmApi.request("/api/leads/embed-code?formId=crm-web-lead-form");
+                registeredFormUrl = embed.formUrl;
+                actions.forEach(button => { if (button) button.disabled = false; });
+                updateEmbedCodeAndPreview();
+            } else {
+                [dom.btnGenerateDemoLead, dom.btnEmptyCreateLead, dom.btnCopyEmbedCode].forEach(b => { if (b) b.disabled = true; });
+                document.getElementById("btnOpenPublicForm")?.removeAttribute("href");
+            }
+            await loadLeadsData();
+        } catch (error) {
+            showToast(error.message, "danger");
         }
     }
 
@@ -221,12 +224,12 @@
             dom.btnCopyEmbedCode.addEventListener("click", copyEmbedCodeToClipboard);
         }
 
-        // Generate Demo Lead button
+        // Open the registered form for real data entry
         if (dom.btnGenerateDemoLead) {
-            dom.btnGenerateDemoLead.addEventListener("click", handleGenerateRandomLead);
+            dom.btnGenerateDemoLead.addEventListener("click", openCaptureForm);
         }
         if (dom.btnEmptyCreateLead) {
-            dom.btnEmptyCreateLead.addEventListener("click", handleGenerateRandomLead);
+            dom.btnEmptyCreateLead.addEventListener("click", openCaptureForm);
         }
     }
 
@@ -234,21 +237,20 @@
      * Đồng bộ URL vào Iframe và tạo thẻ nhúng HTML
      */
     function updateEmbedCodeAndPreview() {
-        const origin = window.location.origin;
-        // Đường dẫn tương đối hoặc tuyệt đối tới lead-capture-form.html
-        let formUrl = "lead-capture-form.html";
-
-        const params = new URLSearchParams();
-        if (generatorState.title) params.append("title", generatorState.title);
-        if (generatorState.subtitle) params.append("subtitle", generatorState.subtitle);
-        if (generatorState.btnText) params.append("btn", generatorState.btnText);
-        if (generatorState.accentColor) params.append("color", generatorState.accentColor);
-        if (generatorState.theme !== "auto") params.append("theme", generatorState.theme);
-        if (!generatorState.showCompany) params.append("company", "0");
-        if (!generatorState.showNotes) params.append("notes", "0");
+        if (!registeredFormUrl) return;
+        const formUrl = new URL(registeredFormUrl);
+        const params = formUrl.searchParams;
+        if (generatorState.title) params.set("title", generatorState.title);
+        if (generatorState.subtitle) params.set("subtitle", generatorState.subtitle);
+        if (generatorState.btnText) params.set("btn", generatorState.btnText);
+        if (generatorState.accentColor) params.set("color", generatorState.accentColor);
+        params.set("theme", generatorState.theme);
+        if (!generatorState.showCompany) params.set("company", "0");
+        if (!generatorState.showNotes) params.set("notes", "0");
 
         const queryString = params.toString();
-        const fullPreviewSrc = `${formUrl}?${queryString}`;
+        const fullPreviewSrc = `${formUrl.origin}${formUrl.pathname}?${queryString}`;
+        document.getElementById("btnOpenPublicForm").href = fullPreviewSrc;
 
         // Cập nhật Live Preview
         if (dom.livePreviewIframe) {
@@ -290,58 +292,30 @@
     }
 
     /* ===================================================================
-       4. LEAD DATA MANAGEMENT & REST API FALLBACK
+       4. LEAD DATA MANAGEMENT
        =================================================================== */
 
     /**
      * Tải danh sách Lead thực tế từ Database thông qua REST API
      */
     async function loadLeadsData() {
+        if (loadingLeads) return;
+        loadingLeads = true;
         try {
-            const response = await fetch(API_ENDPOINT, {
-                method: "GET",
-                credentials: "include",
-                headers: { "Accept": "application/json" }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                let list = null;
-                if (Array.isArray(data)) {
-                    list = data;
-                } else if (data && Array.isArray(data.data)) {
-                    list = data.data;
-                } else if (data && data.data && Array.isArray(data.data.items)) {
-                    list = data.data.items;
-                }
-                allLeads = list || [];
-            } else {
-                allLeads = [];
-                showToast("Không thể tải danh sách Lead từ máy chủ", "danger");
+            const list = [];
+            for (let page = 1; ; page++) {
+                const data = await CrmApi.request(`/api/leads?page=${page}&size=100`);
+                list.push(...data.items);
+                if (page >= data.totalPages || !data.items.length) break;
             }
-        } catch (err) {
-            console.error("Lỗi khi tải dữ liệu Lead từ Database:", err);
+            allLeads = list;
+        } catch (error) {
             allLeads = [];
-        }
-
-        updateKpiCounters();
-        renderLeadsTable();
-    }
-
-    function fallbackReadLeads() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY_LEADS);
-            allLeads = raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            allLeads = [];
-        }
-    }
-
-    function saveLeadsLocally() {
-        try {
-            localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(allLeads));
-        } catch (e) {
-            console.error("Lỗi lưu localStorage:", e);
+            showToast(error.message, "danger");
+        } finally {
+            loadingLeads = false;
+            updateKpiCounters();
+            renderLeadsTable();
         }
     }
 
@@ -583,53 +557,9 @@
         showToast("Chức năng xóa Lead hiện chưa khả dụng. Dữ liệu chưa được thay đổi.", "warning");
     }
 
-    /**
-     * Tạo nhanh 1 Lead Test thực tế và lưu thẳng vào MySQL Database
-     */
-    async function handleGenerateRandomLead() {
-        const sampleNames = ["Vũ Đức Đạt", "Hoàng Kim Ngân", "Đặng Thanh Tùng", "Bùi Mai Hương", "Phan Quốc Bảo"];
-        const sampleCompanies = ["Tập đoàn SunTech Global", "Công ty CP Logistics Á Châu", "Thương mại Điện tử VinaShop", "Nội thất Hiện đại EcoHome", "Tài chính Số FinSmart"];
-        const sampleNeeds = [
-            "Tư vấn gói CRM Enterprise cho 100 nhân sự",
-            "Cần kết nối API từ Website bán hàng sang CRM",
-            "Muốn dùng thử bản Demo quản lý công việc và báo giá",
-            "Cần tư vấn phân hệ quản lý Người liên hệ CRM-62"
-        ];
-
-        const randName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
-        const randComp = sampleCompanies[Math.floor(Math.random() * sampleCompanies.length)];
-        const randNeed = sampleNeeds[Math.floor(Math.random() * sampleNeeds.length)];
-        const randPhone = "09" + Math.floor(10000000 + Math.random() * 90000000);
-        const emailSlug = randName.toLowerCase().replace(/\s+/g, ".") + "@" + randComp.toLowerCase().replace(/[^a-z0-9]/g, "") + ".vn";
-
-        try {
-            const res = await fetch(API_ENDPOINT, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({
-                    fullName: randName,
-                    phone: randPhone,
-                    email: emailSlug,
-                    companyName: randComp,
-                    notes: randNeed,
-                    source: "Website Form"
-                })
-            });
-
-            if (res.ok) {
-                showToast(`Đã thêm Lead "${randName}" vào Database!`, "success");
-                await loadLeadsData();
-            } else {
-                const err = await res.json().catch(() => ({}));
-                showToast(err.message || "Không thể tạo Lead vào Database", "danger");
-            }
-        } catch (e) {
-            console.error("Lỗi khi tạo Lead vào database:", e);
-            showToast("Không thể kết nối đến máy chủ Database", "danger");
-        }
+    function openCaptureForm() {
+        if (!registeredFormUrl) return showToast("Biểu mẫu chưa sẵn sàng hoặc bạn không có quyền tạo Lead", "warning");
+        window.open(document.getElementById("btnOpenPublicForm").href, "_blank", "noopener");
     }
 
     /* ===================================================================
@@ -730,13 +660,16 @@
     }
 
     /* ===================================================================
-       8. WINDOW LISTENERS (POSTMESSAGE & STORAGE SYNC)
+       8. WINDOW LISTENERS
        =================================================================== */
 
     function bindWindowListeners() {
+        window.addEventListener("focus", () => { if (registeredFormUrl) loadLeadsData(); });
         // Nhận postMessage từ Iframe khi người dùng bấm gửi Form trong Live Preview
         window.addEventListener("message", (event) => {
-            if (!event.data) return;
+            if (!event.data || !registeredFormUrl ||
+                event.origin !== new URL(registeredFormUrl).origin ||
+                event.source !== dom.livePreviewIframe?.contentWindow) return;
             if (event.data.type === "CRM_LEAD_SUBMITTED" || event.data.type === "crm-form-submitted") {
                 const newLead = event.data.lead;
                 if (newLead) {
@@ -746,13 +679,6 @@
             } else if (event.data.type === "crm-form-resize" && event.data.height && dom.livePreviewIframe) {
                 const targetH = Math.min(620, Math.max(520, Math.round(event.data.height)));
                 dom.livePreviewIframe.style.height = `${targetH}px`;
-            }
-        });
-
-        // Lắng nghe thay đổi LocalStorage từ tab khác (khi mở lead-capture-form.html riêng)
-        window.addEventListener("storage", (event) => {
-            if (event.key === STORAGE_KEY_LEADS) {
-                loadLeadsData();
             }
         });
     }

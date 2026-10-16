@@ -486,7 +486,7 @@ public class LeadServlet extends HttpServlet {
                     unsupported(resp, "GET");
                     return;
                 }
-                handleEmbedCode(req, resp);
+                handleEmbedCode(req, resp, user);
                 return;
             }
 
@@ -775,7 +775,11 @@ public class LeadServlet extends HttpServlet {
             }
 
             Lead created = leads.createWebFormLead(leadRequest, clientIp);
-            ResponseUtil.json(resp, 201, ApiResponse.success("Tiếp nhận thông tin Lead thành công", created));
+            ResponseUtil.json(resp, 201, ApiResponse.success("Tiếp nhận thông tin Lead thành công", Map.of("id", created.getId(), "fullName", created.getFullName(), "status", "NEW")));
+        } catch (IllegalStateException e) {
+            ResponseUtil.json(resp, 409, ApiResponse.error(e.getMessage(), null));
+        } catch (LeadImportService.Failure e) {
+            ResponseUtil.json(resp, e.status(), ApiResponse.error(e.getMessage(), null));
         } catch (JsonParseException | IllegalArgumentException e) {
             ResponseUtil.json(resp, 400, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {
@@ -784,31 +788,29 @@ public class LeadServlet extends HttpServlet {
         }
     }
 
-    private void handleEmbedCode(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void handleEmbedCode(HttpServletRequest request, HttpServletResponse response, long user) throws Exception {
         String formId = request.getParameter("formId");
         String theme = request.getParameter("theme");
         String title = request.getParameter("title");
 
         String baseUrl = resolveBaseUrl(request);
-        EmbedCodeResponse embedCode = leads.generateEmbedCode(formId, baseUrl, theme, title);
+        EmbedCodeResponse embedCode = leads.registeredEmbedCode(user, formId, baseUrl, theme, title);
 
         ResponseUtil.json(response, 200, ApiResponse.success("Tạo mã nhúng biểu mẫu thành công", embedCode));
     }
 
-    private WebFormLeadRequest parseRequestBody(HttpServletRequest request) throws IOException {
+    private WebFormLeadRequest parseRequestBody(HttpServletRequest request) throws Exception {
         String contentType = request.getContentType();
 
         if (contentType != null && contentType.toLowerCase().contains("application/json")) {
-            StringBuilder sb = new StringBuilder();
-            try (BufferedReader reader = request.getReader()) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-            }
-            if (sb.length() == 0) return null;
-            return JsonUtil.getGson().fromJson(sb.toString(), WebFormLeadRequest.class);
+            return JsonUtil.getGson().fromJson(json(request, 16384), WebFormLeadRequest.class);
         }
+        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("application/x-www-form-urlencoded"))
+            throw new IllegalArgumentException("Yêu cầu JSON hoặc application/x-www-form-urlencoded");
+        if (request.getContentLengthLong() < 0)
+            throw new IllegalArgumentException("Biểu mẫu phải có Content-Length");
+        if (request.getContentLengthLong() > 16384)
+            throw new LeadImportService.Failure(413, "Biểu mẫu vượt giới hạn cho phép", null);
 
         WebFormLeadRequest req = new WebFormLeadRequest();
         req.setFullName(request.getParameter("fullName"));
@@ -821,6 +823,7 @@ public class LeadServlet extends HttpServlet {
         req.setNotes(request.getParameter("notes"));
         req.setSource(request.getParameter("source"));
         req.setFormId(request.getParameter("formId"));
+        req.setRequestId(request.getParameter("requestId"));
         req.setUtmSource(request.getParameter("utm_source"));
         req.setUtmMedium(request.getParameter("utm_medium"));
         req.setUtmCampaign(request.getParameter("utm_campaign"));
