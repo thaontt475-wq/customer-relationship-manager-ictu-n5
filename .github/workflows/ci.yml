@@ -49,11 +49,14 @@ jobs:
         env:
           MYSQL_PWD: root_ci_password
         run: |
-          echo "Tạo tài khoản CI độc lập và database..."
+          echo "Thiết lập MySQL global configuration và tạo tài khoản CI độc lập..."
           mysql -h 127.0.0.1 -u root -e "
+            SET GLOBAL log_bin_trust_function_creators = 1;
             CREATE DATABASE IF NOT EXISTS crm_sprint1_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+            CREATE DATABASE IF NOT EXISTS crm_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
             CREATE USER IF NOT EXISTS 'crm_ci_user'@'%' IDENTIFIED BY 'ci_test_password_123';
             GRANT ALL PRIVILEGES ON crm_sprint1_test.* TO 'crm_ci_user'@'%';
+            GRANT ALL PRIVILEGES ON crm_db.* TO 'crm_ci_user'@'%';
             FLUSH PRIVILEGES;
           "
           
@@ -99,7 +102,7 @@ jobs:
           for file in "${ORDERED_MIGRATIONS[@]}"; do
             filePath="backend/database/$file"
             echo "Running migration: $file"
-            sed -e 's/\bcrm_db\b/crm_sprint1_test/g' "$filePath" | mysql -h 127.0.0.1 -u crm_ci_user -pci_test_password_123 crm_sprint1_test
+            sed -e 's/\bcrm_db\b/crm_sprint1_test/g' "$filePath" | mysql -h 127.0.0.1 -u root crm_sprint1_test
           done
 
       # Bước 3: Chạy toàn bộ bộ test Maven với tài khoản và database test độc lập
