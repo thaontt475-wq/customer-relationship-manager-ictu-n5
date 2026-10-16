@@ -19,6 +19,12 @@ public class Campaign {
     private Long ownerId;
     private String ownerName;
     private int leadCount;
+    private int opportunityCount;
+    private BigDecimal wonRevenue = BigDecimal.ZERO;
+    public int getOpportunityCount() { return opportunityCount; }
+    public void setOpportunityCount(int value) { opportunityCount = value; }
+    public BigDecimal getWonRevenue() { return wonRevenue; }
+    public void setWonRevenue(BigDecimal value) { wonRevenue = value; }
     private boolean deleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

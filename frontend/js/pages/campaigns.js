@@ -543,6 +543,8 @@ function renderCampaignTable(items, pagination) {
                 </button>
             </td>
             <td class="td-date">
+                <div class="campaign-outcomes">Cơ hội: <strong>${Number(c.opportunityCount)||0}</strong><br>Đã chốt: <strong>${formatCurrency(c.wonRevenue||0)}</strong></div>
+                <button type="button" class="crm-btn crm-btn-secondary" onclick="openOpportunityModal(${c.id})">Liên kết cơ hội</button>
                 <div class="date-range-wrap">
                     <span>${c.startDate ? c.startDate : '...'}</span>
                     <span class="date-sep">~</span>
@@ -1149,3 +1151,33 @@ window.exportCampaignsToCSV = exportCampaignsToCSV;
 window.changePage = changePage;
 window.loadCampaigns = loadCampaigns;
 
+
+
+let opportunityCampaignId=null;
+async function openOpportunityModal(id) {
+    opportunityCampaignId=id;
+    const modal=document.getElementById("campaignOpportunityDialog");
+    document.getElementById("campaignOpportunityError").textContent="";
+    if(!modal.open)modal.showModal();
+    try {
+        const [linked,available]=await Promise.all([apiFetch(`/campaigns/${id}/opportunities`),apiFetch(`/campaigns/${id}/available-opportunities`)]);
+        document.getElementById("campaignOpportunityRows").innerHTML=[...(linked.data||[]).map(o=>({...o,linked:true})),...(available.data||[]).map(o=>({...o,linked:false}))].map(o=>`<tr><td>${o.linked?"Đã liên kết":`<input type="checkbox" name="campaignOpportunityId" value="${Number(o.id)}" aria-label="Chọn cơ hội ${Number(o.id)}">`}</td><td>${escapeHtml(o.name)}</td><td>${escapeHtml(o.status)}</td><td>${formatCurrency(o.amount)}</td><td>${o.linked?`<button type="button" onclick="unlinkCampaignOpportunity(${Number(o.id)})">Gỡ</button>`:""}</td></tr>`).join("");
+    } catch(error) {document.getElementById("campaignOpportunityError").textContent=error.message;}
+}
+async function linkCampaignOpportunities() {
+    const button=document.getElementById("campaignOpportunitySave");button.disabled=true;
+    try {
+        const opportunityIds=[...document.querySelectorAll('input[name="campaignOpportunityId"]:checked')].map(e=>Number(e.value));
+        if(!opportunityIds.length)throw new Error("Vui lòng chọn cơ hội cần liên kết.");
+        await apiFetch(`/campaigns/${opportunityCampaignId}/opportunities`,{method:"POST",body:{opportunityIds}});
+        await Promise.all([openOpportunityModal(opportunityCampaignId),loadCampaigns()]);
+    }catch(error){document.getElementById("campaignOpportunityError").textContent=error.message;}finally{button.disabled=false;}
+}
+async function unlinkCampaignOpportunity(id) {
+    try{await apiFetch(`/campaigns/${opportunityCampaignId}/opportunities/${id}`,{method:"DELETE"});await Promise.all([openOpportunityModal(opportunityCampaignId),loadCampaigns()]);}
+    catch(error){document.getElementById("campaignOpportunityError").textContent=error.message;}
+}
+
+window.openOpportunityModal=openOpportunityModal;
+window.linkCampaignOpportunities=linkCampaignOpportunities;
+window.unlinkCampaignOpportunity=unlinkCampaignOpportunity;
