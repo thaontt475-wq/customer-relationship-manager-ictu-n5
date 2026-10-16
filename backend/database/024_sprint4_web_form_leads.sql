@@ -25,6 +25,27 @@ CREATE TABLE IF NOT EXISTS leads (
         ON DELETE SET NULL
 );
 
+-- Ensure web-form specific columns exist if table was initialized by another migration
+SET @has_source = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'source');
+SET @sql = IF(@has_source = 0, 'ALTER TABLE leads ADD COLUMN source VARCHAR(50) NULL DEFAULT ''WEB_FORM''', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_form_id = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'form_id');
+SET @sql = IF(@has_form_id = 0, 'ALTER TABLE leads ADD COLUMN form_id VARCHAR(100) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_ip_address = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'ip_address');
+SET @sql = IF(@has_ip_address = 0, 'ALTER TABLE leads ADD COLUMN ip_address VARCHAR(50) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_assigned_to = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'assigned_to');
+SET @sql = IF(@has_assigned_to = 0, 'ALTER TABLE leads ADD COLUMN assigned_to BIGINT NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_is_deleted = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'is_deleted');
+SET @sql = IF(@has_is_deleted = 0, 'ALTER TABLE leads ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
 -- Bo sung quyen cho module Lead
 INSERT IGNORE INTO permissions (code, name) VALUES
     ('lead.read', 'Xem danh sách Lead'),

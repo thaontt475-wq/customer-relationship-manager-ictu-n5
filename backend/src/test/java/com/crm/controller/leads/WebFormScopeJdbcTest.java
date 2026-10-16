@@ -15,7 +15,7 @@ class WebFormScopeJdbcTest {
         String marker="S401-"+UUID.randomUUID();
         List<Long> users=new ArrayList<>(), teams=new ArrayList<>();
         try(Connection c=DatabaseConfig.getConnection()) {
-            assertTrue(c.getCatalog().startsWith("crm_sprint1_test_"));
+            assertTrue(c.getCatalog() != null && c.getCatalog().startsWith("crm_sprint1_test"), "Must run against crm_sprint1_test DB");
             try {
                 for(int i=0;i<2;i++) {
                     try(PreparedStatement s=c.prepareStatement("INSERT INTO teams(name,active) VALUES (?,1)",Statement.RETURN_GENERATED_KEYS)) {
