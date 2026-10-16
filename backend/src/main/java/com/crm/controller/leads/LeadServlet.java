@@ -179,19 +179,27 @@ public class LeadServlet extends HttpServlet {
                 return;
             }
 
-            // S4-02: Single Lead detail by ID
+            // S4-02 & S4-05: Single Lead detail by ID (GET) and update (PUT)
             if (path.matches("/[1-9][0-9]*")) {
-                if (!"GET".equals(method)) {
-                    unsupported(resp, "GET");
+                long leadId = Long.parseLong(path.substring(1));
+                if ("PUT".equals(method)) {
+                    var lead = leads.update(user, leadId, LeadWriteRequest.fromJson(json(req, 16384)));
+                    ResponseUtil.json(resp, 200, ApiResponse.success("Cập nhật Lead thành công", lead));
                     return;
                 }
-                var lead = leads.get(user, Long.parseLong(path.substring(1)));
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET, PUT");
+                    return;
+                }
+                var lead = leads.get(user, leadId);
                 ResponseUtil.json(resp, lead == null ? 404 : 200, lead == null ? ApiResponse.error("Không tìm thấy Lead", null) : ApiResponse.success("Hồ sơ Lead", lead));
                 return;
             }
 
             ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy API Lead", null));
 
+        } catch (NoSuchElementException error) {
+            ResponseUtil.json(resp, 404, ApiResponse.error(error.getMessage(), null));
         } catch (LeadValidationException error) {
             ResponseUtil.json(resp, 400, ApiResponse.error(error.getMessage(), Map.of("errors", error.errors())));
         } catch (LeadImportService.Failure error) {
