@@ -14,7 +14,7 @@ public class LeadDAO {
         StringBuilder sql = new StringBuilder("""
             SELECT l.*, u.full_name AS owner_name, u.email AS owner_email
             FROM leads l
-            LEFT JOIN users u ON u.id = l.assigned_to
+            LEFT JOIN users u ON (u.id = l.assigned_to_user_id OR u.id = l.owner_user_id OR (l.assigned_to REGEXP '^[0-9]+$' AND u.id = CAST(l.assigned_to AS UNSIGNED)))
             WHERE l.is_deleted = 0
             """);
 
@@ -52,7 +52,7 @@ public class LeadDAO {
         StringBuilder sql = new StringBuilder("""
             SELECT COUNT(*)
             FROM leads l
-            LEFT JOIN users u ON u.id = l.assigned_to
+            LEFT JOIN users u ON (u.id = l.assigned_to_user_id OR u.id = l.owner_user_id OR (l.assigned_to REGEXP '^[0-9]+$' AND u.id = CAST(l.assigned_to AS UNSIGNED)))
             WHERE l.is_deleted = 0
             """);
 
@@ -135,7 +135,7 @@ public class LeadDAO {
         String sql = """
             SELECT l.*, u.full_name AS owner_name, u.email AS owner_email
             FROM leads l
-            LEFT JOIN users u ON u.id = l.assigned_to
+            LEFT JOIN users u ON (u.id = l.assigned_to_user_id OR u.id = l.owner_user_id OR (l.assigned_to REGEXP '^[0-9]+$' AND u.id = CAST(l.assigned_to AS UNSIGNED)))
             WHERE l.id = ? AND l.is_deleted = 0
             """;
 
@@ -390,9 +390,9 @@ public class LeadDAO {
         ps.setString(14, lead.getStatus() != null ? lead.getStatus() : "NEW");
 
         if (lead.getAssignedTo() != null && lead.getAssignedTo() > 0) {
-            ps.setLong(15, lead.getAssignedTo());
+            ps.setString(15, String.valueOf(lead.getAssignedTo()));
         } else {
-            ps.setNull(15, Types.BIGINT);
+            ps.setNull(15, Types.VARCHAR);
         }
 
         ps.setDouble(16, lead.getEstimatedValue());
@@ -437,9 +437,33 @@ public class LeadDAO {
         lead.setScore(rs.getInt("score"));
         lead.setStatus(rs.getString("status"));
 
-        long assignedTo = rs.getLong("assigned_to");
-        if (!rs.wasNull()) {
-            lead.setAssignedTo(assignedTo);
+        String assignedToStr = rs.getString("assigned_to");
+        if (assignedToStr != null && !assignedToStr.isBlank()) {
+            try {
+                String digits = assignedToStr.replaceAll("[^0-9]", "");
+                if (!digits.isBlank()) {
+                    lead.setAssignedTo(Long.parseLong(digits));
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        if (lead.getAssignedTo() == null || lead.getAssignedTo() <= 0) {
+            try {
+                long uid = rs.getLong("assigned_to_user_id");
+                if (!rs.wasNull() && uid > 0) {
+                    lead.setAssignedTo(uid);
+                }
+            } catch (SQLException ignored) {
+            }
+        }
+        if (lead.getAssignedTo() == null || lead.getAssignedTo() <= 0) {
+            try {
+                long uid = rs.getLong("owner_user_id");
+                if (!rs.wasNull() && uid > 0) {
+                    lead.setAssignedTo(uid);
+                }
+            } catch (SQLException ignored) {
+            }
         }
 
         try {

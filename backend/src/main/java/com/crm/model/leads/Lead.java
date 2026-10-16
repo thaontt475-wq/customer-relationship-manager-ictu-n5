@@ -346,4 +346,22 @@ public class Lead {
     public void setTimeAgo(String timeAgo) {
         this.timeAgo = timeAgo;
     }
+
+    private boolean isLocked;
+
+    public boolean isLocked() {
+        return isLocked || "CONVERTED".equalsIgnoreCase(status);
+    }
+
+    public void setLocked(boolean locked) {
+        this.isLocked = locked;
+    }
+
+    public Long getOwnerUserId() {
+        return getOwnerId();
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        setOwnerId(ownerUserId);
+    }
 }

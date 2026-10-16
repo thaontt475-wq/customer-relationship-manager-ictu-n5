@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @WebServlet({"/api/leads", "/api/leads/*"})
 public class LeadServlet extends HttpServlet {
@@ -57,18 +58,15 @@ public class LeadServlet extends HttpServlet {
             }
 
             // 3. Lead Detail API: GET /api/leads/{id}
-            if (path != null && path.length() > 1 && !path.contains("/")) {
-                String idStr = path.substring(1);
-                if (idStr.matches("\\d+")) {
-                    long id = Long.parseLong(idStr);
-                    Lead lead = leadService.getLeadById(id, currentUserId);
-                    if (lead != null) {
-                        ResponseUtil.json(resp, 200, ApiResponse.success("Chi tiết Lead", lead));
-                    } else {
-                        ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy Lead với ID " + id, null));
-                    }
-                    return;
+            if (path != null && path.matches("^/\\d+$")) {
+                long id = Long.parseLong(path.substring(1));
+                Lead lead = leadService.getLeadById(id, currentUserId);
+                if (lead != null) {
+                    ResponseUtil.json(resp, 200, ApiResponse.success("Chi tiết Lead", lead));
+                } else {
+                    ResponseUtil.json(resp, 404, ApiResponse.error("Không tìm thấy Lead với ID " + id, null));
                 }
+                return;
             }
 
             // 4. Advanced Multi-Criteria Search & Filter API: GET /api/leads (AC 1 & AC 2)
@@ -81,6 +79,10 @@ public class LeadServlet extends HttpServlet {
 
             ResponseUtil.json(resp, 404, ApiResponse.error("Endpoint không tồn tại", null));
 
+        } catch (NoSuchElementException e) {
+            ResponseUtil.json(resp, 404, ApiResponse.error(e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            ResponseUtil.json(resp, 409, ApiResponse.error(e.getMessage(), null));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {
@@ -120,7 +122,11 @@ public class LeadServlet extends HttpServlet {
                 }
 
                 SavedLeadFilter saved = savedFilterService.saveCustomFilter(filter, currentUserId);
-                ResponseUtil.json(resp, 201, ApiResponse.success("Lưu bộ lọc thành công", saved));
+                if (saved != null) {
+                    ResponseUtil.json(resp, 201, ApiResponse.success("Lưu bộ lọc thành công", saved));
+                } else {
+                    ResponseUtil.json(resp, 500, ApiResponse.error("Không thể lưu bộ lọc", null));
+                }
                 return;
             }
 
@@ -144,6 +150,10 @@ public class LeadServlet extends HttpServlet {
 
             ResponseUtil.json(resp, 404, ApiResponse.error("Endpoint không tồn tại", null));
 
+        } catch (NoSuchElementException e) {
+            ResponseUtil.json(resp, 404, ApiResponse.error(e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            ResponseUtil.json(resp, 409, ApiResponse.error(e.getMessage(), null));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {
@@ -190,7 +200,7 @@ public class LeadServlet extends HttpServlet {
             }
 
             // 3. Update Lead API: PUT /api/leads/{id}
-            if (path != null && path.length() > 1) {
+            if (path != null && path.matches("^/\\d+$")) {
                 String idPart = path.substring(1);
                 long leadId = parseIdSafe(idPart);
                 if (leadId > 0) {
@@ -208,6 +218,10 @@ public class LeadServlet extends HttpServlet {
 
             ResponseUtil.json(resp, 404, ApiResponse.error("Endpoint không tồn tại", null));
 
+        } catch (NoSuchElementException e) {
+            ResponseUtil.json(resp, 404, ApiResponse.error(e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            ResponseUtil.json(resp, 409, ApiResponse.error(e.getMessage(), null));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {
@@ -237,7 +251,7 @@ public class LeadServlet extends HttpServlet {
             }
 
             // 2. Delete Lead API: DELETE /api/leads/{id}
-            if (path != null && path.length() > 1) {
+            if (path != null && path.matches("^/\\d+$")) {
                 String idPart = path.substring(1);
                 long leadId = parseIdSafe(idPart);
                 if (leadId > 0) {
@@ -253,6 +267,10 @@ public class LeadServlet extends HttpServlet {
 
             ResponseUtil.json(resp, 404, ApiResponse.error("Endpoint không tồn tại", null));
 
+        } catch (NoSuchElementException e) {
+            ResponseUtil.json(resp, 404, ApiResponse.error(e.getMessage(), null));
+        } catch (IllegalStateException e) {
+            ResponseUtil.json(resp, 409, ApiResponse.error(e.getMessage(), null));
         } catch (SecurityException e) {
             ResponseUtil.json(resp, 403, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {

@@ -344,8 +344,49 @@
             }
         },
 
-        getLeads() {
+        async getLeads(criteria) {
             this.init();
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                try {
+                    const p = new URLSearchParams();
+                    if (criteria) {
+                        if (criteria.keyword) p.append("search", criteria.keyword);
+                        if (criteria.status && criteria.status !== "ALL") p.append("status", criteria.status);
+                        if (criteria.source && criteria.source !== "ALL") p.append("source", criteria.source);
+                        if (criteria.tier && criteria.tier !== "ALL") p.append("tier", criteria.tier);
+                        if (criteria.owner && criteria.owner !== "ALL") p.append("owner", criteria.owner);
+                        if (criteria.customFrom) p.append("from", criteria.customFrom);
+                        else if (criteria.from) p.append("from", criteria.from);
+                        if (criteria.customTo) p.append("to", criteria.customTo);
+                        else if (criteria.to) p.append("to", criteria.to);
+                        if (criteria.dateRange && criteria.dateRange !== "ALL") p.append("dateRange", criteria.dateRange);
+                        if (criteria.slaOverdueOnly) p.append("slaOverdueOnly", "true");
+                        if (criteria.sort) p.append("sort", criteria.sort);
+                        if (criteria.page) p.append("page", criteria.page);
+                        if (criteria.size) p.append("size", criteria.size);
+                    }
+                    const qs = p.toString() ? `?${p.toString()}` : "";
+                    const res = await window.CrmApi.request(`/api/leads${qs}`);
+                    const data = (res && res.data) ? res.data : res;
+                    const items = data?.items || data?.leads || (Array.isArray(data) ? data : []);
+                    const mapped = items.map(l => ({
+                        ...l,
+                        id: l.id != null ? l.id : l.code,
+                        code: l.code || `LEAD-${l.id}`,
+                        owner: l.ownerName || l.owner || (l.assignedTo ? `User #${l.assignedTo}` : null),
+                        slaDeadline: l.slaDeadline ? new Date(l.slaDeadline).getTime() : null,
+                        isOverdueSla: l.isOverdueSla !== undefined ? l.isOverdueSla : (l.slaStatus === "OVERDUE"),
+                        slaRemainingText: l.slaRemainingText,
+                        slaStatus: l.slaStatus
+                    }));
+                    if (mapped.length > 0) {
+                        this.saveLeads(mapped);
+                        return mapped;
+                    }
+                } catch (err) {
+                    console.warn("Lỗi tải danh sách Lead từ server, dùng cache nội bộ:", err);
+                }
+            }
             try {
                 return JSON.parse(localStorage.getItem(STORAGE_KEY_LEADS)) || DEFAULT_LEADS;
             } catch (e) {
@@ -357,12 +398,28 @@
             localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(leads));
         },
 
-        getLeadById(id) {
-            return this.getLeads().find(l => l.id === id || l.code === id) || null;
+        async getLeadById(id) {
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                try {
+                    const cleanId = String(id).replace(/[^0-9]/g, "") || id;
+                    const res = await window.CrmApi.request(`/api/leads/${cleanId}`);
+                    const item = (res && res.data) ? res.data : res;
+                    if (item) return item;
+                } catch (_) {}
+            }
+            return (JSON.parse(localStorage.getItem(STORAGE_KEY_LEADS)) || DEFAULT_LEADS).find(l => l.id === id || l.code === id) || null;
         },
 
-        createLead(data) {
-            const leads = this.getLeads();
+        async createLead(data) {
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                const res = await window.CrmApi.request('/api/leads', {
+                    method: "POST",
+                    body: JSON.stringify(data)
+                });
+                const created = (res && res.data) ? res.data : res;
+                if (created) return created;
+            }
+            const leads = JSON.parse(localStorage.getItem(STORAGE_KEY_LEADS)) || DEFAULT_LEADS;
             const now = new Date();
             const idNumber = Math.floor(111 + Math.random() * 888);
             const newLead = {
@@ -383,7 +440,7 @@
                 owner: null,
                 estimatedValue: 150000000,
                 createdAt: now.toISOString(),
-                slaDeadline: Date.now() + 120 * 60 * 1000, // 2 hours SLA
+                slaDeadline: Date.now() + 120 * 60 * 1000,
                 slaMinutesTotal: 120,
                 notes: data.notes || ""
             };
@@ -392,11 +449,31 @@
             return newLead;
         },
 
-        /**
-         * Endpoint: GET /api/leads/saved-filters
-         */
-        getSavedFilters() {
+        async getSavedFilters() {
             this.init();
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                try {
+                    const res = await window.CrmApi.request('/api/leads/saved-filters');
+                    const data = (res && res.data) ? res.data : res;
+                    if (Array.isArray(data) && data.length > 0) {
+                        return data.map(f => {
+                            let crit = f.filter || f.filterCriteria;
+                            if (typeof crit === "string") {
+                                try { crit = JSON.parse(crit); } catch (_) {}
+                            }
+                            return {
+                                id: f.id,
+                                name: f.name,
+                                isSystem: !!f.system || !!f.isSystem,
+                                isDefault: !!f.default || !!f.isDefault,
+                                filter: crit || {}
+                            };
+                        });
+                    }
+                } catch (e) {
+                    console.warn("Lỗi tải bộ lọc từ server:", e);
+                }
+            }
             try {
                 const customs = JSON.parse(localStorage.getItem(STORAGE_KEY_SAVED_FILTERS)) || [];
                 return [...SYSTEM_SAVED_FILTERS, ...customs];
@@ -405,17 +482,32 @@
             }
         },
 
-        /**
-         * Endpoint: POST /api/leads/saved-filters
-         */
-        saveCustomFilter(name, filterCriteria, setAsDefault = false) {
+        async saveCustomFilter(name, filterCriteria, setAsDefault = false) {
             this.init();
+            let savedObj = null;
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                try {
+                    const res = await window.CrmApi.request('/api/leads/saved-filters', {
+                        method: "POST",
+                        body: JSON.stringify({
+                            name: name.trim(),
+                            filter: filterCriteria,
+                            setAsDefault: !!setAsDefault
+                        })
+                    });
+                    savedObj = (res && res.data) ? res.data : res;
+                } catch (err) {
+                    console.warn("Lỗi lưu bộ lọc lên máy chủ:", err);
+                }
+            }
+
             const customs = JSON.parse(localStorage.getItem(STORAGE_KEY_SAVED_FILTERS)) || [];
-            const newId = `custom_filter_${Date.now()}`;
+            const newId = savedObj?.id || `custom_filter_${Date.now()}`;
             const newFilter = {
                 id: newId,
                 name: name.trim(),
                 isSystem: false,
+                isDefault: !!setAsDefault,
                 filter: { ...filterCriteria }
             };
             customs.push(newFilter);
@@ -427,16 +519,54 @@
             return newFilter;
         },
 
-        /**
-         * Endpoint: DELETE /api/leads/saved-filters/{id}
-         */
-        deleteCustomFilter(filterId) {
+        async updateCustomFilter(filterId, name, filterCriteria, setAsDefault = false) {
             this.init();
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                try {
+                    const cleanId = String(filterId).replace(/[^0-9]/g, "") || filterId;
+                    await window.CrmApi.request(`/api/leads/saved-filters/${cleanId}`, {
+                        method: "PUT",
+                        body: JSON.stringify({
+                            id: cleanId,
+                            name: name.trim(),
+                            filter: filterCriteria,
+                            isDefault: !!setAsDefault
+                        })
+                    });
+                } catch (err) {
+                    console.warn("Lỗi cập nhật bộ lọc lên máy chủ:", err);
+                }
+            }
+
             let customs = JSON.parse(localStorage.getItem(STORAGE_KEY_SAVED_FILTERS)) || [];
-            customs = customs.filter(f => f.id !== filterId);
+            const idx = customs.findIndex(f => String(f.id) === String(filterId));
+            if (idx >= 0) {
+                customs[idx].name = name.trim();
+                customs[idx].filter = { ...filterCriteria };
+                if (setAsDefault) customs[idx].isDefault = true;
+                localStorage.setItem(STORAGE_KEY_SAVED_FILTERS, JSON.stringify(customs));
+            }
+            return { id: filterId, name: name.trim(), filter: filterCriteria, isDefault: setAsDefault };
+        },
+
+        async deleteCustomFilter(filterId) {
+            this.init();
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                try {
+                    const cleanId = String(filterId).replace(/[^0-9]/g, "") || filterId;
+                    await window.CrmApi.request(`/api/leads/saved-filters/${cleanId}`, {
+                        method: "DELETE"
+                    });
+                } catch (err) {
+                    console.warn("Lỗi xóa bộ lọc trên máy chủ:", err);
+                }
+            }
+
+            let customs = JSON.parse(localStorage.getItem(STORAGE_KEY_SAVED_FILTERS)) || [];
+            customs = customs.filter(f => String(f.id) !== String(filterId));
             localStorage.setItem(STORAGE_KEY_SAVED_FILTERS, JSON.stringify(customs));
 
-            if (localStorage.getItem(STORAGE_KEY_DEFAULT_FILTER_ID) === filterId) {
+            if (localStorage.getItem(STORAGE_KEY_DEFAULT_FILTER_ID) === String(filterId)) {
                 localStorage.removeItem(STORAGE_KEY_DEFAULT_FILTER_ID);
             }
         },
@@ -581,8 +711,16 @@
     }
 
     // 6. RENDER LOGIC
-    function refreshData() {
-        const allLeads = LeadsService.getLeads();
+    async function refreshData() {
+        let allLeads = [];
+        try {
+            allLeads = await LeadsService.getLeads();
+        } catch (e) {
+            allLeads = JSON.parse(localStorage.getItem(STORAGE_KEY_LEADS)) || DEFAULT_LEADS;
+        }
+        if (!Array.isArray(allLeads)) {
+            allLeads = [];
+        }
 
         // 6.1 Update KPIs
         const total = allLeads.length;
@@ -596,7 +734,7 @@
         document.getElementById("statInProgress").textContent = progressCount;
 
         // 6.2 Render Saved Filter Tabs
-        renderSavedFilterTabs(allLeads);
+        await renderSavedFilterTabs(allLeads);
 
         // 6.3 Apply Filtering
         let filtered = allLeads.filter(lead => {
@@ -700,13 +838,13 @@
         renderTable(filtered);
     }
 
-    function renderSavedFilterTabs(allLeads) {
+    async function renderSavedFilterTabs(allLeads) {
         const container = document.getElementById("savedFilterTabs");
-        const filters = LeadsService.getSavedFilters();
+        const filters = await LeadsService.getSavedFilters();
 
         let html = "";
         filters.forEach(f => {
-            const isActive = f.id === activeFilterTabId;
+            const isActive = String(f.id) === String(activeFilterTabId);
 
             // Compute count for tab
             let count = 0;
@@ -723,7 +861,7 @@
             } else {
                 // Custom filter count
                 count = allLeads.filter(l => {
-                    const fc = f.filter;
+                    const fc = f.filter || {};
                     if (fc.status && fc.status !== "ALL" && l.status !== fc.status) return false;
                     if (fc.tier && fc.tier !== "ALL" && l.tier !== fc.tier) return false;
                     if (fc.owner === "CURRENT_USER" && l.owner !== CURRENT_USER_NAME) return false;
@@ -732,6 +870,9 @@
             }
 
             const badgeClass = f.isUrgentBadge && count > 0 ? "tab-badge-urgent" : "";
+            const editBtn = !f.isSystem
+                ? `<i class="fa-solid fa-pen-to-square btn-edit-custom-tab" data-edit-filter="${f.id}" title="Đổi tên bộ lọc"></i>`
+                : "";
             const deleteBtn = !f.isSystem
                 ? `<i class="fa-solid fa-xmark btn-delete-custom-tab" data-delete-filter="${f.id}" title="Xóa bộ lọc này"></i>`
                 : "";
@@ -740,6 +881,7 @@
                 <button type="button" class="filter-tab ${isActive ? "active" : ""}" data-filter-id="${f.id}">
                     <span>${f.name}</span>
                     <span class="filter-tab-count ${badgeClass}">${count}</span>
+                    ${editBtn}
                     ${deleteBtn}
                 </button>
             `;
@@ -749,29 +891,42 @@
 
         // Attach tab click handlers
         container.querySelectorAll(".filter-tab").forEach(tab => {
-            tab.addEventListener("click", (e) => {
+            tab.addEventListener("click", async (e) => {
+                if (e.target.classList.contains("btn-edit-custom-tab")) {
+                    e.stopPropagation();
+                    const editId = e.target.getAttribute("data-edit-filter");
+                    const found = filters.find(f => String(f.id) === String(editId));
+                    const newName = prompt("Nhập tên mới cho bộ lọc:", found ? found.name : "");
+                    if (newName && newName.trim()) {
+                        await LeadsService.updateCustomFilter(editId, newName.trim(), found ? found.filter : {});
+                        await refreshData();
+                        showToast("Đã cập nhật tên bộ lọc!", "success");
+                    }
+                    return;
+                }
+
                 if (e.target.classList.contains("btn-delete-custom-tab")) {
                     e.stopPropagation();
                     const delId = e.target.getAttribute("data-delete-filter");
                     if (confirm("Bạn có chắc chắn muốn xóa bộ lọc tùy chỉnh này?")) {
-                        LeadsService.deleteCustomFilter(delId);
-                        if (activeFilterTabId === delId) activeFilterTabId = "view_all";
-                        refreshData();
+                        await LeadsService.deleteCustomFilter(delId);
+                        if (String(activeFilterTabId) === String(delId)) activeFilterTabId = "view_all";
+                        await refreshData();
                         showToast("Đã xóa bộ lọc tùy chỉnh!", "success");
                     }
                     return;
                 }
 
                 const filterId = tab.getAttribute("data-filter-id");
-                applySavedFilter(filterId);
+                await applySavedFilter(filterId);
             });
         });
     }
 
-    function applySavedFilter(filterId) {
+    async function applySavedFilter(filterId) {
         activeFilterTabId = filterId;
-        const filters = LeadsService.getSavedFilters();
-        const found = filters.find(f => f.id === filterId);
+        const filters = await LeadsService.getSavedFilters();
+        const found = filters.find(f => String(f.id) === String(filterId));
 
         if (found) {
             currentCriteria = {
@@ -801,7 +956,7 @@
             document.getElementById("tableTitle").textContent = found.name;
 
             currentPage = 1;
-            refreshData();
+            await refreshData();
         }
     }
 
@@ -1017,9 +1172,9 @@
 
         // Attach action handlers
         tbody.querySelectorAll(".btn-view-lead").forEach(btn => {
-            btn.addEventListener("click", () => {
+            btn.addEventListener("click", async () => {
                 const id = btn.getAttribute("data-lead-id");
-                openLeadDetailModal(id);
+                await openLeadDetailModal(id);
             });
         });
 
@@ -1119,7 +1274,7 @@
         modal.setAttribute("aria-hidden", "true");
     }
 
-    function handleConfirmSaveFilter() {
+    async function handleConfirmSaveFilter() {
         const nameInput = document.getElementById("filterNameInput");
         const name = nameInput.value.trim();
         if (!name) {
@@ -1129,17 +1284,17 @@
         }
 
         const isDefault = document.getElementById("checkSetAsDefault").checked;
-        const newFilter = LeadsService.saveCustomFilter(name, currentCriteria, isDefault);
+        const newFilter = await LeadsService.saveCustomFilter(name, currentCriteria, isDefault);
 
         closeSaveFilterModal();
         activeFilterTabId = newFilter.id;
-        refreshData();
+        await refreshData();
         showToast(`Đã lưu bộ lọc "${name}" thành công!`, "success");
     }
 
     // 8. MODAL: LEAD DETAIL VIEW
-    function openLeadDetailModal(leadId) {
-        const lead = LeadsService.getLeadById(leadId);
+    async function openLeadDetailModal(leadId) {
+        const lead = await LeadsService.getLeadById(leadId);
         if (!lead) return;
 
         document.getElementById("detailLeadFullName").textContent = lead.fullName;
@@ -1192,7 +1347,7 @@
         modal.setAttribute("aria-hidden", "true");
     }
 
-    function handleCreateLeadSubmit() {
+    async function handleCreateLeadSubmit() {
         const fullName = document.getElementById("newFullName").value.trim();
         const phone = document.getElementById("newPhone").value.trim();
         const email = document.getElementById("newEmail").value.trim();
@@ -1203,7 +1358,7 @@
             return;
         }
 
-        const newLead = LeadsService.createLead({
+        const newLead = await LeadsService.createLead({
             fullName,
             title: document.getElementById("newTitle").value.trim(),
             phone,
@@ -1217,13 +1372,13 @@
 
         closeCreateLeadModal();
         currentPage = 1;
-        refreshData();
-        showToast(`Đã thêm Lead mới (${newLead.code}) thành công!`, "success");
+        await refreshData();
+        showToast(`Đã thêm Lead mới (${newLead.code || newLead.id}) thành công!`, "success");
     }
 
     // 10. EXPORT TO CSV / EXCEL
-    function exportLeadsToExcel() {
-        const allLeads = LeadsService.getLeads();
+    async function exportLeadsToExcel() {
+        const allLeads = await LeadsService.getLeads();
         if (!allLeads.length) {
             showToast("Không có dữ liệu để xuất!", "warning");
             return;

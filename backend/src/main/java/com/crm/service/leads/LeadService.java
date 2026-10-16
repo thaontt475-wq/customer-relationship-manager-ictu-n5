@@ -94,12 +94,34 @@ public class LeadService {
     }
 
     public boolean updateLead(Lead lead, long currentUserId) throws Exception {
-        dataScopeService.resolve(currentUserId, "lead", "update");
+        DataScopeContext scope = dataScopeService.resolve(currentUserId, "lead", "update");
+        Lead existing = leadDAO.findById(lead.getId());
+        if (existing == null) {
+            throw new NoSuchElementException("Không tìm thấy Lead để cập nhật");
+        }
+        if (existing.isLocked() || "CONVERTED".equalsIgnoreCase(existing.getStatus())) {
+            throw new IllegalStateException("Lead đã được chuyển đổi hoặc bị khóa, không thể cập nhật");
+        }
+        long ownerId = existing.getAssignedTo() != null ? existing.getAssignedTo() : (existing.getOwnerUserId() != null ? existing.getOwnerUserId() : 0L);
+        if (scope != null && !scope.canAccessOwner(ownerId)) {
+            throw new SecurityException("Bạn không có quyền chỉnh sửa Lead này");
+        }
         return leadDAO.update(lead);
     }
 
     public boolean deleteLead(long id, long currentUserId) throws Exception {
-        dataScopeService.resolve(currentUserId, "lead", "delete");
+        DataScopeContext scope = dataScopeService.resolve(currentUserId, "lead", "delete");
+        Lead existing = leadDAO.findById(id);
+        if (existing == null) {
+            throw new NoSuchElementException("Không tìm thấy Lead để xóa");
+        }
+        if (existing.isLocked() || "CONVERTED".equalsIgnoreCase(existing.getStatus())) {
+            throw new IllegalStateException("Lead đã được chuyển đổi hoặc bị khóa, không thể xóa");
+        }
+        long ownerId = existing.getAssignedTo() != null ? existing.getAssignedTo() : (existing.getOwnerUserId() != null ? existing.getOwnerUserId() : 0L);
+        if (scope != null && !scope.canAccessOwner(ownerId)) {
+            throw new SecurityException("Bạn không có quyền xóa Lead này");
+        }
         return leadDAO.delete(id);
     }
 
