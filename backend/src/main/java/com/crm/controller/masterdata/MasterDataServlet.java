@@ -795,14 +795,6 @@ public class MasterDataServlet extends HttpServlet {
                 trimmed;
     }
 
-
-    private void require(
-            HttpServletRequest req,
-            String permission
-    ) throws Exception {
-        requireAny(req, permission);
-    }
-
     private void requireAny(
             HttpServletRequest req,
             String... perms

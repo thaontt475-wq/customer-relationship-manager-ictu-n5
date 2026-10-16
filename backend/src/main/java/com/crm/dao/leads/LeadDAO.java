@@ -131,15 +131,14 @@ public class LeadDAO {
     }
 
     public List<Map<String, Object>> sources(Connection c, boolean lock) throws SQLException {
-        String sql = "SELECT id,code,name,description FROM lead_sources ORDER BY id ASC" + (lock ? " FOR UPDATE" : "");
-        try (PreparedStatement p = c.prepareStatement(sql); ResultSet r = p.executeQuery()) {
-            List<Map<String, Object>> list = new ArrayList<>();
+        String query = "SELECT id,code,name FROM master_data WHERE type='lead-source' AND active=TRUE ORDER BY id" + (lock ? " FOR SHARE" : "");
+        List<Map<String, Object>> list = new ArrayList<>();
+        try (PreparedStatement p = c.prepareStatement(query); ResultSet r = p.executeQuery()) {
             while (r.next()) {
                 Map<String, Object> map = new LinkedHashMap<>();
                 map.put("id", r.getLong("id"));
                 map.put("code", r.getString("code"));
                 map.put("name", r.getString("name"));
-                map.put("description", r.getString("description"));
                 list.add(map);
             }
             return list;
@@ -180,11 +179,8 @@ public class LeadDAO {
         StringBuilder query = new StringBuilder("""
             SELECT l.id,l.full_name AS fullName,l.company_name AS companyName,l.email,l.phone,l.source_id AS sourceId,
             s.code AS sourceCode,s.name AS sourceName,l.notes,l.status,l.owner_user_id AS ownerUserId,
-            l.import_batch_hash AS importBatchHash,l.created_at AS createdAt,l.updated_at AS updatedAt,
-            l.is_locked AS isLocked
-            FROM leads l
-            LEFT JOIN lead_sources s ON s.id = l.source_id
-            WHERE l.id = ? AND l.is_deleted = 0
+            l.created_by AS createdBy,l.created_at AS createdAt
+            FROM leads l JOIN master_data s ON s.id=l.source_id WHERE l.id=?
             """);
         List<Object> values = new ArrayList<>();
         values.add(id);
@@ -196,33 +192,20 @@ public class LeadDAO {
             for (int i = 0; i < values.size(); i++) p.setObject(i + 1, values.get(i));
             try (ResultSet r = p.executeQuery()) {
                 if (!r.next()) return null;
-                Map<String, Object> map = new LinkedHashMap<>();
-                map.put("id", r.getLong("id"));
-                map.put("fullName", r.getString("fullName"));
-                map.put("companyName", r.getString("companyName"));
-                map.put("email", r.getString("email"));
-                map.put("phone", r.getString("phone"));
-                map.put("sourceId", r.getObject("sourceId"));
-                map.put("sourceCode", r.getString("sourceCode"));
-                map.put("sourceName", r.getString("sourceName"));
-                map.put("notes", r.getString("notes"));
-                map.put("status", r.getString("status"));
-                map.put("ownerUserId", r.getLong("ownerUserId"));
-                map.put("importBatchHash", r.getString("importBatchHash"));
-                map.put("createdAt", r.getTimestamp("createdAt"));
-                map.put("updatedAt", r.getTimestamp("updatedAt"));
-                map.put("isLocked", r.getBoolean("isLocked") || "CONVERTED".equalsIgnoreCase(r.getString("status")));
-                return map;
+                Map<String, Object> result = new LinkedHashMap<>();
+                for (int i = 1; i <= r.getMetaData().getColumnCount(); i++) {
+                    Object value = r.getObject(i);
+                    result.put(r.getMetaData().getColumnLabel(i), value instanceof Timestamp date ? date.toLocalDateTime().toString() :
+                            value instanceof java.time.temporal.TemporalAccessor ? value.toString() : value);
+                }
+                result.put("isLocked", "CONVERTED".equalsIgnoreCase(String.valueOf(result.get("status"))));
+                return result;
             }
         }
     }
 
     public void update(Connection c, long id, LeadWriteRequest lead) throws SQLException {
-        String sql = """
-            UPDATE leads
-            SET full_name=?,company_name=?,email=?,phone=?,source_id=?,notes=?,updated_at=CURRENT_TIMESTAMP
-            WHERE id=?
-            """;
+        String sql = "UPDATE leads SET full_name=?,company_name=?,email=?,phone=?,source_id=?,notes=? WHERE id=?";
         try (PreparedStatement p = c.prepareStatement(sql)) {
             p.setString(1, lead.fullName());
             p.setString(2, lead.companyName());
