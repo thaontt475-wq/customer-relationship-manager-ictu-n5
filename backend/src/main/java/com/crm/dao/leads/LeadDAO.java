@@ -163,11 +163,9 @@ public class LeadDAO {
         return -1;
     }
 
-    public boolean updateAssignment(long leadId, Long assignedTo, String status, String reason) {
+    public boolean updateAssignment(Connection conn, long leadId, Long assignedTo, String status, String reason) throws SQLException {
         String sql = "UPDATE leads SET assigned_to = ?, status = ?, unassigned_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             if (assignedTo != null) {
                 ps.setLong(1, assignedTo);
             } else {
@@ -178,6 +176,12 @@ public class LeadDAO {
             ps.setLong(4, leadId);
 
             return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean updateAssignment(long leadId, Long assignedTo, String status, String reason) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return updateAssignment(conn, leadId, assignedTo, status, reason);
         } catch (SQLException e) {
             System.err.println("Error updating lead assignment: " + e.getMessage());
             e.printStackTrace();

@@ -9,14 +9,12 @@ import java.util.List;
 
 public class LeadAssignmentHistoryDAO {
 
-    public long insert(AssignmentHistory history) {
+    public long insert(Connection conn, AssignmentHistory history) throws SQLException {
         String sql = "INSERT INTO lead_assignment_history (lead_id, lead_name, lead_phone, company_name, " +
                 "rep_id, rep_name, rep_dept, method, note, assigned_at) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
+        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             if (history.getLeadId() != null) {
                 ps.setLong(1, history.getLeadId());
             } else {
@@ -47,11 +45,18 @@ public class LeadAssignmentHistoryDAO {
                     }
                 }
             }
+        }
+        return -1;
+    }
+
+    public long insert(AssignmentHistory history) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return insert(conn, history);
         } catch (SQLException e) {
             System.err.println("Error inserting lead assignment history: " + e.getMessage());
             e.printStackTrace();
+            return -1;
         }
-        return -1;
     }
 
     public List<AssignmentHistory> findAll(int limit) {

@@ -1,5 +1,6 @@
 package com.crm.service.leads;
 
+import com.crm.config.DatabaseConfig;
 import com.crm.dao.leads.AssignmentRuleDAO;
 import com.crm.dao.leads.LeadAssignmentHistoryDAO;
 import com.crm.dao.leads.LeadDAO;
@@ -8,6 +9,8 @@ import com.crm.model.leads.AssignmentHistory;
 import com.crm.model.leads.AssignmentRule;
 import com.crm.model.leads.Lead;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -16,6 +19,10 @@ public class LeadAutoAssignmentService {
     private final AssignmentRuleDAO ruleDAO;
     private final LeadAssignmentHistoryDAO historyDAO;
     private final LeadDAO leadDAO;
+
+    protected Connection open() throws SQLException {
+        return DatabaseConfig.getConnection();
+    }
 
     public LeadAutoAssignmentService() {
         this.ruleDAO = new AssignmentRuleDAO();
@@ -62,6 +69,7 @@ public class LeadAutoAssignmentService {
             List<String> repIds = matchedRule.getReps();
             SalesRepDTO targetRep = null;
             String mechanism = matchedRule.getMechanism() != null ? matchedRule.getMechanism().toUpperCase() : "ROUND_ROBIN";
+            int nextIndex = matchedRule.getLastAssignedIndex();
 
             if ("ROUND_ROBIN".equals(mechanism)) {
                 // Round-Robin: pointer increments sequentially through reps list
@@ -69,10 +77,7 @@ public class LeadAutoAssignmentService {
                 int repIndex = currentIndex % repIds.size();
                 String targetId = repIds.get(repIndex);
                 targetRep = repLookup.get(targetId);
-
-                // Update pointer and total assigned atomically in DB
-                int nextIndex = repIndex + 1;
-                ruleDAO.updatePointerAndStats(matchedRule.getId(), nextIndex, parseLongSafe(targetId));
+                nextIndex = repIndex + 1;
 
             } else if ("LOAD_BALANCED".equals(mechanism)) {
                 // Load-Balanced: rep with minimum current leads
@@ -86,14 +91,11 @@ public class LeadAutoAssignmentService {
                     }
                 }
                 targetRep = leastBusyRep;
-                ruleDAO.updatePointerAndStats(matchedRule.getId(), matchedRule.getLastAssignedIndex(),
-                        targetRep != null ? parseLongSafe(targetRep.getId()) : null);
 
             } else {
                 // DEDICATED
                 String targetId = repIds.get(0);
                 targetRep = repLookup.get(targetId);
-                ruleDAO.updatePointerAndStats(matchedRule.getId(), matchedRule.getLastAssignedIndex(), parseLongSafe(targetId));
             }
 
             // Fallback rep if lookup failed
@@ -103,12 +105,6 @@ public class LeadAutoAssignmentService {
 
             if (targetRep != null) {
                 Long repUserId = parseLongSafe(targetRep.getId());
-
-                // Update lead in DB
-                leadDAO.updateAssignment(lead.getId(), repUserId, "ASSIGNED", null);
-                lead.setAssignedTo(repUserId);
-                lead.setAssignedToRepId(targetRep.getId());
-                lead.setStatus("ASSIGNED");
 
                 // Record assignment history
                 AssignmentHistory history = new AssignmentHistory();
@@ -123,8 +119,26 @@ public class LeadAutoAssignmentService {
                 history.setNote("Khớp quy tắc \"" + matchedRule.getName() + "\" theo cơ chế " + matchedRule.getMechanism() + ".");
                 history.setAssignedAt(new Timestamp(System.currentTimeMillis()));
 
-                historyDAO.insert(history);
-                return true;
+                // Atomic transaction: pointer + lead update + history
+                try (Connection conn = open()) {
+                    conn.setAutoCommit(false);
+                    try {
+                        ruleDAO.updatePointerAndStats(conn, matchedRule.getId(), nextIndex, repUserId);
+                        leadDAO.updateAssignment(conn, lead.getId(), repUserId, "ASSIGNED", null);
+                        historyDAO.insert(conn, history);
+                        conn.commit();
+
+                        lead.setAssignedTo(repUserId);
+                        lead.setAssignedToRepId(targetRep.getId());
+                        lead.setStatus("ASSIGNED");
+                        return true;
+                    } catch (Exception e) {
+                        conn.rollback();
+                        throw new RuntimeException("Lỗi giao dịch phân bổ tự động: " + e.getMessage(), e);
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException("Lỗi kết nối CSDL khi phân bổ: " + e.getMessage(), e);
+                }
             }
         }
 
@@ -227,24 +241,36 @@ public class LeadAutoAssignmentService {
         String repDept = targetRep != null ? targetRep.getDept() : "Phòng Kinh doanh";
         Long repUserId = parseLongSafe(repId);
 
-        boolean updated = leadDAO.updateAssignment(leadId, repUserId, "ASSIGNED", null);
-        if (updated) {
-            AssignmentHistory history = new AssignmentHistory();
-            history.setLeadId(leadId);
-            history.setLeadName(lead.getFullName());
-            history.setLeadPhone(lead.getPhone());
-            history.setCompanyName(lead.getCompanyName());
-            history.setRepId(repId);
-            history.setRepName(repName);
-            history.setRepDept(repDept);
-            history.setMethod("Thủ công: Trưởng nhóm phân công");
-            history.setNote(note != null && !note.isBlank() ? note : "Trưởng phòng chỉ định nhân sự chuyên trách.");
-            history.setAssignedAt(new Timestamp(System.currentTimeMillis()));
+        AssignmentHistory history = new AssignmentHistory();
+        history.setLeadId(leadId);
+        history.setLeadName(lead.getFullName());
+        history.setLeadPhone(lead.getPhone());
+        history.setCompanyName(lead.getCompanyName());
+        history.setRepId(repId);
+        history.setRepName(repName);
+        history.setRepDept(repDept);
+        history.setMethod("Thủ công: Trưởng nhóm phân công");
+        history.setNote(note != null && !note.isBlank() ? note : "Trưởng phòng chỉ định nhân sự chuyên trách.");
+        history.setAssignedAt(new Timestamp(System.currentTimeMillis()));
 
-            historyDAO.insert(history);
-            return true;
+        try (Connection conn = open()) {
+            conn.setAutoCommit(false);
+            try {
+                boolean updated = leadDAO.updateAssignment(conn, leadId, repUserId, "ASSIGNED", null);
+                if (!updated) {
+                    conn.rollback();
+                    return false;
+                }
+                historyDAO.insert(conn, history);
+                conn.commit();
+                return true;
+            } catch (Exception e) {
+                conn.rollback();
+                throw new RuntimeException("Lỗi giao dịch phân bổ thủ công: " + e.getMessage(), e);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi kết nối CSDL khi phân công thủ công: " + e.getMessage(), e);
         }
-        return false;
     }
 
     private Long parseLongSafe(String str) {

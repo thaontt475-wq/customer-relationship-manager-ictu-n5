@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import com.crm.service.permissions.AuthorizationService;
+
 @WebServlet({"/api/leads", "/api/leads/*"})
 public class LeadServlet extends HttpServlet {
 
@@ -30,6 +32,7 @@ public class LeadServlet extends HttpServlet {
     private final LeadAutoAssignmentService autoAssignmentService;
     private final LeadDAO leadDAO;
     private final LeadAssignmentHistoryDAO historyDAO;
+    private final AuthorizationService authService;
 
     private static final Type RULE_LIST_TYPE = new TypeToken<List<AssignmentRule>>() {}.getType();
 
@@ -38,6 +41,7 @@ public class LeadServlet extends HttpServlet {
         this.autoAssignmentService = new LeadAutoAssignmentService();
         this.leadDAO = new LeadDAO();
         this.historyDAO = new LeadAssignmentHistoryDAO();
+        this.authService = new AuthorizationService();
     }
 
     public LeadServlet(AssignmentRuleService ruleService,
@@ -48,6 +52,19 @@ public class LeadServlet extends HttpServlet {
         this.autoAssignmentService = autoAssignmentService;
         this.leadDAO = leadDAO;
         this.historyDAO = historyDAO;
+        this.authService = new AuthorizationService();
+    }
+
+    public LeadServlet(AssignmentRuleService ruleService,
+                       LeadAutoAssignmentService autoAssignmentService,
+                       LeadDAO leadDAO,
+                       LeadAssignmentHistoryDAO historyDAO,
+                       AuthorizationService authService) {
+        this.ruleService = ruleService;
+        this.autoAssignmentService = autoAssignmentService;
+        this.leadDAO = leadDAO;
+        this.historyDAO = historyDAO;
+        this.authService = authService;
     }
 
     @Override
@@ -162,6 +179,17 @@ public class LeadServlet extends HttpServlet {
 
         // Update single rule: PUT /api/leads/assignment-rules/{id}
         if (path.startsWith("/assignment-rules/")) {
+            try {
+                authService.requirePermission(request, "lead.assignment_rules");
+            } catch (SecurityException e) {
+                int status = e.getMessage() != null && e.getMessage().contains("Phiên") ? 401 : 403;
+                ResponseUtil.json(response, status, ApiResponse.error(e.getMessage(), null));
+                return;
+            } catch (Exception e) {
+                ResponseUtil.json(response, 500, ApiResponse.error("Lỗi xác thực phân quyền: " + e.getMessage(), null));
+                return;
+            }
+
             String idStr = path.substring("/assignment-rules/".length());
             try {
                 long ruleId = Long.parseLong(idStr);
@@ -195,6 +223,17 @@ public class LeadServlet extends HttpServlet {
         String path = normalizePath(request.getPathInfo());
 
         if (path.startsWith("/assignment-rules/")) {
+            try {
+                authService.requirePermission(request, "lead.assignment_rules");
+            } catch (SecurityException e) {
+                int status = e.getMessage() != null && e.getMessage().contains("Phiên") ? 401 : 403;
+                ResponseUtil.json(response, status, ApiResponse.error(e.getMessage(), null));
+                return;
+            } catch (Exception e) {
+                ResponseUtil.json(response, 500, ApiResponse.error("Lỗi xác thực phân quyền: " + e.getMessage(), null));
+                return;
+            }
+
             String idStr = path.substring("/assignment-rules/".length());
             try {
                 long ruleId = Long.parseLong(idStr);
@@ -215,6 +254,17 @@ public class LeadServlet extends HttpServlet {
     }
 
     private void handleSaveRules(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            authService.requirePermission(request, "lead.assignment_rules");
+        } catch (SecurityException e) {
+            int status = e.getMessage() != null && e.getMessage().contains("Phiên") ? 401 : 403;
+            ResponseUtil.json(response, status, ApiResponse.error(e.getMessage(), null));
+            return;
+        } catch (Exception e) {
+            ResponseUtil.json(response, 500, ApiResponse.error("Lỗi xác thực phân quyền: " + e.getMessage(), null));
+            return;
+        }
+
         String body = readBodyString(request);
         if (body == null || body.isBlank()) {
             ResponseUtil.json(response, 400, ApiResponse.error("Dữ liệu quy tắc trống", null));
@@ -244,6 +294,17 @@ public class LeadServlet extends HttpServlet {
     }
 
     private void handleManualAssign(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            authService.requirePermission(request, "lead.assign");
+        } catch (SecurityException e) {
+            int status = e.getMessage() != null && e.getMessage().contains("Phiên") ? 401 : 403;
+            ResponseUtil.json(response, status, ApiResponse.error(e.getMessage(), null));
+            return;
+        } catch (Exception e) {
+            ResponseUtil.json(response, 500, ApiResponse.error("Lỗi xác thực phân quyền: " + e.getMessage(), null));
+            return;
+        }
+
         String body = readBodyString(request);
         ManualAssignRequest req = JsonUtil.getGson().fromJson(body, ManualAssignRequest.class);
 
@@ -272,6 +333,17 @@ public class LeadServlet extends HttpServlet {
     }
 
     private void handleProcessQueue(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            authService.requirePermission(request, "lead.auto_assign");
+        } catch (SecurityException e) {
+            int status = e.getMessage() != null && e.getMessage().contains("Phiên") ? 401 : 403;
+            ResponseUtil.json(response, status, ApiResponse.error(e.getMessage(), null));
+            return;
+        } catch (Exception e) {
+            ResponseUtil.json(response, 500, ApiResponse.error("Lỗi xác thực phân quyền: " + e.getMessage(), null));
+            return;
+        }
+
         int count = autoAssignmentService.processPendingQueue();
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("assignedCount", count);
