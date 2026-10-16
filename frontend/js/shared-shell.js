@@ -3,7 +3,7 @@
 (function () {
 
     const API_BASE =
-        (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
+        (window.CRM_BACKEND_BASE || (window.location.pathname.startsWith("/crm/") ? window.location.origin + "/crm" : `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`));
 
 
     const currentPage =
