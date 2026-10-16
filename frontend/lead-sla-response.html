@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiếp nhận Lead SLA (CRM-121) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/lead-sla-response.css?v=20261014_s407">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="lead-sla-response.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-stopwatch"></i></span>
+            <span class="crm-nav-label">Tiếp nhận Lead SLA (CRM-121)</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản trị</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead được phân, số điện thoại, công ty... (Ctrl K)">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" id="themeToggleBtn" type="button" aria-label="Đổi giao diện">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">QT</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Frontend Developer</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogout">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main lead-sla-page">
+
+    <!-- 1. HEADER & ACTIONS BAR -->
+    <section class="lead-page-head">
+        <div>
+            <p class="lead-kicker">Quản trị Lead & Cam kết Dịch vụ / Sprint 4 (S4-07)</p>
+            <h1>Nhận hoặc Từ chối Lead theo Cam kết SLA (CRM-121)</h1>
+            <p>Khách hàng tiềm năng được phân bổ tới chuyên viên kèm đồng hồ đếm ngược SLA thời gian thực; chủ động bấm Tiếp nhận để chuyển sang chăm sóc hoặc Từ chối kèm lý do để hoàn trả về hàng chờ tái phân bổ.</p>
+        </div>
+
+        <div class="lead-head-actions">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnRefreshLeads">
+                <i class="fa-solid fa-rotate-left"></i>
+                Làm mới
+            </button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnAcceptAllValid">
+                <i class="fa-solid fa-circle-check"></i>
+                Nhận nhanh tất cả trong hạn
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. KPI SUMMARY CARDS -->
+    <section class="sla-kpis">
+        <div class="sla-kpi-card pending">
+            <div class="sla-kpi-icon">
+                <i class="fa-solid fa-stopwatch"></i>
+            </div>
+            <div class="sla-kpi-info">
+                <div class="sla-kpi-head">
+                    <span class="sla-kpi-label">Chờ phản hồi (SLA Active)</span>
+                    <span class="sla-pulse-pill" id="kpiPendingBadge">Đang đếm</span>
+                </div>
+                <span class="sla-kpi-value" id="kpiPendingCount">0</span>
+                <span class="sla-kpi-sub"><i class="fa-solid fa-clock-rotate-left text-primary"></i> Cần phản hồi trước khi hết hạn</span>
+            </div>
+        </div>
+
+        <div class="sla-kpi-card urgent">
+            <div class="sla-kpi-icon">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="sla-kpi-info">
+                <span class="sla-kpi-label">Sắp hết hạn / Quá hạn</span>
+                <span class="sla-kpi-value" id="kpiUrgentOverdueCount">0</span>
+                <span class="sla-kpi-sub urgent-sub"><i class="fa-solid fa-fire text-danger"></i> Dưới 30 phút hoặc đã quá hạn</span>
+            </div>
+        </div>
+
+        <div class="sla-kpi-card contacting">
+            <div class="sla-kpi-icon">
+                <i class="fa-solid fa-headset"></i>
+            </div>
+            <div class="sla-kpi-info">
+                <span class="sla-kpi-label">Đang chăm sóc (In Progress)</span>
+                <span class="sla-kpi-value" id="kpiContactingCount">0</span>
+                <span class="sla-kpi-sub"><i class="fa-solid fa-phone-volume text-success"></i> Đã tiếp nhận & bắt đầu tư vấn</span>
+            </div>
+        </div>
+
+        <div class="sla-kpi-card compliance">
+            <div class="sla-kpi-icon">
+                <i class="fa-solid fa-award"></i>
+            </div>
+            <div class="sla-kpi-info">
+                <span class="sla-kpi-label">Tỷ lệ đạt chuẩn SLA</span>
+                <span class="sla-kpi-value" id="kpiSlaComplianceRate">0%</span>
+                <span class="sla-kpi-sub"><i class="fa-solid fa-chart-line text-purple"></i> Phản hồi trong hạn cam kết</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. TABS NAVIGATION -->
+    <div class="sla-tabs-bar">
+        <button type="button" class="sla-tab-btn active" data-tab="pending" id="tabPendingBtn">
+            <i class="fa-solid fa-hourglass-half"></i>
+            Chờ phản hồi (SLA đang đếm ngược)
+            <span class="tab-badge" id="tabPendingBadge">0</span>
+        </button>
+        <button type="button" class="sla-tab-btn" data-tab="contacting" id="tabContactingBtn">
+            <i class="fa-solid fa-phone"></i>
+            Đang chăm sóc
+            <span class="tab-badge" id="tabContactingBadge">0</span>
+        </button>
+        <button type="button" class="sla-tab-btn" data-tab="rejected" id="tabRejectedBtn">
+            <i class="fa-solid fa-ban"></i>
+            Đã từ chối (Chuyển hàng chờ)
+            <span class="tab-badge" id="tabRejectedBadge">0</span>
+        </button>
+    </div>
+
+    <!-- ================= 4. TAB 1: CHỜ PHẢN HỒI (SLA ACTIVE) ================= -->
+    <section class="tab-pane active" id="panePending">
+        
+        <!-- Filter Toolbar -->
+        <div class="sla-filter-toolbar">
+            <div class="sla-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="pendingSearchInput" class="crm-input" placeholder="Tìm theo tên Lead, công ty, số điện thoại, email...">
+            </div>
+
+            <select id="filterPendingUrgency" class="crm-input">
+                <option value="ALL">Tất cả trạng thái SLA</option>
+                <option value="SAFE">🟢 Còn nhiều thời gian (&gt; 50% SLA)</option>
+                <option value="URGENT">🟡 Cảnh báo gấp (&lt; 30 phút)</option>
+                <option value="OVERDUE">🔴 Đã quá hạn SLA (Overdue)</option>
+            </select>
+
+            <select id="filterPendingIndustry" class="crm-input">
+                <option value="ALL">Tất cả ngành nghề</option>
+                <option value="CNTT">CNTT & Viễn thông</option>
+                <option value="Bất động sản">Bất động sản & Xây dựng</option>
+                <option value="Dược phẩm">Dược phẩm & Y tế</option>
+                <option value="Bán lẻ">Bán lẻ & Chuỗi F&B</option>
+                <option value="Sản xuất">Sản xuất & Vận tải</option>
+            </select>
+
+            <select id="sortPendingOrder" class="crm-input">
+                <option value="sla_asc">Thời hạn SLA (Hết hạn trước)</option>
+                <option value="assigned_desc">Mới được giao trước</option>
+                <option value="score_desc">Điểm chất lượng (Cao nhất)</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnResetPendingFilters" title="Đặt lại bộ lọc">
+                <i class="fa-solid fa-rotate-left"></i> Làm mới
+            </button>
+        </div>
+
+        <!-- Pending Table -->
+        <div class="sla-table-container">
+            <table class="sla-table">
+                <thead>
+                    <tr>
+                        <th class="col-seq">#</th>
+                        <th class="col-lead">Khách hàng tiềm năng</th>
+                        <th class="col-company">Doanh nghiệp & Khu vực</th>
+                        <th class="col-assigned-time">Thời điểm giao</th>
+                        <th class="col-sla-timer">Thời hạn cam kết SLA</th>
+                        <th class="col-score">Điểm số</th>
+                        <th class="col-actions">Thao tác phản hồi</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div class="sla-empty-state" id="pendingEmptyState" style="display:none;">
+                <div class="sla-empty-icon text-success"><i class="fa-solid fa-circle-check"></i></div>
+                <h3>Bạn đã phản hồi toàn bộ Lead được giao!</h3>
+                <p>Không có khách hàng tiềm năng nào đang chờ tiếp nhận. Hệ thống sẽ thông báo ngay khi có Lead mới.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ================= 5. TAB 2: ĐANG CHĂM SÓC (IN PROGRESS) ================= -->
+    <section class="tab-pane" id="paneContacting">
+        
+        <!-- Filter Toolbar -->
+        <div class="sla-filter-toolbar">
+            <div class="sla-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="contactingSearchInput" class="crm-input" placeholder="Tìm kiếm Lead đang chăm sóc...">
+            </div>
+
+            <select id="filterContactingSlaResult" class="crm-input">
+                <option value="ALL">Tất cả kết quả SLA</option>
+                <option value="ON_TIME">✅ Nhận đúng hạn SLA</option>
+                <option value="OVERDUE">⚠️ Nhận quá hạn SLA</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnResetContactingFilters" title="Đặt lại">
+                <i class="fa-solid fa-rotate-left"></i> Làm mới
+            </button>
+        </div>
+
+        <!-- Contacting Table -->
+        <div class="sla-table-container">
+            <table class="sla-table">
+                <thead>
+                    <tr>
+                        <th class="col-seq">#</th>
+                        <th class="col-lead">Khách hàng tiềm năng</th>
+                        <th class="col-company">Doanh nghiệp & Ngành</th>
+                        <th class="col-assigned-time">Thời điểm tiếp nhận</th>
+                        <th class="col-sla-result">Kết quả phản hồi SLA</th>
+                        <th class="col-status">Trạng thái chăm sóc</th>
+                        <th class="col-actions">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="contactingTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div class="sla-empty-state" id="contactingEmptyState" style="display:none;">
+                <div class="sla-empty-icon"><i class="fa-solid fa-headset"></i></div>
+                <h3>Chưa có Lead nào trong danh sách đang chăm sóc</h3>
+                <p>Hãy chuyển sang tab "Chờ phản hồi" và bấm "Tiếp nhận" để bắt đầu tư vấn khách hàng.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ================= 6. TAB 3: ĐÃ TỪ CHỐI (REJECTED) ================= -->
+    <section class="tab-pane" id="paneRejected">
+        
+        <!-- Filter Toolbar -->
+        <div class="sla-filter-toolbar">
+            <div class="sla-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="rejectedSearchInput" class="crm-input" placeholder="Tìm kiếm Lead đã từ chối...">
+            </div>
+
+            <select id="filterRejectReason" class="crm-input">
+                <option value="ALL">Tất cả lý do từ chối</option>
+                <option value="INVALID_PHONE">Sai số điện thoại / Không liên lạc được</option>
+                <option value="OUT_OF_TERRITORY">Ngoài khu vực phụ trách</option>
+                <option value="OVERLOADED">Đang quá tải công việc</option>
+                <option value="NO_INTENT">Khách không có nhu cầu</option>
+                <option value="OTHER">Lý do khác</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnResetRejectedFilters" title="Đặt lại">
+                <i class="fa-solid fa-rotate-left"></i> Làm mới
+            </button>
+        </div>
+
+        <!-- Rejected Table -->
+        <div class="sla-table-container">
+            <table class="sla-table">
+                <thead>
+                    <tr>
+                        <th class="col-seq">#</th>
+                        <th class="col-lead">Khách hàng bị từ chối</th>
+                        <th class="col-company">Doanh nghiệp</th>
+                        <th class="col-reason-badge">Lý do từ chối</th>
+                        <th class="col-reason-detail">Chi tiết giải trình</th>
+                        <th class="col-reject-time">Thời điểm từ chối</th>
+                        <th class="col-status">Điều phối tiếp theo</th>
+                    </tr>
+                </thead>
+                <tbody id="rejectedTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div class="sla-empty-state" id="rejectedEmptyState" style="display:none;">
+                <div class="sla-empty-icon text-muted"><i class="fa-solid fa-circle-check"></i></div>
+                <h3>Không có Lead nào bị từ chối</h3>
+                <p>Bạn chưa từ chối khách hàng tiềm năng nào được phân bổ.</p>
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ================= 7. MODAL TỪ CHỐI TIẾP NHẬN LEAD ================= -->
+<div class="sla-modal-backdrop" id="rejectModal">
+    <div class="sla-modal-box">
+        <div class="sla-modal-header">
+            <div class="sla-modal-title">
+                <i class="fa-solid fa-ban text-danger"></i>
+                Từ chối Tiếp nhận Khách hàng Tiềm năng
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseRejectModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="sla-modal-body">
+            <!-- Lead Summary Banner -->
+            <div class="reject-lead-banner" id="rejectLeadBanner">
+                <!-- Populated dynamically via JS -->
+            </div>
+
+            <!-- Mandatory Reason -->
+            <div class="form-row">
+                <label for="rejectReasonSelect" class="form-label required">Lý do từ chối tiếp nhận:</label>
+                <select id="rejectReasonSelect" class="crm-input" required>
+                    <option value="">-- Chọn lý do chính đáng --</option>
+                    <option value="INVALID_PHONE">Sai số điện thoại / Không liên lạc được</option>
+                    <option value="OUT_OF_TERRITORY">Ngoài địa bàn / Khu vực tôi phụ trách</option>
+                    <option value="OVERLOADED">Đang quá tải công việc / Không đảm bảo SLA</option>
+                    <option value="NO_INTENT">Khách hàng nhầm số / Không có nhu cầu CRM</option>
+                    <option value="COMPETITOR">Đối thủ cạnh tranh khảo giá</option>
+                    <option value="OTHER">Lý do nghiệp vụ khác</option>
+                </select>
+            </div>
+
+            <!-- Explanation Textarea -->
+            <div class="form-row">
+                <label for="rejectDetails" class="form-label required">Chi tiết giải trình (bắt buộc):</label>
+                <textarea id="rejectDetails" class="crm-input" rows="3" placeholder="Nhập lý do cụ thể để Trưởng nhóm nắm được và điều phối lại cho nhân viên khác phù hợp hơn..." required></textarea>
+            </div>
+
+            <div class="reject-warning-box">
+                <i class="fa-solid fa-circle-exclamation text-danger"></i>
+                <div>
+                    <strong>Lưu ý quan trọng:</strong> Khi xác nhận từ chối, Lead này sẽ lập tức được thu hồi khỏi danh sách của bạn và tự động hoàn trả về <strong>Hàng chờ phân bổ (Unassigned Queue)</strong> để Trưởng phòng điều phối lại.
+                </div>
+            </div>
+        </div>
+
+        <div class="sla-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelReject">Hủy bỏ</button>
+            <button type="button" class="crm-btn crm-btn-danger" id="btnConfirmReject">
+                <i class="fa-solid fa-ban"></i> Xác nhận từ chối Lead
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 8. TOAST NOTIFICATION CONTAINER ================= -->
+<div id="leadSlaToastContainer" class="sla-toast-container"></div>
+
+<!-- Scripts -->
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/pages/lead-sla-response.js?v=20261014_s407"></script>
+</body>
+</html>

@@ -7,7 +7,7 @@ import java.util.*;
 /** Resolves action-specific scope from database roles, never from request parameters. */
 public class DataScopeService {
     public DataScopeContext resolve(long currentUserId, String module, String action) throws SQLException {
-        if (!Set.of("customer", "opportunity", "activity", "quote", "contract").contains(module)) {
+        if (!Set.of("customer", "opportunity", "activity", "quote", "contract", "campaign", "lead").contains(module)) {
             throw new IllegalArgumentException("Module phạm vi dữ liệu không hợp lệ");
         }
         String permission = module + "." + action;
@@ -37,6 +37,34 @@ public class DataScopeService {
                     while (rs.next()) {
                         ScopeType candidate = ScopeType.valueOf(rs.getString(1));
                         effective = effective == null ? candidate : ScopeType.widest(effective, candidate);
+                    }
+                }
+            }
+            if (effective == null) {
+                boolean hasPermission = false;
+                try (PreparedStatement statement = connection.prepareStatement("""
+                        SELECT 1 FROM user_roles ur
+                        JOIN role_permissions rp ON rp.role_id = ur.role_id
+                        JOIN permissions p ON p.id = rp.permission_id
+                        WHERE ur.user_id = ? AND p.code = ?
+                        """)) {
+                    statement.setLong(1, currentUserId);
+                    statement.setString(2, permission);
+                    try (ResultSet rs = statement.executeQuery()) {
+                        hasPermission = rs.next();
+                    }
+                }
+                if (hasPermission) {
+                    try (PreparedStatement statement = connection.prepareStatement("SELECT data_scope FROM users WHERE id = ?")) {
+                        statement.setLong(1, currentUserId);
+                        try (ResultSet rs = statement.executeQuery()) {
+                            if (rs.next()) {
+                                String ds = rs.getString(1);
+                                if (ds != null && !ds.isBlank()) {
+                                    effective = ScopeType.valueOf(ds.trim());
+                                }
+                            }
+                        }
                     }
                 }
             }

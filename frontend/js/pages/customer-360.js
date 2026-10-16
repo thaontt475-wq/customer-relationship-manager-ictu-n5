@@ -252,14 +252,17 @@ function renderPrimaryContactCard() {
 
     if (!primary) {
         if (nameEl) nameEl.textContent = "Chưa có đầu mối liên hệ chính";
-        [titleEl,emailEl,phoneEl,roleBadge].forEach(el=>{if(el)el.textContent="—";});
+        if (titleEl) titleEl.textContent = "—";
+        if (emailEl) emailEl.innerHTML = `<i class="fa-solid fa-envelope"></i> —`;
+        if (phoneEl) phoneEl.innerHTML = `<i class="fa-solid fa-phone"></i> —`;
+        if (roleBadge) roleBadge.textContent = "—";
         return;
     }
 
     if (nameEl) nameEl.textContent = primary.fullName || "—";
     if (titleEl) titleEl.textContent = primary.jobTitle ? `${primary.jobTitle} · ${primary.department || ''}` : "—";
-    if (emailEl) emailEl.innerHTML = `✉ <a href="mailto:${escapeHtml(primary.email)}" style="color:inherit; text-decoration:none;">${escapeHtml(primary.email || '—')}</a>`;
-    if (phoneEl) phoneEl.innerHTML = `☎ <a href="tel:${escapeHtml(primary.phone)}" style="color:inherit; text-decoration:none;">${escapeHtml(primary.phone || '—')}</a>`;
+    if (emailEl) emailEl.innerHTML = `<i class="fa-solid fa-envelope"></i> <a href="mailto:${escapeHtml(primary.email)}" style="color:inherit; text-decoration:none;">${escapeHtml(primary.email || '—')}</a>`;
+    if (phoneEl) phoneEl.innerHTML = `<i class="fa-solid fa-phone"></i> <a href="tel:${escapeHtml(primary.phone)}" style="color:inherit; text-decoration:none;">${escapeHtml(primary.phone || '—')}</a>`;
     if (roleBadge) roleBadge.innerHTML = renderDecisionRoleBadge(primary.decisionRole);
 }
 
@@ -299,7 +302,7 @@ function renderTimelineOptimized() {
     if (filteredTimeline.length === 0) {
         if (empty) empty.style.display = "block";
         if (paginationBar) paginationBar.style.display = "none";
-        if (perfBadge) perfBadge.textContent = "⚡ Render: 0ms";
+        if (perfBadge) perfBadge.innerHTML = '<i class="fa-solid fa-gauge-high" style="margin-right:4px;"></i> Render: 0ms';
         return;
     }
 
@@ -323,7 +326,8 @@ function renderTimelineOptimized() {
         article.className = "c360-timeline-card";
 
         const typeClass = `timeline-type-${item.type}`;
-        const typeName = typeLabel(item.type);
+        const typeBadge = typeLabel(item.type);
+        const typePlain = typeLabelText(item.type);
         const timeFormatted = item.time && Number.isFinite(item.time.getTime()) ? item.time.toLocaleDateString("vi-VN", {
             day: "2-digit", month: "2-digit", year: "numeric",
             hour: "2-digit", minute: "2-digit"
@@ -332,8 +336,8 @@ function renderTimelineOptimized() {
         article.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <span class="timeline-type-pill ${typeClass}">${typeName}</span>
-                    <strong style="font-size:13.5px; color:var(--crm-text);">${escapeHtml(item.subject || typeName)}</strong>
+                    <span class="timeline-type-pill ${typeClass}">${typeBadge}</span>
+                    <strong style="font-size:13.5px; color:var(--crm-text);">${escapeHtml(item.subject || typePlain)}</strong>
                 </div>
                 <time style="font-size:11.5px; color:var(--crm-muted); white-space:nowrap;">
                     ${timeFormatted}
@@ -343,7 +347,7 @@ function renderTimelineOptimized() {
                 ${escapeHtml(item.text)}
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--crm-muted); margin-top:8px; padding-top:6px; border-top:1px dashed var(--crm-border);">
-                <span>👤 Thực hiện bởi: <strong>${escapeHtml(item.author)}</strong></span>
+                <span><i class="fa-solid fa-user"></i> Thực hiện bởi: <strong>${escapeHtml(item.author)}</strong></span>
                 <span style="font-weight:600;">${escapeHtml(({COMPLETED:"Hoàn tất",PLANNED:"Đã lên kế hoạch",IN_PROGRESS:"Đang thực hiện",CANCELLED:"Đã hủy"})[item.status] || item.status || "—")}</span>
             </div>
         `;
@@ -356,7 +360,7 @@ function renderTimelineOptimized() {
     const t1 = performance.now();
     const duration = (t1 - t0).toFixed(1);
     if (perfBadge) {
-        perfBadge.textContent = `⚡ Render: ${duration}ms (${totalItems} items)`;
+        perfBadge.innerHTML = `<i class="fa-solid fa-gauge-high" style="margin-right:4px;"></i> Render: ${duration}ms (${totalItems} items)`;
     }
 
     // Render Pagination Controls
@@ -455,7 +459,7 @@ function renderDealsTab() {
             <tbody>
                 ${displayedDeals.map(deal => {
                     const statusClass = deal.status === "WON" ? "deal-status-won" : (deal.status === "LOST" ? "deal-status-lost" : "deal-status-open");
-                    const statusText = deal.status === "WON" ? "✓ Ký thành công" : (deal.status === "LOST" ? "✕ Thất bại" : "● Đang mở");
+                    const statusText = deal.status === "WON" ? '<i class="fa-solid fa-circle-check"></i> Ký thành công' : (deal.status === "LOST" ? '<i class="fa-solid fa-circle-xmark"></i> Thất bại' : '<i class="fa-solid fa-circle-dot"></i> Đang mở');
                     const prob = deal.probability == null ? null : Number(deal.probability);
                     const expected = prob == null ? null : Number(deal.amount) * (prob / 100);
 
@@ -557,7 +561,7 @@ function renderContactsTab() {
                 <div style="background:var(--crm-surface-soft); border:1px solid var(--crm-border); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <strong>${escapeHtml(c.fullName)}</strong>
-                        ${c.isPrimary ? '<span title="Đầu mối chính" style="font-size:16px;">⭐</span>' : ''}
+                        ${c.isPrimary ? '<span title="Đầu mối chính" style="color:var(--crm-primary); font-size:13px;"><i class="fa-solid fa-id-badge"></i></span>' : ''}
                     </div>
                     <div style="font-size:12px; color:var(--crm-muted);">
                         ${escapeHtml(c.jobTitle)} · ${escapeHtml(c.department || '')}
@@ -566,8 +570,8 @@ function renderContactsTab() {
                         ${renderDecisionRoleBadge(c.decisionRole)}
                     </div>
                     <div style="font-size:12px; color:var(--crm-text-2); display:flex; flex-direction:column; gap:2px; margin-top:4px;">
-                        <span>✉ ${escapeHtml(c.email)}</span>
-                        <span>☎ ${escapeHtml(c.phone)}</span>
+                        <span><i class="fa-solid fa-envelope"></i> ${escapeHtml(c.email)}</span>
+                        <span><i class="fa-solid fa-phone"></i> ${escapeHtml(c.phone)}</span>
                     </div>
                 </div>
             `).join("")}
@@ -578,13 +582,13 @@ function renderContactsTab() {
 function renderDecisionRoleBadge(role) {
     switch (role) {
         case "DECISION_MAKER":
-            return `<span style="background:#fee2e2; color:#991b1b; border:1px solid #f87171; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px;">👑 Quyết định (DM)</span>`;
+            return `<span style="background:#fee2e2; color:#991b1b; border:1px solid #f87171; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-crown"></i> Quyết định (DM)</span>`;
         case "INFLUENCER":
-            return `<span style="background:#fef3c7; color:#92400e; border:1px solid #fcd34d; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px;">⚡ Người ảnh hưởng</span>`;
+            return `<span style="background:#fef3c7; color:#92400e; border:1px solid #fcd34d; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-bolt"></i> Người ảnh hưởng</span>`;
         case "BLOCKER":
-            return `<span style="background:#f1f5f9; color:#b91c1c; border:1px solid #fca5a5; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px;">⚠️ Người cản trở</span>`;
+            return `<span style="background:#f1f5f9; color:#b91c1c; border:1px solid #fca5a5; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-triangle-exclamation"></i> Người cản trở</span>`;
         default:
-            return `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px;">👤 Người dùng cuối</span>`;
+            return `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #7dd3fc; font-size:11px; font-weight:700; padding:1px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-user"></i> Người dùng cuối</span>`;
     }
 }
 
@@ -617,7 +621,7 @@ function renderCustomerChurnRisk360() {
         <div class="churn-banner-container" style="margin-bottom:20px; animation:fadeIn 0.3s ease;">
             <div class="churn-alert-banner" style="display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:16px; padding:18px 22px; border-radius:12px; background:linear-gradient(135deg, rgba(239,68,68,0.1), rgba(245,158,11,0.08)); border:1.5px solid var(--crm-danger); box-shadow:0 4px 16px rgba(239,68,68,0.12);">
                 <div style="display:flex; gap:14px; align-items:flex-start; flex:1; min-width:300px;">
-                    <div style="font-size:28px; line-height:1; flex-shrink:0;">⚠️</div>
+                    <div style="font-size:28px; line-height:1; flex-shrink:0; color:var(--crm-danger);"><i class="fa-solid fa-triangle-exclamation"></i></div>
                     <div>
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;">
                             <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--crm-danger);">
@@ -638,15 +642,15 @@ function renderCustomerChurnRisk360() {
 
                 <div class="sales-alert-box" style="background:var(--crm-surface); border:1.5px solid #fecaca; border-radius:10px; padding:14px 18px; min-width:260px; box-shadow:0 2px 8px rgba(0,0,0,0.06); flex-shrink:0;">
                     <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; color:var(--crm-danger); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
-                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        <i class="fa-solid fa-user-tie" style="font-size:14px;"></i>
                         Phụ trách kinh doanh (Sales Rep)
                     </div>
                     <div style="font-weight:700; font-size:14.5px; color:var(--crm-text); margin-bottom:4px;">
                         ${escapeHtml(salesRepName)}
                     </div>
-                    <div style="font-size:12px; color:var(--crm-muted); display:flex; flex-direction:column; gap:2px;">
-                        <span>📧 ${escapeHtml(salesRepEmail)}</span>
-                        <span>☎ ${escapeHtml(salesRepPhone)}</span>
+                    <div style="font-size:12px; color:var(--crm-muted); display:flex; flex-direction:column; gap:4px;">
+                        <span><i class="fa-solid fa-envelope"></i> ${escapeHtml(salesRepEmail)}</span>
+                        <span><i class="fa-solid fa-phone"></i> ${escapeHtml(salesRepPhone)}</span>
                     </div>
                     <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--crm-border);">
                         <a href="support-tickets.html" class="crm-btn crm-btn-secondary" style="font-size:11.5px; padding:4px 10px; width:100%; text-align:center; display:block; text-decoration:none;">
@@ -701,7 +705,7 @@ async function renderCustomerTickets360() {
                         <span class="status-dot"></span>
                         ${statusLabel}
                     </span>
-                    <span>👤 ${escapeHtml(t.assigneeName || "Chưa phân công")}</span>
+                    <span><i class="fa-solid fa-user"></i> ${escapeHtml(t.assigneeName || "Chưa phân công")}</span>
                 </div>
             </div>
         `;
@@ -915,12 +919,21 @@ document.addEventListener("crm:contacts-updated", initCustomer360);
 /* =========================================================
    15. UTILITY FUNCTIONS
 ========================================================= */
+function typeLabelText(type) {
+    switch (type) {
+        case "call": return "Cuộc gọi";
+        case "email": return "Email";
+        case "meeting": return "Cuộc gặp";
+        default: return "Ghi chú";
+    }
+}
+
 function typeLabel(type) {
     switch (type) {
-        case "call": return "☎ Cuộc gọi";
-        case "email": return "✉ Email";
-        case "meeting": return "▣ Cuộc gặp";
-        default: return "✎ Ghi chú";
+        case "call": return '<i class="fa-solid fa-phone" style="margin-right:4px;"></i> Cuộc gọi';
+        case "email": return '<i class="fa-solid fa-envelope" style="margin-right:4px;"></i> Email';
+        case "meeting": return '<i class="fa-solid fa-handshake" style="margin-right:4px;"></i> Cuộc gặp';
+        default: return '<i class="fa-solid fa-note-sticky" style="margin-right:4px;"></i> Ghi chú';
     }
 }
 

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình Phân bổ Lead Tự động (CRM-120) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/lead-assignment.css?v=20261014_s406">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="lead-assignment.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-users-gear"></i></span>
+            <span class="crm-nav-label">Phân bổ Lead (CRM-120)</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản trị</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead, quy tắc phân bổ, nhân viên... (Ctrl K)">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" id="themeToggleBtn" type="button" aria-label="Đổi giao diện">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">QT</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Frontend Developer</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogout">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main lead-assign-page">
+
+    <!-- 1. HEADER & ACTIONS BAR -->
+    <section class="lead-page-head">
+        <div>
+            <p class="lead-kicker">Quản trị Bán hàng & Phân bổ / Sprint 4 (S4-06)</p>
+            <h1>Cấu hình Quy tắc Phân bổ Lead Tự động (CRM-120)</h1>
+            <p>Hệ thống tự động điều phối Lead mới đến chuyên viên kinh doanh phù hợp theo khu vực địa lý, ngành nghề kinh doanh và thuật toán xoay vòng Round-Robin; quản lý hàng chờ chưa phân bổ và ghi nhận nhật ký minh bạch.</p>
+        </div>
+
+        <div class="lead-head-actions">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnProcessQueueHeader">
+                <i class="fa-solid fa-bolt text-warning"></i>
+                Chạy phân bổ Hàng chờ
+            </button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnCreateRuleBtn">
+                <i class="fa-solid fa-plus"></i>
+                Tạo quy tắc mới
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. KPI SUMMARY CARDS -->
+    <section class="assign-kpis">
+        <div class="assign-kpi-card total">
+            <div class="assign-kpi-icon">
+                <i class="fa-solid fa-diagram-project"></i>
+            </div>
+            <div class="assign-kpi-info">
+                <span class="assign-kpi-label">Tổng Lead đã phân bổ</span>
+                <span class="assign-kpi-value" id="kpiTotalAssigned">0</span>
+                <span class="assign-kpi-sub"><i class="fa-solid fa-circle-check text-success"></i> Ghi nhận từ đầu kỳ</span>
+            </div>
+        </div>
+
+        <div class="assign-kpi-card auto">
+            <div class="assign-kpi-icon">
+                <i class="fa-solid fa-arrows-spin"></i>
+            </div>
+            <div class="assign-kpi-info">
+                <span class="assign-kpi-label">Tỷ lệ tự động thành công</span>
+                <span class="assign-kpi-value" id="kpiAutoSuccessRate">0%</span>
+                <span class="assign-kpi-sub"><i class="fa-solid fa-rotate text-primary"></i> Phân qua Round-Robin & Tiêu chí</span>
+            </div>
+        </div>
+
+        <div class="assign-kpi-card queue">
+            <div class="assign-kpi-icon">
+                <i class="fa-solid fa-inbox"></i>
+            </div>
+            <div class="assign-kpi-info">
+                <div class="assign-kpi-head">
+                    <span class="assign-kpi-label">Hàng chờ chưa phân bổ</span>
+                    <span class="queue-alert-badge" id="kpiQueueAlertBadge" style="display:none;">Cần xử lý</span>
+                </div>
+                <span class="assign-kpi-value" id="kpiQueueCount">0</span>
+                <span class="assign-kpi-sub queue-sub"><i class="fa-solid fa-clock text-warning"></i> Chờ phân tay hoặc chờ khớp quy tắc</span>
+            </div>
+        </div>
+
+        <div class="assign-kpi-card reps">
+            <div class="assign-kpi-icon">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="assign-kpi-info">
+                <span class="assign-kpi-label">Đội ngũ Sales nhận Lead</span>
+                <span class="assign-kpi-value" id="kpiActiveSalesCount">0</span>
+                <span class="assign-kpi-sub"><i class="fa-solid fa-briefcase text-purple"></i> Nhân viên sẵn sàng nhận khách</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. TABS NAVIGATION -->
+    <div class="assign-tabs-bar">
+        <button type="button" class="assign-tab-btn active" data-tab="rules" id="tabRulesBtn">
+            <i class="fa-solid fa-sliders"></i>
+            Quy tắc phân bổ tự động
+            <span class="tab-badge" id="tabRulesBadge">0</span>
+        </button>
+        <button type="button" class="assign-tab-btn" data-tab="queue" id="tabQueueBtn">
+            <i class="fa-solid fa-inbox"></i>
+            Hàng chờ chưa phân bổ
+            <span class="tab-badge danger-badge" id="tabQueueBadge">0</span>
+        </button>
+        <button type="button" class="assign-tab-btn" data-tab="history" id="tabHistoryBtn">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            Lịch sử phân bổ & Nhật ký
+            <span class="tab-badge" id="tabHistoryBadge">0</span>
+        </button>
+    </div>
+
+    <!-- ================= 4. TAB 1: DANH SÁCH QUY TẮC PHÂN BỔ ================= -->
+    <section class="tab-pane active" id="paneRules">
+        
+        <!-- Priority Notice Banner -->
+        <div class="priority-notice-banner">
+            <div class="notice-icon"><i class="fa-solid fa-circle-info"></i></div>
+            <div class="notice-text">
+                <strong>Thứ tự ưu tiên phân bổ (First-match wins):</strong> Hệ thống sẽ so khớp Lead mới với từng quy tắc từ trên xuống dưới (Ưu tiên 1 $\rightarrow$ 2 $\rightarrow$ 3...). Khi một quy tắc khớp, Lead sẽ được phân bổ ngay và dừng kiểm tra các quy tắc còn lại. Bạn có thể sử dụng nút mũi tên <i class="fa-solid fa-arrow-up"></i> <i class="fa-solid fa-arrow-down"></i> để điều chỉnh thứ tự ưu tiên.
+            </div>
+            <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnResetDefaultRules" title="Khôi phục quy tắc chuẩn">
+                <i class="fa-solid fa-rotate-left"></i> Khôi phục mặc định
+            </button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="assign-filter-toolbar">
+            <div class="assign-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="ruleSearchInput" class="crm-input" placeholder="Tìm theo tên quy tắc, khu vực, ngành nghề, nhân viên...">
+            </div>
+
+            <select id="filterRuleStatus" class="crm-input">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="ACTIVE">Đang bật (Active)</option>
+                <option value="INACTIVE">Đang tắt (Inactive)</option>
+            </select>
+
+            <select id="filterRuleRegion" class="crm-input">
+                <option value="ALL">Tất cả khu vực địa lý</option>
+                <option value="NORTH">Miền Bắc (Hà Nội & lân cận)</option>
+                <option value="CENTRAL">Miền Trung (Đà Nẵng & lân cận)</option>
+                <option value="SOUTH">Miền Nam (TP.HCM & lân cận)</option>
+                <option value="NATIONWIDE">Toàn quốc (Nationwide)</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-primary" id="btnOpenNewRuleModal">
+                <i class="fa-solid fa-plus"></i> Thêm quy tắc
+            </button>
+        </div>
+
+        <!-- Rules Table -->
+        <div class="assign-table-container">
+            <table class="assign-table">
+                <thead>
+                    <tr>
+                        <th class="col-priority">Ưu tiên</th>
+                        <th class="col-rule-name">Tên quy tắc & Cơ chế</th>
+                        <th class="col-criteria">Tiêu chí so khớp</th>
+                        <th class="col-reps">Đội ngũ Sales nhận Lead</th>
+                        <th class="col-assigned-count">Đã phân bổ</th>
+                        <th class="col-status">Trạng thái</th>
+                        <th class="col-actions">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="rulesTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div class="assign-empty-state" id="rulesEmptyState" style="display:none;">
+                <div class="assign-empty-icon"><i class="fa-solid fa-sliders"></i></div>
+                <h3>Chưa có quy tắc phân bổ nào</h3>
+                <p>Bấm nút "Thêm quy tắc" ở trên để thiết lập quy tắc tự động điều phối Lead.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ================= 5. TAB 2: HÀNG CHỜ CHƯA PHÂN BỔ ================= -->
+    <section class="tab-pane" id="paneQueue">
+        
+        <!-- Queue Toolbar -->
+        <div class="assign-filter-toolbar queue-toolbar">
+            <div class="assign-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="queueSearchInput" class="crm-input" placeholder="Tìm kiếm trong hàng chờ theo tên Lead, SĐT, công ty...">
+            </div>
+
+            <select id="filterQueueRegion" class="crm-input">
+                <option value="ALL">Tất cả khu vực</option>
+                <option value="Miền Bắc">Khu vực Miền Bắc</option>
+                <option value="Miền Trung">Khu vực Miền Trung</option>
+                <option value="Miền Nam">Khu vực Miền Nam</option>
+            </select>
+
+            <select id="filterQueueIndustry" class="crm-input">
+                <option value="ALL">Tất cả ngành nghề</option>
+                <option value="CNTT">CNTT & Viễn thông</option>
+                <option value="Bất động sản">Bất động sản & Xây dựng</option>
+                <option value="Bán lẻ">Bán lẻ & Chuỗi F&B</option>
+                <option value="Sản xuất">Sản xuất & Công nghiệp</option>
+                <option value="Giáo dục">Giáo dục & Đào tạo</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-primary" id="btnProcessQueueTab">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Khớp lại tự động
+            </button>
+        </div>
+
+        <!-- Queue Table -->
+        <div class="assign-table-container">
+            <table class="assign-table">
+                <thead>
+                    <tr>
+                        <th class="col-seq">#</th>
+                        <th class="col-queue-lead">Khách hàng tiềm năng (Lead)</th>
+                        <th class="col-queue-company">Doanh nghiệp & Khu vực</th>
+                        <th class="col-queue-industry">Ngành & Quy mô</th>
+                        <th class="col-queue-reason">Lý do vào Hàng chờ</th>
+                        <th class="col-queue-time">Thời gian chờ</th>
+                        <th class="col-queue-actions">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="queueTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div class="assign-empty-state" id="queueEmptyState" style="display:none;">
+                <div class="assign-empty-icon text-success"><i class="fa-solid fa-circle-check"></i></div>
+                <h3>Hàng chờ sạch sẽ - Không có Lead nào tồn đọng!</h3>
+                <p>Tất cả khách hàng tiềm năng mới đều đã được phân bổ thành công tới đội ngũ kinh doanh.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ================= 6. TAB 3: LỊCH SỬ PHÂN BỔ & NHẬT KÝ ================= -->
+    <section class="tab-pane" id="paneHistory">
+        
+        <!-- History Toolbar -->
+        <div class="assign-filter-toolbar history-toolbar">
+            <div class="assign-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="historySearchInput" class="crm-input" placeholder="Tìm theo tên khách hàng, người nhận, quy tắc...">
+            </div>
+
+            <select id="filterHistoryMethod" class="crm-input">
+                <option value="ALL">Tất cả phương thức</option>
+                <option value="AUTO">Tự động (Round-Robin & Tiêu chí)</option>
+                <option value="MANUAL">Thủ công (Phân bổ tay)</option>
+            </select>
+
+            <select id="filterHistoryRep" class="crm-input">
+                <option value="ALL">Tất cả nhân viên tiếp nhận</option>
+                <!-- Populated dynamically -->
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnExportHistory" title="Xuất nhật ký ra file">
+                <i class="fa-solid fa-file-arrow-down"></i> Xuất Excel
+            </button>
+        </div>
+
+        <!-- History Table -->
+        <div class="assign-table-container">
+            <table class="assign-table">
+                <thead>
+                    <tr>
+                        <th class="col-seq">#</th>
+                        <th class="col-hist-lead">Khách hàng tiềm năng</th>
+                        <th class="col-hist-rep">Nhân viên tiếp nhận</th>
+                        <th class="col-hist-method">Phương thức phân bổ</th>
+                        <th class="col-hist-time">Thời gian phân bổ</th>
+                        <th class="col-hist-note">Ghi chú & Căn cứ</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div class="assign-empty-state" id="historyEmptyState" style="display:none;">
+                <div class="assign-empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <h3>Chưa có nhật ký phân bổ nào</h3>
+                <p>Lịch sử phân bổ tự động và thủ công sẽ xuất hiện tại đây khi các Lead được điều phối.</p>
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ================= 7. MODAL THÊM / SỬA QUY TẮC PHÂN BỔ ================= -->
+<div class="assign-modal-backdrop" id="ruleModal">
+    <div class="assign-modal-box">
+        <div class="assign-modal-header">
+            <div class="assign-modal-title" id="ruleModalTitle">
+                <i class="fa-solid fa-plus-circle text-primary"></i>
+                Tạo quy tắc phân bổ Lead mới
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseRuleModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="ruleForm" class="assign-modal-body">
+            <input type="hidden" id="ruleId">
+
+            <div class="form-row">
+                <label for="ruleName" class="form-label required">Tên quy tắc phân bổ</label>
+                <input type="text" id="ruleName" class="crm-input" placeholder="Ví dụ: Phân bổ Lead Bất động sản Miền Bắc..." required>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-row">
+                    <label for="ruleRegion" class="form-label required">Khu vực địa lý</label>
+                    <select id="ruleRegion" class="crm-input" required>
+                        <option value="NORTH">Khu vực Miền Bắc (Hà Nội, Hải Phòng...)</option>
+                        <option value="CENTRAL">Khu vực Miền Trung (Đà Nẵng, Huế...)</option>
+                        <option value="SOUTH">Khu vực Miền Nam (TP.HCM, Cần Thơ...)</option>
+                        <option value="NATIONWIDE">Toàn quốc (Không phân biệt khu vực)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label for="ruleIndustry" class="form-label required">Ngành nghề áp dụng</label>
+                    <select id="ruleIndustry" class="crm-input" required>
+                        <option value="ALL">Tất cả ngành nghề (Mọi lĩnh vực)</option>
+                        <option value="CNTT">Công nghệ thông tin & Viễn thông</option>
+                        <option value="Bất động sản">Bất động sản & Xây dựng</option>
+                        <option value="Dược phẩm">Dược phẩm & Y tế</option>
+                        <option value="Bán lẻ">Bán lẻ & Chuỗi F&B</option>
+                        <option value="Sản xuất">Sản xuất & Công nghiệp</option>
+                        <option value="Giáo dục">Giáo dục & Đào tạo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-row">
+                    <label for="ruleMechanism" class="form-label required">Cơ chế phân bổ</label>
+                    <select id="ruleMechanism" class="crm-input" required>
+                        <option value="ROUND_ROBIN">Chia đều xoay vòng (Round-Robin)</option>
+                        <option value="LOAD_BALANCED">Cân bằng tải (Giao người ít Lead nhất)</option>
+                        <option value="DEDICATED">Chỉ định 1 nhân viên chuyên trách</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label for="rulePriority" class="form-label required">Thứ tự ưu tiên (Priority)</label>
+                    <input type="number" id="rulePriority" class="crm-input" min="1" max="50" value="1" required>
+                </div>
+            </div>
+
+            <!-- Reps selection checklist -->
+            <div class="form-row">
+                <label class="form-label required">
+                    Chọn nhân viên Sales tham gia nhận Lead:
+                    <span class="text-muted" style="font-size: 11.5px; font-weight: normal;" id="selectedRepsCount"></span>
+                </label>
+                <div class="reps-selection-container" id="repsChecklist">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="ruleDescription" class="form-label">Mô tả quy tắc / Ghi chú</label>
+                <textarea id="ruleDescription" class="crm-input" rows="2" placeholder="Ghi chú điều kiện hoặc mục đích của quy tắc..."></textarea>
+            </div>
+
+            <div class="form-row checkbox-row">
+                <label class="toggle-switch-label">
+                    <input type="checkbox" id="ruleIsActive" checked>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Kích hoạt quy tắc này ngay lập tức</span>
+                </label>
+            </div>
+        </form>
+
+        <div class="assign-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelRule">Hủy</button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnSaveRule">
+                <i class="fa-solid fa-check"></i> Lưu quy tắc
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 8. MODAL PHÂN BỔ THỦ CÔNG LEAD TRONG HÀNG CHỜ ================= -->
+<div class="assign-modal-backdrop" id="manualAssignModal">
+    <div class="assign-modal-box" style="max-width: 580px;">
+        <div class="assign-modal-header">
+            <div class="assign-modal-title">
+                <i class="fa-solid fa-user-tag text-primary"></i>
+                Phân bổ Thủ công Khách hàng Tiềm năng
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseManualAssignModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="assign-modal-body">
+            <!-- Lead Summary Banner -->
+            <div class="queue-lead-banner" id="manualAssignLeadBanner">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="form-row">
+                <label for="manualAssignRepSelect" class="form-label required">Chọn Nhân viên Kinh doanh phụ trách:</label>
+                <select id="manualAssignRepSelect" class="crm-input" required>
+                    <!-- Populated dynamically -->
+                </select>
+                <p class="form-hint">Hệ thống hiển thị số lượng Lead hiện tại của từng nhân viên để bạn dễ dàng cân đối khối lượng công việc.</p>
+            </div>
+
+            <div class="form-row">
+                <label for="manualAssignNote" class="form-label">Ghi chú phân bổ / Lý do giao việc:</label>
+                <textarea id="manualAssignNote" class="crm-input" rows="2" placeholder="Ví dụ: Khách hàng cần liên hệ gấp, chuyên môn phù hợp với kinh nghiệm của bạn..."></textarea>
+            </div>
+        </div>
+
+        <div class="assign-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelManualAssign">Hủy</button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnConfirmManualAssign">
+                <i class="fa-solid fa-check"></i> Xác nhận phân bổ
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 9. TOAST CONTAINER ================= -->
+<div id="leadAssignToastContainer" class="assign-toast-container"></div>
+
+<!-- Scripts -->
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/pages/lead-assignment.js?v=20261015_fix1"></script>
+</body>
+</html>

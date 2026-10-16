@@ -220,12 +220,12 @@
             const emailTooltip = hasEmailError ? r.errors.find(e => e.includes("Email")) : "";
 
             // Status Badge
-            let statusBadge = `<span class="import-badge import-badge-valid">✓ Hợp lệ</span>`;
+            let statusBadge = `<span class="import-badge import-badge-valid"><i class="fa-solid fa-circle-check"></i> Hợp lệ</span>`;
             if (isError) {
-                statusBadge = `<span class="import-badge import-badge-error">✕ ${r.errors.length} Lỗi</span>`;
+                statusBadge = `<span class="import-badge import-badge-error"><i class="fa-solid fa-circle-xmark"></i> ${r.errors.length} Lỗi</span>`;
             } else if (isDup) {
                 const srcLabel = r.duplicateSource === "DATABASE" ? "Trùng DB" : "Trùng tệp";
-                statusBadge = `<span class="import-badge import-badge-duplicate">⚠️ ${srcLabel}</span>`;
+                statusBadge = `<span class="import-badge import-badge-duplicate"><i class="fa-solid fa-triangle-exclamation"></i> ${srcLabel}</span>`;
             }
 
             // Conflict Action Dropdown
@@ -243,20 +243,20 @@
                     <td class="${hasNameError ? 'cell-error' : ''}">
                         <div class="crm-error-cell-wrap">
                             <span>${escapeHtml(r.name || '— Trống —')}</span>
-                            ${hasNameError ? `<span class="crm-cell-warn-icon">⚠️<span class="crm-cell-tooltip">${escapeHtml(nameTooltip)}</span></span>` : ''}
+                            ${hasNameError ? `<span class="crm-cell-warn-icon"><i class="fa-solid fa-triangle-exclamation"></i><span class="crm-cell-tooltip">${escapeHtml(nameTooltip)}</span></span>` : ''}
                         </div>
                     </td>
                     <td class="${hasTaxError ? 'cell-error' : ''}">
                         <div class="crm-error-cell-wrap">
                             <code>${escapeHtml(r.taxCode || '—')}</code>
-                            ${hasTaxError ? `<span class="crm-cell-warn-icon">⚠️<span class="crm-cell-tooltip">${escapeHtml(taxTooltip)}</span></span>` : ''}
+                            ${hasTaxError ? `<span class="crm-cell-warn-icon"><i class="fa-solid fa-triangle-exclamation"></i><span class="crm-cell-tooltip">${escapeHtml(taxTooltip)}</span></span>` : ''}
                         </div>
                     </td>
                     <td><span class="tax-badge">${escapeHtml(r.status || 'TIEM_NANG')}</span></td>
                     <td class="${hasEmailError ? 'cell-error' : ''}">
                         <div class="crm-error-cell-wrap">
                             <span>${escapeHtml(r.email || '—')}</span>
-                            ${hasEmailError ? `<span class="crm-cell-warn-icon">⚠️<span class="crm-cell-tooltip">${escapeHtml(emailTooltip)}</span></span>` : ''}
+                            ${hasEmailError ? `<span class="crm-cell-warn-icon"><i class="fa-solid fa-triangle-exclamation"></i><span class="crm-cell-tooltip">${escapeHtml(emailTooltip)}</span></span>` : ''}
                         </div>
                     </td>
                     <td>${escapeHtml(r.phone || '—')}</td>
@@ -283,7 +283,7 @@
         if (btnExecute) {
             const executableCount = previewData.rows.filter(r => r.valid).length;
             btnExecute.innerHTML = `
-                <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <i class="fa-solid fa-floppy-disk"></i>
                 Tiến hành nhập dữ liệu (${executableCount} dòng hợp lệ)
             `;
             btnExecute.disabled = executableCount === 0;

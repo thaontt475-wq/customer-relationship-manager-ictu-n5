@@ -142,9 +142,9 @@ function renderContractsTable(list) {
             </td>
             <td style="text-align:right;">
                 <div class="btn-action-group">
-                    <button class="btn-icon-sm" title="Xem chi tiết" onclick="openViewModal(${ct.id})">Xem</button>
-                    <button class="btn-icon-sm edit" title="Chỉnh sửa" onclick="openEditModal(${ct.id})">Sửa</button>
-                    <button class="btn-icon-sm delete" title="Xóa" onclick="openDeleteModal(${ct.id}, '${escapeHtml(ct.contractNumber)}')">Xóa</button>
+                    <button class="btn-icon-sm" title="Xem chi tiết" onclick="openViewModal(${ct.id})"><i class="fa-solid fa-eye"></i> Xem</button>
+                    <button class="btn-icon-sm edit" title="Chỉnh sửa" onclick="openEditModal(${ct.id})"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+                    <button class="btn-icon-sm delete" title="Xóa" onclick="openDeleteModal(${ct.id}, '${escapeHtml(ct.contractNumber)}')"><i class="fa-solid fa-trash-can"></i> Xóa</button>
                 </div>
             </td>
         `;

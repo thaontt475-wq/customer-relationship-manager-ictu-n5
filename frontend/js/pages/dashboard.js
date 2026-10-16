@@ -1173,19 +1173,19 @@ function activityIcon(type) {
     switch (type) {
 
         case "call":
-            return "☎";
+            return '<i class="fa-solid fa-phone"></i>';
 
         case "email":
-            return "✉";
+            return '<i class="fa-solid fa-envelope"></i>';
 
         case "meeting":
-            return "♙";
+            return '<i class="fa-solid fa-calendar-days"></i>';
 
         case "task":
-            return "✓";
+            return '<i class="fa-solid fa-circle-check"></i>';
 
         default:
-            return "✎";
+            return '<i class="fa-solid fa-pen-to-square"></i>';
     }
 
 }
