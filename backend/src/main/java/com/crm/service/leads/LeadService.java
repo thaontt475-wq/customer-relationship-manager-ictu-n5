@@ -1,25 +1,23 @@
 package com.crm.service.leads;
 
+import com.crm.config.DatabaseConfig;
 import com.crm.dao.leads.LeadDAO;
-import com.crm.dto.leads.*;
-import com.crm.dto.leads.LeadValidationException.FieldError;
+import com.crm.dto.leads.EmbedCodeResponse;
+import com.crm.dto.leads.LeadFilterRequest;
+import com.crm.dto.leads.LeadWriteRequest;
+import com.crm.dto.leads.WebFormLeadRequest;
 import com.crm.model.leads.Lead;
-import com.crm.service.permissions.*;
+import com.crm.service.permissions.DataScopeContext;
+import com.crm.service.permissions.DataScopeService;
+import com.crm.service.permissions.ScopeType;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class LeadService {
-
-    private static final Pattern EMAIL_PATTERN = Pattern.compile(
-            "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}$"
-    );
-
-    private static final Pattern PHONE_PATTERN = Pattern.compile(
-            "^[+0-9]{8,20}$"
-    );
 
     @FunctionalInterface
     public interface ScopeResolver {
@@ -32,125 +30,335 @@ public class LeadService {
     }
 
     public static ScoringHook productionScoring() {
-        var scoring = new com.crm.service.scoring.LeadScoringService();
         return new ScoringHook() {
+            private final com.crm.service.scoring.LeadScoringService scoring = new com.crm.service.scoring.LeadScoringService();
+            @Override
             public void beforeCreate(Connection c) throws Exception { scoring.beforeCreate(c); }
+            @Override
             public void scoreCreated(Connection c, long id) throws Exception { scoring.scoreCreated(c, id); }
         };
     }
 
     public static final ScoringHook NO_SCORING = new ScoringHook() {
+        @Override
         public void beforeCreate(Connection c) {}
+        @Override
         public void scoreCreated(Connection c, long id) {}
     };
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\.\\s]{8,20}$");
 
     private final LeadDAO dao;
     private final ScopeResolver scopes;
     private final ScoringHook scoring;
+    private final DataScopeService dataScopeService;
 
     public LeadService() {
-        this(new LeadDAO(), (user, action) -> new DataScopeService().resolve(user, "lead", action), productionScoring());
+        this(new LeadDAO());
     }
 
     public LeadService(LeadDAO dao) {
-        this(dao, (user, action) -> new DataScopeService().resolve(user, "lead", action), productionScoring());
+        this(dao, (u, a) -> new DataScopeService().resolve(u, "lead", a), productionScoring());
     }
 
     public LeadService(LeadDAO dao, ScopeResolver scopes) {
         this(dao, scopes, NO_SCORING);
     }
 
-    public LeadService(LeadDAO dao, ScopeResolver scopes, ScoringHook scoring) {
-        this.dao = dao;
-        this.scopes = scopes;
-        this.scoring = scoring;
+    public LeadService(LeadDAO dao, DataScopeService dataScopeService) {
+        this(dao, (u, a) -> dataScopeService.resolve(u, "lead", a), NO_SCORING, dataScopeService);
     }
 
-    // --- S4-02 & S4-05: Lead Manual, Excel Import & Scoring Operations ---
+    public LeadService(LeadDAO dao, ScopeResolver scopes, ScoringHook scoring) {
+        this(dao, scopes, scoring, new DataScopeService());
+    }
+
+    public LeadService(LeadDAO dao, ScopeResolver scopes, ScoringHook scoring, DataScopeService dataScopeService) {
+        this.dao = dao;
+        this.scopes = scopes != null ? scopes : (u, a) -> (dataScopeService != null ? dataScopeService : new DataScopeService()).resolve(u, "lead", a);
+        this.scoring = scoring != null ? scoring : NO_SCORING;
+        this.dataScopeService = dataScopeService != null ? dataScopeService : new DataScopeService();
+    }
+
+    public LeadDAO getLeadDAO() {
+        return dao;
+    }
 
     public DataScopeContext authorizeCreate(long user) throws Exception {
         return scopes.resolve(user, "create");
     }
 
     public List<Map<String, Object>> sources(long user) throws Exception {
-        authorizeCreate(user);
+        scopes.resolve(user, "read");
         try (Connection c = dao.open()) {
             return dao.sources(c, false);
         }
     }
 
     public Map<String, Object> create(long user, LeadWriteRequest request) throws Exception {
-        DataScopeContext scope = authorizeCreate(user);
-        LeadWriteRequest lead = LeadValidation.normalize(request);
+        scopes.resolve(user, "create");
         try (Connection c = dao.open()) {
             c.setAutoCommit(false);
             try {
+                requireSource(request, dao.sources(c, true));
                 scoring.beforeCreate(c);
-                requireSource(lead, dao.sources(c, true));
-                long id = dao.insert(c, lead, user, null);
+                long id = dao.insert(c, request, user, null);
                 scoring.scoreCreated(c, id);
-                Map<String, Object> result = dao.get(c, id, scope);
                 c.commit();
-                return result;
-            } catch (Exception error) {
+                DataScopeContext readScope = scopes.resolve(user, "read");
+                return dao.get(c, id, readScope, false);
+            } catch (Exception e) {
                 c.rollback();
-                throw error;
+                throw e;
+            } finally {
+                c.setAutoCommit(true);
             }
         }
     }
 
     public Map<String, Object> get(long user, long id) throws Exception {
-        if (id <= 0) throw new IllegalArgumentException("ID Lead phải dương");
         DataScopeContext scope = scopes.resolve(user, "read");
         try (Connection c = dao.open()) {
-            return dao.get(c, id, scope);
+            Map<String, Object> row = dao.get(c, id, scope, false);
+            if (row == null) {
+                // If lead exists but forbidden by scope -> 403 SecurityException
+                Map<String, Object> unrestricted = dao.get(c, id, null, false);
+                if (unrestricted != null) {
+                    throw new SecurityException("Bạn không có quyền truy cập dữ liệu");
+                }
+            }
+            return row;
         }
     }
 
-    /** Full base-field replacement; owner/status/score remain server-owned. */
     public Map<String, Object> update(long user, long id, LeadWriteRequest request) throws Exception {
-        if (id <= 0) throw new IllegalArgumentException("ID Lead phải dương");
-        DataScopeContext scope = scopes.resolve(user, "update");
-        var lead = LeadValidation.normalize(request);
+        scopes.resolve(user, "update");
         try (Connection c = dao.open()) {
             c.setAutoCommit(false);
             try {
-                scoring.beforeCreate(c);
-                var existing = dao.get(c, id, scope, true);
-                if (existing == null) throw new NoSuchElementException("Không tìm thấy Lead trong phạm vi dữ liệu");
-                if ("CONVERTED".equalsIgnoreCase((String) existing.get("status")) || Boolean.TRUE.equals(existing.get("isLocked"))) {
-                    throw new IllegalStateException("Lead đã được chuyển đổi hoặc bị khóa, không thể cập nhật.");
+                DataScopeContext scope = scopes.resolve(user, "read");
+                Map<String, Object> existing = dao.get(c, id, scope, true);
+                if (existing == null) {
+                    Map<String, Object> unrestricted = dao.get(c, id, null, false);
+                    if (unrestricted != null) {
+                        throw new SecurityException("Bạn không có quyền sửa dữ liệu");
+                    }
+                    return null;
                 }
-                requireSource(lead, dao.sources(c, true));
-                dao.update(c, id, lead);
-                scoring.scoreCreated(c, id);
-                var result = dao.get(c, id, scope);
+
+                // CRM-122: Prevent modification of converted leads
+                boolean isLocked = Boolean.TRUE.equals(existing.get("isLocked")) || "CONVERTED".equalsIgnoreCase((String) existing.get("status"));
+                if (isLocked) {
+                    throw new IllegalStateException("Không thể chỉnh sửa Lead đã được chuyển đổi thành khách hàng");
+                }
+
+                requireSource(request, dao.sources(c, true));
+                dao.update(c, id, request);
                 c.commit();
-                return result;
-            } catch (Exception error) {
+                return dao.get(c, id, scope, false);
+            } catch (Exception e) {
                 c.rollback();
-                throw error;
+                throw e;
+            } finally {
+                c.setAutoCommit(true);
             }
         }
     }
 
     public static void requireSource(LeadWriteRequest lead, List<Map<String, Object>> sources) {
-        if (sources.stream().noneMatch(s -> ((Number) s.get("id")).longValue() == lead.sourceId()))
-            throw new LeadValidationException(List.of(new FieldError("sourceId", "Nguồn Lead không tồn tại, đã ngừng hoạt động hoặc sai loại")));
+        boolean match = sources.stream().anyMatch(s -> Objects.equals(s.get("id"), lead.sourceId()));
+        if (!match) {
+            throw new IllegalArgumentException("Nguồn khách hàng tiềm năng không tồn tại");
+        }
     }
 
-    // --- S4-01: Web Form Lead Capture Operations ---
+    /**
+     * S4-09 AC 1 & AC 2: Multi-criteria Lead search with SLA calculation and Data Scope.
+     */
+    public Map<String, Object> searchLeads(LeadFilterRequest filter, long currentUserId) throws Exception {
+        DataScopeContext scope = scopes.resolve(currentUserId, "read");
 
-    public Lead createWebFormLead(WebFormLeadRequest request, String clientIp) throws SQLException {
-        if (request == null) {
-            throw new IllegalArgumentException("Dữ liệu gửi lên không được để trống.");
+        int totalRecords = dao.countWithFilters(filter, scope, currentUserId);
+        List<Lead> items = dao.findWithFilters(filter, scope, currentUserId);
+
+        // Process SLA calculations for every lead (AC 2)
+        long now = System.currentTimeMillis();
+        for (Lead lead : items) {
+            evaluateSla(lead, now);
         }
 
-        String fullName = request.getFullName();
+        int pageSize = filter.getSize();
+        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("items", items);
+        result.put("leads", items); // Alias for flexible consumers
+        result.put("page", filter.getPage());
+        result.put("size", pageSize);
+        result.put("totalRecords", totalRecords);
+        result.put("totalItems", totalRecords);
+        result.put("totalPages", totalPages > 0 ? totalPages : 1);
+        result.put("scope", scope != null ? scope.scopeType().name() : "ALL");
+        result.put("stats", dao.getLeadStats(scope, currentUserId));
+
+        return result;
+    }
+
+    public Lead getLeadById(long id, long currentUserId) throws Exception {
+        DataScopeContext scope = scopes.resolve(currentUserId, "read");
+        Lead lead = dao.findById(id);
+        if (lead == null) return null;
+
+        if (scope != null && !scope.canAccessOwner(lead.getAssignedTo() != null ? lead.getAssignedTo() : 0)) {
+            // Check if unassigned or allowed
+            if (lead.getAssignedTo() != null && scope.scopeType() == ScopeType.SELF 
+                && lead.getAssignedTo() != currentUserId) {
+                throw new SecurityException("Bạn không có quyền truy cập dữ liệu Lead này");
+            }
+        }
+
+        evaluateSla(lead, System.currentTimeMillis());
+        return lead;
+    }
+
+    public Lead createLead(Lead lead, long currentUserId) throws Exception {
+        scopes.resolve(currentUserId, "create");
+
+        if (lead.getSlaDeadline() == null) {
+            // Default SLA deadline: 120 minutes from creation
+            long defaultSlaMin = lead.getSlaMinutesTotal() > 0 ? lead.getSlaMinutesTotal() : 120;
+            lead.setSlaDeadline(new Timestamp(System.currentTimeMillis() + defaultSlaMin * 60 * 1000));
+        }
+
+        if (lead.getRating() == null || lead.getRating().isBlank()) {
+            lead.setRating("WARM");
+            lead.setTier("WARM");
+        }
+
+        long id = dao.insert(lead);
+        if (id > 0) {
+            return getLeadById(id, currentUserId);
+        }
+        return null;
+    }
+
+    public boolean updateLead(Lead lead, long currentUserId) throws Exception {
+        DataScopeContext scope = scopes.resolve(currentUserId, "update");
+        Lead existing = dao.findById(lead.getId());
+        if (existing == null) {
+            return false;
+        }
+
+        // AC Check: If lead was converted, lock update
+        if (existing.isLocked() || "CONVERTED".equalsIgnoreCase(existing.getStatus())) {
+            throw new IllegalStateException("Không thể chỉnh sửa Lead đã chuyển đổi thành công (CONVERTED)");
+        }
+
+        if (scope != null && !scope.canAccessOwner(existing.getAssignedTo() != null ? existing.getAssignedTo() : 0)) {
+            if (existing.getAssignedTo() != null && scope.scopeType() == ScopeType.SELF 
+                && existing.getAssignedTo() != currentUserId) {
+                throw new SecurityException("Bạn không có quyền cập nhật Lead này");
+            }
+        }
+
+        return dao.update(lead);
+    }
+
+    public boolean deleteLead(long id, long currentUserId) throws Exception {
+        DataScopeContext scope = scopes.resolve(currentUserId, "delete");
+        Lead existing = dao.findById(id);
+        if (existing == null) return false;
+
+        if (existing.isLocked() || "CONVERTED".equalsIgnoreCase(existing.getStatus())) {
+            throw new IllegalStateException("Không thể xóa Lead đã chuyển đổi thành công (CONVERTED)");
+        }
+
+        if (scope != null && !scope.canAccessOwner(existing.getAssignedTo() != null ? existing.getAssignedTo() : 0)) {
+            if (existing.getAssignedTo() != null && scope.scopeType() == ScopeType.SELF 
+                && existing.getAssignedTo() != currentUserId) {
+                throw new SecurityException("Bạn không có quyền xóa Lead này");
+            }
+        }
+
+        return dao.delete(id);
+    }
+
+    public Map<String, Object> getLeadStats(long currentUserId) throws Exception {
+        DataScopeContext scope = scopes.resolve(currentUserId, "read");
+        return dao.getLeadStats(scope, currentUserId);
+    }
+
+    /**
+     * S4-09 AC 2: SLA Overdue and Time-to-Contact evaluation engine.
+     */
+    public void evaluateSla(Lead lead, long now) {
+        if (lead == null) return;
+
+        boolean isClosed = "CONVERTED".equalsIgnoreCase(lead.getStatus()) || "LOST".equalsIgnoreCase(lead.getStatus());
+        if (isClosed) {
+            lead.setOverdueSla(false);
+            lead.setSlaStatus("CLOSED");
+            lead.setSlaRemainingText("Đã kết thúc");
+            lead.setSlaRemainingMinutes(null);
+            return;
+        }
+
+        Timestamp deadline = lead.getSlaDeadline();
+        if (deadline == null && "NEW".equalsIgnoreCase(lead.getStatus()) && lead.getCreatedAt() != null) {
+            // If no explicit deadline, compute 2 hours (120 minutes) from created_at
+            long createdMs = lead.getCreatedAt().getTime();
+            long totalMs = (lead.getSlaMinutesTotal() > 0 ? lead.getSlaMinutesTotal() : 120) * 60 * 1000L;
+            deadline = new Timestamp(createdMs + totalMs);
+            lead.setSlaDeadline(deadline);
+        }
+
+        if (deadline == null) {
+            lead.setOverdueSla(false);
+            lead.setSlaStatus("NONE");
+            lead.setSlaRemainingText(null);
+            lead.setSlaRemainingMinutes(null);
+            return;
+        }
+
+        long diffMs = deadline.getTime() - now;
+        if (diffMs < 0) {
+            lead.setOverdueSla(true);
+            lead.setSlaStatus("OVERDUE");
+            long overdueMin = Math.abs(diffMs / (60 * 1000));
+            lead.setSlaRemainingMinutes(-overdueMin);
+
+            long hours = overdueMin / 60;
+            long mins = overdueMin % 60;
+            lead.setSlaRemainingText(hours > 0 
+                ? String.format("Quá hạn %dh %dm", hours, mins) 
+                : String.format("Quá hạn %d phút", mins));
+        } else {
+            lead.setOverdueSla(false);
+            long leftMin = diffMs / (60 * 1000);
+            lead.setSlaRemainingMinutes(leftMin);
+            lead.setSlaStatus(leftMin < 30 ? "WARNING" : "SAFE");
+
+            long hours = leftMin / 60;
+            long mins = leftMin % 60;
+            lead.setSlaRemainingText(hours > 0 
+                ? String.format("Còn %dh %dm", hours, mins) 
+                : String.format("Còn %d phút", mins));
+        }
+    }
+
+    /**
+     * S4-01: Creates a new lead from a public web form submission with data sanitization and validation.
+     */
+    public Lead createWebFormLead(WebFormLeadRequest request, String clientIp) throws SQLException {
+        if (request == null) {
+            throw new IllegalArgumentException("Dữ liệu biểu mẫu không được để trống.");
+        }
+
+        String fullName = sanitize(request.getFullName());
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new IllegalArgumentException("Họ và tên là bắt buộc.");
         }
-        fullName = sanitize(fullName);
         if (fullName.length() > 150) {
             fullName = fullName.substring(0, 150);
         }

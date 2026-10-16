@@ -40,6 +40,19 @@ public class DataScopeService {
                     }
                 }
             }
+            if (effective == null) {
+                try (PreparedStatement statement = connection.prepareStatement("SELECT data_scope FROM users WHERE id = ?")) {
+                    statement.setLong(1, currentUserId);
+                    try (ResultSet rs = statement.executeQuery()) {
+                        if (rs.next()) {
+                            String ds = rs.getString(1);
+                            if (ds != null && !ds.isBlank()) {
+                                effective = ScopeType.valueOf(ds.trim());
+                            }
+                        }
+                    }
+                }
+            }
             if (effective == null) throw new SecurityException("Bạn không có quyền truy cập dữ liệu này.");
             if (effective == ScopeType.ALL) {
                 return new DataScopeContext(currentUserId, module, effective, teamId, Set.of());

@@ -22,6 +22,11 @@ public class LeadAssignmentHistoryDAO {
                     return true;
                 }
             }
+            try (Statement st = conn.createStatement()) {
+                st.execute("ALTER TABLE lead_assignment_history ADD COLUMN action_type VARCHAR(50) NOT NULL DEFAULT 'ASSIGN'");
+                actionTypeExists = true;
+                return true;
+            } catch (SQLException ignored) {}
             actionTypeExists = false;
             return false;
         } catch (SQLException e) {
