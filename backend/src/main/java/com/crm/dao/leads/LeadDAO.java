@@ -13,121 +13,8 @@ import java.util.*;
 
 public class LeadDAO {
 
-    public LeadDAO() {
-        ensureTableExists();
-    }
-
     public Connection open() throws SQLException {
         return DatabaseConfig.getConnection();
-    }
-
-    /**
-     * Self-healing table check: ensures table and columns exist in database.
-     */
-    public void ensureTableExists() {
-        String createTableSql = """
-            CREATE TABLE IF NOT EXISTS leads (
-                id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                code VARCHAR(50) NULL,
-                full_name VARCHAR(150) NOT NULL,
-                company_name VARCHAR(255) NULL,
-                email VARCHAR(255) NULL,
-                phone VARCHAR(50) NULL,
-                source VARCHAR(50) NULL DEFAULT 'WEB_FORM',
-                source_name VARCHAR(100) NULL,
-                status VARCHAR(50) NOT NULL DEFAULT 'NEW',
-                notes TEXT NULL,
-                form_id VARCHAR(100) NULL,
-                ip_address VARCHAR(50) NULL,
-                assigned_to BIGINT NULL,
-                source_id BIGINT NULL,
-                owner_user_id BIGINT NULL,
-                created_by BIGINT NULL,
-                import_batch_hash VARCHAR(64) NULL,
-                region VARCHAR(100) NULL DEFAULT 'Miền Bắc (Hà Nội)',
-                region_code VARCHAR(50) NULL DEFAULT 'NORTH',
-                industry VARCHAR(100) NULL DEFAULT 'ALL',
-                title VARCHAR(150) NULL DEFAULT 'Khách hàng tiềm năng',
-                tax_code VARCHAR(50) NULL,
-                rating VARCHAR(50) NULL DEFAULT 'WARM',
-                tier VARCHAR(50) NULL DEFAULT 'WARM',
-                estimated_value DECIMAL(15,2) NULL DEFAULT 0.00,
-                sla_minutes_total INT NULL DEFAULT 120,
-                last_contacted_at DATETIME NULL,
-                unassigned_reason VARCHAR(255) NULL,
-                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
-                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                INDEX idx_leads_status (status),
-                INDEX idx_leads_source (source),
-                INDEX idx_leads_assigned (assigned_to),
-                INDEX idx_leads_is_deleted (is_deleted)
-            );
-        """;
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.execute(createTableSql);
-
-            // Ensure columns exist
-            ensureColumnExists(conn, "code", "VARCHAR(50) NULL");
-            ensureColumnExists(conn, "notes", "TEXT NULL");
-            ensureColumnExists(conn, "source", "VARCHAR(50) NULL DEFAULT 'WEB_FORM'");
-            ensureColumnExists(conn, "source_name", "VARCHAR(100) NULL");
-            ensureColumnExists(conn, "form_id", "VARCHAR(100) NULL");
-            ensureColumnExists(conn, "ip_address", "VARCHAR(50) NULL");
-            ensureColumnExists(conn, "assigned_to", "BIGINT NULL");
-            ensureColumnExists(conn, "source_id", "BIGINT NULL");
-            ensureColumnExists(conn, "owner_user_id", "BIGINT NULL");
-            ensureColumnExists(conn, "created_by", "BIGINT NULL");
-            ensureColumnExists(conn, "import_batch_hash", "VARCHAR(64) NULL");
-            ensureColumnExists(conn, "region", "VARCHAR(100) NULL DEFAULT 'Miền Bắc (Hà Nội)'");
-            ensureColumnExists(conn, "region_code", "VARCHAR(50) NULL DEFAULT 'NORTH'");
-            ensureColumnExists(conn, "industry", "VARCHAR(100) NULL DEFAULT 'ALL'");
-            ensureColumnExists(conn, "title", "VARCHAR(150) NULL DEFAULT 'Khách hàng tiềm năng'");
-            ensureColumnExists(conn, "tax_code", "VARCHAR(50) NULL");
-            ensureColumnExists(conn, "rating", "VARCHAR(50) NULL DEFAULT 'WARM'");
-            ensureColumnExists(conn, "tier", "VARCHAR(50) NULL DEFAULT 'WARM'");
-            ensureColumnExists(conn, "estimated_value", "DECIMAL(15,2) NULL DEFAULT 0.00");
-            ensureColumnExists(conn, "sla_minutes_total", "INT NULL DEFAULT 120");
-            ensureColumnExists(conn, "last_contacted_at", "DATETIME NULL");
-            ensureColumnExists(conn, "unassigned_reason", "VARCHAR(255) NULL");
-            ensureColumnExists(conn, "is_deleted", "TINYINT(1) NOT NULL DEFAULT 0");
-
-            // S4-07 SLA columns
-            ensureColumnExists(conn, "assigned_to_user_id", "BIGINT NULL");
-            ensureColumnExists(conn, "assigned_at", "DATETIME NULL");
-            ensureColumnExists(conn, "sla_total_minutes", "INT NULL DEFAULT 120");
-            ensureColumnExists(conn, "sla_deadline", "DATETIME NULL");
-            ensureColumnExists(conn, "accepted_at", "DATETIME NULL");
-            ensureColumnExists(conn, "rejected_at", "DATETIME NULL");
-            ensureColumnExists(conn, "reject_reason", "VARCHAR(100) NULL");
-            ensureColumnExists(conn, "reject_details", "TEXT NULL");
-            ensureColumnExists(conn, "sla_result", "VARCHAR(50) NULL");
-            ensureColumnExists(conn, "response_time_text", "VARCHAR(255) NULL");
-            ensureColumnExists(conn, "contacting_stage", "VARCHAR(255) NULL");
-            ensureColumnExists(conn, "is_locked", "TINYINT(1) NOT NULL DEFAULT 0");
-            ensureColumnExists(conn, "employee_count", "INT NULL DEFAULT 0");
-            ensureColumnExists(conn, "score", "INT NULL DEFAULT 0");
-        } catch (SQLException e) {
-            System.err.println("Notice: LeadDAO ensureTableExists check: " + e.getMessage());
-        }
-    }
-
-    private void ensureColumnExists(Connection conn, String column, String definition) {
-        try {
-            DatabaseMetaData md = conn.getMetaData();
-            String catalog = conn.getCatalog();
-            try (ResultSet rs = md.getColumns(catalog, null, "leads", column)) {
-                if (!rs.next()) {
-                    try (Statement stmt = conn.createStatement()) {
-                        stmt.execute("ALTER TABLE leads ADD COLUMN " + column + " " + definition);
-                    } catch (SQLException ignored) {
-                    }
-                }
-            }
-        } catch (SQLException ignored) {
-        }
     }
 
     public List<Map<String, Object>> sources(Connection c, boolean lock) throws SQLException {
@@ -511,7 +398,7 @@ public class LeadDAO {
 
         List<Object> params = new ArrayList<>();
         if (scope != null) {
-            scope.appendOwnerPredicate("l.assigned_to", sql, params);
+            scope.appendCoalescedOwnerPredicate("l.assigned_to", "l.owner_user_id", sql, params);
         }
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -547,7 +434,7 @@ public class LeadDAO {
                                        LeadFilterRequest filter, DataScopeContext scope, Long currentUserId) {
         // 1. Data Scope
         if (scope != null) {
-            scope.appendOwnerPredicate("l.assigned_to", sql, params);
+            scope.appendCoalescedOwnerPredicate("l.assigned_to", "l.owner_user_id", sql, params);
         }
 
         // 2. Status

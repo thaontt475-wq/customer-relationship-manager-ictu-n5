@@ -117,6 +117,10 @@
                         <resource>
                             <directory>${project.basedir}/../frontend</directory>
                             <targetPath>/</targetPath>
+                            <excludes>
+                                <exclude>tests/**</exclude>
+                                <exclude>node_modules/**</exclude>
+                            </excludes>
                         </resource>
                     </webResources>
                 </configuration>

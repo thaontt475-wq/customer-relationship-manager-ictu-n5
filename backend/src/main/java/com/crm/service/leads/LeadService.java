@@ -201,12 +201,10 @@ public class LeadService {
         Lead lead = dao.findById(id);
         if (lead == null) return null;
 
-        if (scope != null && !scope.canAccessOwner(lead.getAssignedTo() != null ? lead.getAssignedTo() : 0)) {
-            // Check if unassigned or allowed
-            if (lead.getAssignedTo() != null && scope.scopeType() == ScopeType.SELF 
-                && lead.getAssignedTo() != currentUserId) {
-                throw new SecurityException("Bạn không có quyền truy cập dữ liệu Lead này");
-            }
+        long owner = lead.getAssignedTo() != null ? lead.getAssignedTo() :
+                lead.getOwnerUserId() != null ? lead.getOwnerUserId() : 0L;
+        if (scope != null && !scope.canAccessOwner(owner)) {
+            throw new SecurityException("Bạn không có quyền truy cập dữ liệu Lead này");
         }
 
         evaluateSla(lead, System.currentTimeMillis());
@@ -350,18 +348,16 @@ public class LeadService {
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new IllegalArgumentException("Họ và tên là bắt buộc.");
         }
-        if (fullName.length() > 150) {
-            fullName = fullName.substring(0, 150);
-        }
+        if (fullName.length() > 150) throw new IllegalArgumentException("Họ tên tối đa 150 ký tự");
 
         String email = request.getEmail();
         if (email != null && !email.trim().isEmpty()) {
-            email = email.trim().toLowerCase();
+            email = email.trim().toLowerCase(Locale.ROOT);
             if (!EMAIL_PATTERN.matcher(email).matches()) {
                 throw new IllegalArgumentException("Địa chỉ email không đúng định dạng.");
             }
             if (email.length() > 255) {
-                email = email.substring(0, 255);
+                throw new IllegalArgumentException("Email tối đa 255 ký tự");
             }
         } else {
             email = null;
@@ -370,7 +366,7 @@ public class LeadService {
         String phone = request.getPhone();
         if (phone != null && !phone.trim().isEmpty()) {
             phone = phone.trim().replaceAll("\\s+", "");
-            if (!PHONE_PATTERN.matcher(phone).matches()) {
+            if (!PHONE_PATTERN.matcher(phone).matches() || phone.replaceAll("\\D", "").length() < 8) {
                 throw new IllegalArgumentException("Số điện thoại không hợp lệ (từ 8-20 ký tự số).");
             }
             if (phone.length() > 50) {
@@ -389,7 +385,7 @@ public class LeadService {
         if (company != null) {
             company = sanitize(company);
             if (company.length() > 255) {
-                company = company.substring(0, 255);
+                throw new IllegalArgumentException("Tên công ty tối đa 255 ký tự");
             }
         }
 
@@ -397,22 +393,18 @@ public class LeadService {
         if (notes != null) {
             notes = sanitize(notes);
             if (notes.length() > 2000) {
-                notes = notes.substring(0, 2000);
+                throw new IllegalArgumentException("Ghi chú tối đa 2000 ký tự");
             }
         }
 
         String source = request.getResolvedSource();
-        if (source == null || source.isBlank()) {
-            source = "WEB_FORM";
-        }
-        if (source.length() > 50) {
-            source = source.substring(0, 50);
-        }
-
+        if (source == null) throw new IllegalArgumentException("Nguồn Lead là bắt buộc");
+        if (!"WEB_FORM".equals(source)) throw new IllegalArgumentException("Nguồn biểu mẫu phải là WEB_FORM");
         String formId = request.getFormId();
-        if (formId != null && formId.length() > 100) {
-            formId = formId.substring(0, 100);
-        }
+        if (formId == null || !formId.matches("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"))
+            throw new IllegalArgumentException("Biểu mẫu chưa được đăng ký. Vui lòng lấy mã nhúng từ CRM");
+        if (request.getRequestId() == null || !request.getRequestId().matches("[A-Za-z0-9_-]{16,64}"))
+            throw new IllegalArgumentException("requestId phải gồm 16-64 chữ, số, _ hoặc -");
 
         Lead lead = new Lead();
         lead.setFullName(fullName);
@@ -425,10 +417,14 @@ public class LeadService {
         lead.setFormId(formId);
         lead.setIpAddress(clientIp);
 
-        long id = dao.insert(lead);
-        lead.setId(id);
-        Lead created = dao.findById(id);
-        return created != null ? created : lead;
+        return new com.crm.dao.leads.LeadCaptureDAO().submit(lead, request.getRequestId());
+    }
+
+    public EmbedCodeResponse registeredEmbedCode(long user, String formId, String baseUrl, String theme, String title) throws Exception {
+        scopes.resolve(user, "create");
+        scopes.resolve(user, "read");
+        String token = new com.crm.dao.leads.LeadCaptureDAO().register(user, formId);
+        return generateEmbedCode(token, baseUrl, theme, title);
     }
 
     /**
@@ -443,6 +439,8 @@ public class LeadService {
         if (baseUrl == null || baseUrl.isBlank()) {
             baseUrl = "http://localhost:8080/crm";
         }
+        if (!baseUrl.matches("https?://[A-Za-z0-9.\\-\\[\\]:]+(/[A-Za-z0-9_./-]*)?"))
+            throw new IllegalArgumentException("URL công khai của CRM không hợp lệ");
         // Remove trailing slash
         if (baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
@@ -479,19 +477,20 @@ public class LeadService {
                 "</div>\n" +
                 "<script>\n" +
                 "  window.addEventListener('message', function(e) {\n" +
-                "    if (e.data && e.data.type === 'crm-form-resize') {\n" +
+                "    if (e.origin === new URL('%s').origin && e.data && e.data.type === 'crm-form-resize') {\n" +
                 "      var f = document.getElementById('crm-iframe-%s');\n" +
-                "      if (f && e.data.height) f.style.height = e.data.height + 'px';\n" +
+                "      if (f && e.source === f.contentWindow && Number.isFinite(e.data.height)) f.style.height = Math.min(1200, Math.max(300, e.data.height)) + 'px';\n" +
                 "    }\n" +
                 "  });\n" +
                 "</script>",
-                formId, formId, formUrl, title, formId
+                formId, formId, formUrl, title, formUrl, formId
         );
 
         // 3. Raw Native HTML Form Snippet (for custom CSS integration)
         String htmlSnippet = String.format(
-                "<form id=\"crm-native-form-%s\" action=\"%s/api/leads/web-form\" method=\"POST\" style=\"max-width:480px; font-family:sans-serif;\">\n" +
+                "<form id=\"crm-native-form-%s\" action=\"%s/api/leads/web-form\" method=\"POST\" onsubmit=\"if(!this.requestId.value)this.requestId.value=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=&gt;b.toString(16).padStart(2,'0')).join('')\" style=\"max-width:480px; font-family:sans-serif;\">\n" +
                 "  <input type=\"hidden\" name=\"formId\" value=\"%s\" />\n" +
+                "  <input type=\"hidden\" name=\"requestId\" value=\"\" />\n" +
                 "  <input type=\"hidden\" name=\"source\" value=\"WEB_FORM\" />\n" +
                 "  <div style=\"margin-bottom:12px;\">\n" +
                 "    <label style=\"display:block; font-weight:600; margin-bottom:4px;\">Họ và tên *</label>\n" +

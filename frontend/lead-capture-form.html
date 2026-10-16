@@ -497,7 +497,9 @@
             const btnTextParam = urlParams.get("btnText") || urlParams.get("btn");
             const showCompanyParam = urlParams.get("showCompany") !== null ? urlParams.get("showCompany") : urlParams.get("company");
             const showNotesParam = urlParams.get("showNotes") !== null ? urlParams.get("showNotes") : urlParams.get("notes");
-            const sourceParam = urlParams.get("source") || "Website Form";
+            const sourceParam = "WEB_FORM";
+            let submitting = false;
+            let requestId = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
 
             // Apply Theme
             if (themeParam === "dark") {
@@ -600,18 +602,14 @@
             // 3. Form Submission Handler
             form.addEventListener("submit", async function(e) {
                 e.preventDefault();
+                if (submitting) return;
 
-                // Anti-spam honeypot detection
                 if (hpInput.value) {
-                    console.warn("Spam bot detected via honeypot field.");
-                    // Fake successful delay
-                    submitBtn.classList.add("loading");
-                    submitBtn.disabled = true;
-                    setTimeout(() => {
-                        formContent.style.display = "none";
-                        successView.style.display = "block";
-                        notifyHeight();
-                    }, 800);
+                    showToast("Không thể tiếp nhận biểu mẫu này.", true);
+                    return;
+                }
+                if (!urlParams.get("formId")) {
+                    showToast("Biểu mẫu chưa được đăng ký. Vui lòng lấy mã nhúng từ CRM.", true);
                     return;
                 }
 
@@ -633,14 +631,14 @@
                     companyName: companyInput ? companyInput.value.trim() : "",
                     notes: notesInput ? notesInput.value.trim() : "",
                     source: sourceParam,
-                    formId: urlParams.get("formId") || "crm-web-lead-form",
-                    createdAt: new Date().toISOString(),
-                    status: "NEW",
+                    formId: urlParams.get("formId"),
+                    requestId,
                     utmSource: urlParams.get("utm_source") || "website",
                     utmMedium: urlParams.get("utm_medium") || "organic",
                     utmCampaign: urlParams.get("utm_campaign") || ""
                 };
 
+                submitting = true;
                 submitBtn.classList.add("loading");
                 submitBtn.disabled = true;
 
@@ -652,6 +650,7 @@
                     const apiUrl = backendBase.replace(/\/+$/, "") + "/api/leads/web-form";
                     const response = await fetch(apiUrl, {
                         method: "POST",
+                        credentials: "omit",
                         headers: {
                             "Content-Type": "application/json",
                             "Accept": "application/json"
@@ -678,6 +677,7 @@
                 } catch (err) {
                     showToast(err.message || "Không thể kết nối máy chủ. Vui lòng thử lại.", true);
                 } finally {
+                    submitting = false;
                     submitBtn.classList.remove("loading");
                     submitBtn.disabled = false;
                 }
@@ -686,6 +686,7 @@
             // Reset form for another submission
             btnSendAnother.addEventListener("click", () => {
                 form.reset();
+                requestId = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, "0")).join("");
                 formContent.style.display = "block";
                 successView.style.display = "none";
                 nameInput.classList.remove("error");

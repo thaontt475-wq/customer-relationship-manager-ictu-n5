@@ -34,16 +34,17 @@ public class CorsFilter implements Filter {
         String origin =
                 httpRequest.getHeader("Origin");
 
+        boolean developmentOrigin = origin != null && ALLOWED_ORIGINS.contains(origin);
         httpResponse.addHeader("Vary", "Origin");
 
         if (
                 origin != null &&
-                (ALLOWED_ORIGINS.contains(origin) ||
+                (developmentOrigin ||
                         ("POST".equalsIgnoreCase(httpRequest.getMethod()) ||
                          ("OPTIONS".equalsIgnoreCase(httpRequest.getMethod()) &&
                           "POST".equalsIgnoreCase(httpRequest.getHeader("Access-Control-Request-Method")))) &&
-                        (httpRequest.getRequestURI().equals(httpRequest.getContextPath() + "/api/leads") ||
-                         httpRequest.getRequestURI().equals(httpRequest.getContextPath() + "/api/leads/web-form")))
+                        (httpRequest.getRequestURI().equals(httpRequest.getContextPath() + "/api/leads/web-form") ||
+                         httpRequest.getRequestURI().equals(httpRequest.getContextPath() + "/api/leads/web-form/submit")))
         ) {
 
             httpResponse.setHeader(
@@ -53,18 +54,18 @@ public class CorsFilter implements Filter {
 
             httpResponse.setHeader(
                     "Access-Control-Allow-Credentials",
-                    String.valueOf(ALLOWED_ORIGINS.contains(origin))
+                    String.valueOf(developmentOrigin)
             );
         }
 
         httpResponse.setHeader(
                 "Access-Control-Allow-Headers",
-                "Content-Type, Authorization"
+                developmentOrigin ? "Content-Type, Authorization" : "Content-Type"
         );
 
         httpResponse.setHeader(
                 "Access-Control-Allow-Methods",
-                "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+                developmentOrigin ? "GET, POST, PUT, PATCH, DELETE, OPTIONS" : "POST, OPTIONS"
         );
 
         if (

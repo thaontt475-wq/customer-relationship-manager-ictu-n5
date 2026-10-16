@@ -40,7 +40,8 @@ class WebFormSecurityTest {
     }
     @Test void onlyExactSubmissionRoutesAndHealthArePublic() throws Exception {
         assertTrue(invoke("POST","/web-form","{}",true).passed);
-        assertTrue(invoke("POST","","{}",true).passed);
+        assertTrue(invoke("POST","/web-form/submit","{}",true).passed);
+        assertEquals(401,invoke("POST","","{}",true).status);
         assertTrue(invoke("GET","/health","",true).passed);
         assertEquals(401,invoke("POST","/web-form/extra","{}",true).status);
     }
