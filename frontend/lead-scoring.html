@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình Chấm điểm Lead (CRM-119) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/lead-scoring.css?v=20261014_s405">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="lead-scoring.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-star-half-stroke"></i></span>
+            <span class="crm-nav-label">Chấm điểm Lead (CRM-119)</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản trị</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead, tiêu chí chấm điểm... (Ctrl K)">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" id="themeToggleBtn" type="button" aria-label="Đổi giao diện">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">QT</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Frontend Developer</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogout">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main lead-scoring-page">
+
+    <!-- 1. HEADER & ACTIONS BAR -->
+    <section class="lead-page-head">
+        <div>
+            <p class="lead-kicker">Marketing & Bán hàng / Sprint 4 (S4-05)</p>
+            <h1>Cấu hình Chấm điểm Lead theo Tiêu chí (CRM-119)</h1>
+            <p>Hệ thống tự động chấm điểm và phân loại Lead (Nóng - Ấm - Lạnh) dựa trên ngành nghề, quy mô, nguồn và mức độ quan tâm; hỗ trợ Sales sắp xếp thứ tự ưu tiên chăm sóc và chuyển đổi cơ hội.</p>
+        </div>
+
+        <div class="lead-head-actions">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnAddCriteriaBtn">
+                <i class="fa-solid fa-plus"></i>
+                Thêm tiêu chí mới
+            </button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnReScoreAll">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Chấm điểm lại tự động (Re-score)
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. KPI SUMMARY CARDS (HOT - WARM - COLD CLASSIFICATION) -->
+    <section class="scoring-kpis">
+        <div class="scoring-kpi-card total">
+            <div class="scoring-kpi-icon">
+                <i class="fa-solid fa-users-viewfinder"></i>
+            </div>
+            <div class="scoring-kpi-info">
+                <span class="scoring-kpi-label">Tổng Lead đang theo dõi</span>
+                <span class="scoring-kpi-value" id="kpiTotalLeads">0</span>
+                <span class="scoring-kpi-sub" id="kpiAvgScore">Điểm trung bình: 0 điểm</span>
+            </div>
+        </div>
+
+        <div class="scoring-kpi-card hot">
+            <div class="scoring-kpi-icon">
+                <i class="fa-solid fa-fire-flame-curved"></i>
+            </div>
+            <div class="scoring-kpi-info">
+                <div class="scoring-kpi-head">
+                    <span class="scoring-kpi-label">Lead Nóng (Hot)</span>
+                    <span class="threshold-pill hot" id="kpiHotThresholdBadge">≥ 70đ</span>
+                </div>
+                <span class="scoring-kpi-value" id="kpiHotLeads">0</span>
+                <span class="scoring-kpi-sub hot-sub"><i class="fa-solid fa-phone-volume"></i> Ưu tiên gọi ngay trong ca làm việc</span>
+            </div>
+        </div>
+
+        <div class="scoring-kpi-card warm">
+            <div class="scoring-kpi-icon">
+                <i class="fa-solid fa-cloud-sun"></i>
+            </div>
+            <div class="scoring-kpi-info">
+                <div class="scoring-kpi-head">
+                    <span class="scoring-kpi-label">Lead Ấm (Warm)</span>
+                    <span class="threshold-pill warm" id="kpiWarmThresholdBadge">40 - 69đ</span>
+                </div>
+                <span class="scoring-kpi-value" id="kpiWarmLeads">0</span>
+                <span class="scoring-kpi-sub"><i class="fa-solid fa-envelope-open-text"></i> Gửi email nuôi dưỡng & định kỳ</span>
+            </div>
+        </div>
+
+        <div class="scoring-kpi-card cold">
+            <div class="scoring-kpi-icon">
+                <i class="fa-solid fa-snowflake"></i>
+            </div>
+            <div class="scoring-kpi-info">
+                <div class="scoring-kpi-head">
+                    <span class="scoring-kpi-label">Lead Lạnh (Cold)</span>
+                    <span class="threshold-pill cold" id="kpiColdThresholdBadge">&lt; 40đ</span>
+                </div>
+                <span class="scoring-kpi-value" id="kpiColdLeads">0</span>
+                <span class="scoring-kpi-sub"><i class="fa-solid fa-box-archive"></i> Lưu trữ & kích hoạt lại theo chiến dịch</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. NAVIGATION TABS -->
+    <div class="scoring-tabs-bar">
+        <button type="button" class="scoring-tab-btn active" data-tab="ranking" id="tabRankingBtn">
+            <i class="fa-solid fa-chart-simple"></i>
+            Bảng xếp hạng & Phân loại Lead
+            <span class="tab-badge" id="tabLeadsCount">0</span>
+        </button>
+        <button type="button" class="scoring-tab-btn" data-tab="rules" id="tabRulesBtn">
+            <i class="fa-solid fa-sliders"></i>
+            Cấu hình Tiêu chí & Ngưỡng điểm
+            <span class="tab-badge" id="tabRulesCount">0</span>
+        </button>
+    </div>
+
+    <!-- ================= 4. TAB 1: BẢNG XẾP HẠNG & PHÂN LOẠI LEAD ================= -->
+    <section class="tab-pane active" id="paneRanking">
+        
+        <!-- SINGLE-ROW FILTER TOOLBAR -->
+        <div class="scoring-filter-toolbar">
+            <div class="scoring-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="scoringSearchInput" class="crm-input" placeholder="Tìm theo tên Lead, người liên hệ, công ty, email, số điện thoại...">
+            </div>
+
+            <select id="filterClassification" class="crm-input">
+                <option value="ALL">Tất cả phân loại</option>
+                <option value="HOT">🔥 Lead Nóng (Hot)</option>
+                <option value="WARM">🌤️ Lead Ấm (Warm)</option>
+                <option value="COLD">❄️ Lead Lạnh (Cold)</option>
+            </select>
+
+            <select id="filterIndustry" class="crm-input">
+                <option value="ALL">Tất cả ngành nghề</option>
+                <option value="CNTT">CNTT & Viễn thông</option>
+                <option value="Bất động sản">Bất động sản & Xây dựng</option>
+                <option value="Bán lẻ">Bán lẻ & Chuỗi F&B</option>
+                <option value="Dược phẩm">Dược phẩm & Y tế</option>
+                <option value="Giáo dục">Giáo dục & Đào tạo</option>
+                <option value="Sản xuất">Sản xuất & Công nghiệp</option>
+            </select>
+
+            <select id="sortOrder" class="crm-input">
+                <option value="score_desc">Điểm số (Cao nhất trước)</option>
+                <option value="score_asc">Điểm số (Thấp nhất trước)</option>
+                <option value="name_asc">Họ tên đối tượng (A - Z)</option>
+                <option value="newest">Thời gian tạo (Mới nhất)</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnResetFilters" title="Đặt lại bộ lọc">
+                <i class="fa-solid fa-rotate-left"></i> Làm mới
+            </button>
+        </div>
+
+        <!-- LEADS DATA TABLE -->
+        <div class="scoring-table-container">
+            <table class="scoring-table">
+                <thead>
+                    <tr>
+                        <th class="col-seq">#</th>
+                        <th class="col-lead">Họ tên & Người liên hệ</th>
+                        <th class="col-company">Doanh nghiệp & Quy mô</th>
+                        <th class="col-source">Nguồn & Hành vi</th>
+                        <th class="col-score">Điểm chất lượng</th>
+                        <th class="col-class">Phân loại</th>
+                        <th class="col-breakdown">Chi tiết điểm</th>
+                        <th class="col-actions">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="leadScoringTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+
+            <!-- EMPTY STATE -->
+            <div class="scoring-empty-state" id="scoringEmptyState" style="display:none;">
+                <div class="scoring-empty-icon">
+                    <i class="fa-solid fa-folder-open"></i>
+                </div>
+                <h3>Không tìm thấy Lead nào phù hợp với bộ lọc</h3>
+                <p>Thử điều chỉnh từ khóa tìm kiếm hoặc chọn bộ lọc phân loại khác để xem dữ liệu.</p>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ================= 5. TAB 2: CẤU HÌNH TIÊU CHÍ & NGƯỠNG ĐIỂM ================= -->
+    <section class="tab-pane" id="paneRules">
+        
+        <!-- 5.1 THRESHOLD CONFIGURATION CARD -->
+        <div class="rules-card threshold-config-card">
+            <div class="rules-card-head">
+                <div>
+                    <h3 class="rules-card-title"><i class="fa-solid fa-chart-pie text-primary"></i> Cấu hình Ngưỡng Phân loại Lead</h3>
+                    <p class="rules-card-desc">Thiết lập ngưỡng điểm số để hệ thống tự động gán nhãn mức độ ưu tiên cho khách hàng tiềm năng.</p>
+                </div>
+                <button type="button" class="crm-btn crm-btn-primary" id="btnSaveThresholds">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu ngưỡng điểm
+                </button>
+            </div>
+
+            <div class="threshold-inputs-grid">
+                <!-- Hot threshold -->
+                <div class="threshold-input-box hot-box">
+                    <div class="threshold-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                    <div class="threshold-body">
+                        <label for="inputHotThreshold">Ngưỡng Lead Nóng (Hot Lead):</label>
+                        <div class="input-with-unit">
+                            <span class="unit-prefix">Từ</span>
+                            <input type="number" id="inputHotThreshold" class="crm-input" min="50" max="100" value="70">
+                            <span class="unit-suffix">điểm trở lên</span>
+                        </div>
+                        <p class="threshold-note">Hành động: Đội ngũ Sales gọi điện tư vấn ngay trong ngày.</p>
+                    </div>
+                </div>
+
+                <!-- Warm threshold -->
+                <div class="threshold-input-box warm-box">
+                    <div class="threshold-icon"><i class="fa-solid fa-cloud-sun"></i></div>
+                    <div class="threshold-body">
+                        <label for="inputWarmThreshold">Ngưỡng Lead Ấm (Warm Lead):</label>
+                        <div class="input-with-unit">
+                            <span class="unit-prefix">Từ</span>
+                            <input type="number" id="inputWarmThreshold" class="crm-input" min="20" max="69" value="40">
+                            <span class="unit-suffix">đến dưới ngưỡng Nóng</span>
+                        </div>
+                        <p class="threshold-note">Hành động: Gửi email tự động, tài liệu và chăm sóc định kỳ.</p>
+                    </div>
+                </div>
+
+                <!-- Cold threshold -->
+                <div class="threshold-input-box cold-box">
+                    <div class="threshold-icon"><i class="fa-solid fa-snowflake"></i></div>
+                    <div class="threshold-body">
+                        <label>Lead Lạnh (Cold Lead):</label>
+                        <div class="input-with-unit static-box">
+                            <span class="unit-prefix">Dưới</span>
+                            <strong id="displayColdThreshold">40</strong>
+                            <span class="unit-suffix">điểm</span>
+                        </div>
+                        <p class="threshold-note">Hành động: Lưu trữ theo dõi, chưa cần phân bổ tài nguyên Sales.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Bar Spectrum -->
+            <div class="threshold-spectrum-wrap">
+                <div class="spectrum-label-row">
+                    <span>0 điểm (Thấp)</span>
+                    <span id="spectrumWarmMark">Ấm: 40đ</span>
+                    <span id="spectrumHotMark">Nóng: 70đ</span>
+                    <span>100+ điểm (Tuyệt đối)</span>
+                </div>
+                <div class="threshold-spectrum-bar">
+                    <div class="spectrum-part cold" id="spectrumColdPart" style="width: 40%;" title="Vùng Lead Lạnh">Lạnh (Cold)</div>
+                    <div class="spectrum-part warm" id="spectrumWarmPart" style="width: 30%;" title="Vùng Lead Ấm">Ấm (Warm)</div>
+                    <div class="spectrum-part hot" id="spectrumHotPart" style="width: 30%;" title="Vùng Lead Nóng">Nóng (Hot)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5.2 SCORING RULES BY CRITERIA GROUPS -->
+        <div class="rules-groups-container">
+            <div class="rules-section-header">
+                <div>
+                    <h2><i class="fa-solid fa-list-check text-primary"></i> Quy tắc Chấm điểm theo Tiêu chí khai báo</h2>
+                    <p>Cấu hình các tiêu chí cộng (+) hoặc trừ (-) điểm theo 4 nhóm: Ngành nghề, Quy mô công ty, Nguồn tiếp cận và Hành vi tương tác.</p>
+                </div>
+                <div class="rules-head-buttons">
+                    <button type="button" class="crm-btn crm-btn-secondary" id="btnResetDefaultRules" title="Khôi phục các quy tắc tiêu chuẩn">
+                        <i class="fa-solid fa-rotate"></i> Khôi phục mặc định
+                    </button>
+                    <button type="button" class="crm-btn crm-btn-primary" id="btnOpenAddCriteriaGroup">
+                        <i class="fa-solid fa-plus"></i> Thêm tiêu chí mới
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Rule Groups Grid -->
+            <div class="rule-groups-grid" id="ruleGroupsGrid">
+                <!-- Group cards will be generated by JS -->
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ================= 6. MODAL THÊM / SỬA TIÊU CHÍ (CRITERIA MODAL) ================= -->
+<div class="scoring-modal-backdrop" id="criteriaModal">
+    <div class="scoring-modal-box">
+        <div class="scoring-modal-header">
+            <div class="scoring-modal-title" id="criteriaModalTitle">
+                <i class="fa-solid fa-plus-circle text-primary"></i>
+                Thêm tiêu chí chấm điểm mới
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseCriteriaModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <form id="criteriaForm" class="scoring-modal-body">
+            <input type="hidden" id="criteriaId">
+
+            <div class="form-row">
+                <label for="criteriaGroup" class="form-label required">Nhóm tiêu chí</label>
+                <select id="criteriaGroup" class="crm-input" required>
+                    <option value="INDUSTRY">Ngành nghề phù hợp (Industry Fit)</option>
+                    <option value="COMPANY_SIZE">Quy mô Doanh nghiệp (Company Size)</option>
+                    <option value="SOURCE">Nguồn tiếp cận Lead (Lead Source)</option>
+                    <option value="INTENT">Mức độ quan tâm & Hành vi (Engagement & Intent)</option>
+                    <option value="CUSTOM">Tiêu chí mở rộng khác</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label for="criteriaName" class="form-label required">Tên tiêu chí / Quy tắc</label>
+                <input type="text" id="criteriaName" class="crm-input" placeholder="Ví dụ: Công nghệ thông tin & Viễn thông..." required>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-row">
+                    <label for="criteriaField" class="form-label required">Trường dữ liệu đối chiếu</label>
+                    <select id="criteriaField" class="crm-input" required>
+                        <option value="industry">Ngành nghề (industry)</option>
+                        <option value="employeeCount">Quy mô nhân sự (employeeCount)</option>
+                        <option value="source">Nguồn Lead (source)</option>
+                        <option value="recentActivity">Hành vi / Tương tác (recentActivity)</option>
+                        <option value="title">Chức vụ người liên hệ (title)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label for="criteriaOperator" class="form-label required">Điều kiện so khớp</label>
+                    <select id="criteriaOperator" class="crm-input" required>
+                        <option value="EQUALS">Bằng chính xác (Equals)</option>
+                        <option value="CONTAINS">Chứa từ khóa (Contains)</option>
+                        <option value="GREATER_THAN">Lớn hơn hoặc bằng (&gt;=)</option>
+                        <option value="LESS_THAN">Nhỏ hơn hoặc bằng (&lt;=)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-row">
+                    <label for="criteriaValue" class="form-label required">Giá trị so sánh</label>
+                    <input type="text" id="criteriaValue" class="crm-input" placeholder="Ví dụ: CNTT hoặc 100" required>
+                </div>
+
+                <div class="form-row">
+                    <label for="criteriaPoints" class="form-label required">Số điểm cộng/trừ</label>
+                    <div class="input-with-points">
+                        <input type="number" id="criteriaPoints" class="crm-input" placeholder="+20 hoặc -15" required>
+                        <span class="points-badge-hint" id="pointsHintBadge">+0đ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="criteriaDescription" class="form-label">Mô tả / Căn cứ đánh giá</label>
+                <textarea id="criteriaDescription" class="crm-input" rows="2" placeholder="Ghi chú lý do cộng/trừ điểm..."></textarea>
+            </div>
+
+            <div class="form-row checkbox-row">
+                <label class="toggle-switch-label">
+                    <input type="checkbox" id="criteriaIsActive" checked>
+                    <span class="toggle-slider"></span>
+                    <span class="toggle-text">Kích hoạt quy tắc này ngay lập tức</span>
+                </label>
+            </div>
+        </form>
+
+        <div class="scoring-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelCriteria">Hủy</button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnSaveCriteria">
+                <i class="fa-solid fa-check"></i> Lưu tiêu chí
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 7. MODAL CHI TIẾT BẢNG ĐIỂM (SCORE BREAKDOWN MODAL) ================= -->
+<div class="scoring-modal-backdrop" id="breakdownModal">
+    <div class="scoring-modal-box breakdown-box">
+        <div class="scoring-modal-header">
+            <div class="scoring-modal-title">
+                <i class="fa-solid fa-list-check text-primary"></i>
+                Bảng phân tích Chi tiết Điểm số Lead
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseBreakdownModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="scoring-modal-body" id="breakdownModalBody">
+            <!-- Populated dynamically via JS -->
+        </div>
+
+        <div class="scoring-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCloseBreakdownBtn">Đóng</button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnActionFromBreakdown">
+                <i class="fa-solid fa-phone"></i> Gọi điện ngay cho Lead này
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 8. TOAST NOTIFICATION CONTAINER ================= -->
+<div id="leadScoringToastContainer" class="scoring-toast-container"></div>
+
+<!-- Scripts -->
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/pages/lead-scoring.js?v=20261014_s405"></script>
+</body>
+</html>

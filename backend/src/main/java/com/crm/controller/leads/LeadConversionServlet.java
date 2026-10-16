@@ -24,8 +24,7 @@ import java.util.*;
 
 @WebServlet({
         "/api/leads/check-convert-duplicates",
-        "/api/leads/convert",
-        "/api/leads/*"
+        "/api/leads/convert"
 })
 public class LeadConversionServlet extends HttpServlet {
 

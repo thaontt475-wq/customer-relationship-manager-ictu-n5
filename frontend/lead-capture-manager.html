@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thu thập Lead & Trình tạo mã nhúng (CRM-113) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/lead-capture.css?v=20261014_preview_fix2">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="lead-capture-manager.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullhorn"></i></span>
+            <span class="crm-nav-label">Thu thập Lead (CRM-113)</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản lý</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead, khách hàng, số điện thoại...">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">QT</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Frontend Developer</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogout">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main lead-capture-page">
+
+    <!-- 1. HEADER & ACTIONS -->
+    <section class="lead-page-head">
+        <div>
+            <p class="lead-kicker">Marketing & Tăng trưởng / Sprint 4 (S4-01)</p>
+            <h1>Thu thập Lead từ Biểu mẫu Website (CRM-113)</h1>
+            <p>Trình tạo mã nhúng Web Form công khai, xem trước trực tiếp thời gian thực và quản lý tập trung danh sách khách hàng tiềm năng gửi từ Landing Page.</p>
+        </div>
+
+        <div class="lead-head-actions">
+            <a href="lead-capture-form.html" target="_blank" class="crm-btn crm-btn-secondary" id="btnOpenPublicForm">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                Mở Form công khai
+            </a>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnGenerateDemoLead">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Tạo Lead Test nhanh
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. NAVIGATION TABS -->
+    <nav class="lead-nav-tabs" aria-label="Phân hệ Lead Capture">
+        <button type="button" class="lead-tab-item active" data-tab="generator" id="tabBtnGenerator">
+            <i class="fa-solid fa-code"></i>
+            Trình tạo mã nhúng & Xem trước (Live Preview)
+        </button>
+        <button type="button" class="lead-tab-item" data-tab="leads" id="tabBtnLeads">
+            <i class="fa-solid fa-table-list"></i>
+            Danh sách Lead thu thập
+            <span class="badge-count" id="badgeLeadsCount">0</span>
+        </button>
+    </nav>
+
+    <!-- ================= TAB 1: GENERATOR & LIVE PREVIEW ================= -->
+    <section class="tab-pane-content" id="paneGenerator">
+        <div class="generator-grid">
+            
+            <!-- CẤU HÌNH GIAO DIỆN FORM -->
+            <div class="config-card">
+                <div class="config-section-title">
+                    <i class="fa-solid fa-sliders text-primary"></i>
+                    Tùy biến giao diện Biểu mẫu
+                </div>
+
+                <!-- Tiêu đề & phụ đề -->
+                <div class="config-group">
+                    <label class="config-label" for="cfgFormTitle">Tiêu đề biểu mẫu</label>
+                    <input type="text" id="cfgFormTitle" class="crm-input" value="Đăng ký tư vấn giải pháp CRM" placeholder="Nhập tiêu đề...">
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label" for="cfgFormSubtitle">Mô tả ngắn / Phụ đề</label>
+                    <input type="text" id="cfgFormSubtitle" class="crm-input" value="Để lại thông tin, chuyên viên tư vấn sẽ liên hệ lại trong vòng 15 phút." placeholder="Nhập mô tả...">
+                </div>
+
+                <div class="config-group">
+                    <label class="config-label" for="cfgBtnText">Chữ trên nút gửi</label>
+                    <input type="text" id="cfgBtnText" class="crm-input" value="Nhận tư vấn miễn phí" placeholder="Nhập chữ nút...">
+                </div>
+
+                <!-- Màu chủ đạo / Button Color Presets -->
+                <div class="config-group">
+                    <label class="config-label">Màu nút hành động (Button Accent)</label>
+                    <div class="color-presets" id="colorPresetsContainer">
+                        <button type="button" class="color-dot active" data-color="#2563eb" style="background:#2563eb;" title="Corporate Blue"></button>
+                        <button type="button" class="color-dot" data-color="#16a34a" style="background:#16a34a;" title="Emerald Green"></button>
+                        <button type="button" class="color-dot" data-color="#7c3aed" style="background:#7c3aed;" title="Royal Purple"></button>
+                        <button type="button" class="color-dot" data-color="#ea580c" style="background:#ea580c;" title="Vibrant Orange"></button>
+                        <button type="button" class="color-dot" data-color="#0284c7" style="background:#0284c7;" title="Cyan Tech"></button>
+                        <button type="button" class="color-dot" data-color="#0f172a" style="background:#0f172a;" title="Midnight Dark"></button>
+                    </div>
+                </div>
+
+                <!-- Chế độ giao diện (Dark / Light / Auto) -->
+                <div class="config-group">
+                    <label class="config-label">Chế độ màu hiển thị (Theme)</label>
+                    <div class="theme-options-grid" id="themeOptionsGrid">
+                        <button type="button" class="theme-option-btn active" data-theme="auto">
+                            <i class="fa-solid fa-circle-half-stroke"></i> Tự động
+                        </button>
+                        <button type="button" class="theme-option-btn" data-theme="light">
+                            <i class="fa-solid fa-sun"></i> Sáng (Light)
+                        </button>
+                        <button type="button" class="theme-option-btn" data-theme="dark">
+                            <i class="fa-solid fa-moon"></i> Tối (Dark)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tùy chọn hiển thị trường bổ sung -->
+                <div class="config-group">
+                    <label class="config-label">Trường dữ liệu thu thập</label>
+                    <label class="checkbox-toggle-wrap">
+                        <input type="checkbox" id="cfgShowCompany" checked>
+                        <span>Hiển thị trường <strong>Tên doanh nghiệp / Công ty</strong></span>
+                    </label>
+                    <label class="checkbox-toggle-wrap">
+                        <input type="checkbox" id="cfgShowNotes" checked>
+                        <span>Hiển thị trường <strong>Nhu cầu quan tâm / Ghi chú</strong></span>
+                    </label>
+                </div>
+
+                <!-- MÃ NHÚNG TỰ ĐỘNG SINH -->
+                <div class="embed-code-card">
+                    <div class="embed-code-header">
+                        <span class="embed-code-title">
+                            <i class="fa-solid fa-code"></i> Mã HTML nhúng Website
+                        </span>
+                        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnCopyEmbedCode">
+                            <i class="fa-solid fa-copy"></i> Sao chép mã
+                        </button>
+                    </div>
+                    <textarea id="txtEmbedCode" class="embed-code-textarea" readonly rows="4"></textarea>
+                    <p style="margin: 8px 0 0; font-size: 11.5px; color: var(--crm-muted);">
+                        <i class="fa-solid fa-circle-info"></i> Dán đoạn mã này vào bất kỳ vị trí nào trên Landing Page, Blog hoặc Website của công ty.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- LIVE PREVIEW KHUNG XEM TRƯỚC -->
+            <div class="preview-card">
+                <div class="preview-topbar">
+                    <div class="preview-title">
+                        <i class="fa-solid fa-desktop text-primary"></i>
+                        Xem trước trực tiếp (Live Preview)
+                    </div>
+                    
+                    <!-- Chuyển đổi kích thước thiết bị -->
+                    <div class="device-switcher" id="deviceSwitcher">
+                        <button type="button" class="device-btn active" data-device="desktop" title="Màn hình Desktop (100%)">
+                            <i class="fa-solid fa-desktop"></i>
+                        </button>
+                        <button type="button" class="device-btn" data-device="tablet" title="Màn hình Tablet (768px)">
+                            <i class="fa-solid fa-tablet-screen-button"></i>
+                        </button>
+                        <button type="button" class="device-btn" data-device="mobile" title="Màn hình Mobile (380px)">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="preview-canvas-wrapper">
+                    <iframe id="livePreviewIframe" class="preview-iframe-frame" src="lead-capture-form.html" title="Xem trước biểu mẫu thu thập Lead"></iframe>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= TAB 2: DANH SÁCH LEAD THU THẬP ================= -->
+    <section class="tab-pane-content" id="paneLeads" style="display:none;">
+        
+        <!-- KPI COUNTERS -->
+        <div class="leads-kpi-grid">
+            <div class="leads-kpi-card">
+                <div class="leads-kpi-icon blue">
+                    <i class="fa-solid fa-users-rays"></i>
+                </div>
+                <div class="leads-kpi-body">
+                    <div class="leads-kpi-title">Tổng Lead thu thập</div>
+                    <div class="leads-kpi-value" id="kpiTotalLeads">0</div>
+                    <div class="leads-kpi-sub"><i class="fa-solid fa-globe text-primary"></i> Từ Web Form công khai</div>
+                </div>
+            </div>
+
+            <div class="leads-kpi-card">
+                <div class="leads-kpi-icon green">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div class="leads-kpi-body">
+                    <div class="leads-kpi-title">Lead mới hôm nay</div>
+                    <div class="leads-kpi-value" id="kpiTodayLeads">0</div>
+                    <div class="leads-kpi-sub text-success"><i class="fa-solid fa-arrow-trend-up"></i> Cần phản hồi ngay</div>
+                </div>
+            </div>
+
+            <div class="leads-kpi-card">
+                <div class="leads-kpi-icon purple">
+                    <i class="fa-solid fa-phone-volume"></i>
+                </div>
+                <div class="leads-kpi-body">
+                    <div class="leads-kpi-title">Có số điện thoại hợp lệ</div>
+                    <div class="leads-kpi-value" id="kpiPhoneValidPercent">100%</div>
+                    <div class="leads-kpi-sub"><i class="fa-solid fa-shield-check text-purple"></i> Đã qua kiểm tra 10 số</div>
+                </div>
+            </div>
+
+            <div class="leads-kpi-card">
+                <div class="leads-kpi-icon amber">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div class="leads-kpi-body">
+                    <div class="leads-kpi-title">Đã chuyển thành Khách hàng</div>
+                    <div class="leads-kpi-value" id="kpiConvertedLeads">0</div>
+                    <div class="leads-kpi-sub"><i class="fa-solid fa-building text-amber"></i> Đã vào hệ thống CRM</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STRICT SINGLE-ROW FILTER TOOLBAR -->
+        <div class="leads-filter-toolbar">
+            <div class="leads-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="filterSearch" class="crm-input leads-search-input" placeholder="Tìm theo tên, email, SĐT, công ty...">
+            </div>
+
+            <select id="filterStatus" class="crm-input leads-select-filter">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="NEW">Mới (Chưa liên hệ)</option>
+                <option value="CONTACTED">Đã liên hệ tư vấn</option>
+                <option value="CONVERTED">Đã chuyển đổi thành Khách hàng</option>
+                <option value="REJECTED">Không liên lạc được / Hủy</option>
+            </select>
+
+            <select id="filterSource" class="crm-input leads-select-filter">
+                <option value="ALL">Tất cả nguồn thu thập</option>
+                <option value="Website Form">Website Form (Mặc định)</option>
+                <option value="Landing Page">Landing Page Chiến dịch</option>
+                <option value="Blog CTA">Blog CTA Widget</option>
+            </select>
+
+            <select id="filterSort" class="crm-input leads-select-filter">
+                <option value="newest">Thời gian gửi (Mới nhất)</option>
+                <option value="oldest">Thời gian gửi (Cũ nhất)</option>
+                <option value="name_asc">Họ tên (A - Z)</option>
+                <option value="company_asc">Tên công ty (A - Z)</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnResetFilters" title="Đặt lại bộ lọc">
+                <i class="fa-solid fa-rotate-left"></i>
+                Làm mới
+            </button>
+        </div>
+
+        <!-- DATA TABLE -->
+        <div class="leads-table-container">
+            <table class="leads-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">#</th>
+                        <th>Họ tên & Người liên hệ</th>
+                        <th>Thông tin liên hệ (Email / SĐT)</th>
+                        <th>Doanh nghiệp / Tổ chức</th>
+                        <th>Nhu cầu quan tâm & Ghi chú</th>
+                        <th>Nguồn Lead</th>
+                        <th>Trạng thái</th>
+                        <th>Thời gian gửi</th>
+                        <th style="text-align: right; width: 160px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTableBody">
+                    <!-- Populated dynamically by lead-capture.js -->
+                </tbody>
+            </table>
+
+            <!-- EMPTY STATE -->
+            <div class="leads-empty-state" id="leadsEmptyState" style="display:none;">
+                <div class="leads-empty-icon">
+                    <i class="fa-solid fa-inbox"></i>
+                </div>
+                <h3>Chưa có dữ liệu Lead nào</h3>
+                <p>Khách hàng tiềm năng điền từ biểu mẫu trên Website hoặc nút Tạo Lead Test sẽ xuất hiện tại đây.</p>
+                <button type="button" class="crm-btn crm-btn-primary" id="btnEmptyCreateLead">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo Lead mẫu ngay
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ================= MODAL XEM CHI TIẾT LEAD & CHUYỂN ĐỔI ================= -->
+<div class="lead-modal-backdrop" id="leadDetailModal">
+    <div class="lead-modal-box">
+        <div class="lead-modal-header">
+            <div class="lead-modal-title">
+                <i class="fa-solid fa-id-card text-primary"></i>
+                Chi tiết Lead & Chuyển đổi thành Khách hàng
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseLeadModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="lead-modal-body" id="leadModalBody">
+            <!-- Rendered by JS -->
+        </div>
+        <div class="lead-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnModalCancel">Đóng</button>
+            <button type="button" class="crm-btn crm-btn-warning" id="btnModalMarkContacted">
+                <i class="fa-solid fa-phone"></i> Đánh dấu đã liên hệ
+            </button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnModalConvertCustomer">
+                <i class="fa-solid fa-user-plus"></i> Chuyển thành Khách hàng CRM
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="leadToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<!-- SCRIPTS -->
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/pages/lead-capture.js?v=20261014_preview_fix2"></script>
+</body>
+</html>
