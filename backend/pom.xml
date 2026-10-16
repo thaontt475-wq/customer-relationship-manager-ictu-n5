@@ -123,6 +123,19 @@
 
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <crm.db.url>${crm.db.url}</crm.db.url>
+                        <crm.db.username>${crm.db.username}</crm.db.username>
+                        <crm.db.password>${crm.db.password}</crm.db.password>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
         </plugins>
 
     </build>
