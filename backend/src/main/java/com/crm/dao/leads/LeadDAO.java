@@ -36,6 +36,10 @@ public class LeadDAO {
                 form_id VARCHAR(100) NULL,
                 ip_address VARCHAR(50) NULL,
                 assigned_to BIGINT NULL,
+                source_id BIGINT NULL,
+                owner_user_id BIGINT NULL,
+                created_by BIGINT NULL,
+                import_batch_hash VARCHAR(64) NULL,
                 is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -50,12 +54,16 @@ public class LeadDAO {
              Statement stmt = conn.createStatement()) {
             stmt.execute(createTableSql);
 
-            // Ensure columns notes, form_id, ip_address, assigned_to, is_deleted exist
+            // Ensure columns exist
             ensureColumnExists(conn, "notes", "TEXT NULL");
             ensureColumnExists(conn, "source", "VARCHAR(50) NULL DEFAULT 'WEB_FORM'");
             ensureColumnExists(conn, "form_id", "VARCHAR(100) NULL");
             ensureColumnExists(conn, "ip_address", "VARCHAR(50) NULL");
             ensureColumnExists(conn, "assigned_to", "BIGINT NULL");
+            ensureColumnExists(conn, "source_id", "BIGINT NULL");
+            ensureColumnExists(conn, "owner_user_id", "BIGINT NULL");
+            ensureColumnExists(conn, "created_by", "BIGINT NULL");
+            ensureColumnExists(conn, "import_batch_hash", "VARCHAR(64) NULL");
             ensureColumnExists(conn, "is_deleted", "TINYINT(1) NOT NULL DEFAULT 0");
         } catch (SQLException e) {
             System.err.println("Notice: LeadDAO ensureTableExists check: " + e.getMessage());
@@ -76,7 +84,7 @@ public class LeadDAO {
         }
     }
 
-    // --- S4-02: Lead Manual & Excel Import Methods ---
+    // --- S4-02 & S4-05: Lead Manual, Excel Import & Scoring Methods ---
 
     public List<Map<String, Object>> sources(Connection c, boolean lock) throws SQLException {
         String query = "SELECT id,code,name FROM master_data WHERE type='lead-source' AND active=TRUE ORDER BY id" + (lock ? " FOR SHARE" : "");
@@ -112,6 +120,10 @@ public class LeadDAO {
     }
 
     public Map<String, Object> get(Connection c, long id, DataScopeContext scope) throws SQLException {
+        return get(c, id, scope, false);
+    }
+
+    public Map<String, Object> get(Connection c, long id, DataScopeContext scope, boolean lock) throws SQLException {
         StringBuilder query = new StringBuilder("""
             SELECT l.id,l.full_name AS fullName,l.company_name AS companyName,l.email,l.phone,l.source_id AS sourceId,
             s.code AS sourceCode,s.name AS sourceName,l.notes,l.status,l.owner_user_id AS ownerUserId,
@@ -121,6 +133,7 @@ public class LeadDAO {
         List<Object> values = new ArrayList<>();
         values.add(id);
         scope.appendOwnerPredicate("l.owner_user_id", query, values);
+        if (lock) query.append(" FOR UPDATE");
         try (PreparedStatement p = c.prepareStatement(query.toString())) {
             for (int i = 0; i < values.size(); i++) p.setObject(i + 1, values.get(i));
             try (ResultSet r = p.executeQuery()) {
@@ -133,6 +146,19 @@ public class LeadDAO {
                 }
                 return result;
             }
+        }
+    }
+
+    public void update(Connection c, long id, LeadWriteRequest lead) throws SQLException {
+        try (var p = c.prepareStatement("UPDATE leads SET full_name=?,company_name=?,email=?,phone=?,source_id=?,notes=? WHERE id=?")) {
+            p.setString(1, lead.fullName());
+            p.setString(2, lead.companyName());
+            p.setString(3, lead.email());
+            p.setString(4, lead.phone());
+            p.setLong(5, lead.sourceId());
+            p.setString(6, lead.notes());
+            p.setLong(7, id);
+            p.executeUpdate();
         }
     }
 

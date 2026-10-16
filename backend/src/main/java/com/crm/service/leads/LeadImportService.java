@@ -25,9 +25,13 @@ public class LeadImportService {
     private final LeadService leads;
     private final LeadExcelReader excel;
     private final Clock clock;
-    public LeadImportService() {this(new LeadDAO(),new LeadService(),new LeadExcelReader(),Clock.systemUTC());}
+    private final LeadService.ScoringHook scoring;
+    public LeadImportService() {this(new LeadDAO(),new LeadService(),new LeadExcelReader(),Clock.systemUTC(),LeadService.productionScoring());}
     public LeadImportService(LeadDAO dao,LeadService leads,LeadExcelReader excel,Clock clock) {
-        this.dao=dao;this.leads=leads;this.excel=excel;this.clock=clock;
+        this(dao,leads,excel,clock,LeadService.NO_SCORING);
+    }
+    public LeadImportService(LeadDAO dao,LeadService leads,LeadExcelReader excel,Clock clock,LeadService.ScoringHook scoring) {
+        this.dao=dao;this.leads=leads;this.excel=excel;this.clock=clock;this.scoring=scoring;
     }
     public void authorize(long user) throws Exception {leads.authorizeCreate(user);}
     public void template(long user,OutputStream out) throws Exception {authorize(user);excel.template(out);}
@@ -66,6 +70,7 @@ public class LeadImportService {
             try(Connection c=dao.open()) {
                 c.setAutoCommit(false);
                 try {
+                    scoring.beforeCreate(c);
                     checkReceipt(c,hash,user);
                     var sources=dao.sources(c,true);
                     for(var row:valid) {
@@ -74,7 +79,9 @@ public class LeadImportService {
                     }
                     dao.receipt(c,hash,user,batch.rows().size(),valid.size(),errors.size());
                     List<Long> ids=new ArrayList<>();
-                    for(var row:valid)ids.add(dao.insert(c,row.lead(),user,hash));
+                    for(var row:valid) {
+                        long id=dao.insert(c,row.lead(),user,hash);scoring.scoreCreated(c,id);ids.add(id);
+                    }
                     c.commit();batches.remove(token,batch);
                     return Map.of("totalRows",batch.rows().size(),"successCount",ids.size(),"failureCount",errors.size(),"leadIds",ids,"errors",errors);
                 } catch(Exception error) {c.rollback();throw error;}

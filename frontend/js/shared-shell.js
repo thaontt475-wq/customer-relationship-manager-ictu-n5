@@ -104,6 +104,9 @@
             sun:
                 `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
 
+            scoring:
+                `<i class="fa-solid fa-star-half-stroke"></i>`,
+
             merge:
                 `<i class="fa-solid fa-code-merge"></i>`
         };
@@ -834,6 +837,23 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // CRM-119: Ensure Lead Scoring item is in workspace menu
+            if (currentSession?.permissions?.includes("lead.read") && !currentMenu.some(m => m.path === "lead-scoring.html" || m.name === "LEAD_SCORING")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const scoringItem = {
+                    name: "LEAD_SCORING",
+                    label: "Chấm điểm Lead (CRM-119)",
+                    path: "lead-scoring.html",
+                    icon: "scoring",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, scoringItem);
+                } else {
+                    currentMenu.push(scoringItem);
                 }
             }
 
