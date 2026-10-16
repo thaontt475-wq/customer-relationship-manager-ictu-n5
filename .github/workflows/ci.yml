@@ -1,0 +1,120 @@
+name: NovaCRM CI - Build & Test
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - 'fix/**'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  build-and-test:
+    name: Java 21 Build & Test Suite
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root_ci_password
+          MYSQL_DATABASE: crm_sprint1_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      # Bước 1: Kiểm chứng Build WAR không cần CSDL
+      - name: Verify Clean Build without MySQL
+        run: |
+          mvn -B -f backend/pom.xml clean package -DskipTests
+          ls -lh backend/target/crm.war
+
+      # Bước 2: Thiết lập tài khoản test và nạp migrations cho database crm_sprint1_test
+      - name: Initialize CI Test Database & Migrations
+        env:
+          MYSQL_PWD: root_ci_password
+        run: |
+          echo "Tạo tài khoản CI độc lập và database..."
+          mysql -h 127.0.0.1 -u root -e "
+            CREATE DATABASE IF NOT EXISTS crm_sprint1_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+            CREATE USER IF NOT EXISTS 'crm_ci_user'@'%' IDENTIFIED BY 'ci_test_password_123';
+            GRANT ALL PRIVILEGES ON crm_sprint1_test.* TO 'crm_ci_user'@'%';
+            FLUSH PRIVILEGES;
+          "
+          
+          echo "Áp dụng toàn bộ 35 migrations vào crm_sprint1_test..."
+          ORDERED_MIGRATIONS=(
+            "001_sprint1_sprint2.sql"
+            "002_permissions.sql"
+            "003_auth_extensions.sql"
+            "004_sprint1_management.sql"
+            "005_profile_audit.sql"
+            "006_sprint2_catalogs.sql"
+            "007_sprint1_roles_scope.sql"
+            "008_audit_logs_compatibility.sql"
+            "012_sprint3_customer_foundation.sql"
+            "019_quotes_v2.sql"
+            "009_operational_entities_complete.sql"
+            "010_schema_field_compatibility.sql"
+            "011_profile_and_field_fixes.sql"
+            "013_sprint3_permissions.sql"
+            "014_s3_02_contacts.sql"
+            "014_s3_04_customer_merge.sql"
+            "015_s3_06_customer_import.sql"
+            "016_s3_08_support_risk.sql"
+            "017_s3_07_customer_search_filters.sql"
+            "018_sprint3_contact_role_permissions.sql"
+            "020_contracts_crud.sql"
+            "020_products_prices.sql"
+            "021_fix_roles_teams_encoding.sql"
+            "022_seed_master_data.sql"
+            "023_teams_leader_region.sql"
+            "024_s4_02_lead_manual_excel.sql"
+            "024_s4_07_lead_sla.sql"
+            "024_sprint4_campaigns_leads.sql"
+            "024_sprint4_web_form_leads.sql"
+            "025_s4_04_lead_duplicate_merge.sql"
+            "025_s4_05_lead_scoring.sql"
+            "025_sprint4_lead_assignment_rules.sql"
+            "026_s4_08_lead_conversion.sql"
+            "026_sprint4_lead_filters_sla.sql"
+            "027_s4_03_campaign_opportunities.sql"
+          )
+
+          for file in "${ORDERED_MIGRATIONS[@]}"; do
+            filePath="backend/database/$file"
+            echo "Running migration: $file"
+            sed -e 's/\bcrm_db\b/crm_sprint1_test/g' "$filePath" | mysql -h 127.0.0.1 -u crm_ci_user -pci_test_password_123 crm_sprint1_test
+          done
+
+      # Bước 3: Chạy toàn bộ bộ test Maven với tài khoản và database test độc lập
+      - name: Run Maven Tests on Isolated Test Schema
+        env:
+          CRM_DB_URL: "jdbc:mysql://127.0.0.1:3306/crm_sprint1_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8"
+          CRM_DB_USERNAME: "crm_ci_user"
+          CRM_DB_PASSWORD: "ci_test_password_123"
+        run: |
+          mvn -B -f backend/pom.xml clean test
+
+      # Bước 4: Lưu báo cáo nếu có kiểm thử thất bại
+      - name: Upload Surefire Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports/

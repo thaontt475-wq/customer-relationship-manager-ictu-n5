@@ -1,0 +1,13 @@
+# ==============================================================================
+# NovaCRM Database Configuration Template
+# Sao chép file này thành db.properties nếu muốn cấu hình qua file thay vì biến môi trường.
+#
+# Biến môi trường tương ứng:
+#   CRM_DB_URL=jdbc:mysql://localhost:3306/crm_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+#   CRM_DB_USERNAME=crm_user
+#   CRM_DB_PASSWORD=your_password_here
+# ==============================================================================
+db.url=jdbc:mysql://localhost:3306/crm_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+db.username=crm_user
+db.password=
+db.driver=com.mysql.cj.jdbc.Driver
