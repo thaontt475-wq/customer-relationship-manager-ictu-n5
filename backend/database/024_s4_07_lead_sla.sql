@@ -101,34 +101,6 @@ SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA =
 SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN is_locked TINYINT(1) NOT NULL DEFAULT 0', 'SELECT 1');
 PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
 
-SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'assigned_to');
-SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN assigned_to VARCHAR(50) NULL', 'SELECT 1');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
-SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'title');
-SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN title VARCHAR(100) NULL DEFAULT ''Khách hàng tiềm năng''', 'SELECT 1');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
-SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'region');
-SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN region VARCHAR(100) NULL', 'SELECT 1');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
-SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'region_code');
-SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN region_code VARCHAR(50) NULL', 'SELECT 1');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
-SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'industry');
-SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN industry VARCHAR(100) NULL', 'SELECT 1');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
-SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'source');
-SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN source VARCHAR(50) NULL DEFAULT ''WEB_FORM''', 'SELECT 1');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
-SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'unassigned_reason');
-SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN unassigned_reason VARCHAR(255) NULL', 'SELECT 1');
-PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
-
 CREATE TABLE IF NOT EXISTS lead_assignment_history (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     lead_id BIGINT NULL,
