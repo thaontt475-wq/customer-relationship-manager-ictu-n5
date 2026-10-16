@@ -80,6 +80,15 @@ public class SavedLeadFilterService {
         return sys;
     }
 
+    public SavedLeadFilter createFilter(long currentUserId, SavedLeadFilter filter) {
+        return saveCustomFilter(filter, currentUserId);
+    }
+
+    public boolean updateFilter(long currentUserId, long filterId, SavedLeadFilter filter) {
+        filter.setId(filterId);
+        return updateCustomFilter(filter, currentUserId);
+    }
+
     public SavedLeadFilter saveCustomFilter(SavedLeadFilter filter, long currentUserId) {
         filter.setUserId(currentUserId);
         filter.setSystem(false);

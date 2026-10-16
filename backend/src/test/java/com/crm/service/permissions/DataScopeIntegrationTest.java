@@ -132,6 +132,56 @@ class DataScopeIntegrationTest {
         assertTrue(new PermissionService().hasPermission(admin, "permission.manage"));
     }
 
+    @Test
+    void leadModuleDataScopeEnforcesPermissionsAndScopesAccurately() throws Exception {
+        DataScopeService service = new DataScopeService();
+
+        // 1. All valid modules (customer, opportunity, activity, quote, contract, lead) resolve properly
+        for (String mod : List.of("customer", "opportunity", "activity", "quote", "contract", "lead")) {
+            DataScopeContext ctx = service.resolve(admin, mod, "read");
+            assertNotNull(ctx, "Module " + mod + " must resolve successfully");
+            assertEquals(ScopeType.ALL, ctx.scopeType());
+        }
+
+        // 2. Invalid module throws IllegalArgumentException (lead is valid, unknown is not)
+        IllegalArgumentException badModule = assertThrows(IllegalArgumentException.class,
+                () -> service.resolve(admin, "unknown_module", "read"));
+        assertEquals("Module phạm vi dữ liệu không hợp lệ", badModule.getMessage());
+
+        // 3. User with valid Lead permission:
+        // 3a. Scope ALL (Admin, Director)
+        DataScopeContext adminScope = service.resolve(admin, "lead", "read");
+        assertEquals(ScopeType.ALL, adminScope.scopeType());
+        assertTrue(adminScope.canAccessOwner(salesA));
+        assertTrue(adminScope.canAccessOwner(salesB));
+        assertTrue(adminScope.canAccessOwner(otherSales));
+
+        DataScopeContext dirScope = service.resolve(director, "lead", "read");
+        assertEquals(ScopeType.ALL, dirScope.scopeType());
+        assertTrue(dirScope.canAccessOwner(salesA));
+
+        // 3b. Scope TEAM (Team Lead)
+        DataScopeContext teamScope = service.resolve(lead, "lead", "read");
+        assertEquals(ScopeType.TEAM, teamScope.scopeType());
+        assertTrue(teamScope.canAccessOwner(lead), "own lead");
+        assertTrue(teamScope.canAccessOwner(salesB), "same team member");
+        assertTrue(teamScope.canAccessOwner(salesA), "descendant child team member");
+        assertFalse(teamScope.canAccessOwner(otherSales), "outside team member must NOT be accessible");
+
+        // 3c. Scope SELF (Sales Rep)
+        DataScopeContext selfScope = service.resolve(salesA, "lead", "read");
+        assertEquals(ScopeType.SELF, selfScope.scopeType());
+        assertTrue(selfScope.canAccessOwner(salesA), "can access own lead");
+        assertFalse(selfScope.canAccessOwner(salesB), "cannot access lead of other sales rep");
+        assertFalse(selfScope.canAccessOwner(otherSales), "cannot access lead of outside sales rep");
+
+        // 4. User without Lead permission (e.g. ACCOUNTANT) throws SecurityException
+        long accountant = user("accountant", null, "ACCOUNTANT", "SELF");
+        SecurityException noPerm = assertThrows(SecurityException.class,
+                () -> service.resolve(accountant, "lead", "read"));
+        assertEquals("Bạn không có quyền truy cập dữ liệu này.", noPerm.getMessage());
+    }
+
     private long team(String name, Long parent) throws Exception {
         try (Connection c = DatabaseConfig.getConnection(); PreparedStatement s = c.prepareStatement(
                 "INSERT INTO teams(name,active,parent_id) VALUES (?,TRUE,?)", Statement.RETURN_GENERATED_KEYS)) {

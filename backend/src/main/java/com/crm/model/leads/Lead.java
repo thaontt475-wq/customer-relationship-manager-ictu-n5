@@ -12,26 +12,44 @@ public class Lead {
     private String taxCode;
     private String phone;
     private String email;
-    private String source;
+    private Long sourceId;
+    private String source = "WEB_FORM";
     private String sourceName;
+    private Integer employeeCount;
     private String tier = "WARM";
     private String rating = "WARM";
-    private int score = 50;
+    private Integer score = 50;
     private String status = "NEW";
-    private Long assignedTo;
-    private String owner;
-    private Long ownerId;
-    private double estimatedValue;
-    private Timestamp slaDeadline;
-    private int slaMinutesTotal = 120;
-    private Timestamp lastContactedAt;
-    private String notes;
     private String formId;
     private String ipAddress;
     private String region;
     private String regionCode;
+    private Long ownerUserId;
+    private Long ownerId;
+    private String owner;
+    private Long assignedTo;
+    private String assignedToStr;
+    private String assignedToRepId;
+    private Long assignedToUserId;
+    private Timestamp assignedAt;
+    private double estimatedValue;
+    private Timestamp slaDeadline;
+    private Integer slaTotalMinutes = 120;
+    private int slaMinutesTotal = 120;
+    private Timestamp lastContactedAt;
+    private Timestamp acceptedAt;
+    private Timestamp rejectedAt;
+    private String rejectReason;
+    private String rejectReasonLabel;
+    private String rejectDetails;
+    private String slaResult;
+    private String responseTimeText;
+    private String contactingStage;
     private String unassignedReason;
+    private String notes;
+    private boolean isLocked;
     private boolean isDeleted;
+    private Long createdBy;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -43,6 +61,17 @@ public class Lead {
     private String timeAgo;
 
     public Lead() {
+        this.status = "NEW";
+        this.source = "WEB_FORM";
+    }
+
+    public Lead(String fullName, String email, String phone, String companyName, String notes) {
+        this();
+        this.fullName = fullName;
+        this.email = email;
+        this.phone = phone;
+        this.companyName = companyName;
+        this.notes = notes;
     }
 
     public Long getId() {
@@ -117,6 +146,14 @@ public class Lead {
         this.email = email;
     }
 
+    public Long getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Long sourceId) {
+        this.sourceId = sourceId;
+    }
+
     public String getSource() {
         return source;
     }
@@ -144,6 +181,14 @@ public class Lead {
         this.sourceName = sourceName;
     }
 
+    public Integer getEmployeeCount() {
+        return employeeCount;
+    }
+
+    public void setEmployeeCount(Integer employeeCount) {
+        this.employeeCount = employeeCount;
+    }
+
     public String getTier() {
         return tier != null ? tier : (rating != null ? rating : "WARM");
     }
@@ -161,8 +206,12 @@ public class Lead {
         setTier(rating);
     }
 
-    public int getScore() {
-        return score;
+    public Integer getScore() {
+        return score != null ? score : 50;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
     }
 
     public void setScore(int score) {
@@ -175,72 +224,6 @@ public class Lead {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public Long getAssignedTo() {
-        return assignedTo;
-    }
-
-    public void setAssignedTo(Long assignedTo) {
-        this.assignedTo = assignedTo;
-        this.ownerId = assignedTo;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public Long getOwnerId() {
-        return ownerId != null ? ownerId : assignedTo;
-    }
-
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
-        this.assignedTo = ownerId;
-    }
-
-    public double getEstimatedValue() {
-        return estimatedValue;
-    }
-
-    public void setEstimatedValue(double estimatedValue) {
-        this.estimatedValue = estimatedValue;
-    }
-
-    public Timestamp getSlaDeadline() {
-        return slaDeadline;
-    }
-
-    public void setSlaDeadline(Timestamp slaDeadline) {
-        this.slaDeadline = slaDeadline;
-    }
-
-    public int getSlaMinutesTotal() {
-        return slaMinutesTotal;
-    }
-
-    public void setSlaMinutesTotal(int slaMinutesTotal) {
-        this.slaMinutesTotal = slaMinutesTotal;
-    }
-
-    public Timestamp getLastContactedAt() {
-        return lastContactedAt;
-    }
-
-    public void setLastContactedAt(Timestamp lastContactedAt) {
-        this.lastContactedAt = lastContactedAt;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
     }
 
     public String getFormId() {
@@ -275,6 +258,220 @@ public class Lead {
         this.regionCode = regionCode;
     }
 
+    public Long getOwnerUserId() {
+        return getOwnerId();
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        setOwnerId(ownerUserId);
+    }
+
+    public Long getOwnerId() {
+        if (ownerId != null) return ownerId;
+        if (ownerUserId != null) return ownerUserId;
+        return assignedTo;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+        this.ownerUserId = ownerId;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public Long getAssignedTo() {
+        if (assignedTo != null) return assignedTo;
+        if (assignedToUserId != null) return assignedToUserId;
+        return null;
+    }
+
+    public void setAssignedTo(Long assignedTo) {
+        this.assignedTo = assignedTo;
+        if (assignedTo != null) {
+            this.assignedToUserId = assignedTo;
+            this.assignedToStr = "USR-" + assignedTo;
+            this.assignedToRepId = String.valueOf(assignedTo);
+        } else {
+            this.assignedToUserId = null;
+            this.assignedToStr = null;
+            this.assignedToRepId = null;
+        }
+    }
+
+    public void setAssignedTo(String assignedTo) {
+        this.assignedToStr = assignedTo;
+        if (assignedTo != null) {
+            this.assignedToRepId = assignedTo;
+            try {
+                long uid = Long.parseLong(assignedTo.replace("USR-", "").trim());
+                this.assignedTo = uid;
+                this.assignedToUserId = uid;
+            } catch (Exception ignored) {}
+        } else {
+            this.assignedTo = null;
+            this.assignedToUserId = null;
+            this.assignedToRepId = null;
+        }
+    }
+
+    public String getAssignedToStr() {
+        if (assignedToStr != null) return assignedToStr;
+        if (assignedTo != null) return "USR-" + assignedTo;
+        if (assignedToRepId != null) return assignedToRepId;
+        return null;
+    }
+
+    public String getAssignedToRepId() {
+        return assignedToRepId;
+    }
+
+    public void setAssignedToRepId(String assignedToRepId) {
+        this.assignedToRepId = assignedToRepId;
+    }
+
+    public Long getAssignedToUserId() {
+        if (assignedToUserId != null) return assignedToUserId;
+        if (assignedTo != null) return assignedTo;
+        return null;
+    }
+
+    public void setAssignedToUserId(Long assignedToUserId) {
+        this.assignedToUserId = assignedToUserId;
+        if (assignedToUserId != null) {
+            if (this.assignedTo == null) {
+                this.assignedTo = assignedToUserId;
+            }
+            this.assignedToRepId = String.valueOf(assignedToUserId);
+            this.assignedToStr = "USR-" + assignedToUserId;
+        } else {
+            this.assignedTo = null;
+            this.assignedToRepId = null;
+            this.assignedToStr = null;
+        }
+    }
+
+    public Timestamp getAssignedAt() {
+        return assignedAt;
+    }
+
+    public void setAssignedAt(Timestamp assignedAt) {
+        this.assignedAt = assignedAt;
+    }
+
+    public double getEstimatedValue() {
+        return estimatedValue;
+    }
+
+    public void setEstimatedValue(double estimatedValue) {
+        this.estimatedValue = estimatedValue;
+    }
+
+    public Timestamp getSlaDeadline() {
+        return slaDeadline;
+    }
+
+    public void setSlaDeadline(Timestamp slaDeadline) {
+        this.slaDeadline = slaDeadline;
+    }
+
+    public Integer getSlaTotalMinutes() {
+        return slaTotalMinutes != null ? slaTotalMinutes : slaMinutesTotal;
+    }
+
+    public void setSlaTotalMinutes(Integer slaTotalMinutes) {
+        this.slaTotalMinutes = slaTotalMinutes;
+        if (slaTotalMinutes != null) {
+            this.slaMinutesTotal = slaTotalMinutes;
+        }
+    }
+
+    public int getSlaMinutesTotal() {
+        return slaMinutesTotal;
+    }
+
+    public void setSlaMinutesTotal(int slaMinutesTotal) {
+        this.slaMinutesTotal = slaMinutesTotal;
+        this.slaTotalMinutes = slaMinutesTotal;
+    }
+
+    public Timestamp getLastContactedAt() {
+        return lastContactedAt;
+    }
+
+    public void setLastContactedAt(Timestamp lastContactedAt) {
+        this.lastContactedAt = lastContactedAt;
+    }
+
+    public Timestamp getAcceptedAt() {
+        return acceptedAt;
+    }
+
+    public void setAcceptedAt(Timestamp acceptedAt) {
+        this.acceptedAt = acceptedAt;
+    }
+
+    public Timestamp getRejectedAt() {
+        return rejectedAt;
+    }
+
+    public void setRejectedAt(Timestamp rejectedAt) {
+        this.rejectedAt = rejectedAt;
+    }
+
+    public String getRejectReason() {
+        return rejectReason;
+    }
+
+    public void setRejectReason(String rejectReason) {
+        this.rejectReason = rejectReason;
+    }
+
+    public String getRejectReasonLabel() {
+        return rejectReasonLabel;
+    }
+
+    public void setRejectReasonLabel(String rejectReasonLabel) {
+        this.rejectReasonLabel = rejectReasonLabel;
+    }
+
+    public String getRejectDetails() {
+        return rejectDetails;
+    }
+
+    public void setRejectDetails(String rejectDetails) {
+        this.rejectDetails = rejectDetails;
+    }
+
+    public String getSlaResult() {
+        return slaResult;
+    }
+
+    public void setSlaResult(String slaResult) {
+        this.slaResult = slaResult;
+    }
+
+    public String getResponseTimeText() {
+        return responseTimeText;
+    }
+
+    public void setResponseTimeText(String responseTimeText) {
+        this.responseTimeText = responseTimeText;
+    }
+
+    public String getContactingStage() {
+        return contactingStage;
+    }
+
+    public void setContactingStage(String contactingStage) {
+        this.contactingStage = contactingStage;
+    }
+
     public String getUnassignedReason() {
         return unassignedReason;
     }
@@ -283,12 +480,36 @@ public class Lead {
         this.unassignedReason = unassignedReason;
     }
 
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+
+    public boolean isLocked() {
+        return isLocked || "CONVERTED".equalsIgnoreCase(status);
+    }
+
+    public void setLocked(boolean locked) {
+        this.isLocked = locked;
+    }
+
     public boolean isDeleted() {
         return isDeleted;
     }
 
     public void setDeleted(boolean deleted) {
         isDeleted = deleted;
+    }
+
+    public Long getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
     }
 
     public Timestamp getCreatedAt() {
@@ -345,23 +566,5 @@ public class Lead {
 
     public void setTimeAgo(String timeAgo) {
         this.timeAgo = timeAgo;
-    }
-
-    private boolean isLocked;
-
-    public boolean isLocked() {
-        return isLocked || "CONVERTED".equalsIgnoreCase(status);
-    }
-
-    public void setLocked(boolean locked) {
-        this.isLocked = locked;
-    }
-
-    public Long getOwnerUserId() {
-        return getOwnerId();
-    }
-
-    public void setOwnerUserId(Long ownerUserId) {
-        setOwnerId(ownerUserId);
     }
 }
