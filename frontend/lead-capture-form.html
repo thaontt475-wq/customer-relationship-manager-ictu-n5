@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biểu mẫu Đăng ký Tư vấn | Corporate CRM</title>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --form-primary: #2563eb;
+            --form-primary-hover: #1d4ed8;
+            --form-primary-soft: rgba(37, 99, 235, 0.1);
+            --form-bg: #ffffff;
+            --form-card: #ffffff;
+            --form-border: #e2e8f0;
+            --form-border-focus: #3b82f6;
+            --form-text: #0f172a;
+            --form-text-muted: #64748b;
+            --form-input-bg: #f8fafc;
+            --form-radius: 12px;
+            --form-success: #16a34a;
+            --form-danger: #ef4444;
+            --form-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+        }
+
+        html[data-theme="dark"] {
+            --form-bg: #0b1220;
+            --form-card: #172033;
+            --form-border: #334155;
+            --form-border-focus: #60a5fa;
+            --form-text: #f8fafc;
+            --form-text-muted: #94a3b8;
+            --form-input-bg: #111827;
+            --form-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: transparent;
+            color: var(--form-text);
+            line-height: 1.5;
+            min-height: auto;
+            margin: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 12px 16px;
+        }
+
+        body.standalone {
+            min-height: 100vh;
+            align-items: center;
+            padding: 24px 16px;
+        }
+
+        .lead-form-container {
+            width: 100%;
+            max-width: 520px;
+            background: var(--form-card);
+            border: 1px solid var(--form-border);
+            border-radius: var(--form-radius);
+            box-shadow: var(--form-shadow);
+            padding: 28px 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lead-form-header {
+            text-align: center;
+            margin-bottom: 22px;
+        }
+
+        .lead-form-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--form-primary-soft);
+            color: var(--form-primary);
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .lead-form-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--form-text);
+            margin-bottom: 6px;
+        }
+
+        .lead-form-subtitle {
+            font-size: 13px;
+            color: var(--form-text-muted);
+            line-height: 1.45;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--form-text);
+            margin-bottom: 6px;
+        }
+
+        .form-label .required-star {
+            color: var(--form-danger);
+            margin-left: 2px;
+        }
+
+        .input-icon-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--form-text-muted);
+            font-size: 14px;
+            pointer-events: none;
+            transition: color 0.2s ease;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 42px;
+            padding: 0 14px 0 38px;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--form-text);
+            background: var(--form-input-bg);
+            border: 1px solid var(--form-border);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        textarea.form-control {
+            height: auto;
+            min-height: 85px;
+            padding: 10px 14px 10px 38px;
+            resize: vertical;
+        }
+
+        .input-icon-wrap textarea + .input-icon {
+            top: 13px;
+        }
+
+        .form-control:focus {
+            border-color: var(--form-primary);
+            box-shadow: 0 0 0 3px var(--form-primary-soft);
+        }
+
+        .form-control:focus + .input-icon {
+            color: var(--form-primary);
+        }
+
+        .form-control.error {
+            border-color: var(--form-danger);
+            background: rgba(239, 68, 68, 0.03);
+        }
+
+        .form-error-msg {
+            font-size: 11.5px;
+            color: var(--form-danger);
+            margin-top: 4px;
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .form-control.error ~ .form-error-msg {
+            display: block;
+        }
+
+        /* Honeypot field (hidden for anti-spam bots) */
+        .website-hp-field {
+            position: absolute !important;
+            left: -9999px !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            width: 0 !important;
+            z-index: -1 !important;
+            pointer-events: none !important;
+        }
+
+        .form-submit-btn {
+            width: 100%;
+            height: 44px;
+            margin-top: 8px;
+            border: none;
+            border-radius: 8px;
+            background: var(--form-primary);
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        }
+
+        .form-submit-btn:hover:not(:disabled) {
+            background: var(--form-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+        }
+
+        .form-submit-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .form-submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        .form-submit-btn.loading .btn-spinner {
+            display: inline-block;
+        }
+
+        .form-submit-btn.loading .btn-text {
+            opacity: 0.9;
+        }
+
+        .form-footer-privacy {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 11.5px;
+            color: var(--form-text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Success State View */
+        .lead-success-view {
+            display: none;
+            text-align: center;
+            padding: 30px 10px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .lead-success-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(22, 163, 74, 0.15);
+            color: var(--form-success);
+            font-size: 32px;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 16px;
+            animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .lead-success-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--form-text);
+            margin-bottom: 8px;
+        }
+
+        .lead-success-desc {
+            font-size: 13.5px;
+            color: var(--form-text-muted);
+            line-height: 1.5;
+            margin-bottom: 22px;
+        }
+
+        .btn-reset-form {
+            padding: 8px 18px;
+            border-radius: 7px;
+            border: 1px solid var(--form-border);
+            background: var(--form-input-bg);
+            color: var(--form-text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-reset-form:hover {
+            border-color: var(--form-primary);
+            color: var(--form-primary);
+        }
+
+        /* Toast Notice */
+        .form-toast {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            opacity: 0;
+            visibility: hidden;
+            background: #1e293b;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+            z-index: 100;
+            white-space: nowrap;
+        }
+
+        .form-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .form-toast.error {
+            background: #dc2626;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lead-form-container" id="leadFormContainer">
+        <!-- Toast Notification -->
+        <div id="formToast" class="form-toast">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span id="toastMsg">Vui lòng kiểm tra lại thông tin</span>
+        </div>
+
+        <!-- FORM CONTENT -->
+        <div id="formContentWrap">
+            <header class="lead-form-header">
+                <div class="lead-form-badge" id="formBadge">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Tư vấn trực tiếp</span>
+                </div>
+                <h1 class="lead-form-title" id="formTitle">Đăng Ký Tư Vấn Giải Pháp</h1>
+                <p class="lead-form-subtitle" id="formSubtitle">Để lại thông tin, chuyên viên Corporate CRM sẽ liên hệ tư vấn trong 15 phút.</p>
+            </header>
+
+            <form id="leadCaptureForm" novalidate>
+                <!-- Anti-spam Honeypot field (hidden from legitimate humans) -->
+                <div class="website-hp-field">
+                    <label for="website_hp">Do not fill this</label>
+                    <input type="text" id="website_hp" name="website_hp" tabindex="-1" autocomplete="off">
+                </div>
+
+                <!-- Field 1: Full Name (Họ tên) -->
+                <div class="form-group">
+                    <label class="form-label" for="leadFullName">
+                        <span>Họ và tên <span class="required-star">*</span></span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <input type="text" id="leadFullName" name="fullName" class="form-control" placeholder="Nguyễn Văn A" required minlength="2">
+                        <i class="fa-solid fa-user input-icon"></i>
+                    </div>
+                    <div class="form-error-msg" id="nameError">Vui lòng nhập họ và tên (tối thiểu 2 ký tự).</div>
+                </div>
+
+                <!-- Field 2: Phone (Số điện thoại) -->
+                <div class="form-group">
+                    <label class="form-label" for="leadPhone">
+                        <span>Số điện thoại <span class="required-star">*</span></span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <input type="tel" id="leadPhone" name="phone" class="form-control" placeholder="0912 345 678" required>
+                        <i class="fa-solid fa-phone input-icon"></i>
+                    </div>
+                    <div class="form-error-msg" id="phoneError">Số điện thoại không hợp lệ (cần 10 chữ số).</div>
+                </div>
+
+                <!-- Field 3: Email -->
+                <div class="form-group">
+                    <label class="form-label" for="leadEmail">
+                        <span>Địa chỉ Email <span class="required-star">*</span></span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <input type="email" id="leadEmail" name="email" class="form-control" placeholder="nguyenvana@company.com" required>
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                    </div>
+                    <div class="form-error-msg" id="emailError">Địa chỉ email không đúng định dạng.</div>
+                </div>
+
+                <!-- Field 4: Company Name (Tên công ty) -->
+                <div class="form-group" id="companyGroup">
+                    <label class="form-label" for="leadCompany">
+                        <span>Tên công ty / Doanh nghiệp</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <input type="text" id="leadCompany" name="companyName" class="form-control" placeholder="Công ty CP Công nghệ Mới">
+                        <i class="fa-solid fa-building input-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Field 5: Needs / Notes (Nhu cầu tư vấn) -->
+                <div class="form-group" id="notesGroup">
+                    <label class="form-label" for="leadNotes">
+                        <span>Nhu cầu quan tâm / Ghi chú</span>
+                    </label>
+                    <div class="input-icon-wrap">
+                        <textarea id="leadNotes" name="notes" class="form-control" rows="3" placeholder="Mô tả số lượng nhân sự, quy mô doanh nghiệp hoặc câu hỏi..."></textarea>
+                        <i class="fa-solid fa-comment-dots input-icon"></i>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="btnSubmitLead" class="form-submit-btn">
+                    <span class="btn-spinner"></span>
+                    <span class="btn-text" id="btnSubmitText">Gửi Yêu Cầu Tư Vấn</span>
+                    <i class="fa-solid fa-arrow-right" style="font-size:12px;"></i>
+                </button>
+
+                <div class="form-footer-privacy">
+                    <i class="fa-solid fa-shield-halved" style="color:var(--form-primary);"></i>
+                    <span>Bảo mật thông tin 100% theo tiêu chuẩn Doanh nghiệp</span>
+                </div>
+            </form>
+        </div>
+
+        <!-- SUCCESS VIEW -->
+        <div id="successView" class="lead-success-view">
+            <div class="lead-success-icon">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2 class="lead-success-title">Tiếp Nhận Thành Công!</h2>
+            <p class="lead-success-desc">Cảm ơn quý khách đã quan tâm. Thông tin của bạn đã được chuyển tới chuyên viên tư vấn khách hàng doanh nghiệp.</p>
+            <button type="button" class="btn-reset-form" id="btnSendAnother">
+                <i class="fa-solid fa-rotate-left" style="margin-right:6px;"></i>
+                Gửi thêm yêu cầu khác
+            </button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // 1. Read URL Params to customize form appearance
+            const urlParams = new URLSearchParams(window.location.search);
+            const themeParam = urlParams.get("theme") || "light";
+            const colorParam = urlParams.get("color");
+            const titleParam = urlParams.get("title");
+            const subtitleParam = urlParams.get("subtitle");
+            const btnTextParam = urlParams.get("btnText") || urlParams.get("btn");
+            const showCompanyParam = urlParams.get("showCompany") !== null ? urlParams.get("showCompany") : urlParams.get("company");
+            const showNotesParam = urlParams.get("showNotes") !== null ? urlParams.get("showNotes") : urlParams.get("notes");
+            const sourceParam = urlParams.get("source") || "Website Form";
+
+            // Apply Theme
+            if (themeParam === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            } else if (themeParam === "auto") {
+                const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+                document.documentElement.setAttribute("data-theme", prefersDark ? "dark" : "light");
+            } else {
+                document.documentElement.setAttribute("data-theme", "light");
+            }
+
+            // Apply Custom Brand Color
+            if (colorParam) {
+                const cleanColor = colorParam.startsWith("#") ? colorParam : "#" + colorParam;
+                document.documentElement.style.setProperty("--form-primary", cleanColor);
+                document.documentElement.style.setProperty("--form-primary-hover", cleanColor);
+                document.documentElement.style.setProperty("--form-primary-soft", cleanColor + "22");
+            }
+
+            // Apply Text Customizations
+            if (titleParam) document.getElementById("formTitle").textContent = titleParam;
+            if (subtitleParam) document.getElementById("formSubtitle").textContent = subtitleParam;
+            if (btnTextParam) document.getElementById("btnSubmitText").textContent = btnTextParam;
+
+            // Visibility Toggles
+            if (showCompanyParam === "false" || showCompanyParam === "0") {
+                const cg = document.getElementById("companyGroup");
+                if (cg) cg.style.display = "none";
+            }
+            if (showNotesParam === "false" || showNotesParam === "0") {
+                const ng = document.getElementById("notesGroup");
+                if (ng) ng.style.display = "none";
+            }
+
+            // 2. Elements & Validation
+            const form = document.getElementById("leadCaptureForm");
+            const nameInput = document.getElementById("leadFullName");
+            const phoneInput = document.getElementById("leadPhone");
+            const emailInput = document.getElementById("leadEmail");
+            const companyInput = document.getElementById("leadCompany");
+            const notesInput = document.getElementById("leadNotes");
+            const hpInput = document.getElementById("website_hp");
+            const submitBtn = document.getElementById("btnSubmitLead");
+            const formContent = document.getElementById("formContentWrap");
+            const successView = document.getElementById("successView");
+            const btnSendAnother = document.getElementById("btnSendAnother");
+            const formToast = document.getElementById("formToast");
+            const toastMsg = document.getElementById("toastMsg");
+
+            // Email & Phone Regex Standards
+            const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const PHONE_REGEX = /^(0|\+84)(3|5|7|8|9)[0-9]{8}$/;
+
+            function showToast(message, isError = false) {
+                toastMsg.textContent = message;
+                formToast.className = "form-toast show" + (isError ? " error" : "");
+                setTimeout(() => {
+                    formToast.classList.remove("show");
+                }, 3500);
+            }
+
+            function validateField(input, isValid) {
+                if (isValid) {
+                    input.classList.remove("error");
+                } else {
+                    input.classList.add("error");
+                }
+                return isValid;
+            }
+
+            // Real-time validation handlers
+            nameInput.addEventListener("input", () => {
+                validateField(nameInput, nameInput.value.trim().length >= 2);
+            });
+
+            phoneInput.addEventListener("input", () => {
+                const cleanPhone = phoneInput.value.replace(/\s+/g, "");
+                validateField(phoneInput, PHONE_REGEX.test(cleanPhone));
+            });
+
+            emailInput.addEventListener("input", () => {
+                validateField(emailInput, EMAIL_REGEX.test(emailInput.value.trim()));
+            });
+
+            // Check if opened as standalone window
+            if (window.self === window.top) {
+                document.body.classList.add("standalone");
+            }
+
+            // Safe height notifier for parent iframe (one-time on load and after submit)
+            function notifyHeight() {
+                try {
+                    const card = document.querySelector(".lead-form-container");
+                    const height = card ? (card.offsetHeight + 24) : 560;
+                    window.parent.postMessage({ type: "crm-form-resize", height: height }, "*");
+                } catch (_) {}
+            }
+            window.addEventListener("load", notifyHeight);
+
+            // 3. Form Submission Handler
+            form.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                // Anti-spam honeypot detection
+                if (hpInput.value) {
+                    console.warn("Spam bot detected via honeypot field.");
+                    // Fake successful delay
+                    submitBtn.classList.add("loading");
+                    submitBtn.disabled = true;
+                    setTimeout(() => {
+                        formContent.style.display = "none";
+                        successView.style.display = "block";
+                        notifyHeight();
+                    }, 800);
+                    return;
+                }
+
+                // Client validation
+                const nameValid = validateField(nameInput, nameInput.value.trim().length >= 2);
+                const phoneClean = phoneInput.value.replace(/\s+/g, "");
+                const phoneValid = validateField(phoneInput, PHONE_REGEX.test(phoneClean));
+                const emailValid = validateField(emailInput, EMAIL_REGEX.test(emailInput.value.trim()));
+
+                if (!nameValid || !phoneValid || !emailValid) {
+                    showToast("Vui lòng điền đúng và đủ các thông tin bắt buộc.", true);
+                    return;
+                }
+
+                const leadPayload = {
+                    fullName: nameInput.value.trim(),
+                    phone: phoneClean,
+                    email: emailInput.value.trim(),
+                    companyName: companyInput ? companyInput.value.trim() : "",
+                    notes: notesInput ? notesInput.value.trim() : "",
+                    source: sourceParam,
+                    formId: urlParams.get("formId") || "crm-web-lead-form",
+                    createdAt: new Date().toISOString(),
+                    status: "NEW",
+                    utmSource: urlParams.get("utm_source") || "website",
+                    utmMedium: urlParams.get("utm_medium") || "organic",
+                    utmCampaign: urlParams.get("utm_campaign") || ""
+                };
+
+                submitBtn.classList.add("loading");
+                submitBtn.disabled = true;
+
+                try {
+                    // Try real backend API endpoint
+                    const backendBase = window.CRM_BACKEND_BASE || (window.location.pathname.startsWith("/crm/")
+                        ? window.location.origin + "/crm"
+                        : `${window.location.protocol}//${window.location.hostname}:8080/crm`);
+                    const apiUrl = backendBase.replace(/\/+$/, "") + "/api/leads/web-form";
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        body: JSON.stringify(leadPayload)
+                    });
+
+                    const result = await response.json().catch(() => null);
+                    if (!response.ok || !result?.success || !result.data?.id) {
+                        throw new Error(result?.message || "Không thể gửi biểu mẫu. Vui lòng thử lại.");
+                    }
+                    // Transition to Success Screen
+                    formContent.style.display = "none";
+                    successView.style.display = "block";
+                    notifyHeight();
+
+                    // Notify parent frame
+                    try {
+                        window.parent.postMessage({
+                            type: "crm-form-submitted",
+                            lead: result.data
+                        }, "*");
+                    } catch (_) {}
+                } catch (err) {
+                    showToast(err.message || "Không thể kết nối máy chủ. Vui lòng thử lại.", true);
+                } finally {
+                    submitBtn.classList.remove("loading");
+                    submitBtn.disabled = false;
+                }
+            });
+
+            // Reset form for another submission
+            btnSendAnother.addEventListener("click", () => {
+                form.reset();
+                formContent.style.display = "block";
+                successView.style.display = "none";
+                nameInput.classList.remove("error");
+                phoneInput.classList.remove("error");
+                emailInput.classList.remove("error");
+                notifyHeight();
+            });
+
+        })();
+    </script>
+</body>
+</html>

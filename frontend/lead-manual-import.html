@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Lead thủ công & Nhập hàng loạt từ Excel (CRM-116) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/lead-manual-import.css?v=20261014_s402">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="lead-manual-import.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-file-import"></i></span>
+            <span class="crm-nav-label">Tạo & Nhập Lead (CRM-116)</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản trị</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead, khách hàng, số điện thoại...">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">QT</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Frontend Developer</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogout">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main lead-manual-page">
+
+    <!-- 1. HEADER & ACTIONS -->
+    <section class="lead-page-head">
+        <div>
+            <p class="lead-kicker">Marketing & Tăng trưởng / Sprint 4 (S4-02)</p>
+            <h1>Tạo Lead thủ công & Nhập hàng loạt từ Excel (CRM-116)</h1>
+            <p>Thu thập và tiếp nhận thông tin khách hàng tiềm năng từ sự kiện, danh thiếp hoặc nhập liệu hàng loạt từ tệp Excel .xlsx với kiểm tra lỗi tự động từng dòng.</p>
+        </div>
+
+        <div class="lead-head-actions">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnDownloadExcelTemplate" title="Tải tệp mẫu Excel chuẩn">
+                <i class="fa-solid fa-file-excel text-success"></i> Tải mẫu Excel (.xlsx)
+            </button>
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnDownloadCsvTemplate" hidden title="Tải tệp mẫu CSV">
+                <i class="fa-solid fa-file-csv text-primary"></i> Tải mẫu .CSV
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. NAVIGATION TABS -->
+    <nav class="lead-nav-tabs" aria-label="Phân hệ CRM-116">
+        <button type="button" class="lead-tab-item active" data-tab="manual" id="tabBtnManual">
+            <i class="fa-solid fa-user-plus"></i>
+            Tạo Lead thủ công
+        </button>
+        <button type="button" class="lead-tab-item" data-tab="excel" id="tabBtnExcel">
+            <i class="fa-solid fa-file-excel"></i>
+            Nhập hàng loạt từ Excel
+        </button>
+        <button type="button" class="lead-tab-item" data-tab="list" id="tabBtnList">
+            <i class="fa-solid fa-table-list"></i>
+            Lead vừa thao tác (tối đa 20)
+            <span class="badge-count" id="badgeTotalLeads">0</span>
+        </button>
+    </nav>
+
+    <!-- ================= TAB 1: TẠO LEAD THỦ CÔNG ================= -->
+    <section class="tab-pane-content" id="paneManual">
+        <div class="manual-create-grid">
+            
+            <!-- FORM NHẬP LIỆU -->
+            <div class="manual-form-card">
+                <div class="form-section-title">
+                    <i class="fa-solid fa-id-card-clip text-primary"></i>
+                    Thông tin Khách hàng tiềm năng (Lead)
+                </div>
+
+                <form id="formManualLead" novalidate>
+                    <!-- Row 1: Họ tên & Công ty -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label for="manualFullName">Họ và tên Lead <span class="required-star">*</span></label>
+                            <input type="text" id="manualFullName" class="crm-input" placeholder="Ví dụ: Nguyễn Văn Hùng" required>
+                            <div class="error-feedback" id="errFullName">Vui lòng nhập họ và tên (tối thiểu 2 ký tự).</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manualCompany">Tên Công ty / Đơn vị công tác</label>
+                            <input type="text" id="manualCompany" class="crm-input" placeholder="Ví dụ: Công ty CP Công nghệ Sao Việt">
+                            <div class="form-help-text">Tên công ty hoặc tổ chức nơi Lead đang làm việc.</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Điện thoại & Email -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label for="manualPhone">Số điện thoại (hoặc email)</label>
+                            <input type="tel" id="manualPhone" class="crm-input" placeholder="Ví dụ: 0912345678">
+                            <div class="error-feedback" id="errPhone">Số điện thoại phải là số hợp lệ 10 chữ số (bắt đầu bằng 0 hoặc +84).</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manualEmail">Địa chỉ Email <span class="required-star">*</span></label>
+                            <input type="email" id="manualEmail" class="crm-input" placeholder="hung.nguyen@saoviet.vn" required>
+                            <div class="error-feedback" id="errEmail">Vui lòng nhập địa chỉ email đúng quy chuẩn RFC (vd: ten@congty.vn).</div>
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Nguồn Lead & Chức danh -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label for="manualSource">Nguồn tiếp nhận Lead <span class="required-star">*</span></label>
+                            <select id="manualSource" class="crm-input" required>
+                                <option value="">-- Chọn nguồn tiếp nhận --</option>
+                                <option value="Hội thảo / Sự kiện chuyên ngành" selected>Hội thảo / Sự kiện chuyên ngành (Event)</option>
+                                <option value="Gặp trực tiếp / Trao đổi Danh thiếp">Gặp trực tiếp / Trao đổi Danh thiếp (Card/Meeting)</option>
+                                <option value="Người quen / Đối tác giới thiệu">Người quen / Đối tác giới thiệu (Referral)</option>
+                                <option value="Tư vấn qua điện thoại (Telesales)">Tư vấn qua điện thoại (Telesales)</option>
+                                <option value="Website Form">Website Form (Biểu mẫu trực tuyến)</option>
+                                <option value="Khác">Nguồn tiếp cận khác</option>
+                            </select>
+                            <div class="error-feedback" id="errSource">Vui lòng chọn nguồn gốc của Lead.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manualTitle">Chức vụ / Vị trí người liên hệ</label>
+                            <input type="text" id="manualTitle" class="crm-input" placeholder="Ví dụ: Giám đốc Kinh doanh / Trưởng phòng">
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Quy mô & Ngân sách dự kiến -->
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label for="manualCompanySize">Quy mô doanh nghiệp</label>
+                            <select id="manualCompanySize" class="crm-input">
+                                <option value="Dưới 10 nhân sự">Dưới 10 nhân sự (Micro)</option>
+                                <option value="10 - 50 nhân sự" selected>10 - 50 nhân sự (SME)</option>
+                                <option value="50 - 200 nhân sự">50 - 200 nhân sự (Medium)</option>
+                                <option value="Trên 200 nhân sự">Trên 200 nhân sự (Enterprise)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="manualEstimatedBudget">Ngân sách dự kiến (VNĐ)</label>
+                            <select id="manualEstimatedBudget" class="crm-input">
+                                <option value="Chưa xác định">Chưa xác định</option>
+                                <option value="Dưới 20 triệu">Dưới 20 triệu VNĐ</option>
+                                <option value="20 - 50 triệu">20 - 50 triệu VNĐ</option>
+                                <option value="50 - 150 triệu">50 - 150 triệu VNĐ</option>
+                                <option value="Trên 150 triệu">Trên 150 triệu VNĐ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Nhu cầu quan tâm & Ghi chú -->
+                    <div class="form-group">
+                        <label for="manualNotes">Nhu cầu quan tâm & Ghi chú ban đầu</label>
+                        <textarea id="manualNotes" class="crm-input" rows="3" placeholder="Ghi chú chi tiết nhu cầu: Cần tính năng gì, ngân sách, người ra quyết định, thời gian dự kiến ký hợp đồng..."></textarea>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions-bar">
+                        <button type="button" class="crm-btn crm-btn-secondary" id="btnFillDemoManualLead" hidden>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Điền mẫu nhanh
+                        </button>
+                        <button type="reset" class="crm-btn crm-btn-secondary" id="btnResetManualForm">
+                            <i class="fa-solid fa-rotate-left"></i> Làm lại
+                        </button>
+                        <button type="submit" class="crm-btn crm-btn-primary" id="btnSubmitManualLead">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span id="btnSubmitText">Lưu Khách hàng tiềm năng</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CỘT BÊN PHẢI: HƯỚNG DẪN & LEAD VỪA TẠO -->
+            <div class="manual-side-col">
+                <div class="side-card">
+                    <div class="side-card-title">
+                        <i class="fa-solid fa-circle-info text-primary"></i>
+                        Quy chuẩn nhập Lead thủ công
+                    </div>
+                    <ul class="guidelines-list">
+                        <li>
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span><strong>Họ tên & SĐT</strong> là trường bắt buộc để nhân viên Sales liên hệ chăm sóc.</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span><strong>Nguồn Lead</strong> giúp Marketing đo lường hiệu quả từng kênh tiếp thị (ROI sự kiện).</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Hệ thống tự động kiểm tra trùng lặp qua <strong>Số điện thoại</strong> và <strong>Email</strong>.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="side-card">
+                    <div class="side-card-title">
+                        <i class="fa-solid fa-clock-rotate-left text-success"></i>
+                        Lead vừa tạo thủ công gần đây
+                    </div>
+                    <div class="recent-leads-list" id="recentManualLeadsList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ================= TAB 2: NHẬP HÀNG LOẠT TỪ EXCEL ================= -->
+    <section class="tab-pane-content" id="paneExcel" style="display:none;">
+        
+        <!-- STEPPER WIZARD -->
+        <div class="import-stepper">
+            <div class="step-node active" id="stepNode1">
+                <div class="step-badge">1</div>
+                <div>
+                    <div class="step-meta-title">Tải lên tệp Excel</div>
+                    <div class="step-meta-desc">Chọn tệp .xlsx</div>
+                </div>
+            </div>
+            <div class="step-node" id="stepNode2">
+                <div class="step-badge">2</div>
+                <div>
+                    <div class="step-meta-title">Đối soát & Kiểm tra lỗi</div>
+                    <div class="step-meta-desc">Báo lỗi chi tiết từng dòng</div>
+                </div>
+            </div>
+            <div class="step-node" id="stepNode3">
+                <div class="step-badge">3</div>
+                <div>
+                    <div class="step-meta-title">Hoàn tất nhập dữ liệu</div>
+                    <div class="step-meta-desc">Lưu Lead vào hệ thống CRM</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BƯỚC 1: KHU VỰC CHỌN TỆP & KÉO THẢ (STEP 1) -->
+        <div class="import-card-box" id="stepBox1">
+            <div class="form-section-title">
+                <i class="fa-solid fa-cloud-arrow-up text-primary"></i>
+                Tải lên danh sách Lead từ tệp bảng tính
+            </div>
+
+            <!-- DROPZONE -->
+            <div class="dropzone-container" id="dropzoneContainer">
+                <input type="file" id="excelFileInput" accept=".xlsx" hidden>
+                <i class="fa-solid fa-file-excel dropzone-icon"></i>
+                <div class="dropzone-title">Kéo & thả file Excel (.xlsx) vào đây</div>
+                <div class="dropzone-subtitle">hoặc nhấn vào khung để duyệt file từ máy tính của bạn</div>
+                <div class="format-pills">
+                    <span class="format-pill"><i class="fa-solid fa-check"></i> .XLSX</span>
+                    
+                    
+                    <span class="format-pill">Tối đa 5MB</span>
+                </div>
+            </div>
+
+            <!-- THÔNG TIN FILE ĐÃ CHỌN -->
+            <div class="selected-file-card" id="selectedFileCard" style="display:none;">
+                <div class="file-info-col">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <div>
+                        <div class="file-name-text" id="selectedFileName">danh_sach_lead.xlsx</div>
+                        <div class="file-size-text" id="selectedFileSize">0 KB &bull; Đã sẵn sàng đối soát dữ liệu</div>
+                    </div>
+                </div>
+                <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnRemoveSelectedFile">
+                    <i class="fa-solid fa-xmark"></i> Hủy chọn
+                </button>
+            </div>
+
+            <!-- SANDBOX KIỂM THỬ NHANH (UAT READY) -->
+            <div class="demo-sandbox-box" hidden>
+                <div class="demo-sandbox-text">
+                    <i class="fa-solid fa-flask-vial text-primary"></i>
+                    <strong>Sandbox Kiểm thử Nhanh (UAT Testing):</strong> Bạn chưa có sẵn file Excel? Hãy nạp nhanh bộ dữ liệu mẫu có sẵn để kiểm tra giao diện và tính năng bắt lỗi:
+                </div>
+                <div class="demo-sandbox-actions">
+                    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnLoadValidDemo">
+                        <i class="fa-solid fa-circle-check text-success"></i> Nạp mẫu HỢP LỆ (5 dòng)
+                    </button>
+                    <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnLoadInvalidDemo">
+                        <i class="fa-solid fa-triangle-exclamation text-danger"></i> Nạp mẫu CÓ LỖI (8 dòng)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BƯỚC 2: ĐỐI SOÁT & XEM TRƯỚC BẢNG LỖI (STEP 2) -->
+        <div class="import-card-box" id="stepBox2" style="display:none;">
+            <div class="form-section-title">
+                <i class="fa-solid fa-table-cells text-primary"></i>
+                Bảng xem trước dữ liệu & Đối soát lỗi chi tiết
+            </div>
+
+            <!-- STATS COUNTERS -->
+            <div class="preview-stats-grid">
+                <div class="stat-box">
+                    <div class="stat-icon blue"><i class="fa-solid fa-list-ol"></i></div>
+                    <div>
+                        <div class="stat-title">Tổng số dòng đọc được</div>
+                        <div class="stat-value" id="statTotalRows">0</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="stat-title">Dòng hợp lệ (Sẵn sàng nhập)</div>
+                        <div class="stat-value text-success" id="statValidRows">0</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon red"><i class="fa-solid fa-circle-exclamation"></i></div>
+                    <div>
+                        <div class="stat-title">Dòng phát hiện lỗi</div>
+                        <div class="stat-value text-danger" id="statErrorRows">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREVIEW TOOLBAR (SINGLE ROW) -->
+            <div class="preview-toolbar">
+                <input type="search" id="previewSearchInput" class="crm-input" placeholder="Tìm nhanh trong danh sách xem trước...">
+                
+                <select id="previewFilterMode" class="crm-input">
+                    <option value="ALL">Xem tất cả dòng dữ liệu</option>
+                    <option value="VALID">Chỉ xem dòng HỢP LỆ</option>
+                    <option value="ERROR">Chỉ xem dòng CÓ LỖI</option>
+                </select>
+
+                <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; cursor:pointer;">
+                    <input type="checkbox" id="chkOnlyValid" checked>
+                    <span>Chỉ nhập các dòng hợp lệ, tự động bỏ qua dòng lỗi</span>
+                </label>
+
+                <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnBackToStep1">
+                    <i class="fa-solid fa-arrow-left"></i> Chọn lại file
+                </button>
+            </div>
+
+            <!-- PREVIEW DATA TABLE -->
+            <div class="import-table-container">
+                <table class="import-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center;">Dòng</th>
+                            <th>Họ và tên Lead</th>
+                            <th>Số điện thoại</th>
+                            <th>Email</th>
+                            <th>Tên Công ty / Tổ chức</th>
+                            <th>Nguồn Lead</th>
+                            <th>Nhu cầu / Ghi chú</th>
+                            <th>Trạng thái</th>
+                            <th>Chi tiết lỗi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ACTION EXECUTE -->
+            <div class="form-actions-bar">
+                <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelPreview">
+                    Hủy bỏ
+                </button>
+                <button type="button" class="crm-btn crm-btn-primary" id="btnExecuteImport">
+                    <i class="fa-solid fa-file-import"></i>
+                    <span id="btnExecuteImportText">Tiến hành Import Lead vào hệ thống</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- BƯỚC 3: KẾT QUẢ IMPORT THÀNH CÔNG (STEP 3) -->
+        <div class="import-card-box" id="stepBox3" style="display:none;">
+            <div class="import-success-view">
+                <div class="import-success-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h2 class="import-success-title">Nhập danh sách Lead thành công!</h2>
+                <p class="import-success-subtitle">Toàn bộ dữ liệu khách hàng tiềm năng hợp lệ đã được lưu trữ an toàn vào hệ thống CRM.</p>
+
+                <div class="import-result-stats">
+                    <div class="result-stat-item">
+                        <div class="num green" id="resSuccessCount">0</div>
+                        <div class="lbl">Lead đã nhập thành công</div>
+                    </div>
+                    <div class="result-stat-item">
+                        <div class="num red" id="resSkippedCount">0</div>
+                        <div class="lbl">Dòng bị bỏ qua do lỗi</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: center; gap: 12px;">
+                    <button type="button" class="crm-btn crm-btn-secondary" id="btnImportAnotherFile">
+                        <i class="fa-solid fa-plus"></i> Nhập thêm tệp khác
+                    </button>
+                    <button type="button" class="crm-btn crm-btn-primary" id="btnGoToLeadsList">
+                        <i class="fa-solid fa-table-list"></i> Xem danh sách Lead đã tiếp nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ================= TAB 3: DANH SÁCH LEAD ĐÃ TIẾP NHẬN ================= -->
+    <section class="tab-pane-content" id="paneList" style="display:none;">
+        
+        <!-- SINGLE-ROW FILTER TOOLBAR -->
+        <div class="preview-toolbar" style="margin-bottom: 20px;">
+            <input type="search" id="listSearchInput" class="crm-input" placeholder="Tìm theo tên, email, SĐT, công ty...">
+            
+            <select id="listFilterSource" class="crm-input">
+                <option value="ALL">Tất cả nguồn tiếp nhận</option>
+                <option value="Hội thảo / Sự kiện chuyên ngành">Hội thảo / Sự kiện</option>
+                <option value="Gặp trực tiếp / Trao đổi Danh thiếp">Danh thiếp / Gặp trực tiếp</option>
+                <option value="Người quen / Đối tác giới thiệu">Người quen giới thiệu</option>
+                <option value="Nhập hàng loạt từ Excel">Nhập từ Excel</option>
+                <option value="Website Form">Website Form</option>
+            </select>
+
+            <select id="listFilterStatus" class="crm-input">
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="NEW">Mới (Chưa liên hệ)</option>
+                <option value="CONTACTED">Đã liên hệ tư vấn</option>
+                <option value="CONVERTED">Đã chuyển đổi thành Khách hàng</option>
+            </select>
+
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnResetListFilters">
+                <i class="fa-solid fa-rotate-left"></i> Làm mới
+            </button>
+        </div>
+
+        <!-- TABLE OF LEADS -->
+        <div class="import-table-container">
+            <table class="import-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px; text-align: center;">#</th>
+                        <th>Họ và tên Lead</th>
+                        <th>Liên hệ (SĐT / Email)</th>
+                        <th>Công ty / Đơn vị</th>
+                        <th>Nguồn tiếp nhận</th>
+                        <th>Ghi chú / Nhu cầu</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th style="text-align: right; width: 140px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="listTableBody">
+                    <!-- Populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<!-- TOAST CONTAINER -->
+<div id="leadManualToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+<!-- SheetJS (XLSX) Library for full client-side Excel handling -->
+
+
+<!-- Scripts -->
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/pages/lead-manual-import.js?v=20261014_s402"></script>
+</body>
+</html>
