@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <script src="js/crm-api.js"></script>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển đổi Lead 3-trong-1 (CRM-122 / S4-08) | Corporate CRM</title>
+    
+    <!-- Font Awesome 6 Classic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Design System & App Shell CSS -->
+    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/lead-conversion.css?v=20261014_s408">
+</head>
+
+<body class="crm-private">
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="crm-sidebar">
+    <div class="crm-brand">
+        <div class="crm-brand-mark">C</div>
+        <span class="crm-brand-name">Corporate CRM</span>
+    </div>
+
+    <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
+        <a href="dashboard.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+            <span class="crm-nav-label">Tổng quan</span>
+        </a>
+
+        <a href="customers.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-label">Khách hàng</span>
+        </a>
+
+        <a href="lead-conversion.html" class="crm-nav-item active">
+            <span class="crm-nav-icon"><i class="fa-solid fa-arrows-split-up-and-left"></i></span>
+            <span class="crm-nav-label">Chuyển đổi Lead (CRM-122)</span>
+        </a>
+
+        <a href="contacts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span>
+            <span class="crm-nav-label">Người liên hệ (CRM-62)</span>
+        </a>
+
+        <a href="pipeline.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
+            <span class="crm-nav-label">Cơ hội</span>
+        </a>
+
+        <a href="calendar.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+            <span class="crm-nav-label">Lịch</span>
+        </a>
+
+        <div class="crm-nav-section">Quản trị</div>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+            <span class="crm-nav-label">Sản phẩm</span>
+        </a>
+
+        <a href="users.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-user-gear"></i></span>
+            <span class="crm-nav-label">Người dùng</span>
+        </a>
+
+        <a href="master-data.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-database"></i></span>
+            <span class="crm-nav-label">Danh mục dùng chung</span>
+        </a>
+    </nav>
+</aside>
+
+<!-- ================= TOPBAR ================= -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm Lead, Khách hàng, Cơ hội... (Ctrl K)">
+        <kbd>Ctrl K</kbd>
+    </div>
+
+    <div class="crm-top-actions">
+        <button class="crm-icon-btn" id="themeToggleBtn" type="button" aria-label="Đổi giao diện">
+            <i class="fa-solid fa-moon theme-icon-moon"></i>
+            <i class="fa-solid fa-sun theme-icon-sun"></i>
+        </button>
+
+        <button class="crm-icon-btn" id="topNotificationBtn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot" style="display:inline-block;"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">NQ</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="topUserRole">Senior Sales Rep</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
+            </button>
+
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html"><i class="fa-solid fa-id-card"></i> Hồ sơ cá nhân</a>
+                <a href="change-password.html"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a>
+                <button type="button" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="crm-main lead-conversion-page">
+
+    <!-- 1. BREADCRUMB & HEADER -->
+    <section class="lead-page-head">
+        <div class="lead-head-text">
+            <p class="lead-kicker">CRM / Quản lý Lead / Sprint 4 (CRM-122)</p>
+            <h1>Chuyển đổi Lead thành Khách hàng & Cơ hội</h1>
+            <p>Quy trình chuyển đổi 1 chạm 3-trong-1 (3-in-1 Conversion): Tự động kế thừa thông tin Lead đủ điều kiện sang Khách hàng doanh nghiệp (Account), Người liên hệ (Contact) và Cơ hội bán hàng (Deal) đồng thời. Khóa bản ghi và bảo toàn 100% lịch sử chăm sóc.</p>
+        </div>
+
+        <div class="lead-head-actions">
+            <button id="btnRefreshLeads" class="crm-btn crm-btn-secondary" type="button" title="Làm mới danh sách Lead">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Làm mới</span>
+            </button>
+            <button id="btnResetMockData" class="crm-btn crm-btn-secondary" type="button" title="Khôi phục bộ dữ liệu mẫu chuẩn Sprint 4">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>Dữ liệu mẫu</span>
+            </button>
+            <button id="btnExportReport" class="crm-btn crm-btn-primary" type="button" title="Xuất báo cáo kết quả chuyển đổi Lead">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Xuất báo cáo</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. KPI METRICS CARDS -->
+    <section class="conversion-kpis">
+        <div class="conv-kpi-card">
+            <div class="kpi-icon-wrap kpi-icon-qualified">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Tổng Lead đủ điều kiện</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val" id="statQualifiedTotal">0</span>
+                    <span class="kpi-subtext">Đạt tiêu chuẩn</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="conv-kpi-card">
+            <div class="kpi-icon-wrap kpi-icon-converted">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Đã chuyển đổi 3-trong-1</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val text-success" id="statConvertedCount">0</span>
+                    <span class="kpi-badge badge-locked"><i class="fa-solid fa-lock"></i> Đã khóa</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="conv-kpi-card">
+            <div class="kpi-icon-wrap kpi-icon-rate">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Tỷ lệ chuyển đổi (Win Rate)</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val text-primary" id="statConversionRate">0%</span>
+                    <div class="kpi-progress-bar">
+                        <div class="kpi-progress-fill" id="kpiProgressFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="conv-kpi-card">
+            <div class="kpi-icon-wrap kpi-icon-revenue">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Giá trị Cơ hội sinh ra</span>
+                <div class="kpi-val-row">
+                    <span class="kpi-val text-warning" id="statPipelineRevenue">0 ₫</span>
+                    <span class="kpi-subtext">Dự kiến chốt</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. SINGLE-ROW FILTER TOOLBAR -->
+    <section class="conversion-toolbar-card">
+        <div class="single-row-toolbar">
+            <div class="toolbar-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="leadSearchInput" type="search" placeholder="Tìm theo tên Lead, Công ty, Mã số thuế, Email, SĐT...">
+            </div>
+
+            <div class="toolbar-select-wrap">
+                <label for="filterStatus" class="sr-only">Trạng thái chuyển đổi</label>
+                <select id="filterStatus" class="crm-select">
+                    <option value="ALL">Tất cả trạng thái</option>
+                    <option value="QUALIFIED" selected>Chờ chuyển đổi (Qualified)</option>
+                    <option value="CONVERTED">Đã chuyển đổi (Converted - Đã khóa)</option>
+                </select>
+            </div>
+
+            <div class="toolbar-select-wrap">
+                <label for="filterTier" class="sr-only">Phân khúc tiềm năng</label>
+                <select id="filterTier" class="crm-select">
+                    <option value="ALL">Tất cả phân khúc</option>
+                    <option value="TIER_A">Hạng A (Rất tiềm năng ≥ 80đ)</option>
+                    <option value="TIER_B">Hạng B (Tiềm năng 60-79đ)</option>
+                    <option value="TIER_C">Hạng C (Tiềm năng &lt; 60đ)</option>
+                </select>
+            </div>
+
+            <div class="toolbar-select-wrap">
+                <label for="filterIndustry" class="sr-only">Ngành nghề</label>
+                <select id="filterIndustry" class="crm-select">
+                    <option value="ALL">Tất cả ngành nghề</option>
+                    <option value="CNTT & Viễn thông">CNTT & Viễn thông</option>
+                    <option value="Sản xuất & Chế tạo">Sản xuất & Chế tạo</option>
+                    <option value="Tài chính & Ngân hàng">Tài chính & Ngân hàng</option>
+                    <option value="Bán lẻ & Chuỗi F&B">Bán lẻ & Chuỗi F&B</option>
+                    <option value="Bất động sản & Xây dựng">Bất động sản & Xây dựng</option>
+                </select>
+            </div>
+
+            <div class="toolbar-select-wrap">
+                <label for="sortLeads" class="sr-only">Sắp xếp</label>
+                <select id="sortLeads" class="crm-select">
+                    <option value="SCORE_DESC">Điểm tiềm năng (Cao → Thấp)</option>
+                    <option value="VALUE_DESC">Giá trị dự kiến (Cao → Thấp)</option>
+                    <option value="DATE_DESC">Ngày đủ điều kiện (Mới nhất)</option>
+                    <option value="COMPANY_ASC">Tên công ty (A → Z)</option>
+                </select>
+            </div>
+
+            <button id="btnResetFilter" class="crm-btn crm-btn-secondary btn-icon-only" type="button" title="Xóa bộ lọc">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- 4. DATA TABLE -->
+    <section class="conversion-table-card">
+        <div class="table-card-head">
+            <div class="head-left">
+                <h2>Danh sách Lead Đủ điều kiện chuyển đổi</h2>
+                <span class="table-count-badge" id="tableRecordCount">0 bản ghi</span>
+            </div>
+            <div class="head-right">
+                <span class="legend-item"><span class="legend-dot dot-qualified"></span> Chờ chuyển đổi</span>
+                <span class="legend-item"><span class="legend-dot dot-converted"></span> Đã chuyển đổi (Bản ghi đã khóa)</span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="crm-table lead-conversion-table" id="conversionTable">
+                <thead>
+                    <tr>
+                        <th style="width: 140px;">Mã Lead & Trạng thái</th>
+                        <th style="width: 220px;">Họ tên Người đại diện</th>
+                        <th>Khách hàng Doanh nghiệp</th>
+                        <th style="width: 180px;">Thông tin Liên hệ</th>
+                        <th style="width: 130px; text-align: center;">Điểm & Phân loại</th>
+                        <th style="width: 150px; text-align: right;">Giá trị dự kiến</th>
+                        <th style="width: 160px; text-align: center;">Thao tác chuyển đổi</th>
+                    </tr>
+                </thead>
+                <tbody id="conversionTableBody">
+                    <!-- Populated by lead-conversion.js -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div id="tableEmptyState" class="crm-empty-state" style="display: none;">
+            <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <h3>Không tìm thấy Lead nào phù hợp</h3>
+            <p>Vui lòng thử thay đổi từ khóa tìm kiếm hoặc điều chỉnh các điều kiện lọc trạng thái, ngành nghề.</p>
+            <button id="btnClearFiltersFromEmpty" class="crm-btn crm-btn-secondary" type="button">Xóa bộ lọc</button>
+        </div>
+
+        <!-- Table Footer / Pagination -->
+        <div class="table-card-footer">
+            <div class="footer-info">
+                Hiển thị <span id="pageStartRecord">0</span> - <span id="pageEndRecord">0</span> trên tổng số <span id="pageTotalRecord">0</span> Leads
+            </div>
+            <div class="footer-pagination" id="paginationControls">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ================= MODAL 1: 3-IN-1 CONVERSION MODAL ================= -->
+<div id="conversionModal" class="crm-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="crm-modal-dialog modal-3in1" role="dialog" aria-modal="true" aria-labelledby="conversionModalTitle">
+        
+        <!-- Modal Header -->
+        <div class="crm-modal-header">
+            <div class="modal-header-icon">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+            </div>
+            <div class="modal-header-text">
+                <h3 id="conversionModalTitle">Chuyển đổi Lead thành Khách hàng, Liên hệ & Cơ hội</h3>
+                <p>Thao tác 1 chạm sinh đồng thời Khách hàng doanh nghiệp (Account), Người liên hệ (Contact) và Cơ hội (Deal). Dữ liệu được kế thừa tự động từ Lead.</p>
+            </div>
+            <button id="btnCloseConversionModal" class="crm-modal-close" type="button" aria-label="Đóng modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="crm-modal-body modal-scrollable">
+            
+            <!-- Lead Context Ribbon -->
+            <div class="lead-context-ribbon">
+                <div class="context-item">
+                    <span class="context-label">Lead nguồn:</span>
+                    <strong class="context-val" id="modalLeadCode">LEAD-2026-000</strong>
+                </div>
+                <div class="context-item">
+                    <span class="context-label">Người đại diện:</span>
+                    <strong class="context-val" id="modalLeadName">--</strong>
+                </div>
+                <div class="context-item">
+                    <span class="context-label">Điểm tiềm năng:</span>
+                    <span class="badge-score" id="modalLeadScore">0đ</span>
+                </div>
+                <div class="context-item">
+                    <span class="context-label">Phụ trách:</span>
+                    <span class="context-val" id="modalLeadOwner">Nông Quang Tiệp</span>
+                </div>
+            </div>
+
+            <!-- Duplicate Alert Banner (Conditional) -->
+            <div id="duplicateAlertBanner" class="duplicate-alert-box" style="display: none;">
+                <div class="alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="alert-content">
+                    <h4>Phát hiện trùng lặp Khách hàng tiềm năng!</h4>
+                    <p id="duplicateAlertText">Công ty hoặc Mã số thuế này đã tồn tại trong hệ thống. Bạn có thể chọn gộp vào khách hàng hiện có thay vì tạo bản ghi mới trùng lặp.</p>
+                    <button id="btnApplyMergeSuggestion" class="crm-btn crm-btn-warning-outline btn-sm" type="button">
+                        <i class="fa-solid fa-object-group"></i> Chọn gộp vào khách hàng này
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3-in-1 Conversion Grid -->
+            <form id="conversionForm" onsubmit="return false;">
+                <div class="conversion-3in1-grid">
+                    
+                    <!-- CARD 1: KHÁCH HÀNG DOANH NGHIỆP (ACCOUNT / COMPANY) -->
+                    <div class="entity-card entity-customer">
+                        <div class="entity-card-header">
+                            <div class="entity-title-wrap">
+                                <span class="entity-badge badge-customer"><i class="fa-solid fa-building"></i> 1. Khách hàng Doanh nghiệp</span>
+                                <span class="entity-hint">Bắt buộc</span>
+                            </div>
+                            <!-- Mode switch: New vs Merge -->
+                            <div class="mode-radios">
+                                <label class="radio-label">
+                                    <input type="radio" name="customerMode" value="CREATE_NEW" checked id="radioCreateNew">
+                                    <span>Tạo mới</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="customerMode" value="MERGE_EXISTING" id="radioMergeExisting">
+                                    <span>Gộp vào công ty có sẵn</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Existing customer selector (Hidden by default) -->
+                        <div id="existingCustomerSelectorRow" class="form-group merge-selector-row" style="display: none;">
+                            <label for="selectExistingCustomer">Chọn Khách hàng doanh nghiệp đã có <span class="text-danger">*</span></label>
+                            <select id="selectExistingCustomer" class="crm-select">
+                                <option value="">-- Chọn khách hàng trong hệ thống --</option>
+                            </select>
+                            <small class="form-hint">Liên hệ và Cơ hội mới sẽ được gắn vào Khách hàng này.</small>
+                        </div>
+
+                        <div class="entity-card-body" id="customerFieldsContainer">
+                            <div class="form-group">
+                                <label for="custName">Tên công ty / Doanh nghiệp <span class="text-danger">*</span></label>
+                                <input type="text" id="custName" class="crm-input" required placeholder="Nhập tên doanh nghiệp">
+                            </div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="custTaxCode">Mã số thuế</label>
+                                    <input type="text" id="custTaxCode" class="crm-input" placeholder="010xxxxxxx">
+                                </div>
+                                <div class="form-group">
+                                    <label for="custIndustry">Ngành nghề</label>
+                                    <select id="custIndustry" class="crm-select">
+                                        <option value="CNTT & Viễn thông">CNTT & Viễn thông</option>
+                                        <option value="Sản xuất & Chế tạo">Sản xuất & Chế tạo</option>
+                                        <option value="Tài chính & Ngân hàng">Tài chính & Ngân hàng</option>
+                                        <option value="Bán lẻ & Chuỗi F&B">Bán lẻ & Chuỗi F&B</option>
+                                        <option value="Bất động sản & Xây dựng">Bất động sản & Xây dựng</option>
+                                        <option value="Dịch vụ & Đào tạo">Dịch vụ & Đào tạo</option>
+                                        <option value="Y tế & Dược phẩm">Y tế & Dược phẩm</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="custPhone">Điện thoại công ty</label>
+                                    <input type="tel" id="custPhone" class="crm-input" placeholder="024 xxxx xxxx">
+                                </div>
+                                <div class="form-group">
+                                    <label for="custWebsite">Website</label>
+                                    <input type="url" id="custWebsite" class="crm-input" placeholder="https://example.com">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="custAddress">Địa chỉ trụ sở</label>
+                                <input type="text" id="custAddress" class="crm-input" placeholder="Số nhà, đường, quận/huyện, tỉnh/thành phố">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: NGƯỜI LIÊN HỆ (CONTACT) -->
+                    <div class="entity-card entity-contact">
+                        <div class="entity-card-header">
+                            <div class="entity-title-wrap">
+                                <span class="entity-badge badge-contact"><i class="fa-solid fa-address-book"></i> 2. Người liên hệ</span>
+                                <span class="entity-hint">Bắt buộc (CRM-62)</span>
+                            </div>
+                            <span class="badge badge-primary-contact"><i class="fa-solid fa-star"></i> Đầu mối chính</span>
+                        </div>
+
+                        <div class="entity-card-body">
+                            <div class="form-group">
+                                <label for="contactFullName">Họ và tên người liên hệ <span class="text-danger">*</span></label>
+                                <input type="text" id="contactFullName" class="crm-input" required placeholder="Họ và tên người đại diện">
+                            </div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="contactTitle">Chức danh / Vị trí</label>
+                                    <input type="text" id="contactTitle" class="crm-input" placeholder="vd: Giám đốc CNTT, Trưởng phòng Mua">
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactBuyingRole">Vai trò quyết định mua (CRM-62)</label>
+                                    <select id="contactBuyingRole" class="crm-select">
+                                        <option value="DECISION_MAKER">👑 Người quyết định (Decision Maker)</option>
+                                        <option value="INFLUENCER">⚡ Người ảnh hưởng (Influencer)</option>
+                                        <option value="END_USER">👤 Người dùng cuối (End User)</option>
+                                        <option value="BLOCKER">⚠️ Người cản trở (Blocker)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="contactPhone">Số điện thoại di động <span class="text-danger">*</span></label>
+                                    <input type="tel" id="contactPhone" class="crm-input" required placeholder="09xxxxxxxx">
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactEmail">Email công vụ <span class="text-danger">*</span></label>
+                                    <input type="email" id="contactEmail" class="crm-input" required placeholder="email@company.com">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contactNotes">Ghi chú & Lịch sử chăm sóc kế thừa</label>
+                                <textarea id="contactNotes" class="crm-textarea" rows="2" placeholder="Ghi chú sở thích, nhu cầu đặc biệt từ Lead..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: CƠ HỘI BÁN HÀNG (DEAL / OPPORTUNITY) -->
+                    <div class="entity-card entity-deal">
+                        <div class="entity-card-header">
+                            <div class="entity-title-wrap">
+                                <span class="entity-badge badge-deal"><i class="fa-solid fa-bullseye"></i> 3. Cơ hội bán hàng (Deal)</span>
+                            </div>
+                            <!-- Toggle Deal Creation -->
+                            <label class="switch-label" title="Tạo cơ hội bán hàng ngay lúc chuyển đổi">
+                                <input type="checkbox" id="checkCreateDeal" checked>
+                                <span>Tạo Cơ hội ngay</span>
+                            </label>
+                        </div>
+
+                        <div class="entity-card-body" id="dealFieldsContainer">
+                            <div class="form-group">
+                                <label for="dealName">Tên cơ hội bán hàng <span class="text-danger">*</span></label>
+                                <input type="text" id="dealName" class="crm-input" required placeholder="vd: [Công ty ABC] - Dự án phần mềm CRM">
+                            </div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="dealAmount">Giá trị hợp đồng dự kiến (VNĐ) <span class="text-danger">*</span></label>
+                                    <div class="currency-input-wrap">
+                                        <input type="text" id="dealAmount" class="crm-input text-right font-weight-bold" required placeholder="0">
+                                        <span class="currency-unit">₫</span>
+                                    </div>
+                                    <!-- Quick Amount Presets -->
+                                    <div class="amount-presets">
+                                        <button type="button" class="btn-preset" data-amount="50000000">50M</button>
+                                        <button type="button" class="btn-preset" data-amount="100000000">100M</button>
+                                        <button type="button" class="btn-preset" data-amount="250000000">250M</button>
+                                        <button type="button" class="btn-preset" data-amount="500000000">500M</button>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="dealCloseDate">Ngày dự kiến chốt <span class="text-danger">*</span></label>
+                                    <input type="date" id="dealCloseDate" class="crm-input" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label for="dealPipeline">Quy trình bán hàng (Pipeline)</label>
+                                    <select id="dealPipeline" class="crm-select">
+                                        <option value="B2B_STANDARD">Quy trình B2B Tiêu chuẩn</option>
+                                        <option value="ENTERPRISE_KEY_ACCOUNT">Khách hàng Chiến lược (Key Account)</option>
+                                        <option value="SME_FAST_TRACK">Bán hàng nhanh Doanh nghiệp vừa & nhỏ</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="dealStage">Giai đoạn ban đầu</label>
+                                    <select id="dealStage" class="crm-select">
+                                        <option value="1" data-prob="20">1. Khảo sát nhu cầu (20%)</option>
+                                        <option value="2" data-prob="40" selected>2. Trình bày giải pháp / Demo (40%)</option>
+                                        <option value="3" data-prob="60">3. Báo giá & Đề xuất hợp đồng (60%)</option>
+                                        <option value="4" data-prob="80">4. Đàm phán điều khoản (80%)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="crm-modal-footer">
+            <div class="footer-security-note">
+                <i class="fa-solid fa-shield-halved text-success"></i>
+                <span>Sau khi xác nhận, bản ghi Lead sẽ chuyển sang trạng thái <strong>Đã chuyển đổi (Converted)</strong>, tự động <strong>khóa chỉnh sửa</strong> và chuyển tiếp toàn bộ lịch sử hoạt động.</span>
+            </div>
+
+            <div class="footer-action-buttons">
+                <button id="btnCancelConversion" class="crm-btn crm-btn-secondary" type="button">Hủy bỏ</button>
+                <button id="btnConfirmConversion" class="crm-btn crm-btn-primary btn-conversion-confirm" type="button">
+                    <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                    <span>Xác nhận chuyển đổi 3-trong-1</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= MODAL 2: CONVERSION SUCCESS MODAL ================= -->
+<div id="conversionSuccessModal" class="crm-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="crm-modal-dialog modal-success" role="dialog" aria-modal="true">
+        
+        <div class="success-celebration-head">
+            <div class="success-icon-bubble">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h2>Chuyển đổi Lead thành công!</h2>
+            <p>Hệ thống đã tự động tạo đồng thời Khách hàng doanh nghiệp, Người liên hệ và Cơ hội bán hàng mới. Bản ghi Lead nguồn đã được khóa.</p>
+        </div>
+
+        <div class="success-entities-summary">
+            <!-- Customer Card -->
+            <div class="success-entity-item">
+                <div class="item-icon-col icon-customer">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <div class="item-details-col">
+                    <span class="item-tag">Khách hàng Doanh nghiệp</span>
+                    <strong class="item-title" id="successCustomerName">--</strong>
+                    <span class="item-sub" id="successCustomerInfo">--</span>
+                </div>
+                <a id="linkToCustomer" href="customers.html" class="crm-btn crm-btn-secondary btn-sm" target="_blank">
+                    <span>Xem Khách hàng</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+
+            <!-- Contact Card -->
+            <div class="success-entity-item">
+                <div class="item-icon-col icon-contact">
+                    <i class="fa-solid fa-address-book"></i>
+                </div>
+                <div class="item-details-col">
+                    <span class="item-tag">Người liên hệ chính</span>
+                    <strong class="item-title" id="successContactName">--</strong>
+                    <span class="item-sub" id="successContactInfo">--</span>
+                </div>
+                <a id="linkToContact" href="contacts.html" class="crm-btn crm-btn-secondary btn-sm" target="_blank">
+                    <span>Xem Liên hệ</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+
+            <!-- Deal Card (Conditional) -->
+            <div id="successDealRow" class="success-entity-item">
+                <div class="item-icon-col icon-deal">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <div class="item-details-col">
+                    <span class="item-tag">Cơ hội bán hàng</span>
+                    <strong class="item-title" id="successDealName">--</strong>
+                    <span class="item-sub" id="successDealInfo">--</span>
+                </div>
+                <a id="linkToDeal" href="pipeline.html" class="crm-btn crm-btn-primary btn-sm" target="_blank">
+                    <span>Mở Pipeline</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="success-modal-footer">
+            <button id="btnCloseSuccessModal" class="crm-btn crm-btn-secondary" type="button">
+                <i class="fa-solid fa-check"></i>
+                <span>Đóng & Tiếp tục làm việc</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= MODAL 3: VIEW CONVERTED DETAILS (LOCKED) ================= -->
+<div id="convertedDetailsModal" class="crm-modal-backdrop" aria-hidden="true" style="display: none;">
+    <div class="crm-modal-dialog modal-details" role="dialog" aria-modal="true">
+        <div class="crm-modal-header">
+            <div class="modal-header-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <div class="modal-header-text">
+                <h3>Chi tiết Lead đã chuyển đổi & Khóa bản ghi</h3>
+                <p>Lead này đã hoàn thành quy trình chuyển đổi 3-trong-1 và được khóa an toàn theo chuẩn Enterprise.</p>
+            </div>
+            <button id="btnCloseDetailsModal" class="crm-modal-close" type="button" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="crm-modal-body">
+            <div class="lock-banner">
+                <i class="fa-solid fa-lock"></i>
+                <div>
+                    <strong>Bản ghi Lead đã chuyển đổi thành công</strong>
+                    <p id="detailsConvertedTimestamp">Chuyển đổi vào ngày -- bởi --</p>
+                </div>
+            </div>
+
+            <div class="linked-entities-list" id="linkedEntitiesContainer">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+
+        <div class="crm-modal-footer">
+            <button id="btnDismissDetailsModal" class="crm-btn crm-btn-secondary" type="button">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div id="crmToastContainer" class="crm-toast-region"></div>
+
+<!-- Scripts -->
+<script src="js/shared-shell.js?v=20261014_s408"></script>
+<script src="js/pages/lead-conversion.js?v=20261014_s408"></script>
+
+</body>
+</html>
