@@ -37,6 +37,11 @@ public class AuthenticationFilter
                 uri.endsWith(
                         "/api/auth/reset-password"
                 ) ||
+                ("POST".equalsIgnoreCase(req.getMethod()) &&
+                        (uri.equals(req.getContextPath() + "/api/leads") ||
+                         uri.equals(req.getContextPath() + "/api/leads/web-form"))) ||
+                ("GET".equalsIgnoreCase(req.getMethod()) &&
+                        uri.equals(req.getContextPath() + "/api/leads/health")) ||
                 "OPTIONS".equalsIgnoreCase(
                         req.getMethod()
                 )
