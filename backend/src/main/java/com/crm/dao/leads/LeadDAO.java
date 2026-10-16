@@ -5,6 +5,7 @@ import com.crm.dto.leads.LeadWriteRequest;
 import com.crm.dto.leads.SalesRepDTO;
 import com.crm.model.leads.Lead;
 import com.crm.service.permissions.DataScopeContext;
+import com.crm.service.permissions.ScopeType;
 
 import java.sql.*;
 import java.time.temporal.TemporalAccessor;
@@ -76,6 +77,22 @@ public class LeadDAO {
             ensureColumnExists(conn, "title", "VARCHAR(150) NULL DEFAULT 'Khách hàng tiềm năng'");
             ensureColumnExists(conn, "unassigned_reason", "VARCHAR(255) NULL");
             ensureColumnExists(conn, "is_deleted", "TINYINT(1) NOT NULL DEFAULT 0");
+
+            // S4-07 SLA columns
+            ensureColumnExists(conn, "assigned_to_user_id", "BIGINT NULL");
+            ensureColumnExists(conn, "assigned_at", "DATETIME NULL");
+            ensureColumnExists(conn, "sla_total_minutes", "INT NULL DEFAULT 120");
+            ensureColumnExists(conn, "sla_deadline", "DATETIME NULL");
+            ensureColumnExists(conn, "accepted_at", "DATETIME NULL");
+            ensureColumnExists(conn, "rejected_at", "DATETIME NULL");
+            ensureColumnExists(conn, "reject_reason", "VARCHAR(100) NULL");
+            ensureColumnExists(conn, "reject_details", "TEXT NULL");
+            ensureColumnExists(conn, "sla_result", "VARCHAR(50) NULL");
+            ensureColumnExists(conn, "response_time_text", "VARCHAR(255) NULL");
+            ensureColumnExists(conn, "contacting_stage", "VARCHAR(255) NULL");
+            ensureColumnExists(conn, "is_locked", "TINYINT(1) NOT NULL DEFAULT 0");
+            ensureColumnExists(conn, "employee_count", "INT NULL DEFAULT 0");
+            ensureColumnExists(conn, "score", "INT NULL DEFAULT 0");
         } catch (SQLException e) {
             System.err.println("Notice: LeadDAO ensureTableExists check: " + e.getMessage());
         }
@@ -193,72 +210,92 @@ public class LeadDAO {
         }
     }
 
-    // --- S4-01: Web Form Lead Capture Methods ---
+    // --- S4-01 & S4-07: Lead Insert & Find Methods ---
 
-    /**
-     * Inserts a new lead into database.
-     */
-    public Lead insert(Lead lead) throws SQLException {
+    public long insert(Lead lead) throws SQLException {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return insert(conn, lead);
+        }
+    }
+
+    public long insert(Connection conn, Lead lead) throws SQLException {
         String sql = """
-            INSERT INTO leads (
-                full_name, company_name, email, phone, source, status,
-                notes, form_id, ip_address, assigned_to, is_deleted,
-                region, region_code, industry, title, unassigned_reason
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO leads
+            (full_name, company_name, email, phone, title, source_id, source, region, region_code, industry,
+             employee_count, score, notes, status, form_id, ip_address, owner_user_id, assigned_to, assigned_to_user_id,
+             assigned_at, sla_total_minutes, sla_deadline, is_locked, is_deleted, created_by, unassigned_reason, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            ps.setString(1, lead.getFullName());
-            ps.setString(2, lead.getCompanyName());
-            ps.setString(3, lead.getEmail());
-            ps.setString(4, lead.getPhone());
-            ps.setString(5, lead.getSource() != null ? lead.getSource() : "WEB_FORM");
-            ps.setString(6, lead.getStatus() != null ? lead.getStatus() : "NEW");
-            ps.setString(7, lead.getNotes());
-            ps.setString(8, lead.getFormId());
-            ps.setString(9, lead.getIpAddress());
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, lead.getFullName());
+            stmt.setString(2, lead.getCompanyName());
+            stmt.setString(3, lead.getEmail());
+            stmt.setString(4, lead.getPhone());
+            stmt.setString(5, lead.getTitle() != null ? lead.getTitle() : "Khách hàng tiềm năng");
+            stmt.setObject(6, lead.getSourceId(), Types.BIGINT);
+            stmt.setString(7, lead.getSource() != null ? lead.getSource() : "WEB_FORM");
+            stmt.setString(8, lead.getRegion() != null ? lead.getRegion() : "Miền Bắc (Hà Nội)");
+            stmt.setString(9, lead.getRegionCode() != null ? lead.getRegionCode() : "NORTH");
+            stmt.setString(10, lead.getIndustry() != null ? lead.getIndustry() : "ALL");
+            stmt.setInt(11, lead.getEmployeeCount() != null ? lead.getEmployeeCount() : 0);
+            stmt.setInt(12, lead.getScore() != null ? lead.getScore() : 0);
+            stmt.setString(13, lead.getNotes());
+            stmt.setString(14, lead.getStatus() != null ? lead.getStatus() : "NEW");
+            stmt.setString(15, lead.getFormId());
+            stmt.setString(16, lead.getIpAddress());
+            stmt.setObject(17, lead.getOwnerUserId(), Types.BIGINT);
             if (lead.getAssignedTo() != null) {
-                ps.setObject(10, lead.getAssignedTo());
+                stmt.setObject(18, lead.getAssignedTo(), Types.BIGINT);
             } else {
-                ps.setNull(10, Types.BIGINT);
+                stmt.setNull(18, Types.BIGINT);
             }
-            ps.setBoolean(11, lead.isDeleted());
-            ps.setString(12, lead.getRegion() != null ? lead.getRegion() : "Miền Bắc (Hà Nội)");
-            ps.setString(13, lead.getRegionCode() != null ? lead.getRegionCode() : "NORTH");
-            ps.setString(14, lead.getIndustry() != null ? lead.getIndustry() : "ALL");
-            ps.setString(15, lead.getTitle() != null ? lead.getTitle() : "Khách hàng tiềm năng");
-            ps.setString(16, lead.getUnassignedReason());
+            stmt.setObject(19, lead.getAssignedToUserId(), Types.BIGINT);
+            stmt.setTimestamp(20, lead.getAssignedAt());
+            stmt.setInt(21, lead.getSlaTotalMinutes() != null ? lead.getSlaTotalMinutes() : 120);
+            stmt.setTimestamp(22, lead.getSlaDeadline());
+            stmt.setBoolean(23, lead.isLocked());
+            stmt.setBoolean(24, lead.isDeleted());
+            stmt.setObject(25, lead.getCreatedBy(), Types.BIGINT);
+            stmt.setString(26, lead.getUnassignedReason());
+            stmt.setTimestamp(27, lead.getCreatedAt() != null ? lead.getCreatedAt() : new Timestamp(System.currentTimeMillis()));
 
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows == 0) {
-                throw new SQLException("Thêm Lead thất bại, không có dòng nào được tạo.");
-            }
-
-            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    lead.setId(generatedKeys.getLong(1));
-                } else {
-                    throw new SQLException("Thêm Lead thất bại, không lấy được ID.");
+            stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    long id = rs.getLong(1);
+                    lead.setId(id);
+                    return id;
                 }
             }
         }
-
-        // Reload to get timestamp set by database
-        return findById(lead.getId());
+        return -1;
     }
 
-    /**
-     * Finds a lead by ID.
-     */
+    public Lead findById(long id) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return findById(conn, id, false);
+        } catch (SQLException e) {
+            System.err.println("Error fetching lead by id: " + e.getMessage());
+            return null;
+        }
+    }
+
     public Lead findById(Long id) throws SQLException {
         if (id == null) return null;
-        String sql = "SELECT * FROM leads WHERE id = ? AND is_deleted = 0";
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setLong(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return findById(conn, id, false);
+        }
+    }
+
+    public Lead findById(Connection conn, long id) throws SQLException {
+        return findById(conn, id, false);
+    }
+
+    public Lead findById(Connection conn, long id, boolean forUpdate) throws SQLException {
+        String sql = "SELECT * FROM leads WHERE id = ?" + (forUpdate ? " FOR UPDATE" : "");
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return mapRow(rs);
                 }
@@ -267,12 +304,86 @@ public class LeadDAO {
         return null;
     }
 
-    public Lead findById(long id) {
-        try {
-            return findById((Long) id);
-        } catch (SQLException e) {
-            System.err.println("Error fetching lead by id: " + e.getMessage());
-            return null;
+    // --- S4-07: SLA Response Methods ---
+
+    public List<Lead> findMyAssignedLeads(long userId, DataScopeContext scope) throws SQLException {
+        List<Lead> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM leads WHERE is_deleted = 0 AND ");
+
+        if (scope != null && scope.scopeType() == ScopeType.ALL) {
+            sql.append("(assigned_to_user_id IS NOT NULL OR assigned_to IS NOT NULL OR status IN ('PENDING_RESPONSE', 'CONTACTING', 'REJECTED')) ");
+        } else if (scope != null && scope.scopeType() == ScopeType.TEAM) {
+            Set<Long> owners = scope.allowedOwnerIds();
+            if (owners == null || owners.isEmpty()) {
+                sql.append("(assigned_to_user_id = ").append(userId).append(" OR assigned_to = ").append(userId).append(") ");
+            } else {
+                sql.append("(assigned_to_user_id IN (");
+                int i = 0;
+                for (Long oid : owners) {
+                    if (i++ > 0) sql.append(",");
+                    sql.append(oid);
+                }
+                sql.append(") OR assigned_to IN (");
+                i = 0;
+                for (Long oid : owners) {
+                    if (i++ > 0) sql.append(",");
+                    sql.append(oid);
+                }
+                sql.append(")) ");
+            }
+        } else {
+            sql.append("(assigned_to_user_id = ? OR assigned_to = ? OR assigned_to = ?) ");
+        }
+
+        sql.append("ORDER BY FIELD(status, 'PENDING_RESPONSE', 'CONTACTING', 'REJECTED', 'PENDING_ASSIGNMENT'), id DESC");
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            if (scope == null || scope.scopeType() == ScopeType.SELF) {
+                stmt.setLong(1, userId);
+                stmt.setLong(2, userId);
+                stmt.setLong(3, userId);
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    public void updateAccept(Connection conn, Lead lead) throws SQLException {
+        String sql = """
+            UPDATE leads
+            SET status = ?, accepted_at = ?, sla_result = ?, response_time_text = ?, contacting_stage = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """;
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, lead.getStatus());
+            stmt.setTimestamp(2, lead.getAcceptedAt());
+            stmt.setString(3, lead.getSlaResult());
+            stmt.setString(4, lead.getResponseTimeText());
+            stmt.setString(5, lead.getContactingStage());
+            stmt.setLong(6, lead.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    public void updateReject(Connection conn, Lead lead) throws SQLException {
+        String sql = """
+            UPDATE leads
+            SET status = ?, assigned_to = NULL, assigned_to_user_id = NULL, rejected_at = ?, reject_reason = ?, reject_details = ?, unassigned_reason = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        """;
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, lead.getStatus());
+            stmt.setTimestamp(2, lead.getRejectedAt());
+            stmt.setString(3, lead.getRejectReason());
+            stmt.setString(4, lead.getRejectDetails());
+            stmt.setString(5, lead.getUnassignedReason());
+            stmt.setLong(6, lead.getId());
+            stmt.executeUpdate();
         }
     }
 
@@ -530,7 +641,7 @@ public class LeadDAO {
         return new ArrayList<>(repsMap.values());
     }
 
-    private Lead mapRow(ResultSet rs) throws SQLException {
+    public Lead mapRow(ResultSet rs) throws SQLException {
         Lead lead = new Lead();
         lead.setId(rs.getLong("id"));
         lead.setFullName(rs.getString("full_name"));
@@ -540,54 +651,59 @@ public class LeadDAO {
         lead.setSource(rs.getString("source"));
         lead.setStatus(rs.getString("status"));
 
-        try {
-            lead.setNotes(rs.getString("notes"));
-        } catch (SQLException ignored) {}
-        try {
-            lead.setFormId(rs.getString("form_id"));
-        } catch (SQLException ignored) {}
-        try {
-            lead.setIpAddress(rs.getString("ip_address"));
-        } catch (SQLException ignored) {}
+        try { lead.setTitle(rs.getString("title")); } catch (SQLException ignored) {}
+        try { lead.setSourceId(rs.getObject("source_id", Long.class)); } catch (SQLException ignored) {}
+        try { lead.setRegion(rs.getString("region")); } catch (SQLException ignored) {}
+        try { lead.setRegionCode(rs.getString("region_code")); } catch (SQLException ignored) {}
+        try { lead.setIndustry(rs.getString("industry")); } catch (SQLException ignored) {}
+        try { lead.setEmployeeCount(rs.getObject("employee_count", Integer.class)); } catch (SQLException ignored) {}
+        try { lead.setScore(rs.getObject("score", Integer.class)); } catch (SQLException ignored) {}
+        try { lead.setNotes(rs.getString("notes")); } catch (SQLException ignored) {}
+        try { lead.setFormId(rs.getString("form_id")); } catch (SQLException ignored) {}
+        try { lead.setIpAddress(rs.getString("ip_address")); } catch (SQLException ignored) {}
+        try { lead.setOwnerUserId(rs.getObject("owner_user_id", Long.class)); } catch (SQLException ignored) {}
 
         try {
             long assigned = rs.getLong("assigned_to");
             if (!rs.wasNull()) {
                 lead.setAssignedTo(assigned);
-                lead.setAssignedToRepId(String.valueOf(assigned));
             }
         } catch (Exception e) {
             String val = rs.getString("assigned_to");
             if (val != null) {
-                try {
-                    long assigned = Long.parseLong(val.trim());
-                    lead.setAssignedTo(assigned);
-                    lead.setAssignedToRepId(String.valueOf(assigned));
-                } catch (NumberFormatException ignored) {}
+                lead.setAssignedTo(val);
             }
         }
 
-        lead.setDeleted(rs.getBoolean("is_deleted"));
-        lead.setCreatedAt(rs.getTimestamp("created_at"));
-        lead.setUpdatedAt(rs.getTimestamp("updated_at"));
-
         try {
-            lead.setRegion(rs.getString("region"));
-            lead.setRegionCode(rs.getString("region_code"));
-            lead.setIndustry(rs.getString("industry"));
-            lead.setTitle(rs.getString("title"));
-            lead.setUnassignedReason(rs.getString("unassigned_reason"));
+            Long assignedUserId = rs.getObject("assigned_to_user_id", Long.class);
+            if (assignedUserId != null) {
+                lead.setAssignedToUserId(assignedUserId);
+            }
         } catch (SQLException ignored) {}
+
+        try { lead.setAssignedAt(rs.getTimestamp("assigned_at")); } catch (SQLException ignored) {}
+        try { lead.setSlaTotalMinutes(rs.getObject("sla_total_minutes", Integer.class)); } catch (SQLException ignored) {}
+        try { lead.setSlaDeadline(rs.getTimestamp("sla_deadline")); } catch (SQLException ignored) {}
+        try { lead.setAcceptedAt(rs.getTimestamp("accepted_at")); } catch (SQLException ignored) {}
+        try { lead.setRejectedAt(rs.getTimestamp("rejected_at")); } catch (SQLException ignored) {}
+        try { lead.setRejectReason(rs.getString("reject_reason")); } catch (SQLException ignored) {}
+        try { lead.setRejectDetails(rs.getString("reject_details")); } catch (SQLException ignored) {}
+        try { lead.setSlaResult(rs.getString("sla_result")); } catch (SQLException ignored) {}
+        try { lead.setResponseTimeText(rs.getString("response_time_text")); } catch (SQLException ignored) {}
+        try { lead.setContactingStage(rs.getString("contacting_stage")); } catch (SQLException ignored) {}
+        try { lead.setUnassignedReason(rs.getString("unassigned_reason")); } catch (SQLException ignored) {}
+        try { lead.setLocked(rs.getBoolean("is_locked")); } catch (SQLException ignored) {}
+        try { lead.setDeleted(rs.getBoolean("is_deleted")); } catch (SQLException ignored) {}
+        try { lead.setCreatedBy(rs.getObject("created_by", Long.class)); } catch (SQLException ignored) {}
+        try { lead.setCreatedAt(rs.getTimestamp("created_at")); } catch (SQLException ignored) {}
+        try { lead.setUpdatedAt(rs.getTimestamp("updated_at")); } catch (SQLException ignored) {}
 
         if (lead.getCreatedAt() != null) {
             lead.setTimeAgo(calculateTimeAgo(lead.getCreatedAt().getTime()));
         }
 
         return lead;
-    }
-
-    private Lead mapResultSetToLead(ResultSet rs) throws SQLException {
-        return mapRow(rs);
     }
 
     private String calculateTimeAgo(long timeMillis) {

@@ -23,7 +23,7 @@ import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.*;
 
-@WebServlet("/api/leads/*")
+@WebServlet({"/api/leads/*", "/api/leads"})
 @MultipartConfig(maxFileSize = 5242880, maxRequestSize = 5500000, fileSizeThreshold = 0)
 public class LeadServlet extends HttpServlet {
 
@@ -37,13 +37,21 @@ public class LeadServlet extends HttpServlet {
     private final LeadAutoAssignmentService autoAssignmentService;
     private final LeadAssignmentHistoryDAO historyDAO;
     private final AuthorizationService authService;
+    private final LeadSlaService slaService;
 
     private static final Type RULE_LIST_TYPE = new TypeToken<List<AssignmentRule>>() {}.getType();
 
     public LeadServlet() {
         this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
                 new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
-                new LeadAssignmentHistoryDAO(), new AuthorizationService());
+                new LeadAssignmentHistoryDAO(), new AuthorizationService(), new LeadSlaService());
+    }
+
+    public LeadServlet(LeadSlaService slaService) {
+        this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
+                new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
+                new LeadAssignmentHistoryDAO(), new AuthorizationService(),
+                slaService != null ? slaService : new LeadSlaService());
     }
 
     public LeadServlet(LeadService leads, LeadImportService imports) {
@@ -51,7 +59,7 @@ public class LeadServlet extends HttpServlet {
                 imports != null ? imports : new LeadImportService(),
                 new IpRateLimiter(5, 60_000),
                 new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
-                new LeadAssignmentHistoryDAO(), new AuthorizationService());
+                new LeadAssignmentHistoryDAO(), new AuthorizationService(), new LeadSlaService());
     }
 
     public LeadServlet(LeadService leads, IpRateLimiter rateLimiter) {
@@ -59,7 +67,7 @@ public class LeadServlet extends HttpServlet {
                 new LeadImportService(),
                 rateLimiter != null ? rateLimiter : new IpRateLimiter(5, 60_000),
                 new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
-                new LeadAssignmentHistoryDAO(), new AuthorizationService());
+                new LeadAssignmentHistoryDAO(), new AuthorizationService(), new LeadSlaService());
     }
 
     public LeadServlet(LeadService leads, LeadImportService imports, IpRateLimiter rateLimiter) {
@@ -67,7 +75,7 @@ public class LeadServlet extends HttpServlet {
                 imports != null ? imports : new LeadImportService(),
                 rateLimiter != null ? rateLimiter : new IpRateLimiter(5, 60_000),
                 new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
-                new LeadAssignmentHistoryDAO(), new AuthorizationService());
+                new LeadAssignmentHistoryDAO(), new AuthorizationService(), new LeadSlaService());
     }
 
     public LeadServlet(AssignmentRuleService ruleService,
@@ -79,7 +87,7 @@ public class LeadServlet extends HttpServlet {
                 autoAssignmentService != null ? autoAssignmentService : new LeadAutoAssignmentService(),
                 leadDAO != null ? leadDAO : new LeadDAO(),
                 historyDAO != null ? historyDAO : new LeadAssignmentHistoryDAO(),
-                new AuthorizationService());
+                new AuthorizationService(), new LeadSlaService());
     }
 
     public LeadServlet(AssignmentRuleService ruleService,
@@ -92,12 +100,13 @@ public class LeadServlet extends HttpServlet {
                 autoAssignmentService != null ? autoAssignmentService : new LeadAutoAssignmentService(),
                 leadDAO != null ? leadDAO : new LeadDAO(),
                 historyDAO != null ? historyDAO : new LeadAssignmentHistoryDAO(),
-                authService != null ? authService : new AuthorizationService());
+                authService != null ? authService : new AuthorizationService(), new LeadSlaService());
     }
 
     public LeadServlet(LeadService leads, LeadImportService imports, IpRateLimiter rateLimiter,
                        AssignmentRuleService ruleService, LeadAutoAssignmentService autoAssignmentService,
-                       LeadDAO leadDAO, LeadAssignmentHistoryDAO historyDAO, AuthorizationService authService) {
+                       LeadDAO leadDAO, LeadAssignmentHistoryDAO historyDAO, AuthorizationService authService,
+                       LeadSlaService slaService) {
         this.leads = leads;
         this.imports = imports;
         this.rateLimiter = rateLimiter;
@@ -106,11 +115,12 @@ public class LeadServlet extends HttpServlet {
         this.dao = leadDAO;
         this.historyDAO = historyDAO;
         this.authService = authService;
+        this.slaService = slaService;
         this.scopes = (user, action) -> new DataScopeService().resolve(user, "lead", action);
     }
 
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = normalizePath(req.getPathInfo());
         String method = req.getMethod() != null ? req.getMethod().toUpperCase(Locale.ROOT) : "GET";
 
@@ -139,7 +149,63 @@ public class LeadServlet extends HttpServlet {
         long user = id.longValue();
 
         try {
-            // --- Assignment Routes (S4-06) ---
+            // --- S4-07 SLA Routes ---
+            if ("/my-assigned".equals(path)) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                new LeadSlaMonitorService().checkAndNotifyOverdueLeads();
+                List<LeadSlaResponseDTO> list = slaService.getMyAssignedLeads(user);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách Lead được phân thành công", list));
+                return;
+            }
+
+            if ("/check-sla".equals(path) || "/sla/trigger-check".equals(path)) {
+                if (!"POST".equals(method)) {
+                    unsupported(resp, "POST");
+                    return;
+                }
+                int count = new LeadSlaMonitorService().checkAndNotifyOverdueLeads();
+                ResponseUtil.json(resp, 200, ApiResponse.success("Đã kiểm tra SLA và phát thông báo", Map.of("notificationsSent", count)));
+                return;
+            }
+
+            if (path.endsWith("/accept") && path.length() > "/accept".length()) {
+                if (!"POST".equals(method)) {
+                    unsupported(resp, "POST");
+                    return;
+                }
+                long leadId = parseLeadId(path, "/accept");
+                LeadSlaResponseDTO result = slaService.acceptLead(user, leadId);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Tiếp nhận Lead thành công. Trạng thái chuyển sang Đang chăm sóc.", result));
+                return;
+            }
+
+            if (path.endsWith("/reject") && path.length() > "/reject".length()) {
+                if (!"POST".equals(method)) {
+                    unsupported(resp, "POST");
+                    return;
+                }
+                long leadId = parseLeadId(path, "/reject");
+                String body = readBodyString(req);
+                LeadRejectRequest rejectReq = null;
+                try {
+                    rejectReq = JsonUtil.getGson().fromJson(body, LeadRejectRequest.class);
+                } catch (Exception ignored) {}
+
+                if (rejectReq == null || rejectReq.getReason() == null || rejectReq.getReason().isBlank()
+                        || rejectReq.getDetails() == null || rejectReq.getDetails().isBlank()) {
+                    ResponseUtil.json(resp, 400, ApiResponse.error("Lý do từ chối và giải trình chi tiết không được để trống", null));
+                    return;
+                }
+
+                LeadSlaResponseDTO result = slaService.rejectLead(user, leadId, rejectReq.getReason().trim(), rejectReq.getDetails().trim());
+                ResponseUtil.json(resp, 200, ApiResponse.success("Từ chối Lead thành công. Lead đã được chuyển về hàng chờ phân bổ.", result));
+                return;
+            }
+
+            // --- S4-06 Assignment Routes ---
             if ("/assignment-rules".equals(path)) {
                 if ("GET".equals(method)) {
                     List<AssignmentRule> rules = ruleService.getAllRules();
@@ -358,10 +424,14 @@ public class LeadServlet extends HttpServlet {
         } catch (SecurityException error) {
             int status = error.getMessage() != null && error.getMessage().contains("Phiên") ? 401 : 403;
             ResponseUtil.json(resp, status, ApiResponse.error(error.getMessage(), null));
-        } catch (JsonSyntaxException | IllegalArgumentException error) {
+        } catch (JsonParseException | IllegalArgumentException error) {
             ResponseUtil.json(resp, 400, ApiResponse.error("Dữ liệu yêu cầu không hợp lệ: " + error.getMessage(), null));
         } catch (IllegalStateException error) {
-            ResponseUtil.json(resp, 413, ApiResponse.error("Upload vượt dung lượng cho phép", null));
+            if (error.getMessage() != null && (error.getMessage().contains("Upload") || error.getMessage().contains("vượt"))) {
+                ResponseUtil.json(resp, 413, ApiResponse.error("Upload vượt dung lượng cho phép", null));
+            } else {
+                ResponseUtil.json(resp, 409, ApiResponse.error(error.getMessage(), null));
+            }
         } catch (ServletException error) {
             ResponseUtil.json(resp, 400, ApiResponse.error("Dữ liệu multipart không hợp lệ", null));
         } catch (SQLException error) {
@@ -638,7 +708,7 @@ public class LeadServlet extends HttpServlet {
         while (size < chars.length && (count = input.read(chars, size, chars.length - size)) != -1) size += count;
         if (size > limit) throw new LeadImportService.Failure(413, "JSON vượt giới hạn cho phép", null);
         var body = JsonParser.parseString(new String(chars, 0, size));
-        if (!body.isJsonObject()) throw new IllegalArgumentException("Body phải là JSON object");
+        if (!body.isJsonObject()) throw new IllegalArgumentException("Yêu cầu JSON object");
         return body.getAsJsonObject();
     }
 
@@ -651,6 +721,24 @@ public class LeadServlet extends HttpServlet {
             }
         }
         return sb.toString();
+    }
+
+    private long parseLeadId(String path, String suffix) {
+        String sub = path.substring(0, path.length() - suffix.length());
+        while (sub.startsWith("/")) sub = sub.substring(1);
+        while (sub.endsWith("/")) sub = sub.substring(0, sub.length() - 1);
+        if (sub.toUpperCase().startsWith("LD-SLA-")) {
+            sub = sub.substring(7);
+        } else if (sub.toUpperCase().startsWith("LD-")) {
+            sub = sub.substring(3);
+        } else if (sub.toUpperCase().startsWith("LEAD-")) {
+            sub = sub.substring(5);
+        }
+        try {
+            return Long.parseLong(sub);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Mã Lead không hợp lệ: " + sub);
+        }
     }
 
     private String normalizePath(String pathInfo) {

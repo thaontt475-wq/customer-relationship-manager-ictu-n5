@@ -9,39 +9,67 @@ import java.util.List;
 
 public class LeadAssignmentHistoryDAO {
 
+    private static volatile Boolean actionTypeExists = null;
+
+    private static boolean checkActionTypeColumn(Connection conn) {
+        if (actionTypeExists != null) return actionTypeExists;
+        try {
+            String catalog = conn.getCatalog();
+            DatabaseMetaData md = conn.getMetaData();
+            try (ResultSet rs = md.getColumns(catalog, null, "lead_assignment_history", "action_type")) {
+                if (rs.next()) {
+                    actionTypeExists = true;
+                    return true;
+                }
+            }
+            actionTypeExists = false;
+            return false;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
     public long insert(Connection conn, AssignmentHistory history) throws SQLException {
-        String sql = "INSERT INTO lead_assignment_history (lead_id, lead_name, lead_phone, company_name, " +
-                "rep_id, rep_name, rep_dept, method, note, assigned_at) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            if (history.getLeadId() != null) {
-                ps.setLong(1, history.getLeadId());
+        boolean hasActionType = history.getActionType() != null && checkActionTypeColumn(conn);
+        String sql;
+        if (hasActionType) {
+            sql = """
+                INSERT INTO lead_assignment_history
+                (lead_id, lead_name, lead_phone, company_name, rep_id, rep_name, rep_dept, method, action_type, note, assigned_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+        } else {
+            sql = """
+                INSERT INTO lead_assignment_history
+                (lead_id, lead_name, lead_phone, company_name, rep_id, rep_name, rep_dept, method, note, assigned_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+        }
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setObject(1, history.getLeadId(), Types.BIGINT);
+            stmt.setString(2, history.getLeadName());
+            stmt.setString(3, history.getLeadPhone());
+            stmt.setString(4, history.getCompanyName());
+            stmt.setString(5, history.getRepId());
+            stmt.setString(6, history.getRepName());
+            stmt.setString(7, history.getRepDept());
+            stmt.setString(8, history.getMethod());
+            if (hasActionType) {
+                stmt.setString(9, history.getActionType() != null ? history.getActionType() : "ASSIGN");
+                stmt.setString(10, history.getNote());
+                stmt.setTimestamp(11, history.getAssignedAt() != null ? history.getAssignedAt() : new Timestamp(System.currentTimeMillis()));
             } else {
-                ps.setNull(1, Types.BIGINT);
-            }
-            ps.setString(2, history.getLeadName());
-            ps.setString(3, history.getLeadPhone());
-            ps.setString(4, history.getCompanyName());
-            ps.setString(5, history.getRepId());
-            ps.setString(6, history.getRepName());
-            ps.setString(7, history.getRepDept());
-            ps.setString(8, history.getMethod());
-            ps.setString(9, history.getNote());
-
-            if (history.getAssignedAt() != null) {
-                ps.setTimestamp(10, history.getAssignedAt());
-            } else {
-                ps.setTimestamp(10, new Timestamp(System.currentTimeMillis()));
+                stmt.setString(9, history.getNote());
+                stmt.setTimestamp(10, history.getAssignedAt() != null ? history.getAssignedAt() : new Timestamp(System.currentTimeMillis()));
             }
 
-            int affected = ps.executeUpdate();
+            int affected = stmt.executeUpdate();
             if (affected > 0) {
-                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        long generatedId = generatedKeys.getLong(1);
-                        history.setId(generatedId);
-                        return generatedId;
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        long id = rs.getLong(1);
+                        history.setId(id);
+                        return id;
                     }
                 }
             }
@@ -69,7 +97,7 @@ public class LeadAssignmentHistoryDAO {
             ps.setInt(1, limit > 0 ? limit : 100);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSet(rs));
+                    list.add(mapRow(rs));
                 }
             }
         } catch (SQLException e) {
@@ -80,43 +108,48 @@ public class LeadAssignmentHistoryDAO {
     }
 
     public List<AssignmentHistory> findByLeadId(long leadId) {
-        String sql = "SELECT * FROM lead_assignment_history WHERE lead_id = ? ORDER BY assigned_at DESC, id DESC";
-        List<AssignmentHistory> list = new ArrayList<>();
-
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setLong(1, leadId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapResultSet(rs));
-                }
-            }
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return findByLeadId(conn, leadId);
         } catch (SQLException e) {
             System.err.println("Error fetching lead assignment history for lead " + leadId + ": " + e.getMessage());
             e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public List<AssignmentHistory> findByLeadId(Connection conn, long leadId) throws SQLException {
+        List<AssignmentHistory> list = new ArrayList<>();
+        String sql = "SELECT * FROM lead_assignment_history WHERE lead_id = ? ORDER BY assigned_at DESC, id DESC";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, leadId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
         }
         return list;
     }
 
-    private AssignmentHistory mapResultSet(ResultSet rs) throws SQLException {
-        AssignmentHistory history = new AssignmentHistory();
-        history.setId(rs.getLong("id"));
-
+    private AssignmentHistory mapRow(ResultSet rs) throws SQLException {
+        AssignmentHistory h = new AssignmentHistory();
+        h.setId(rs.getLong("id"));
         long leadId = rs.getLong("lead_id");
         if (!rs.wasNull()) {
-            history.setLeadId(leadId);
+            h.setLeadId(leadId);
         }
-
-        history.setLeadName(rs.getString("lead_name"));
-        history.setLeadPhone(rs.getString("lead_phone"));
-        history.setCompanyName(rs.getString("company_name"));
-        history.setRepId(rs.getString("rep_id"));
-        history.setRepName(rs.getString("rep_name"));
-        history.setRepDept(rs.getString("rep_dept"));
-        history.setMethod(rs.getString("method"));
-        history.setNote(rs.getString("note"));
-        history.setAssignedAt(rs.getTimestamp("assigned_at"));
-        return history;
+        h.setLeadName(rs.getString("lead_name"));
+        h.setLeadPhone(rs.getString("lead_phone"));
+        h.setCompanyName(rs.getString("company_name"));
+        h.setRepId(rs.getString("rep_id"));
+        h.setRepName(rs.getString("rep_name"));
+        h.setRepDept(rs.getString("rep_dept"));
+        h.setMethod(rs.getString("method"));
+        try {
+            h.setActionType(rs.getString("action_type"));
+        } catch (SQLException ignored) {}
+        h.setNote(rs.getString("note"));
+        h.setAssignedAt(rs.getTimestamp("assigned_at"));
+        return h;
     }
 }

@@ -104,6 +104,9 @@
             sun:
                 `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
 
+            sla:
+                `<i class="fa-solid fa-stopwatch"></i>`,
+
             assignment:
                 `<i class="fa-solid fa-users-gear"></i>`,
 
@@ -715,6 +718,7 @@
             { name: "CONTACTS", label: "Người liên hệ", path: "contacts.html", icon: "contact", section: "workspace" },
             { name: "PIPELINE", label: "Cơ hội & Pipeline", path: "pipeline.html", icon: "opportunity", section: "workspace" },
             { name: "CAMPAIGNS", label: "Chiến dịch & Lead", path: "campaigns.html", icon: "campaign", section: "workspace" },
+            { name: "LEAD_SLA_RESPONSE", label: "Tiếp nhận Lead SLA", path: "lead-sla-response.html", icon: "sla", section: "workspace" },
             { name: "SUPPORT_TICKETS", label: "Chăm sóc & Hỗ trợ", path: "support-tickets.html", icon: "support", section: "workspace" },
             { name: "PERIODIC_CARE", label: "Chăm sóc định kỳ", path: "periodic-care.html", icon: "calendar", section: "workspace" },
             { name: "CONTRACTS", label: "Hợp đồng", path: "contracts.html", icon: "quote", section: "workspace" },
@@ -843,6 +847,23 @@
                 }
             }
 
+            // CRM-121: Ensure Lead SLA Response item is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-sla-response.html" || m.name === "LEAD_SLA_RESPONSE")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const slaItem = {
+                    name: "LEAD_SLA_RESPONSE",
+                    label: "Tiếp nhận Lead SLA (CRM-121)",
+                    path: "lead-sla-response.html",
+                    icon: "sla",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, slaItem);
+                } else {
+                    currentMenu.push(slaItem);
+                }
+            }
+
             // CRM-120: Ensure Lead Assignment item is in workspace menu
             if (!currentMenu.some(m => m.path === "lead-assignment.html" || m.name === "LEAD_ASSIGNMENT")) {
                 const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
@@ -945,6 +966,23 @@
                     currentMenu.splice(customerIndex + 1, 0, leadManualItem);
                 } else {
                     currentMenu.push(leadManualItem);
+                }
+            }
+
+            // CRM-121: Ensure Lead SLA Response item is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-sla-response.html" || m.name === "LEAD_SLA_RESPONSE")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const slaItem = {
+                    name: "LEAD_SLA_RESPONSE",
+                    label: "Tiếp nhận Lead SLA (CRM-121)",
+                    path: "lead-sla-response.html",
+                    icon: "sla",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, slaItem);
+                } else {
+                    currentMenu.push(slaItem);
                 }
             }
 
