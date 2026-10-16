@@ -21,7 +21,6 @@ import jakarta.servlet.http.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.sql.SQLException;
 import java.util.*;
 
 @WebServlet({"/api/leads/*", "/api/leads"})

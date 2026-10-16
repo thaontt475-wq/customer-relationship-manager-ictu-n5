@@ -116,7 +116,6 @@
                     <webResources>
                         <resource>
                             <directory>${project.basedir}/../frontend</directory>
-                            <targetPath></targetPath>
                         </resource>
                     </webResources>
                 </configuration>

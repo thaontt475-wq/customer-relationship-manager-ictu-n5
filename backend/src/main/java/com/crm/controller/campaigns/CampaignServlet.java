@@ -88,7 +88,7 @@ public class CampaignServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            long currentUserId = requireUser(req);
+            requireUser(req);
             String path = req.getPathInfo();
 
             // 1. GET /api/campaigns (List with search & pagination)
@@ -178,7 +178,7 @@ public class CampaignServlet extends HttpServlet {
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            long currentUserId = requireUser(req);
+            requireUser(req);
             String path = req.getPathInfo();
 
             // 1. PUT /api/campaigns/{id}/leads/{leadId} (Update lead status in campaign)
@@ -221,7 +221,7 @@ public class CampaignServlet extends HttpServlet {
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try {
-            long currentUserId = requireUser(req);
+            requireUser(req);
             String path = req.getPathInfo();
 
             // 1. DELETE /api/campaigns/{id}/leads/{leadId} (Unlink lead)

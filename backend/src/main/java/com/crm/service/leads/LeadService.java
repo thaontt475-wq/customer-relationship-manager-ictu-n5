@@ -11,7 +11,6 @@ import com.crm.model.leads.Lead;
 import com.crm.service.permissions.DataScopeContext;
 import com.crm.service.permissions.DataScopeService;
 
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.*;
@@ -51,22 +50,30 @@ public class LeadService {
     private final ScoringHook scoring;
 
     public LeadService() {
-        this(new LeadDAO(), (user, action) -> new DataScopeService().resolve(user, "lead", action), productionScoring());
+        this(new LeadDAO(), (user, action) -> new DataScopeService().resolve(user, "lead", action), productionScoring(), new DataScopeService());
     }
 
     public LeadService(LeadDAO leadDAO, DataScopeService dataScopeService) {
-        this(leadDAO, (user, action) -> dataScopeService.resolve(user, "lead", action), NO_SCORING);
+        this(leadDAO, (user, action) -> (dataScopeService != null ? dataScopeService : new DataScopeService()).resolve(user, "lead", action), NO_SCORING, dataScopeService != null ? dataScopeService : new DataScopeService());
     }
 
     public LeadService(LeadDAO leadDAO, ScopeResolver scopes) {
-        this(leadDAO, scopes, NO_SCORING);
+        this(leadDAO, scopes, NO_SCORING, new DataScopeService());
     }
 
     public LeadService(LeadDAO leadDAO, ScopeResolver scopes, ScoringHook scoring) {
+        this(leadDAO, scopes, scoring, new DataScopeService());
+    }
+
+    public LeadService(LeadDAO leadDAO, ScopeResolver scopes, ScoringHook scoring, DataScopeService dataScopeService) {
         this.leadDAO = leadDAO;
         this.scopes = scopes;
-        this.dataScopeService = new DataScopeService();
         this.scoring = scoring != null ? scoring : NO_SCORING;
+        this.dataScopeService = dataScopeService != null ? dataScopeService : new DataScopeService();
+    }
+
+    public DataScopeService getDataScopeService() {
+        return dataScopeService;
     }
 
     // -------------------------------------------------------------------------
