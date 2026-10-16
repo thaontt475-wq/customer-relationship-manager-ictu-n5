@@ -149,7 +149,12 @@ class LeadConversionServiceTest {
             }
 
             @Override
-            public void insertAuditLog(Connection c, long userId, String action, String entityType, long entityId, String details) {
+            public int transferLeadActivitiesToCustomer(Connection c, long leadId, long customerId, Long opportunityId, long currentUserId, String leadNotes) {
+                return 0;
+            }
+
+            @Override
+            public void insertAuditLog(Connection c, long userId, String action, String entityType, long entityId, String description) throws SQLException {
                 // mock no-op
             }
         };

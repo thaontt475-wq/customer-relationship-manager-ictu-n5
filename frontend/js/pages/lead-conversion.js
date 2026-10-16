@@ -283,15 +283,11 @@
             const lead = this.getLeadById(leadId);
             if (!lead) return { hasDuplicate: false };
 
-            // In production, try fetching from backend first
-            try {
-                const apiBase = window.CRM_BACKEND_BASE || "";
-                if (window.CrmApi && apiBase) {
-                    const res = await window.CrmApi.request(`/api/leads/${leadId}/check-convert-duplicates`);
-                    if (res) return res;
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                const res = await window.CrmApi.request(`/api/leads/${leadId}/check-convert-duplicates`);
+                if (res) {
+                    return (res && res.data) ? res.data : res;
                 }
-            } catch (_) {
-                // Fallback to local check
             }
 
             const customers = this.getExistingCustomers();
@@ -327,64 +323,96 @@
                 throw new Error("Bản ghi Lead này đã được chuyển đổi trước đó và đang bị khóa.");
             }
 
-            // In production, attempt calling Java backend REST API
-            try {
-                const apiBase = window.CRM_BACKEND_BASE || "";
-                if (window.CrmApi && apiBase) {
-                    const result = await window.CrmApi.request(`/api/leads/${leadId}/convert`, {
-                        method: "POST",
-                        body: JSON.stringify(payload)
-                    });
-                    if (result?.success) {
-                        // Synced successfully with backend
-                    }
+            let serverResult = null;
+            if (window.CrmApi && typeof window.CrmApi.request === "function") {
+                const apiRes = await window.CrmApi.request(`/api/leads/${leadId}/convert`, {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                });
+                serverResult = (apiRes && apiRes.data) ? apiRes.data : apiRes;
+                if (apiRes && apiRes.success === false) {
+                    throw new Error(apiRes.message || "Chuyển đổi Lead thất bại từ máy chủ.");
                 }
-            } catch (_) {
-                // Fallback to seamless client-side persistent simulation
             }
 
             const now = new Date();
             const nowIso = now.toISOString();
 
-            // 1. Process Customer (Account)
-            let customerId = null;
-            let customerName = "";
-            let customerInfo = "";
+            let customerId = serverResult?.customerId ?? null;
+            let customerName = serverResult?.customerName ?? "";
+            let customerInfo = serverResult?.customerInfo ?? "";
+            let contactId = serverResult?.contactId ?? null;
+            let contactName = serverResult?.contactName ?? payload.contact.fullName.trim();
+            let contactTitle = payload.contact.title || "Người đại diện";
+            let contactInfo = serverResult?.contactInfo ?? `${contactTitle} - ${payload.contact.phone}`;
+            let dealId = serverResult?.dealId !== undefined ? serverResult.dealId : null;
+            let dealName = serverResult?.dealName ?? (payload.deal?.createDeal ? payload.deal.name.trim() : "");
+            let dealAmount = Number(payload.deal?.amount) || 0;
+            let dealInfo = serverResult?.dealInfo ?? (dealId ? `${formatCurrency(dealAmount)} ₫ - Dự kiến chốt: ${payload.deal.closeDate}` : "Không tạo cơ hội");
+            let leadCode = serverResult?.leadCode || lead.code;
+            let convertedAt = serverResult?.convertedAt || nowIso;
 
-            if (payload.customerMode === "MERGE_EXISTING" && payload.existingCustomerId) {
-                const existing = this.getExistingCustomers().find(c => String(c.id) === String(payload.existingCustomerId));
-                if (existing) {
-                    customerId = existing.id;
-                    customerName = existing.name;
-                    customerInfo = `Gộp vào khách hàng có sẵn (MST: ${existing.taxCode || "N/A"})`;
+            if (!serverResult) {
+                if (payload.customerMode === "MERGE_EXISTING" && payload.existingCustomerId) {
+                    const existing = this.getExistingCustomers().find(c => String(c.id) === String(payload.existingCustomerId));
+                    if (existing) {
+                        customerId = existing.id;
+                        customerName = existing.name;
+                        customerInfo = `Gộp vào khách hàng có sẵn (MST: ${existing.taxCode || "N/A"})`;
+                    } else {
+                        throw new Error("Không tìm thấy khách hàng được chọn để gộp.");
+                    }
                 } else {
-                    throw new Error("Không tìm thấy khách hàng được chọn để gộp.");
+                    customerId = Date.now();
+                    customerName = payload.customer.name.trim();
+                    customerInfo = `MST: ${payload.customer.taxCode || "N/A"} - ${payload.customer.industry || "B2B"}`;
+
+                    const newCustomer = {
+                        id: customerId,
+                        name: customerName,
+                        taxCode: payload.customer.taxCode || "",
+                        phone: payload.customer.phone || "",
+                        email: payload.customer.email || lead.email,
+                        address: payload.customer.address || "",
+                        industry: payload.customer.industry || "",
+                        website: payload.customer.website || "",
+                        status: "TIEM_NANG",
+                        source: `Chuyển đổi từ Lead (${lead.code})`,
+                        createdAt: nowIso
+                    };
+                    this.saveExistingCustomer(newCustomer);
+                }
+
+                contactId = `CT-${customerId}-${Math.floor(100 + Math.random() * 900)}`;
+                if (payload.deal && payload.deal.createDeal) {
+                    dealId = `OPP-${customerId}-${Math.floor(100 + Math.random() * 900)}`;
+                    dealName = payload.deal.name.trim();
+                    dealInfo = `${formatCurrency(dealAmount)} ₫ - Dự kiến chốt: ${payload.deal.closeDate}`;
+                } else {
+                    dealId = null;
+                    dealName = "";
+                    dealInfo = "Không tạo cơ hội";
                 }
             } else {
-                customerId = Date.now();
-                customerName = payload.customer.name.trim();
-                customerInfo = `MST: ${payload.customer.taxCode || "N/A"} - ${payload.customer.industry || "B2B"}`;
-
-                const newCustomer = {
-                    id: customerId,
-                    name: customerName,
-                    taxCode: payload.customer.taxCode || "",
-                    phone: payload.customer.phone || "",
-                    email: payload.customer.email || lead.email,
-                    address: payload.customer.address || "",
-                    industry: payload.customer.industry || "",
-                    website: payload.customer.website || "",
-                    status: "TIEM_NANG",
-                    source: `Chuyển đổi từ Lead (${lead.code})`,
-                    createdAt: nowIso
-                };
-                this.saveExistingCustomer(newCustomer);
+                if (payload.customerMode !== "MERGE_EXISTING") {
+                    const newCustomer = {
+                        id: customerId,
+                        name: customerName,
+                        taxCode: payload.customer?.taxCode || "",
+                        phone: payload.customer?.phone || "",
+                        email: payload.customer?.email || lead.email,
+                        address: payload.customer?.address || "",
+                        industry: payload.customer?.industry || "",
+                        website: payload.customer?.website || "",
+                        status: "TIEM_NANG",
+                        source: `Chuyển đổi từ Lead (${lead.code})`,
+                        createdAt: convertedAt
+                    };
+                    this.saveExistingCustomer(newCustomer);
+                }
             }
 
             // 2. Process Contact
-            const contactId = `CT-${customerId}-${Math.floor(100 + Math.random() * 900)}`;
-            const contactName = payload.contact.fullName.trim();
-            const contactTitle = payload.contact.title || "Người đại diện";
             const newContact = {
                 id: contactId,
                 customerId: customerId,
@@ -396,10 +424,8 @@
                 buyingRole: payload.contact.buyingRole || "DECISION_MAKER",
                 isPrimary: true,
                 notes: payload.contact.notes || lead.notes || "",
-                createdAt: nowIso
+                createdAt: convertedAt
             };
-
-            // Save to contacts store
             try {
                 let contacts = JSON.parse(localStorage.getItem(STORAGE_KEY_CONTACTS)) || [];
                 contacts.unshift(newContact);
@@ -407,15 +433,7 @@
             } catch (_) {}
 
             // 3. Process Deal / Opportunity
-            let dealId = null;
-            let dealName = "";
-            let dealAmount = 0;
-
-            if (payload.deal && payload.deal.createDeal) {
-                dealId = `OPP-${customerId}-${Math.floor(100 + Math.random() * 900)}`;
-                dealName = payload.deal.name.trim();
-                dealAmount = Number(payload.deal.amount) || 0;
-
+            if (dealId) {
                 const newOpportunity = {
                     id: dealId,
                     customerId: customerId,
@@ -423,15 +441,14 @@
                     contactId: contactId,
                     name: dealName,
                     amount: dealAmount,
-                    pipeline: payload.deal.pipeline || "B2B_STANDARD",
-                    stageId: Number(payload.deal.stageId) || 2,
-                    stageName: payload.deal.stageName || "Giải pháp / Demo",
-                    probability: Number(payload.deal.probability) || 40,
-                    expectedCloseDate: payload.deal.closeDate || nowIso.split("T")[0],
+                    pipeline: payload.deal?.pipeline || "B2B_STANDARD",
+                    stageId: Number(payload.deal?.stageId) || 2,
+                    stageName: payload.deal?.stageName || "Giải pháp / Demo",
+                    probability: Number(payload.deal?.probability) || 40,
+                    expectedCloseDate: payload.deal?.closeDate || convertedAt.split("T")[0],
                     leadCode: lead.code,
-                    createdAt: nowIso
+                    createdAt: convertedAt
                 };
-
                 try {
                     let opps = JSON.parse(localStorage.getItem(STORAGE_KEY_OPPORTUNITIES)) || [];
                     opps.unshift(newOpportunity);
@@ -439,14 +456,14 @@
                 } catch (_) {}
             }
 
-            // 4. Update and LOCK the Lead record
+            // 4. Update and LOCK the Lead record ONLY after successful conversion
             const leads = this.getLeads();
-            const targetIndex = leads.findIndex(l => l.id === leadId);
+            const targetIndex = leads.findIndex(l => String(l.id) === String(leadId) || l.code === lead.code);
             if (targetIndex >= 0) {
                 leads[targetIndex].status = "CONVERTED";
                 leads[targetIndex].isLocked = true;
-                leads[targetIndex].convertedAt = nowIso;
-                leads[targetIndex].convertedBy = "Nông Quang Tiệp (Senior Sales)";
+                leads[targetIndex].convertedAt = convertedAt;
+                leads[targetIndex].convertedBy = serverResult?.convertedBy || "Nông Quang Tiệp (Senior Sales)";
                 leads[targetIndex].convertedTo = {
                     customerId: customerId,
                     customerName: customerName,
@@ -466,10 +483,12 @@
                 customerInfo,
                 contactId,
                 contactName,
-                contactInfo: `${contactTitle} - ${payload.contact.phone}`,
+                contactInfo,
                 dealId,
                 dealName,
-                dealInfo: dealId ? `${formatCurrency(dealAmount)} ₫ - Dự kiến chốt: ${payload.deal.closeDate}` : "Không tạo cơ hội"
+                dealInfo,
+                leadCode,
+                convertedAt
             };
         },
 

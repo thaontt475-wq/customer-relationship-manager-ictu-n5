@@ -81,10 +81,41 @@ BEGIN
     IF NOT EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='leads' AND COLUMN_NAME='merged_into_id') THEN
         ALTER TABLE leads ADD COLUMN merged_into_id BIGINT NULL, ADD KEY ix_s4_08_leads_merged_into(merged_into_id);
     END IF;
+    IF EXISTS(SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='activities') THEN
+        IF NOT EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='activities' AND COLUMN_NAME='lead_id') THEN
+            ALTER TABLE activities ADD COLUMN lead_id BIGINT NULL, ADD KEY ix_activities_lead(lead_id);
+        END IF;
+    END IF;
+    IF EXISTS(SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='audit_logs') THEN
+        IF NOT EXISTS(SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='audit_logs' AND COLUMN_NAME='description') THEN
+            ALTER TABLE audit_logs ADD COLUMN description VARCHAR(1000) NULL;
+        END IF;
+    END IF;
 END$$
 CALL EnsureS408LeadConversionColumns()$$
 DROP PROCEDURE EnsureS408LeadConversionColumns$$
 DELIMITER ;
+
+-- 2.1. Ensure activities table exists
+CREATE TABLE IF NOT EXISTS activities (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    subject VARCHAR(255) NOT NULL,
+    type VARCHAR(50) NOT NULL DEFAULT 'CALL',
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'COMPLETED',
+    due_date DATETIME,
+    customer_id BIGINT NULL,
+    opportunity_id BIGINT NULL,
+    lead_id BIGINT NULL,
+    owner_user_id BIGINT NOT NULL,
+    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY ix_activities_customer_date(customer_id, is_deleted, created_at),
+    KEY ix_activities_lead(lead_id),
+    CONSTRAINT fk_s408_activities_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+    CONSTRAINT fk_s408_activities_user FOREIGN KEY (owner_user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. Dedicated History table for Lead Conversions
 CREATE TABLE IF NOT EXISTS lead_conversion_history (

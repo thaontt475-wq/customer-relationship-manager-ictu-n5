@@ -63,6 +63,14 @@ class LeadConversionJdbcTest {
             }
             super.updateLeadAsConverted(c, leadId, userId, customerId, contactId, opportunityId);
         }
+
+        @Override
+        public void insertAuditLog(Connection c, long userId, String action, String entityType, long entityId, String description) throws SQLException {
+            if ("auditFailure".equals(failureStage)) {
+                throw new SQLException("Injected database failure at insertAuditLog");
+            }
+            super.insertAuditLog(c, userId, action, entityType, entityId, description);
+        }
     };
 
     private LeadConversionService service() {
@@ -198,13 +206,30 @@ class LeadConversionJdbcTest {
             """);
 
             s.execute("""
+                CREATE TEMPORARY TABLE IF NOT EXISTS activities (
+                    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    subject VARCHAR(255) NOT NULL,
+                    type VARCHAR(50) NOT NULL DEFAULT 'CALL',
+                    description TEXT,
+                    status VARCHAR(50) DEFAULT 'COMPLETED',
+                    due_date DATETIME,
+                    customer_id BIGINT NULL,
+                    opportunity_id BIGINT NULL,
+                    lead_id BIGINT NULL,
+                    owner_user_id BIGINT NOT NULL,
+                    is_deleted TINYINT(1) NOT NULL DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB
+            """);
+
+            s.execute("""
                 CREATE TEMPORARY TABLE IF NOT EXISTS audit_logs (
                     id BIGINT PRIMARY KEY AUTO_INCREMENT,
                     user_id BIGINT NOT NULL,
                     action VARCHAR(50) NOT NULL,
                     entity_type VARCHAR(50) NOT NULL,
                     entity_id BIGINT NOT NULL,
-                    details TEXT NULL,
+                    description TEXT NULL,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB
             """);
@@ -219,6 +244,7 @@ class LeadConversionJdbcTest {
     void tearDown() throws Exception {
         if (connection != null && !connection.isClosed()) {
             try (Statement s = connection.createStatement()) {
+                s.execute("DROP TEMPORARY TABLE IF EXISTS activities");
                 s.execute("DROP TEMPORARY TABLE IF EXISTS audit_logs");
                 s.execute("DROP TEMPORARY TABLE IF EXISTS lead_conversion_history");
                 s.execute("DROP TEMPORARY TABLE IF EXISTS leads");
@@ -520,6 +546,110 @@ class LeadConversionJdbcTest {
              var rs = s.executeQuery("SELECT COUNT(*) FROM contacts")) {
             assertTrue(rs.next());
             assertEquals(1, rs.getInt(1));
+        }
+    }
+
+    @Test
+    void testActivityHistoryTransferredToCustomerTimeline() throws Exception {
+        long leadId = insertLead("Khách Tiềm Năng AC4", "Công ty AC4", "ac4@company.com", "0904445566", "QUALIFIED", 1L);
+
+        // Update lead with notes
+        try (var ps = connection.prepareStatement("UPDATE leads SET notes = 'Khách quan tâm gói doanh nghiệp 50 seats' WHERE id = " + leadId)) {
+            ps.executeUpdate();
+        }
+
+        // Pre-existing activity on lead
+        long activityId;
+        try (var ps = connection.prepareStatement("""
+                INSERT INTO activities (subject, type, description, status, lead_id, owner_user_id)
+                VALUES ('Tư vấn giải pháp qua điện thoại', 'CALL', 'Trao đổi chi tiết 30 phút', 'COMPLETED', ?, 1)
+                """, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setLong(1, leadId);
+            ps.executeUpdate();
+            try (var rs = ps.getGeneratedKeys()) {
+                assertTrue(rs.next());
+                activityId = rs.getLong(1);
+            }
+        }
+
+        LeadConversionRequest req = sampleRequest("CREATE_NEW", null, true);
+        LeadConversionResultDTO result = service().convert(1L, leadId, req);
+
+        assertTrue(result.success);
+        assertNotNull(result.customerId);
+        assertNotNull(result.dealId);
+
+        // 1. Verify pre-existing activity was relinked to Customer and Deal
+        try (var s = connection.createStatement();
+             var rs = s.executeQuery("SELECT customer_id, opportunity_id FROM activities WHERE id = " + activityId)) {
+            assertTrue(rs.next());
+            assertEquals(result.customerId, rs.getLong("customer_id"), "Activity phải được relink sang Customer mới");
+            assertEquals(result.dealId, rs.getLong("opportunity_id"), "Activity phải được relink sang Opportunity mới");
+        }
+
+        // 2. Verify lead notes transferred as activity on Customer timeline
+        try (var s = connection.createStatement();
+             var rs = s.executeQuery("SELECT customer_id, description FROM activities WHERE lead_id = " + leadId + " AND subject = 'Ghi chú từ Lead (chuyển đổi)'")) {
+            assertTrue(rs.next(), "Phải có activity ghi chú từ Lead được chuyển sang Customer");
+            assertEquals(result.customerId, rs.getLong("customer_id"));
+            assertEquals("Khách quan tâm gói doanh nghiệp 50 seats", rs.getString("description"));
+        }
+    }
+
+    @Test
+    void testMergeExistingCustomerScopeDenied() throws Exception {
+        // Customer belongs to owner 2, but user 1 only has permission on owner 1
+        long existingCustId = insertCustomer("Khách Hàng Thuộc User 2", "0109998881", 2L);
+        long leadId = insertLead("Lead Của User 1", "Lead Corp", "lead@corp.vn", "0911223344", "QUALIFIED", 1L);
+
+        scopeType = ScopeType.SELF;
+        allowedOwners = Set.of(1L);
+
+        LeadConversionRequest req = sampleRequest("MERGE_EXISTING", existingCustId, false);
+
+        SecurityException ex = assertThrows(SecurityException.class, () -> service().convert(1L, leadId, req));
+        assertTrue(ex.getMessage().contains("không có quyền thao tác trên Khách hàng"));
+
+        // Verify atomic rollback
+        try (var s = connection.createStatement();
+             var rs = s.executeQuery("SELECT status, is_locked FROM leads WHERE id = " + leadId)) {
+            assertTrue(rs.next());
+            assertEquals("QUALIFIED", rs.getString("status"));
+            assertEquals(0, rs.getInt("is_locked"));
+        }
+    }
+
+    @Test
+    void testAuditLogFailureTriggersRollback() throws Exception {
+        long leadId = insertLead("Lead Rollback Test", "Rollback Inc", "rb@inc.com", "0988776655", "QUALIFIED", 1L);
+        LeadConversionRequest req = sampleRequest("CREATE_NEW", null, true);
+
+        failureStage = "auditFailure";
+
+        SQLException ex = assertThrows(SQLException.class, () -> service().convert(1L, leadId, req));
+        assertTrue(ex.getMessage().contains("insertAuditLog"));
+
+        // Verify complete rollback: no customer, no contact, no deal, lead untouched
+        try (var s = connection.createStatement();
+             var rs = s.executeQuery("SELECT COUNT(*) FROM customers")) {
+            assertTrue(rs.next());
+            assertEquals(0, rs.getInt(1));
+        }
+        try (var s = connection.createStatement();
+             var rs = s.executeQuery("SELECT COUNT(*) FROM contacts")) {
+            assertTrue(rs.next());
+            assertEquals(0, rs.getInt(1));
+        }
+        try (var s = connection.createStatement();
+             var rs = s.executeQuery("SELECT COUNT(*) FROM opportunities")) {
+            assertTrue(rs.next());
+            assertEquals(0, rs.getInt(1));
+        }
+        try (var s = connection.createStatement();
+             var rs = s.executeQuery("SELECT status, is_locked FROM leads WHERE id = " + leadId)) {
+            assertTrue(rs.next());
+            assertEquals("QUALIFIED", rs.getString("status"));
+            assertEquals(0, rs.getInt("is_locked"));
         }
     }
 }
