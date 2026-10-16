@@ -123,7 +123,7 @@ class LeadFilterJdbcTest {
         l1.setRating("HOT");
         l1.setTier("HOT");
         l1.setStatus("NEW");
-        l1.setSlaDeadline(new Timestamp(now - 3600000)); // overdue
+        l1.setSlaDeadline(new Timestamp(now - 86400000L)); // overdue by 1 day
         l1.setEstimatedValue(50000000);
         long id1 = leadDAO.insert(l1);
         assertTrue(id1 > 0);
@@ -150,6 +150,7 @@ class LeadFilterJdbcTest {
         // 1. Filter by Keyword
         LeadFilterRequest kwFilter = new LeadFilterRequest();
         kwFilter.setKeyword("Alpha Tech S409");
+        kwFilter.setSize(100);
         List<Lead> kwResults = leadDAO.findWithFilters(kwFilter, scope, 1L);
         assertFalse(kwResults.isEmpty());
         assertTrue(kwResults.stream().anyMatch(l -> l.getId() == id1));
@@ -158,6 +159,7 @@ class LeadFilterJdbcTest {
         // 2. Filter by Tier HOT
         LeadFilterRequest tierFilter = new LeadFilterRequest();
         tierFilter.setTier("HOT");
+        tierFilter.setSize(100);
         List<Lead> tierResults = leadDAO.findWithFilters(tierFilter, scope, 1L);
         assertTrue(tierResults.stream().anyMatch(l -> l.getId() == id1));
         assertFalse(tierResults.stream().anyMatch(l -> l.getId() == id2));
@@ -165,6 +167,7 @@ class LeadFilterJdbcTest {
         // 3. Filter by SLA Overdue
         LeadFilterRequest slaFilter = new LeadFilterRequest();
         slaFilter.setSlaOverdueOnly(true);
+        slaFilter.setSize(100);
         List<Lead> slaResults = leadDAO.findWithFilters(slaFilter, scope, 1L);
         assertTrue(slaResults.stream().anyMatch(l -> l.getId() == id1));
         assertFalse(slaResults.stream().anyMatch(l -> l.getId() == id2));
