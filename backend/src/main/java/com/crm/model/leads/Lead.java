@@ -3,6 +3,7 @@ package com.crm.model.leads;
 import java.sql.Timestamp;
 
 public class Lead {
+
     private Long id;
     private String fullName;
     private String companyName;
@@ -26,6 +27,17 @@ public class Lead {
     private String timeAgo;
 
     public Lead() {
+        this.status = "NEW";
+        this.source = "WEB_FORM";
+    }
+
+    public Lead(String fullName, String email, String phone, String companyName, String notes) {
+        this();
+        this.fullName = fullName;
+        this.email = email;
+        this.phone = phone;
+        this.companyName = companyName;
+        this.notes = notes;
     }
 
     public Long getId() {
