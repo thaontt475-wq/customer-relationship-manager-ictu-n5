@@ -38,20 +38,28 @@ public class LeadServlet extends HttpServlet {
     private final LeadAssignmentHistoryDAO historyDAO;
     private final AuthorizationService authService;
     private final LeadSlaService slaService;
+    private final LeadConversionService conversionService;
 
     private static final Type RULE_LIST_TYPE = new TypeToken<List<AssignmentRule>>() {}.getType();
 
     public LeadServlet() {
         this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
                 new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
-                new LeadAssignmentHistoryDAO(), new AuthorizationService(), new LeadSlaService());
+                new LeadAssignmentHistoryDAO(), new AuthorizationService(), new LeadSlaService(), new LeadConversionService());
+    }
+
+    public LeadServlet(LeadConversionService conversionService) {
+        this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
+                new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
+                new LeadAssignmentHistoryDAO(), new AuthorizationService(), new LeadSlaService(),
+                conversionService != null ? conversionService : new LeadConversionService());
     }
 
     public LeadServlet(LeadSlaService slaService) {
         this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
                 new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
                 new LeadAssignmentHistoryDAO(), new AuthorizationService(),
-                slaService != null ? slaService : new LeadSlaService());
+                slaService != null ? slaService : new LeadSlaService(), new LeadConversionService());
     }
 
     public LeadServlet(LeadService leads, LeadImportService imports) {
@@ -107,6 +115,13 @@ public class LeadServlet extends HttpServlet {
                        AssignmentRuleService ruleService, LeadAutoAssignmentService autoAssignmentService,
                        LeadDAO leadDAO, LeadAssignmentHistoryDAO historyDAO, AuthorizationService authService,
                        LeadSlaService slaService) {
+        this(leads, imports, rateLimiter, ruleService, autoAssignmentService, leadDAO, historyDAO, authService, slaService, new LeadConversionService());
+    }
+
+    public LeadServlet(LeadService leads, LeadImportService imports, IpRateLimiter rateLimiter,
+                       AssignmentRuleService ruleService, LeadAutoAssignmentService autoAssignmentService,
+                       LeadDAO leadDAO, LeadAssignmentHistoryDAO historyDAO, AuthorizationService authService,
+                       LeadSlaService slaService, LeadConversionService conversionService) {
         this.leads = leads;
         this.imports = imports;
         this.rateLimiter = rateLimiter;
@@ -116,6 +131,7 @@ public class LeadServlet extends HttpServlet {
         this.historyDAO = historyDAO;
         this.authService = authService;
         this.slaService = slaService;
+        this.conversionService = conversionService != null ? conversionService : new LeadConversionService();
         this.scopes = (user, action) -> new DataScopeService().resolve(user, "lead", action);
     }
 
@@ -202,6 +218,46 @@ public class LeadServlet extends HttpServlet {
 
                 LeadSlaResponseDTO result = slaService.rejectLead(user, leadId, rejectReq.getReason().trim(), rejectReq.getDetails().trim());
                 ResponseUtil.json(resp, 200, ApiResponse.success("Từ chối Lead thành công. Lead đã được chuyển về hàng chờ phân bổ.", result));
+                return;
+            }
+
+            // --- S4-08 Lead Conversion Routes ---
+            if (path.endsWith("/check-convert-duplicates")) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                long leadId = parseLeadId(path, "/check-convert-duplicates");
+                if (leadId <= 0 && req.getParameter("leadId") != null) {
+                    try { leadId = Long.parseLong(req.getParameter("leadId")); } catch (Exception ignored) {}
+                }
+                LeadConvertDuplicateCheckDTO dupCheck = conversionService.checkConvertDuplicates(user, leadId);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Kiểm tra trùng lặp thành công", dupCheck));
+                return;
+            }
+
+            if (path.endsWith("/convert")) {
+                if (!"POST".equals(method)) {
+                    unsupported(resp, "POST");
+                    return;
+                }
+                long leadId = parseLeadId(path, "/convert");
+                JsonObject bodyJson = json(req, 32768);
+                if (leadId <= 0 && bodyJson.has("leadId") && !bodyJson.get("leadId").isJsonNull()) {
+                    try {
+                        String rawId = bodyJson.get("leadId").getAsString();
+                        if (rawId.startsWith("LD-CONV-")) {
+                            rawId = rawId.substring("LD-CONV-".length());
+                        }
+                        leadId = Long.parseLong(rawId);
+                    } catch (Exception ignored) {}
+                }
+                if (leadId <= 0 && req.getParameter("leadId") != null) {
+                    try { leadId = Long.parseLong(req.getParameter("leadId")); } catch (Exception ignored) {}
+                }
+                LeadConversionRequest conversionReq = JsonUtil.getGson().fromJson(bodyJson, LeadConversionRequest.class);
+                LeadConversionResultDTO result = conversionService.convert(user, leadId, conversionReq);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Chuyển đổi Lead thành công", result));
                 return;
             }
 

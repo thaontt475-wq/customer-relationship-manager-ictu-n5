@@ -269,4 +269,19 @@ class LeadServletTest {
         assertEquals(413, call("POST", "/import/preview", "multipart/form-data", null, true, true, part).status);
         assertTrue(deleted[0]);
     }
+
+    @Test
+    void leadConversionEndpointsRouteCorrectly() throws Exception {
+        var res1 = call("GET", "/1/check-convert-duplicates", null, null, false, true, null);
+        assertEquals(401, res1.status);
+
+        var res2 = call("POST", "/1/convert", "application/json", "{}", false, true, null);
+        assertEquals(401, res2.status);
+
+        var res3 = call("PUT", "/1/convert", "application/json", "{}", true, true, null);
+        assertEquals(405, res3.status);
+
+        var res4 = call("POST", "/1/check-convert-duplicates", "application/json", "{}", true, true, null);
+        assertEquals(405, res4.status);
+    }
 }
