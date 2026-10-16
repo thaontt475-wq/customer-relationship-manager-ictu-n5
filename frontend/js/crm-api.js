@@ -2,7 +2,7 @@
 
 // Deployment configuration; cookies and authorization always come from the server.
 window.CrmApi = (() => {
-    const base = (window.CRM_BACKEND_BASE || `${location.protocol}//${location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
+    const base = (window.CRM_BACKEND_BASE || (location.pathname.startsWith("/crm/") ? location.origin + "/crm" : `${location.protocol}//${location.hostname || "localhost"}:8080/crm`)).replace(/\/$/, "");
     let sessionPromise;
     let sessionValue;
     const pendingReads = new Map();
