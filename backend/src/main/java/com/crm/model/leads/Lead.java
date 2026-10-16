@@ -15,9 +15,16 @@ public class Lead {
     private String formId;
     private String ipAddress;
     private Long assignedTo;
-    private boolean deleted;
+    private String assignedToRepId;
+    private String region;
+    private String regionCode;
+    private String industry;
+    private String title;
+    private String unassignedReason;
+    private boolean isDeleted;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String timeAgo;
 
     public Lead() {
         this.status = "NEW";
@@ -121,12 +128,60 @@ public class Lead {
         this.assignedTo = assignedTo;
     }
 
+    public String getAssignedToRepId() {
+        return assignedToRepId;
+    }
+
+    public void setAssignedToRepId(String assignedToRepId) {
+        this.assignedToRepId = assignedToRepId;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getRegionCode() {
+        return regionCode;
+    }
+
+    public void setRegionCode(String regionCode) {
+        this.regionCode = regionCode;
+    }
+
+    public String getIndustry() {
+        return industry;
+    }
+
+    public void setIndustry(String industry) {
+        this.industry = industry;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getUnassignedReason() {
+        return unassignedReason;
+    }
+
+    public void setUnassignedReason(String unassignedReason) {
+        this.unassignedReason = unassignedReason;
+    }
+
     public boolean isDeleted() {
-        return deleted;
+        return isDeleted;
     }
 
     public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+        isDeleted = deleted;
     }
 
     public Timestamp getCreatedAt() {
@@ -143,5 +198,13 @@ public class Lead {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getTimeAgo() {
+        return timeAgo;
+    }
+
+    public void setTimeAgo(String timeAgo) {
+        this.timeAgo = timeAgo;
     }
 }

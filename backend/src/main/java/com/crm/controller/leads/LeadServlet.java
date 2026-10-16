@@ -1,19 +1,25 @@
 package com.crm.controller.leads;
 
+import com.crm.dao.leads.LeadAssignmentHistoryDAO;
 import com.crm.dao.leads.LeadDAO;
 import com.crm.dto.common.ApiResponse;
 import com.crm.dto.leads.*;
+import com.crm.model.leads.AssignmentHistory;
+import com.crm.model.leads.AssignmentRule;
 import com.crm.model.leads.Lead;
 import com.crm.service.importer.BoundedXlsx;
 import com.crm.service.leads.*;
+import com.crm.service.permissions.AuthorizationService;
 import com.crm.service.permissions.DataScopeService;
 import com.crm.util.*;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.*;
 import jakarta.servlet.http.*;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -27,33 +33,85 @@ public class LeadServlet extends HttpServlet {
     private final LeadDAO dao;
     private final LeadService.ScopeResolver scopes;
 
+    private final AssignmentRuleService ruleService;
+    private final LeadAutoAssignmentService autoAssignmentService;
+    private final LeadAssignmentHistoryDAO historyDAO;
+    private final AuthorizationService authService;
+
+    private static final Type RULE_LIST_TYPE = new TypeToken<List<AssignmentRule>>() {}.getType();
+
     public LeadServlet() {
-        this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000));
+        this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
+                new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
+                new LeadAssignmentHistoryDAO(), new AuthorizationService());
     }
 
     public LeadServlet(LeadService leads, LeadImportService imports) {
         this(leads != null ? leads : new LeadService(),
                 imports != null ? imports : new LeadImportService(),
-                new IpRateLimiter(5, 60_000));
+                new IpRateLimiter(5, 60_000),
+                new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
+                new LeadAssignmentHistoryDAO(), new AuthorizationService());
     }
 
     public LeadServlet(LeadService leads, IpRateLimiter rateLimiter) {
         this(leads != null ? leads : new LeadService(),
                 new LeadImportService(),
-                rateLimiter != null ? rateLimiter : new IpRateLimiter(5, 60_000));
+                rateLimiter != null ? rateLimiter : new IpRateLimiter(5, 60_000),
+                new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
+                new LeadAssignmentHistoryDAO(), new AuthorizationService());
     }
 
     public LeadServlet(LeadService leads, LeadImportService imports, IpRateLimiter rateLimiter) {
+        this(leads != null ? leads : new LeadService(),
+                imports != null ? imports : new LeadImportService(),
+                rateLimiter != null ? rateLimiter : new IpRateLimiter(5, 60_000),
+                new AssignmentRuleService(), new LeadAutoAssignmentService(), new LeadDAO(),
+                new LeadAssignmentHistoryDAO(), new AuthorizationService());
+    }
+
+    public LeadServlet(AssignmentRuleService ruleService,
+                       LeadAutoAssignmentService autoAssignmentService,
+                       LeadDAO leadDAO,
+                       LeadAssignmentHistoryDAO historyDAO) {
+        this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
+                ruleService != null ? ruleService : new AssignmentRuleService(),
+                autoAssignmentService != null ? autoAssignmentService : new LeadAutoAssignmentService(),
+                leadDAO != null ? leadDAO : new LeadDAO(),
+                historyDAO != null ? historyDAO : new LeadAssignmentHistoryDAO(),
+                new AuthorizationService());
+    }
+
+    public LeadServlet(AssignmentRuleService ruleService,
+                       LeadAutoAssignmentService autoAssignmentService,
+                       LeadDAO leadDAO,
+                       LeadAssignmentHistoryDAO historyDAO,
+                       AuthorizationService authService) {
+        this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
+                ruleService != null ? ruleService : new AssignmentRuleService(),
+                autoAssignmentService != null ? autoAssignmentService : new LeadAutoAssignmentService(),
+                leadDAO != null ? leadDAO : new LeadDAO(),
+                historyDAO != null ? historyDAO : new LeadAssignmentHistoryDAO(),
+                authService != null ? authService : new AuthorizationService());
+    }
+
+    public LeadServlet(LeadService leads, LeadImportService imports, IpRateLimiter rateLimiter,
+                       AssignmentRuleService ruleService, LeadAutoAssignmentService autoAssignmentService,
+                       LeadDAO leadDAO, LeadAssignmentHistoryDAO historyDAO, AuthorizationService authService) {
         this.leads = leads;
         this.imports = imports;
         this.rateLimiter = rateLimiter;
-        this.dao = new LeadDAO();
+        this.ruleService = ruleService;
+        this.autoAssignmentService = autoAssignmentService;
+        this.dao = leadDAO;
+        this.historyDAO = historyDAO;
+        this.authService = authService;
         this.scopes = (user, action) -> new DataScopeService().resolve(user, "lead", action);
     }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String path = req.getPathInfo();
+        String path = normalizePath(req.getPathInfo());
         String method = req.getMethod() != null ? req.getMethod().toUpperCase(Locale.ROOT) : "GET";
 
         // 1. Health check endpoint (Public GET)
@@ -66,7 +124,7 @@ public class LeadServlet extends HttpServlet {
             return;
         }
 
-        // 2. Public Web Form submission endpoints
+        // 2. Public Web Form submission endpoints (Public POST)
         if ("POST".equals(method) && ("/web-form".equals(path) || "/web-form/submit".equals(path))) {
             handleWebFormSubmission(req, resp);
             return;
@@ -81,8 +139,100 @@ public class LeadServlet extends HttpServlet {
         long user = id.longValue();
 
         try {
-            // Root path: POST = S4-02 manual lead create, GET = S4-01 lead list
-            if (path == null || path.equals("/")) {
+            // --- Assignment Routes (S4-06) ---
+            if ("/assignment-rules".equals(path)) {
+                if ("GET".equals(method)) {
+                    List<AssignmentRule> rules = ruleService.getAllRules();
+                    ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách quy tắc phân bổ thành công", rules));
+                    return;
+                } else if ("POST".equals(method) || "PUT".equals(method)) {
+                    handleSaveRules(req, resp);
+                    return;
+                } else {
+                    unsupported(resp, "GET, POST, PUT");
+                    return;
+                }
+            }
+
+            if (path.startsWith("/assignment-rules/")) {
+                String idStr = path.substring("/assignment-rules/".length());
+                if ("PUT".equals(method)) {
+                    handleUpdateSingleRule(req, resp, idStr);
+                    return;
+                } else if ("DELETE".equals(method)) {
+                    handleDeleteSingleRule(req, resp, idStr);
+                    return;
+                } else {
+                    unsupported(resp, "PUT, DELETE");
+                    return;
+                }
+            }
+
+            if ("/assignment-history".equals(path)) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                List<AssignmentHistory> history = historyDAO.findAll(100);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Lấy lịch sử phân bổ thành công", history));
+                return;
+            }
+
+            if (path.endsWith("/assignment-history") && path.length() > "/assignment-history".length()) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                String leadIdStr = path.substring(1, path.indexOf("/assignment-history"));
+                try {
+                    long leadId = Long.parseLong(leadIdStr);
+                    List<AssignmentHistory> history = historyDAO.findByLeadId(leadId);
+                    ResponseUtil.json(resp, 200, ApiResponse.success("Lấy lịch sử phân bổ Lead thành công", history));
+                    return;
+                } catch (NumberFormatException ignored) {}
+            }
+
+            if ("/queue".equals(path) || "/unassigned".equals(path)) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                List<Lead> queue = dao.findUnassignedOrPendingQueue();
+                ResponseUtil.json(resp, 200, ApiResponse.success("Lấy hàng chờ phân bổ thành công", queue));
+                return;
+            }
+
+            if ("/reps".equals(path) || "/sales-reps".equals(path)) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                List<SalesRepDTO> reps = dao.getSalesRepsWithWorkload();
+                ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách chuyên viên kinh doanh thành công", reps));
+                return;
+            }
+
+            if ("/assign".equals(path)) {
+                if (!"POST".equals(method)) {
+                    unsupported(resp, "POST");
+                    return;
+                }
+                handleManualAssign(req, resp);
+                return;
+            }
+
+            if ("/auto-assign".equals(path) || "/process-queue".equals(path)) {
+                if (!"POST".equals(method)) {
+                    unsupported(resp, "POST");
+                    return;
+                }
+                handleProcessQueue(req, resp);
+                return;
+            }
+
+            // --- S4-01 / S4-02 / S4-05 Lead Routes ---
+            // Root path: POST = manual lead create, GET = lead list
+            if (path.isEmpty() || "/".equals(path)) {
                 if ("POST".equals(method)) {
                     leads.authorizeCreate(user);
                     ResponseUtil.json(resp, 201, ApiResponse.success(
@@ -206,7 +356,8 @@ public class LeadServlet extends HttpServlet {
             if (error.status() == 500) log("Lead import failed", error);
             ResponseUtil.json(resp, error.status(), ApiResponse.error(error.getMessage(), error.data()));
         } catch (SecurityException error) {
-            ResponseUtil.json(resp, 403, ApiResponse.error(error.getMessage(), null));
+            int status = error.getMessage() != null && error.getMessage().contains("Phiên") ? 401 : 403;
+            ResponseUtil.json(resp, status, ApiResponse.error(error.getMessage(), null));
         } catch (JsonSyntaxException | IllegalArgumentException error) {
             ResponseUtil.json(resp, 400, ApiResponse.error("Dữ liệu yêu cầu không hợp lệ: " + error.getMessage(), null));
         } catch (IllegalStateException error) {
@@ -220,6 +371,117 @@ public class LeadServlet extends HttpServlet {
             log("Lead request failed", error);
             ResponseUtil.json(resp, 500, ApiResponse.error("Không thể xử lý yêu cầu Lead", null));
         }
+    }
+
+    private void handleSaveRules(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        authService.requirePermission(request, "lead.assignment_rules");
+
+        String body = readBodyString(request);
+        if (body == null || body.isBlank()) {
+            ResponseUtil.json(response, 400, ApiResponse.error("Dữ liệu quy tắc trống", null));
+            return;
+        }
+
+        try {
+            if (body.trim().startsWith("[")) {
+                List<AssignmentRule> rules = JsonUtil.getGson().fromJson(body, RULE_LIST_TYPE);
+                List<AssignmentRule> saved = ruleService.batchSaveRules(rules);
+                ResponseUtil.json(response, 200, ApiResponse.success("Lưu danh sách quy tắc phân bổ thành công", saved));
+            } else {
+                AssignmentRule rule = JsonUtil.getGson().fromJson(body, AssignmentRule.class);
+                if (rule.getId() != null && rule.getId() > 0) {
+                    ruleService.updateRule(rule);
+                    ResponseUtil.json(response, 200, ApiResponse.success("Cập nhật quy tắc phân bổ thành công", rule));
+                } else {
+                    AssignmentRule created = ruleService.createRule(rule);
+                    ResponseUtil.json(response, 201, ApiResponse.success("Tạo quy tắc phân bổ thành công", created));
+                }
+            }
+        } catch (Exception e) {
+            ResponseUtil.json(response, 400, ApiResponse.error("Lỗi lưu quy tắc phân bổ: " + e.getMessage(), null));
+        }
+    }
+
+    private void handleUpdateSingleRule(HttpServletRequest request, HttpServletResponse response, String idStr) throws Exception {
+        authService.requirePermission(request, "lead.assignment_rules");
+
+        try {
+            long ruleId = Long.parseLong(idStr);
+            String body = readBodyString(request);
+            AssignmentRule rule = JsonUtil.getGson().fromJson(body, AssignmentRule.class);
+            if (rule != null) {
+                rule.setId(ruleId);
+                boolean ok = ruleService.updateRule(rule);
+                if (ok) {
+                    ResponseUtil.json(response, 200, ApiResponse.success("Cập nhật quy tắc phân bổ thành công", rule));
+                    return;
+                }
+            }
+            ResponseUtil.json(response, 404, ApiResponse.error("Không tìm thấy quy tắc cần cập nhật", null));
+        } catch (NumberFormatException e) {
+            ResponseUtil.json(response, 400, ApiResponse.error("ID quy tắc không hợp lệ", null));
+        } catch (Exception e) {
+            ResponseUtil.json(response, 400, ApiResponse.error("Dữ liệu cập nhật quy tắc không hợp lệ: " + e.getMessage(), null));
+        }
+    }
+
+    private void handleDeleteSingleRule(HttpServletRequest request, HttpServletResponse response, String idStr) throws Exception {
+        authService.requirePermission(request, "lead.assignment_rules");
+
+        try {
+            long ruleId = Long.parseLong(idStr);
+            boolean deleted = ruleService.deleteRule(ruleId);
+            if (deleted) {
+                ResponseUtil.json(response, 200, ApiResponse.success("Xóa quy tắc phân bổ thành công", null));
+            } else {
+                ResponseUtil.json(response, 404, ApiResponse.error("Không tìm thấy quy tắc cần xóa", null));
+            }
+        } catch (NumberFormatException e) {
+            ResponseUtil.json(response, 400, ApiResponse.error("ID quy tắc không hợp lệ", null));
+        }
+    }
+
+    private void handleManualAssign(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        authService.requirePermission(request, "lead.assign");
+
+        String body = readBodyString(request);
+        ManualAssignRequest req = JsonUtil.getGson().fromJson(body, ManualAssignRequest.class);
+
+        if (req == null) {
+            ResponseUtil.json(response, 400, ApiResponse.error("Dữ liệu phân bổ không hợp lệ", null));
+            return;
+        }
+
+        Long leadId = req.getParsedLeadId();
+        if (leadId == null) {
+            ResponseUtil.json(response, 400, ApiResponse.error("Mã Lead không hợp lệ", null));
+            return;
+        }
+
+        if (req.getRepId() == null || req.getRepId().isBlank()) {
+            ResponseUtil.json(response, 400, ApiResponse.error("Chưa chọn nhân viên phụ trách", null));
+            return;
+        }
+
+        boolean success = autoAssignmentService.assignLeadManual(leadId, req.getRepId(), req.getNote());
+        if (success) {
+            ResponseUtil.json(response, 200, ApiResponse.success("Phân công Lead thành công", null));
+        } else {
+            ResponseUtil.json(response, 500, ApiResponse.error("Không thể phân công Lead", null));
+        }
+    }
+
+    private void handleProcessQueue(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        authService.requirePermission(request, "lead.auto_assign");
+
+        int count = autoAssignmentService.processPendingQueue();
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("assignedCount", count);
+        result.put("message", count > 0
+                ? "Đã tự động phân bổ thành công " + count + " Lead từ hàng chờ tới đội ngũ Sales."
+                : "Không có Lead nào khớp với các quy tắc đang bật.");
+
+        ResponseUtil.json(response, 200, ApiResponse.success("Xử lý hàng chờ hoàn tất", result));
     }
 
     private void handleLeadList(HttpServletRequest request, HttpServletResponse response, long user) throws Exception {
@@ -378,6 +640,26 @@ public class LeadServlet extends HttpServlet {
         var body = JsonParser.parseString(new String(chars, 0, size));
         if (!body.isJsonObject()) throw new IllegalArgumentException("Body phải là JSON object");
         return body.getAsJsonObject();
+    }
+
+    private String readBodyString(HttpServletRequest request) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = request.getReader()) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+        return sb.toString();
+    }
+
+    private String normalizePath(String pathInfo) {
+        if (pathInfo == null || pathInfo.isBlank()) return "";
+        String p = pathInfo.trim();
+        while (p.endsWith("/") && p.length() > 1) {
+            p = p.substring(0, p.length() - 1);
+        }
+        return p;
     }
 
     private void unsupported(HttpServletResponse resp, String allow) throws IOException {

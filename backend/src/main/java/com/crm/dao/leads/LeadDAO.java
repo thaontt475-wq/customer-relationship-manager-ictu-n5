@@ -2,6 +2,7 @@ package com.crm.dao.leads;
 
 import com.crm.config.DatabaseConfig;
 import com.crm.dto.leads.LeadWriteRequest;
+import com.crm.dto.leads.SalesRepDTO;
 import com.crm.model.leads.Lead;
 import com.crm.service.permissions.DataScopeContext;
 
@@ -40,6 +41,11 @@ public class LeadDAO {
                 owner_user_id BIGINT NULL,
                 created_by BIGINT NULL,
                 import_batch_hash VARCHAR(64) NULL,
+                region VARCHAR(100) NULL DEFAULT 'Miền Bắc (Hà Nội)',
+                region_code VARCHAR(50) NULL DEFAULT 'NORTH',
+                industry VARCHAR(100) NULL DEFAULT 'ALL',
+                title VARCHAR(150) NULL DEFAULT 'Khách hàng tiềm năng',
+                unassigned_reason VARCHAR(255) NULL,
                 is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -64,6 +70,11 @@ public class LeadDAO {
             ensureColumnExists(conn, "owner_user_id", "BIGINT NULL");
             ensureColumnExists(conn, "created_by", "BIGINT NULL");
             ensureColumnExists(conn, "import_batch_hash", "VARCHAR(64) NULL");
+            ensureColumnExists(conn, "region", "VARCHAR(100) NULL DEFAULT 'Miền Bắc (Hà Nội)'");
+            ensureColumnExists(conn, "region_code", "VARCHAR(50) NULL DEFAULT 'NORTH'");
+            ensureColumnExists(conn, "industry", "VARCHAR(100) NULL DEFAULT 'ALL'");
+            ensureColumnExists(conn, "title", "VARCHAR(150) NULL DEFAULT 'Khách hàng tiềm năng'");
+            ensureColumnExists(conn, "unassigned_reason", "VARCHAR(255) NULL");
             ensureColumnExists(conn, "is_deleted", "TINYINT(1) NOT NULL DEFAULT 0");
         } catch (SQLException e) {
             System.err.println("Notice: LeadDAO ensureTableExists check: " + e.getMessage());
@@ -191,8 +202,9 @@ public class LeadDAO {
         String sql = """
             INSERT INTO leads (
                 full_name, company_name, email, phone, source, status,
-                notes, form_id, ip_address, assigned_to, is_deleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                notes, form_id, ip_address, assigned_to, is_deleted,
+                region, region_code, industry, title, unassigned_reason
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -213,6 +225,11 @@ public class LeadDAO {
                 ps.setNull(10, Types.BIGINT);
             }
             ps.setBoolean(11, lead.isDeleted());
+            ps.setString(12, lead.getRegion() != null ? lead.getRegion() : "Miền Bắc (Hà Nội)");
+            ps.setString(13, lead.getRegionCode() != null ? lead.getRegionCode() : "NORTH");
+            ps.setString(14, lead.getIndustry() != null ? lead.getIndustry() : "ALL");
+            ps.setString(15, lead.getTitle() != null ? lead.getTitle() : "Khách hàng tiềm năng");
+            ps.setString(16, lead.getUnassignedReason());
 
             int affectedRows = ps.executeUpdate();
             if (affectedRows == 0) {
@@ -248,6 +265,15 @@ public class LeadDAO {
             }
         }
         return null;
+    }
+
+    public Lead findById(long id) {
+        try {
+            return findById((Long) id);
+        } catch (SQLException e) {
+            System.err.println("Error fetching lead by id: " + e.getMessage());
+            return null;
+        }
     }
 
     /**
@@ -320,6 +346,190 @@ public class LeadDAO {
         return 0;
     }
 
+    // --- S4-06: Lead Auto-Assignment Methods ---
+
+    public List<Lead> findUnassignedOrPendingQueue() {
+        String sql = "SELECT * FROM leads WHERE (status = 'PENDING_ASSIGNMENT' OR assigned_to IS NULL) " +
+                "AND is_deleted = 0 ORDER BY created_at DESC";
+        List<Lead> leads = new ArrayList<>();
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                leads.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching pending lead queue: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return leads;
+    }
+
+    public List<Lead> findAll(int page, int size, String status, String source) {
+        StringBuilder sql = new StringBuilder("SELECT * FROM leads WHERE is_deleted = 0");
+        List<Object> params = new ArrayList<>();
+
+        if (status != null && !status.isBlank()) {
+            sql.append(" AND status = ?");
+            params.add(status.trim());
+        }
+        if (source != null && !source.isBlank()) {
+            sql.append(" AND source = ?");
+            params.add(source.trim());
+        }
+
+        sql.append(" ORDER BY created_at DESC LIMIT ? OFFSET ?");
+        int offset = Math.max(0, (page - 1) * size);
+        params.add(size);
+        params.add(offset);
+
+        List<Lead> leads = new ArrayList<>();
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    leads.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching leads: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return leads;
+    }
+
+    public int count(String status, String source) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM leads WHERE is_deleted = 0");
+        List<Object> params = new ArrayList<>();
+
+        if (status != null && !status.isBlank()) {
+            sql.append(" AND status = ?");
+            params.add(status.trim());
+        }
+        if (source != null && !source.isBlank()) {
+            sql.append(" AND source = ?");
+            params.add(source.trim());
+        }
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error counting leads: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public boolean updateAssignment(Connection conn, long leadId, Long assignedTo, String status, String reason) throws SQLException {
+        String sql = "UPDATE leads SET assigned_to = ?, status = ?, unassigned_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (assignedTo != null) {
+                ps.setLong(1, assignedTo);
+            } else {
+                ps.setNull(1, Types.BIGINT);
+            }
+            ps.setString(2, status != null ? status : "ASSIGNED");
+            ps.setString(3, reason);
+            ps.setLong(4, leadId);
+
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean updateAssignment(long leadId, Long assignedTo, String status, String reason) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return updateAssignment(conn, leadId, assignedTo, status, reason);
+        } catch (SQLException e) {
+            System.err.println("Error updating lead assignment: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<SalesRepDTO> getSalesRepsWithWorkload() {
+        Map<String, SalesRepDTO> repsMap = new LinkedHashMap<>();
+
+        // Standard reps configured in the CRM sales team
+        repsMap.put("USR-101", new SalesRepDTO("USR-101", "Nguyễn Văn Hùng", "NH", "Senior Sales B2B", "Phòng Kinh doanh Miền Bắc", "NORTH", 8, 25, true));
+        repsMap.put("USR-102", new SalesRepDTO("USR-102", "Trần Thu Hà", "TH", "Chuyên viên Bất động sản", "Phòng Kinh doanh Miền Bắc", "NORTH", 14, 25, true));
+        repsMap.put("USR-103", new SalesRepDTO("USR-103", "Lê Hoàng Cường", "LC", "Trưởng nhóm Sales Miền Trung", "Chi nhánh Đà Nẵng", "CENTRAL", 6, 20, true));
+        repsMap.put("USR-104", new SalesRepDTO("USR-104", "Phạm Thu Dung", "PD", "Senior Sales Enterprise", "Phòng Kinh doanh Miền Nam", "SOUTH", 12, 25, true));
+        repsMap.put("USR-105", new SalesRepDTO("USR-105", "Vũ Hải Đăng", "VĐ", "Chuyên viên Giải pháp CNTT", "Phòng Kinh doanh Miền Nam", "SOUTH", 9, 25, true));
+        repsMap.put("USR-106", new SalesRepDTO("USR-106", "Đỗ Minh Tuấn", "MT", "Key Account Manager", "Khối Khách hàng Lớn (VIP)", "NATIONWIDE", 5, 15, true));
+
+        // Query database users and teams to enrich or add dynamic reps
+        String sql = "SELECT u.id, u.full_name, u.email, t.name as team_name " +
+                "FROM users u " +
+                "LEFT JOIN teams t ON u.team_id = t.id " +
+                "WHERE u.status = 'ACTIVE'";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                long uId = rs.getLong("id");
+                String idKey = String.valueOf(uId);
+                String fullName = rs.getString("full_name");
+                String teamName = rs.getString("team_name");
+                if (teamName == null) teamName = "Phòng Kinh doanh";
+
+                String initials = getInitials(fullName);
+                SalesRepDTO rep = new SalesRepDTO(
+                        idKey,
+                        fullName,
+                        initials,
+                        "Chuyên viên Kinh doanh",
+                        teamName,
+                        "NATIONWIDE",
+                        0,
+                        25,
+                        true
+                );
+                repsMap.putIfAbsent(idKey, rep);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error querying active users for sales reps: " + e.getMessage());
+        }
+
+        // Count current leads assigned to each rep
+        String countSql = "SELECT assigned_to, COUNT(*) as cnt FROM leads WHERE assigned_to IS NOT NULL AND is_deleted = 0 GROUP BY assigned_to";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(countSql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                long assignedTo = rs.getLong("assigned_to");
+                int cnt = rs.getInt("cnt");
+                String key = String.valueOf(assignedTo);
+                if (repsMap.containsKey(key)) {
+                    repsMap.get(key).setCurrentLeads(cnt);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error querying lead counts: " + e.getMessage());
+        }
+
+        return new ArrayList<>(repsMap.values());
+    }
+
     private Lead mapRow(ResultSet rs) throws SQLException {
         Lead lead = new Lead();
         lead.setId(rs.getLong("id"));
@@ -344,18 +554,57 @@ public class LeadDAO {
             long assigned = rs.getLong("assigned_to");
             if (!rs.wasNull()) {
                 lead.setAssignedTo(assigned);
+                lead.setAssignedToRepId(String.valueOf(assigned));
             }
         } catch (Exception e) {
             String val = rs.getString("assigned_to");
             if (val != null) {
                 try {
-                    lead.setAssignedTo(Long.parseLong(val.trim()));
+                    long assigned = Long.parseLong(val.trim());
+                    lead.setAssignedTo(assigned);
+                    lead.setAssignedToRepId(String.valueOf(assigned));
                 } catch (NumberFormatException ignored) {}
             }
         }
+
         lead.setDeleted(rs.getBoolean("is_deleted"));
         lead.setCreatedAt(rs.getTimestamp("created_at"));
         lead.setUpdatedAt(rs.getTimestamp("updated_at"));
+
+        try {
+            lead.setRegion(rs.getString("region"));
+            lead.setRegionCode(rs.getString("region_code"));
+            lead.setIndustry(rs.getString("industry"));
+            lead.setTitle(rs.getString("title"));
+            lead.setUnassignedReason(rs.getString("unassigned_reason"));
+        } catch (SQLException ignored) {}
+
+        if (lead.getCreatedAt() != null) {
+            lead.setTimeAgo(calculateTimeAgo(lead.getCreatedAt().getTime()));
+        }
+
         return lead;
+    }
+
+    private Lead mapResultSetToLead(ResultSet rs) throws SQLException {
+        return mapRow(rs);
+    }
+
+    private String calculateTimeAgo(long timeMillis) {
+        long diff = System.currentTimeMillis() - timeMillis;
+        long minutes = diff / (60 * 1000);
+        if (minutes < 1) return "Vừa xong";
+        if (minutes < 60) return minutes + " phút trước";
+        long hours = minutes / 60;
+        if (hours < 24) return hours + " giờ trước";
+        long days = hours / 24;
+        return days + " ngày trước";
+    }
+
+    private String getInitials(String name) {
+        if (name == null || name.isBlank()) return "NV";
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
     }
 }
