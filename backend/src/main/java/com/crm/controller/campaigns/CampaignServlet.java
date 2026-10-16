@@ -25,13 +25,20 @@ import java.util.NoSuchElementException;
 public class CampaignServlet extends HttpServlet {
 
     private final CampaignService campaignService;
+    @FunctionalInterface public interface ScopeResolver { com.crm.service.permissions.DataScopeContext resolve(long user,String action) throws java.sql.SQLException; }
+    private final ScopeResolver scopes;
+    private final com.crm.dao.campaigns.CampaignOpportunityDAO opportunities = new com.crm.dao.campaigns.CampaignOpportunityDAO();
 
     public CampaignServlet() {
         this(new CampaignService());
     }
 
     public CampaignServlet(CampaignService campaignService) {
+        this(campaignService,(user,action)->new com.crm.service.permissions.DataScopeService().resolve(user,"campaign",action));
+    }
+    public CampaignServlet(CampaignService campaignService, ScopeResolver scopes) {
         this.campaignService = campaignService;
+        this.scopes = scopes;
     }
 
     @Override
@@ -41,7 +48,41 @@ public class CampaignServlet extends HttpServlet {
             ResponseUtil.json(resp, 401, ApiResponse.error("Chưa đăng nhập", null));
             return;
         }
-        super.service(req, resp);
+        try {
+            long user=((Number)session.getAttribute("userId")).longValue();
+            String path=req.getPathInfo(),method=req.getMethod();
+            boolean collection=path==null || path.equals("/");
+            String action="GET".equals(method)?"read":collection?"create":path.contains("opportunities")?"opportunity_manage":path.contains("leads")?"lead_manage":"DELETE".equals(method)?"delete":"update";
+            var scope=scopes.resolve(user,action);
+            req.setAttribute("campaignScope",scope);
+            if(!collection && path.matches("/\\d+.*")) {
+                var campaign=campaignService.getById(parseFirstId(path));
+                if(!scope.canAccessOwner(campaign.getOwnerId()==null?0:campaign.getOwnerId())) throw new SecurityException("Chiến dịch nằm ngoài phạm vi dữ liệu");
+            }
+            if(path!=null && path.matches("/\\d+/(available-opportunities|opportunities)(/\\d+)?/?")) {
+                long campaign=parseFirstId(path);
+                Object data;
+                if("GET".equals(method)) data=opportunities.list(campaign,path.contains("available-"),scope);
+                else if("POST".equals(method) && path.matches("/\\d+/opportunities/?")) {
+                    var body=JsonUtil.getGson().fromJson(req.getReader(),com.google.gson.JsonObject.class);
+                    if(body==null || !body.has("opportunityIds") || !body.get("opportunityIds").isJsonArray()) throw new IllegalArgumentException("Thiếu opportunityIds");
+                    java.util.List<Long> ids=new java.util.ArrayList<>();
+                    for(var id:body.getAsJsonArray("opportunityIds")) {
+                        if(!id.isJsonPrimitive() || !id.getAsJsonPrimitive().isNumber() || !id.getAsString().matches("[1-9][0-9]*")) throw new IllegalArgumentException("ID cơ hội không hợp lệ");
+                        ids.add(id.getAsLong());
+                    }
+                    data=Map.of("linkedCount",opportunities.link(campaign,ids,scope));
+                } else if("DELETE".equals(method) && path.matches("/\\d+/opportunities/\\d+/?")) {
+                    long id=Long.parseLong(path.replaceAll("/+$","").substring(path.lastIndexOf('/')+1));
+                    opportunities.unlink(campaign,id,scope);data=Map.of("removed",true);
+                } else { resp.setHeader("Allow","GET, POST, DELETE");ResponseUtil.json(resp,405,ApiResponse.error("Sai phương thức",null));return; }
+                ResponseUtil.json(resp,"POST".equals(method)?201:200,ApiResponse.success("Liên kết cơ hội chiến dịch",data));return;
+            }
+            super.service(req, resp);
+        } catch(SecurityException e) { ResponseUtil.json(resp,403,ApiResponse.error(e.getMessage(),null)); }
+        catch(NoSuchElementException e) { ResponseUtil.json(resp,404,ApiResponse.error(e.getMessage(),null)); }
+        catch(IllegalArgumentException | com.google.gson.JsonParseException e) { ResponseUtil.json(resp,400,ApiResponse.error("Dữ liệu yêu cầu không hợp lệ",null)); }
+        catch(java.sql.SQLException e) { log("Campaign operation failed",e);ResponseUtil.json(resp,500,ApiResponse.error("Không thể xử lý chiến dịch",null)); }
     }
 
     @Override
@@ -57,7 +98,7 @@ public class CampaignServlet extends HttpServlet {
                 int page = intParam(req, "page", 1);
                 int size = intParam(req, "size", 20);
 
-                var result = campaignService.search(keyword, status, page, size);
+                var result = campaignService.search((com.crm.service.permissions.DataScopeContext)req.getAttribute("campaignScope"),keyword, status, page, size);
                 ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách chiến dịch thành công", result));
                 return;
             }

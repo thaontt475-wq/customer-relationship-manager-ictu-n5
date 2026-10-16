@@ -53,6 +53,12 @@ public class CampaignService {
         return result;
     }
 
+    public Map<String,Object> search(com.crm.service.permissions.DataScopeContext scope,String keyword,String status,int page,int size) throws SQLException {
+        if(page<1 || size<1 || size>100) throw new IllegalArgumentException("Phân trang không hợp lệ");
+        int total=campaignDAO.countTotal(keyword,status,scope);
+        return Map.of("items",campaignDAO.findPaged(keyword,status,(page-1)*size,size,scope),"pagination",Map.of("page",page,"size",size,"totalItems",total,"totalPages",(int)Math.ceil((double)total/size)));
+    }
+
     public Campaign getById(long id) throws SQLException {
         Campaign campaign = campaignDAO.findById(id);
         if (campaign == null) {
@@ -66,7 +72,8 @@ public class CampaignService {
 
         Campaign c = new Campaign();
         mapFields(c, req);
-        c.setOwnerId(req.getOwnerId() != null ? req.getOwnerId() : currentUserId);
+        if(req.getOwnerId()!=null && req.getOwnerId()!=currentUserId) throw new SecurityException("Không được giả mạo chủ sở hữu chiến dịch");
+        c.setOwnerId(currentUserId);
 
         return campaignDAO.insert(c);
     }

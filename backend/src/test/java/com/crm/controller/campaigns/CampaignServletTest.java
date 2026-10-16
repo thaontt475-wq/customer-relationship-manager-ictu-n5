@@ -35,6 +35,8 @@ class CampaignServletTest {
     void setUp() {
         mockService = new CampaignService() {
             @Override
+            public Map<String,Object> search(com.crm.service.permissions.DataScopeContext scope,String keyword,String status,int page,int size) { return search(keyword,status,page,size); }
+            @Override
             public Map<String, Object> search(String keyword, String status, int page, int size) {
                 Map<String, Object> res = new HashMap<>();
                 res.put("items", List.of(createDummyCampaign(1L, "CAMP-01", "Chiến dịch 1")));
@@ -95,7 +97,7 @@ class CampaignServletTest {
             }
         };
 
-        servlet = new CampaignServlet(mockService);
+        servlet = new CampaignServlet(mockService,(user,action)->new com.crm.service.permissions.DataScopeContext(user,"campaign",com.crm.service.permissions.ScopeType.ALL,null,Set.of()));
     }
 
     private Campaign createDummyCampaign(long id, String code, String name) {
@@ -147,6 +149,13 @@ class CampaignServletTest {
         JsonObject json = output.toString().isBlank() ? new JsonObject()
                 : JsonUtil.getGson().fromJson(output.toString(), JsonObject.class);
         return new Result(status[0], json);
+    }
+
+    @Test
+    void rejectsMissingCampaignPermissionBeforeBusinessLogic() throws Exception {
+        servlet=new CampaignServlet(mockService,(u,a)->{throw new SecurityException("Denied");});
+        assertEquals(403,request("POST",null,"{}",true).status);
+        assertEquals(403,request("GET",null,null,true).status);
     }
 
     @Test

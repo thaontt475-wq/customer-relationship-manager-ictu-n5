@@ -8,14 +8,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CampaignDAO {
+    protected Connection open() throws SQLException { return DatabaseConfig.getConnection(); }
 
     public List<Campaign> findPaged(String keyword, String status, int offset, int limit) throws SQLException {
+        return findPaged(keyword,status,offset,limit,null);
+    }
+    public List<Campaign> findPaged(String keyword,String status,int offset,int limit,com.crm.service.permissions.DataScopeContext scope) throws SQLException {
         List<Campaign> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
             SELECT c.*, u.full_name AS owner_name,
-                   (SELECT COUNT(*) FROM campaign_leads cl WHERE cl.campaign_id = c.id) AS lead_count
+                   (SELECT COUNT(*) FROM campaign_leads cl WHERE cl.campaign_id = c.id) AS lead_count,
+                   COALESCE(cm.opportunity_count,0) AS opportunity_count,
+                   COALESCE(cm.won_revenue,0) AS won_revenue
             FROM campaigns c
             LEFT JOIN users u ON u.id = c.owner_id
+            LEFT JOIN (SELECT co.campaign_id,COUNT(*) AS opportunity_count,
+                SUM(CASE WHEN o.status='WON' THEN o.amount ELSE 0 END) AS won_revenue
+                FROM campaign_opportunities co JOIN opportunities o ON o.id=co.opportunity_id
+                WHERE o.is_deleted=0 GROUP BY co.campaign_id) cm ON cm.campaign_id=c.id
             WHERE c.is_deleted = 0
         """);
 
@@ -30,11 +40,12 @@ public class CampaignDAO {
             params.add(status.trim());
         }
 
+        if(scope!=null) scope.appendOwnerPredicate("c.owner_id",sql,params);
         sql.append(" ORDER BY c.id DESC LIMIT ? OFFSET ?");
         params.add(limit);
         params.add(offset);
 
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
@@ -49,7 +60,10 @@ public class CampaignDAO {
     }
 
     public int countTotal(String keyword, String status) throws SQLException {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM campaigns WHERE is_deleted = 0");
+        return countTotal(keyword,status,null);
+    }
+    public int countTotal(String keyword,String status,com.crm.service.permissions.DataScopeContext scope) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM campaigns c WHERE is_deleted = 0");
         List<Object> params = new ArrayList<>();
         if (keyword != null && !keyword.isBlank()) {
             sql.append(" AND (name LIKE ? OR code LIKE ?)");
@@ -61,7 +75,8 @@ public class CampaignDAO {
             params.add(status.trim());
         }
 
-        try (Connection conn = DatabaseConfig.getConnection();
+        if(scope!=null) scope.appendOwnerPredicate("c.owner_id",sql,params);
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
@@ -78,12 +93,18 @@ public class CampaignDAO {
     public Campaign findById(long id) throws SQLException {
         String sql = """
             SELECT c.*, u.full_name AS owner_name,
-                   (SELECT COUNT(*) FROM campaign_leads cl WHERE cl.campaign_id = c.id) AS lead_count
+                   (SELECT COUNT(*) FROM campaign_leads cl WHERE cl.campaign_id = c.id) AS lead_count,
+                   COALESCE(cm.opportunity_count,0) AS opportunity_count,
+                   COALESCE(cm.won_revenue,0) AS won_revenue
             FROM campaigns c
             LEFT JOIN users u ON u.id = c.owner_id
+            LEFT JOIN (SELECT co.campaign_id,COUNT(*) AS opportunity_count,
+                SUM(CASE WHEN o.status='WON' THEN o.amount ELSE 0 END) AS won_revenue
+                FROM campaign_opportunities co JOIN opportunities o ON o.id=co.opportunity_id
+                WHERE o.is_deleted=0 GROUP BY co.campaign_id) cm ON cm.campaign_id=c.id
             WHERE c.id = ? AND c.is_deleted = 0
         """;
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -98,7 +119,7 @@ public class CampaignDAO {
     public boolean existsByCode(String code, Long excludeId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM campaigns WHERE code = ? AND is_deleted = 0"
                 + (excludeId != null ? " AND id <> ?" : "");
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, code);
             if (excludeId != null) {
@@ -115,7 +136,7 @@ public class CampaignDAO {
             INSERT INTO campaigns(code, name, type, status, start_date, end_date, budget, actual_cost, expected_revenue, description, owner_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, c.getCode());
             ps.setString(2, c.getName());
@@ -146,7 +167,7 @@ public class CampaignDAO {
                 budget = ?, actual_cost = ?, expected_revenue = ?, description = ?
             WHERE id = ? AND is_deleted = 0
         """;
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, c.getCode());
             ps.setString(2, c.getName());
@@ -166,7 +187,7 @@ public class CampaignDAO {
 
     public boolean softDelete(long id) throws SQLException {
         String sql = "UPDATE campaigns SET is_deleted = 1 WHERE id = ?";
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, id);
             return ps.executeUpdate() > 0;
@@ -194,6 +215,8 @@ public class CampaignDAO {
         c.setOwnerId(rs.getLong("owner_id"));
         c.setOwnerName(rs.getString("owner_name"));
         c.setLeadCount(rs.getInt("lead_count"));
+        c.setOpportunityCount(rs.getInt("opportunity_count"));
+        c.setWonRevenue(rs.getBigDecimal("won_revenue"));
         c.setDeleted(rs.getBoolean("is_deleted"));
 
         Timestamp createdAt = rs.getTimestamp("created_at");

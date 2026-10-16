@@ -469,5 +469,12 @@
 <script src="js/shared-shell.js?v=20261014_v3"></script>
 <script src="js/ui-core.js"></script>
 <script src="js/ui-effects.js"></script>
+<dialog id="campaignOpportunityDialog" style="max-width:900px;width:90%;padding:24px;border-radius:12px">
+<h2>Cơ hội của chiến dịch</h2><p>Số liệu được tính từ cơ hội thực; chỉ trạng thái WON được cộng vào giá trị đã chốt.</p>
+<p id="campaignOpportunityError" role="alert"></p>
+<table class="crm-table"><thead><tr><th>Liên kết</th><th>Cơ hội</th><th>Trạng thái</th><th>Giá trị</th><th>Thao tác</th></tr></thead><tbody id="campaignOpportunityRows"></tbody></table>
+<button type="button" id="campaignOpportunitySave" onclick="linkCampaignOpportunities()">Liên kết cơ hội đã chọn</button>
+<button type="button" onclick="document.getElementById('campaignOpportunityDialog').close()">Đóng</button>
+</dialog>
 </body>
 </html>

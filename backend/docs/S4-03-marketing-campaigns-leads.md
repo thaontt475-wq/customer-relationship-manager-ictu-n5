@@ -83,3 +83,17 @@ Tất cả các API được bảo vệ bởi phiên đăng nhập (`userId` tro
 Tất cả các bài kiểm thử tự động cho module Campaign đều vượt qua 100%:
 - `CampaignValidationTest`: 6/6 tests PASS (kiểm tra toàn bộ nghiệp vụ kiểm tra dữ liệu đầu vào).
 - `CampaignServletTest`: 12/12 tests PASS (kiểm tra đầy đủ hợp đồng API, phân quyền, HTTP status code và payload JSON).
+# QA correction — 2026-10-16
+
+Campaign requests now require action-specific database permissions and campaign SELF/TEAM/ALL scope. Collection search/count share the same owner predicate; detail and mutations check campaign ownership. Creating a campaign cannot spoof another owner.
+
+Apply `027_s4_03_campaign_opportunities.sql` after migration 024 and the Opportunity foundation. It uses the selected schema, creates `campaign_opportunities(campaign_id, opportunity_id)`, and seeds campaign permissions/scopes without inserting demo business data.
+
+- `GET /api/campaigns/{id}/opportunities`: linked opportunities in scope.
+- `GET /api/campaigns/{id}/available-opportunities`: eligible opportunities in scope.
+- `POST /api/campaigns/{id}/opportunities`: JSON `{"opportunityIds":[1,2]}`; requires `campaign.opportunity_manage`; returns `data.linkedCount` (201).
+- `DELETE /api/campaigns/{id}/opportunities/{opportunityId}`: removes the relation (200).
+- Campaign list/detail include `leadCount`, `opportunityCount`, and decimal `wonRevenue`. Only non-deleted Opportunities with the existing business status `WON` contribute to wonRevenue; OPEN/LOST and deleted rows do not.
+- Linking locks the campaign and source opportunities in a transaction. Invalid, missing or out-of-scope IDs abort the whole batch; duplicate links cannot inflate counts.
+
+Frontend exposes an Opportunity modal and reads these metrics directly from Campaign API responses. Regression covers permission denial, scoped list/count, aggregate correctness, duplicate linking, rollback and real browser/MySQL persistence. Existing migration 024 still contains historical demo seeds; review that separately when planning the combined Sprint 4 migration. No automatic merge is authorized.
