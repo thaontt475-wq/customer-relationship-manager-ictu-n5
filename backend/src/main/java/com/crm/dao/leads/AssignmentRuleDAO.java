@@ -177,14 +177,12 @@ public class AssignmentRuleDAO {
         }
     }
 
-    public boolean updatePointerAndStats(long ruleId, int nextIndex, Long repUserId) {
+    public boolean updatePointerAndStats(Connection conn, long ruleId, int nextIndex, Long repUserId) throws SQLException {
         String sql = "UPDATE lead_assignment_rules SET last_assigned_index = ?, " +
                 "total_assigned = total_assigned + 1, " +
                 "last_assigned_user_id = ? WHERE id = ?";
 
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, nextIndex);
             if (repUserId != null) {
                 ps.setLong(2, repUserId);
@@ -194,6 +192,12 @@ public class AssignmentRuleDAO {
             ps.setLong(3, ruleId);
 
             return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean updatePointerAndStats(long ruleId, int nextIndex, Long repUserId) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return updatePointerAndStats(conn, ruleId, nextIndex, repUserId);
         } catch (SQLException e) {
             System.err.println("Error updating assignment pointer and stats: " + e.getMessage());
             e.printStackTrace();

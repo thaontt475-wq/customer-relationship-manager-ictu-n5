@@ -327,34 +327,28 @@
         },
 
         async saveAssignmentRules(rules) {
+            if (window.CrmApi) {
+                const data = await window.CrmApi.request("/api/leads/assignment-rules", {
+                    method: "POST",
+                    body: JSON.stringify(rules)
+                });
+                if (data && Array.isArray(data)) {
+                    assignmentRules = data;
+                }
+                saveRules(false);
+                return assignmentRules;
+            }
             assignmentRules = rules;
             saveRules(false);
-            try {
-                if (window.CrmApi) {
-                    const data = await window.CrmApi.request("/api/leads/assignment-rules", {
-                        method: "POST",
-                        body: JSON.stringify(rules)
-                    });
-                    if (data && Array.isArray(data)) {
-                        assignmentRules = data;
-                    }
-                }
-            } catch (err) {
-                console.warn("[CRM-120 API] POST /api/leads/assignment-rules unavailable.", err);
-            }
             return assignmentRules;
         },
 
         async assignLeadManual(leadId, repId, note) {
-            try {
-                if (window.CrmApi) {
-                    await window.CrmApi.request("/api/leads/assign", {
-                        method: "POST",
-                        body: JSON.stringify({ leadId: String(leadId), repId, note })
-                    });
-                }
-            } catch (err) {
-                console.warn("[CRM-120 API] POST /api/leads/assign unavailable.", err);
+            if (window.CrmApi) {
+                return await window.CrmApi.request("/api/leads/assign", {
+                    method: "POST",
+                    body: JSON.stringify({ leadId: String(leadId), repId, note })
+                });
             }
         },
 
@@ -1054,7 +1048,7 @@
         dom.selectedRepsCount.textContent = `(Đã chọn ${count} nhân viên)`;
     }
 
-    function saveRuleFromModal() {
+    async function saveRuleFromModal() {
         const name = dom.ruleName ? dom.ruleName.value.trim() : "";
         const region = dom.ruleRegion ? dom.ruleRegion.value : "NORTH";
         const industry = dom.ruleIndustry ? dom.ruleIndustry.value : "ALL";
@@ -1081,9 +1075,10 @@
         }
 
         const ruleId = dom.ruleId ? dom.ruleId.value : "";
+        const clonedRules = JSON.parse(JSON.stringify(assignmentRules));
 
         if (ruleId) {
-            const rule = assignmentRules.find(r => String(r.id) === String(ruleId));
+            const rule = clonedRules.find(r => String(r.id) === String(ruleId));
             if (rule) {
                 rule.name = name;
                 rule.region = region;
@@ -1094,7 +1089,6 @@
                 rule.description = description;
                 rule.isActive = isActive;
             }
-            showToast(`✨ Đã cập nhật quy tắc "${name}" thành công!`, "success");
         } else {
             const newRule = {
                 id: `RULE-${Date.now().toString().slice(-4)}`,
@@ -1109,16 +1103,38 @@
                 totalAssigned: 0,
                 lastAssignedIndex: 0
             };
-            assignmentRules.push(newRule);
-            showToast(`✨ Đã tạo quy tắc mới "${name}" thành công!`, "success");
+            clonedRules.push(newRule);
         }
 
-        // Re-index priorities
-        assignmentRules.sort((a, b) => a.priority - b.priority);
-        saveRules();
-        closeRuleModal();
-        updateKpis();
-        renderRulesTable();
+        clonedRules.sort((a, b) => a.priority - b.priority);
+
+        const saveBtn = dom.btnSaveRule;
+        const origText = saveBtn ? saveBtn.innerHTML : "";
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...`;
+        }
+
+        try {
+            await window.LeadAssignmentService.saveAssignmentRules(clonedRules);
+
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = origText;
+            }
+
+            closeRuleModal();
+            updateKpis();
+            renderRulesTable();
+            showToast(`✨ Đã ${ruleId ? "cập nhật" : "tạo mới"} quy tắc "${name}" thành công!`, "success");
+        } catch (err) {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = origText;
+            }
+            console.error("Save rule error:", err);
+            showToast("Lỗi khi lưu quy tắc: " + (err.message || err), "error");
+        }
     }
 
     // 14. MODALS: MANUAL ASSIGN MODAL
