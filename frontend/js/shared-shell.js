@@ -801,6 +801,23 @@
                 }
             }
 
+            // CRM-116: Ensure Manual Lead Creation & Excel Bulk Import is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-manual-import.html" || m.name === "LEAD_MANUAL_IMPORT")) {
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                const leadManualItem = {
+                    name: "LEAD_MANUAL_IMPORT",
+                    label: "Tạo & Nhập Lead (CRM-116)",
+                    path: "lead-manual-import.html",
+                    icon: "import",
+                    section: "workspace"
+                };
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, leadManualItem);
+                } else {
+                    currentMenu.push(leadManualItem);
+                }
+            }
+
             renderUser();
 
 

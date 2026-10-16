@@ -1,16 +1,22 @@
 package com.crm.dao.leads;
 
 import com.crm.config.DatabaseConfig;
+import com.crm.dto.leads.LeadWriteRequest;
 import com.crm.model.leads.Lead;
+import com.crm.service.permissions.DataScopeContext;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.temporal.TemporalAccessor;
+import java.util.*;
 
 public class LeadDAO {
 
     public LeadDAO() {
         ensureTableExists();
+    }
+
+    public Connection open() throws SQLException {
+        return DatabaseConfig.getConnection();
     }
 
     /**
@@ -44,10 +50,13 @@ public class LeadDAO {
              Statement stmt = conn.createStatement()) {
             stmt.execute(createTableSql);
 
-            // Ensure columns notes, form_id, ip_address exist (in case table was previously created with minimal columns)
+            // Ensure columns notes, form_id, ip_address, assigned_to, is_deleted exist
             ensureColumnExists(conn, "notes", "TEXT NULL");
+            ensureColumnExists(conn, "source", "VARCHAR(50) NULL DEFAULT 'WEB_FORM'");
             ensureColumnExists(conn, "form_id", "VARCHAR(100) NULL");
             ensureColumnExists(conn, "ip_address", "VARCHAR(50) NULL");
+            ensureColumnExists(conn, "assigned_to", "BIGINT NULL");
+            ensureColumnExists(conn, "is_deleted", "TINYINT(1) NOT NULL DEFAULT 0");
         } catch (SQLException e) {
             System.err.println("Notice: LeadDAO ensureTableExists check: " + e.getMessage());
         }
@@ -66,6 +75,88 @@ public class LeadDAO {
         } catch (SQLException ignored) {
         }
     }
+
+    // --- S4-02: Lead Manual & Excel Import Methods ---
+
+    public List<Map<String, Object>> sources(Connection c, boolean lock) throws SQLException {
+        String query = "SELECT id,code,name FROM master_data WHERE type='lead-source' AND active=TRUE ORDER BY id" + (lock ? " FOR SHARE" : "");
+        List<Map<String, Object>> result = new ArrayList<>();
+        try (PreparedStatement p = c.prepareStatement(query); ResultSet r = p.executeQuery()) {
+            while (r.next()) {
+                result.add(Map.of("id", r.getLong("id"), "code", r.getString("code"), "name", r.getString("name")));
+            }
+        }
+        return result;
+    }
+
+    public long insert(Connection c, LeadWriteRequest lead, long user, String batch) throws SQLException {
+        try (PreparedStatement p = c.prepareStatement("""
+            INSERT INTO leads(full_name,company_name,email,phone,source_id,notes,status,owner_user_id,created_by,import_batch_hash)
+            VALUES (?,?,?,?,?,?,'NEW',?,?,?)
+            """, Statement.RETURN_GENERATED_KEYS)) {
+            p.setString(1, lead.fullName());
+            p.setString(2, lead.companyName());
+            p.setString(3, lead.email());
+            p.setString(4, lead.phone());
+            p.setLong(5, lead.sourceId());
+            p.setString(6, lead.notes());
+            p.setLong(7, user);
+            p.setLong(8, user);
+            p.setString(9, batch);
+            p.executeUpdate();
+            try (ResultSet keys = p.getGeneratedKeys()) {
+                if (!keys.next()) throw new SQLException("Missing Lead generated key");
+                return keys.getLong(1);
+            }
+        }
+    }
+
+    public Map<String, Object> get(Connection c, long id, DataScopeContext scope) throws SQLException {
+        StringBuilder query = new StringBuilder("""
+            SELECT l.id,l.full_name AS fullName,l.company_name AS companyName,l.email,l.phone,l.source_id AS sourceId,
+            s.code AS sourceCode,s.name AS sourceName,l.notes,l.status,l.owner_user_id AS ownerUserId,
+            l.created_by AS createdBy,l.created_at AS createdAt
+            FROM leads l JOIN master_data s ON s.id=l.source_id WHERE l.id=?
+            """);
+        List<Object> values = new ArrayList<>();
+        values.add(id);
+        scope.appendOwnerPredicate("l.owner_user_id", query, values);
+        try (PreparedStatement p = c.prepareStatement(query.toString())) {
+            for (int i = 0; i < values.size(); i++) p.setObject(i + 1, values.get(i));
+            try (ResultSet r = p.executeQuery()) {
+                if (!r.next()) return null;
+                Map<String, Object> result = new LinkedHashMap<>();
+                for (int i = 1; i <= r.getMetaData().getColumnCount(); i++) {
+                    Object value = r.getObject(i);
+                    result.put(r.getMetaData().getColumnLabel(i), value instanceof Timestamp date ? date.toLocalDateTime().toString() :
+                            value instanceof TemporalAccessor ? value.toString() : value);
+                }
+                return result;
+            }
+        }
+    }
+
+    public Long receiptOwner(Connection c, String hash) throws SQLException {
+        try (PreparedStatement p = c.prepareStatement("SELECT owner_user_id FROM lead_import_batches WHERE token_hash=?")) {
+            p.setString(1, hash);
+            try (ResultSet r = p.executeQuery()) {
+                return r.next() ? r.getLong(1) : null;
+            }
+        }
+    }
+
+    public void receipt(Connection c, String hash, long user, int total, int success, int failure) throws SQLException {
+        try (PreparedStatement p = c.prepareStatement("INSERT INTO lead_import_batches(token_hash,owner_user_id,total_rows,success_count,failure_count) VALUES (?,?,?,?,?)")) {
+            p.setString(1, hash);
+            p.setLong(2, user);
+            p.setInt(3, total);
+            p.setInt(4, success);
+            p.setInt(5, failure);
+            p.executeUpdate();
+        }
+    }
+
+    // --- S4-01: Web Form Lead Capture Methods ---
 
     /**
      * Inserts a new lead into database.
@@ -91,7 +182,7 @@ public class LeadDAO {
             ps.setString(8, lead.getFormId());
             ps.setString(9, lead.getIpAddress());
             if (lead.getAssignedTo() != null) {
-                ps.setLong(10, lead.getAssignedTo());
+                ps.setObject(10, lead.getAssignedTo());
             } else {
                 ps.setNull(10, Types.BIGINT);
             }
@@ -137,7 +228,7 @@ public class LeadDAO {
      * Lists leads with pagination and optional status filter.
      */
     public List<Lead> findAll(int page, int size, String status, String source,
-            com.crm.service.permissions.DataScopeContext scope) throws SQLException {
+            DataScopeContext scope) throws SQLException {
         List<Lead> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM leads WHERE is_deleted = 0");
         List<Object> params = new ArrayList<>();
@@ -175,7 +266,7 @@ public class LeadDAO {
      * Counts leads with optional filters.
      */
     public int count(String status, String source,
-            com.crm.service.permissions.DataScopeContext scope) throws SQLException {
+            DataScopeContext scope) throws SQLException {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM leads WHERE is_deleted = 0");
         List<Object> params = new ArrayList<>();
 
@@ -223,9 +314,18 @@ public class LeadDAO {
             lead.setIpAddress(rs.getString("ip_address"));
         } catch (SQLException ignored) {}
 
-        long assigned = rs.getLong("assigned_to");
-        if (!rs.wasNull()) {
-            lead.setAssignedTo(assigned);
+        try {
+            long assigned = rs.getLong("assigned_to");
+            if (!rs.wasNull()) {
+                lead.setAssignedTo(assigned);
+            }
+        } catch (Exception e) {
+            String val = rs.getString("assigned_to");
+            if (val != null) {
+                try {
+                    lead.setAssignedTo(Long.parseLong(val.trim()));
+                } catch (NumberFormatException ignored) {}
+            }
         }
         lead.setDeleted(rs.getBoolean("is_deleted"));
         lead.setCreatedAt(rs.getTimestamp("created_at"));
