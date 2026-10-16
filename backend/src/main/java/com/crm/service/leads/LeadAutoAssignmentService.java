@@ -145,7 +145,7 @@ public class LeadAutoAssignmentService {
         // 3. Fallback / Pending Queue: Lead did not match any active rules
         leadDAO.updateAssignment(lead.getId(), null, "PENDING_ASSIGNMENT", "Chưa khớp quy tắc phân bổ tự động nào");
         lead.setStatus("PENDING_ASSIGNMENT");
-        lead.setAssignedTo(null);
+        lead.setAssignedTo((Long) null);
         lead.setUnassignedReason("Chưa khớp quy tắc phân bổ tự động nào");
         return false;
     }

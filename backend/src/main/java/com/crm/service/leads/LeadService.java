@@ -222,7 +222,10 @@ public class LeadService {
         lead.setFormId(formId);
         lead.setIpAddress(clientIp);
 
-        return dao.insert(lead);
+        long id = dao.insert(lead);
+        lead.setId(id);
+        Lead created = dao.findById(id);
+        return created != null ? created : lead;
     }
 
     /**
