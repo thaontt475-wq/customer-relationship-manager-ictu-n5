@@ -86,6 +86,12 @@
             settings:
                 `<i class="fa-solid fa-gear"></i>`,
 
+            lead:
+                `<i class="fa-solid fa-bullhorn"></i>`,
+
+            bullhorn:
+                `<i class="fa-solid fa-bullhorn"></i>`,
+
             bell:
                 `<i class="fa-solid fa-bell"></i>`,
 
@@ -775,6 +781,23 @@
                     currentMenu.splice(supportIndex + 1, 0, careItem);
                 } else {
                     currentMenu.push(careItem);
+                }
+            }
+
+            // CRM-113 (S4-01): Ensure Lead Capture from Website Form is in workspace menu
+            if (!currentMenu.some(m => m.path === "lead-capture-manager.html" || m.name === "LEAD_CAPTURE")) {
+                const pipelineIndex = currentMenu.findIndex(m => m.path === "pipeline.html");
+                const leadItem = {
+                    name: "LEAD_CAPTURE",
+                    label: "Thu thập Lead (CRM-113)",
+                    path: "lead-capture-manager.html",
+                    icon: "bullhorn",
+                    section: "workspace"
+                };
+                if (pipelineIndex !== -1) {
+                    currentMenu.splice(pipelineIndex + 1, 0, leadItem);
+                } else {
+                    currentMenu.push(leadItem);
                 }
             }
 
