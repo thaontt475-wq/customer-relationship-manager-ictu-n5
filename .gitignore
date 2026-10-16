@@ -10,6 +10,7 @@ frontend/node_modules/
 
 # Never publish database dumps, local backups, or credentials
 database-backups/
+*backup*/
 *.backup
 *.constructor-backup
 *.sql.bak
