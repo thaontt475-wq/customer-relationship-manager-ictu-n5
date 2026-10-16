@@ -86,12 +86,6 @@
             settings:
                 `<i class="fa-solid fa-gear"></i>`,
 
-            lead:
-                `<i class="fa-solid fa-bullhorn"></i>`,
-
-            bullhorn:
-                `<i class="fa-solid fa-bullhorn"></i>`,
-
             bell:
                 `<i class="fa-solid fa-bell"></i>`,
 
@@ -99,7 +93,31 @@
                 `<i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>`,
 
             sun:
-                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`
+                `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
+
+            lead:
+                `<i class="fa-solid fa-users-viewfinder"></i>`,
+
+            filter:
+                `<i class="fa-solid fa-filter"></i>`,
+
+            campaign:
+                `<i class="fa-solid fa-bullhorn"></i>`,
+
+            merge:
+                `<i class="fa-solid fa-code-merge"></i>`,
+
+            scoring:
+                `<i class="fa-solid fa-star-half-stroke"></i>`,
+
+            assignment:
+                `<i class="fa-solid fa-user-plus"></i>`,
+
+            sla:
+                `<i class="fa-solid fa-stopwatch"></i>`,
+
+            convert:
+                `<i class="fa-solid fa-arrow-right-arrow-left"></i>`
         };
 
         return icons[name] || `<i class="fa-solid fa-circle-notch"></i>`;
@@ -784,20 +802,24 @@
                 }
             }
 
-            // CRM-113 (S4-01): Ensure Lead Capture from Website Form is in workspace menu
-            if (!currentMenu.some(m => m.path === "lead-capture-manager.html" || m.name === "LEAD_CAPTURE")) {
-                const pipelineIndex = currentMenu.findIndex(m => m.path === "pipeline.html");
-                const leadItem = {
-                    name: "LEAD_CAPTURE",
-                    label: "Thu thập Lead (CRM-113)",
-                    path: "lead-capture-manager.html",
-                    icon: "bullhorn",
-                    section: "workspace"
-                };
-                if (pipelineIndex !== -1) {
-                    currentMenu.splice(pipelineIndex + 1, 0, leadItem);
-                } else {
-                    currentMenu.push(leadItem);
+            // SPRINT 4 INTEGRATION: Unified Lead & Marketing Menu Items
+            const s4MenuItems = [
+                { name: "LEADS", label: "Quản lý Lead (Leads)", path: "leads.html", icon: "lead", section: "workspace" },
+                { name: "LEAD_IMPORT", label: "Nhập Lead & Excel", path: "lead-manual-import.html", icon: "import", section: "workspace" },
+                { name: "CAMPAIGNS", label: "Chiến dịch Marketing", path: "campaigns.html", icon: "campaign", section: "workspace" },
+                { name: "LEAD_DUPLICATES", label: "Kiểm tra trùng & Gộp Lead", path: "lead-duplicates.html", icon: "merge", section: "workspace" },
+                { name: "LEAD_SCORING", label: "Chấm điểm Lead (Scoring)", path: "lead-scoring.html", icon: "scoring", section: "workspace" },
+                { name: "LEAD_ASSIGNMENT", label: "Phân bổ Lead tự động", path: "lead-assignment.html", icon: "assignment", section: "workspace" },
+                { name: "LEAD_SLA", label: "Tiếp nhận Lead & SLA", path: "lead-sla-response.html", icon: "sla", section: "workspace" },
+                { name: "LEAD_CONVERSION", label: "Chuyển đổi Lead", path: "lead-conversion.html", icon: "convert", section: "workspace" }
+            ];
+
+            const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+            let insertIndex = customerIndex !== -1 ? customerIndex : currentMenu.length;
+
+            for (const item of s4MenuItems) {
+                if (!currentMenu.some(m => m.path === item.path || m.name === item.name)) {
+                    currentMenu.splice(insertIndex++, 0, item);
                 }
             }
 

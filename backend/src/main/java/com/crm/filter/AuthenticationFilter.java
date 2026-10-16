@@ -26,6 +26,8 @@ public class AuthenticationFilter
 
         String uri =
                 req.getRequestURI();
+        String ctx =
+                req.getContextPath() != null ? req.getContextPath() : "";
 
         if (
                 uri.endsWith(
@@ -38,10 +40,11 @@ public class AuthenticationFilter
                         "/api/auth/reset-password"
                 ) ||
                 ("POST".equalsIgnoreCase(req.getMethod()) &&
-                        (uri.equals(req.getContextPath() + "/api/leads") ||
-                         uri.equals(req.getContextPath() + "/api/leads/web-form"))) ||
+                        (uri.equals(ctx + "/api/leads") ||
+                         uri.equals(ctx + "/api/leads/") ||
+                         uri.equals(ctx + "/api/leads/web-form"))) ||
                 ("GET".equalsIgnoreCase(req.getMethod()) &&
-                        uri.equals(req.getContextPath() + "/api/leads/health")) ||
+                        uri.equals(ctx + "/api/leads/health")) ||
                 "OPTIONS".equalsIgnoreCase(
                         req.getMethod()
                 )
