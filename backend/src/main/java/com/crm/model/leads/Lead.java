@@ -18,8 +18,12 @@ public class Lead {
     private Integer score;
     private String notes;
     private String status;
+    private String formId;
+    private String ipAddress;
     private Long ownerUserId;
-    private String assignedTo;
+    private Long assignedTo;
+    private String assignedToStr;
+    private String assignedToRepId;
     private Long assignedToUserId;
     private Timestamp assignedAt;
     private Integer slaTotalMinutes;
@@ -34,11 +38,25 @@ public class Lead {
     private String contactingStage;
     private String unassignedReason;
     private boolean isLocked;
+    private boolean isDeleted;
     private Long createdBy;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String timeAgo;
 
-    public Lead() {}
+    public Lead() {
+        this.status = "NEW";
+        this.source = "WEB_FORM";
+    }
+
+    public Lead(String fullName, String email, String phone, String companyName, String notes) {
+        this();
+        this.fullName = fullName;
+        this.email = email;
+        this.phone = phone;
+        this.companyName = companyName;
+        this.notes = notes;
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -85,14 +103,71 @@ public class Lead {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    public String getFormId() { return formId; }
+    public void setFormId(String formId) { this.formId = formId; }
+
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+
     public Long getOwnerUserId() { return ownerUserId; }
     public void setOwnerUserId(Long ownerUserId) { this.ownerUserId = ownerUserId; }
 
-    public String getAssignedTo() { return assignedTo; }
-    public void setAssignedTo(String assignedTo) { this.assignedTo = assignedTo; }
+    public Long getAssignedTo() {
+        if (assignedTo != null) return assignedTo;
+        if (assignedToUserId != null) return assignedToUserId;
+        return null;
+    }
 
-    public Long getAssignedToUserId() { return assignedToUserId; }
-    public void setAssignedToUserId(Long assignedToUserId) { this.assignedToUserId = assignedToUserId; }
+    public void setAssignedTo(Long assignedTo) {
+        this.assignedTo = assignedTo;
+        if (assignedTo != null) {
+            this.assignedToUserId = assignedTo;
+            this.assignedToStr = "USR-" + assignedTo;
+            this.assignedToRepId = String.valueOf(assignedTo);
+        } else {
+            this.assignedToStr = null;
+            this.assignedToRepId = null;
+        }
+    }
+
+    public void setAssignedTo(String assignedTo) {
+        this.assignedToStr = assignedTo;
+        if (assignedTo != null) {
+            this.assignedToRepId = assignedTo;
+            try {
+                long uid = Long.parseLong(assignedTo.replace("USR-", "").trim());
+                this.assignedTo = uid;
+                this.assignedToUserId = uid;
+            } catch (Exception ignored) {}
+        } else {
+            this.assignedTo = null;
+            this.assignedToRepId = null;
+        }
+    }
+
+    public String getAssignedToStr() {
+        if (assignedToStr != null) return assignedToStr;
+        if (assignedTo != null) return "USR-" + assignedTo;
+        if (assignedToRepId != null) return assignedToRepId;
+        return null;
+    }
+
+    public String getAssignedToRepId() { return assignedToRepId; }
+    public void setAssignedToRepId(String assignedToRepId) { this.assignedToRepId = assignedToRepId; }
+
+    public Long getAssignedToUserId() {
+        if (assignedToUserId != null) return assignedToUserId;
+        if (assignedTo != null) return assignedTo;
+        return null;
+    }
+    public void setAssignedToUserId(Long assignedToUserId) {
+        this.assignedToUserId = assignedToUserId;
+        if (assignedToUserId != null && this.assignedTo == null) {
+            this.assignedTo = assignedToUserId;
+            this.assignedToRepId = String.valueOf(assignedToUserId);
+            this.assignedToStr = "USR-" + assignedToUserId;
+        }
+    }
 
     public Timestamp getAssignedAt() { return assignedAt; }
     public void setAssignedAt(Timestamp assignedAt) { this.assignedAt = assignedAt; }
@@ -133,6 +208,9 @@ public class Lead {
     public boolean isLocked() { return isLocked; }
     public void setLocked(boolean locked) { isLocked = locked; }
 
+    public boolean isDeleted() { return isDeleted; }
+    public void setDeleted(boolean deleted) { isDeleted = deleted; }
+
     public Long getCreatedBy() { return createdBy; }
     public void setCreatedBy(Long createdBy) { this.createdBy = createdBy; }
 
@@ -141,4 +219,7 @@ public class Lead {
 
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Timestamp updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getTimeAgo() { return timeAgo; }
+    public void setTimeAgo(String timeAgo) { this.timeAgo = timeAgo; }
 }

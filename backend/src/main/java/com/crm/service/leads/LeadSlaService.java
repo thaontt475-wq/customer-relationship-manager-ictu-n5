@@ -144,7 +144,7 @@ public class LeadSlaService {
 
                 // AC2: Lead returns to pending assignment queue
                 lead.setStatus("PENDING_ASSIGNMENT");
-                lead.setAssignedTo(null);
+                lead.setAssignedTo((Long) null);
                 lead.setAssignedToUserId(null);
                 lead.setRejectedAt(now);
                 lead.setRejectReason(reason);
