@@ -129,6 +129,14 @@ SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA =
 SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN unassigned_reason VARCHAR(255) NULL', 'SELECT 1');
 PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
 
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'owner_user_id');
+SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN owner_user_id BIGINT NULL', 'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+SET @col = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'created_by');
+SET @sql = IF(@col = 0, 'ALTER TABLE leads ADD COLUMN created_by BIGINT NULL', 'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
 CREATE TABLE IF NOT EXISTS lead_assignment_history (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     lead_id BIGINT NULL,
