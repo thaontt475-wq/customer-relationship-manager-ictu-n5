@@ -104,11 +104,14 @@
             sun:
                 `<i class="fa-solid fa-sun theme-icon-sun" aria-hidden="true"></i>`,
 
+            lead:
+                `<i class="fa-solid fa-users-viewfinder"></i>`,
+
+            filter:
+                `<i class="fa-solid fa-filter"></i>`,
+
             convert:
                 `<i class="fa-solid fa-arrows-split-up-and-left"></i>`,
-
-            lead:
-                `<i class="fa-solid fa-user-plus"></i>`,
 
             sla:
                 `<i class="fa-solid fa-stopwatch"></i>`,
@@ -722,6 +725,7 @@
             { name: "DASHBOARD", label: "Tổng quan", path: "dashboard.html", icon: "dashboard", section: "workspace" },
             { name: "CUSTOMERS", label: "Khách hàng", path: "customers.html", icon: "customer", section: "workspace" },
             { name: "CONTACTS", label: "Người liên hệ", path: "contacts.html", icon: "contact", section: "workspace" },
+            { name: "LEADS", label: "Quản lý Lead", path: "leads.html", icon: "lead", section: "workspace" },
             { name: "PIPELINE", label: "Cơ hội & Pipeline", path: "pipeline.html", icon: "opportunity", section: "workspace" },
             { name: "CAMPAIGNS", label: "Chiến dịch & Lead", path: "campaigns.html", icon: "campaign", section: "workspace" },
             { name: "LEAD_SLA_RESPONSE", label: "Tiếp nhận Lead SLA", path: "lead-sla-response.html", icon: "sla", section: "workspace" },
@@ -854,6 +858,23 @@
                 }
             }
 
+            // CRM-123: Ensure Lead Management & Saved Filters (S4-09) item is in workspace menu
+            if (!currentMenu.some(m => m.path === "leads.html" || m.name === "LEADS")) {
+                const leadItem = {
+                    name: "LEADS",
+                    label: "Quản lý Lead (CRM-123)",
+                    path: "leads.html",
+                    icon: "lead",
+                    section: "workspace"
+                };
+                const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
+                if (customerIndex !== -1) {
+                    currentMenu.splice(customerIndex + 1, 0, leadItem);
+                } else {
+                    currentMenu.push(leadItem);
+                }
+            }
+
             // CRM-122: Ensure Lead Conversion (3-in-1: Customer, Contact, Opportunity) item is in workspace menu
             if (!currentMenu.some(m => m.path === "lead-conversion.html" || m.name === "LEAD_CONVERSION")) {
                 const leadItem = {
@@ -865,7 +886,7 @@
                 };
                 const customerIndex = currentMenu.findIndex(m => m.path === "customers.html");
                 if (customerIndex !== -1) {
-                    currentMenu.splice(customerIndex, 0, leadItem);
+                    currentMenu.splice(customerIndex + 1, 0, leadItem);
                 } else {
                     currentMenu.push(leadItem);
                 }
