@@ -270,19 +270,71 @@ public class LeadConversionDAO {
         }
     }
 
-    public void insertAuditLog(Connection c, long userId, String action, String entityType, long entityId, String details) {
+    public int transferLeadActivitiesToCustomer(Connection c, long leadId, long customerId, Long opportunityId, long currentUserId, String leadNotes) throws SQLException {
+        if (c == null) return 0;
+        int count = 0;
+        try {
+            // 1. Relink existing activities associated with the lead to customer and opportunity
+            String relinkSql = """
+                    UPDATE activities SET
+                        customer_id = ?,
+                        opportunity_id = COALESCE(opportunity_id, ?)
+                    WHERE lead_id = ? AND is_deleted = 0
+                    """;
+            try (PreparedStatement stmt = c.prepareStatement(relinkSql)) {
+                if (stmt != null) {
+                    stmt.setLong(1, customerId);
+                    stmt.setObject(2, opportunityId, Types.BIGINT);
+                    stmt.setLong(3, leadId);
+                    count += stmt.executeUpdate();
+                }
+            }
+
+            // 2. Transfer lead notes to customer activity timeline if notes exist
+            if (leadNotes != null && !leadNotes.isBlank()) {
+                String insertNoteSql = """
+                        INSERT INTO activities (
+                            subject, type, description, status, customer_id, opportunity_id, lead_id, owner_user_id, is_deleted
+                        ) VALUES (?, 'NOTE', ?, 'COMPLETED', ?, ?, ?, ?, 0)
+                        """;
+                try (PreparedStatement stmt = c.prepareStatement(insertNoteSql)) {
+                    if (stmt != null) {
+                        stmt.setString(1, "Ghi chú từ Lead (chuyển đổi)");
+                        stmt.setString(2, leadNotes.trim());
+                        stmt.setLong(3, customerId);
+                        stmt.setObject(4, opportunityId, Types.BIGINT);
+                        stmt.setLong(5, leadId);
+                        stmt.setLong(6, currentUserId);
+                        count += stmt.executeUpdate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            // If activities table does not exist in isolated test environments, ignore, otherwise propagate
+            if (!"42S02".equals(e.getSQLState()) && e.getErrorCode() != 1146) {
+                throw e;
+            }
+        }
+        return count;
+    }
+
+    public void insertAuditLog(Connection c, long userId, String action, String entityType, long entityId, String description) throws SQLException {
         if (c == null) return;
-        String sql = "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, details) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO audit_logs (user_id, action, entity_type, entity_id, description) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = c.prepareStatement(sql)) {
-            if (stmt == null) return;
-            stmt.setLong(1, userId);
-            stmt.setString(2, action);
-            stmt.setString(3, entityType);
-            stmt.setLong(4, entityId);
-            stmt.setString(5, details);
-            stmt.executeUpdate();
-        } catch (SQLException ignored) {
-            // Audit log table might be absent in some test setups
+            if (stmt != null) {
+                stmt.setLong(1, userId);
+                stmt.setString(2, action);
+                stmt.setString(3, entityType);
+                stmt.setString(4, String.valueOf(entityId));
+                stmt.setString(5, description);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            // If table does not exist in mock test setup, pass, otherwise propagate so transaction aborts
+            if (!"42S02".equals(e.getSQLState()) && e.getErrorCode() != 1146) {
+                throw e;
+            }
         }
     }
 

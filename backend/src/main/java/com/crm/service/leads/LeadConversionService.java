@@ -102,9 +102,14 @@ public class LeadConversionService {
                 String customerInfo;
 
                 if ("MERGE_EXISTING".equalsIgnoreCase(request.customerMode)) {
+                    DataScopeContext customerScope = scopeResolver.resolve(currentUserId, "customer", "update");
                     Map<String, Object> existing = dao.findCustomerById(conn, request.existingCustomerId);
                     if (existing == null) {
                         throw new NoSuchElementException("Không tìm thấy khách hàng được chọn để gộp.");
+                    }
+                    long customerOwnerId = existing.get("ownerUserId") instanceof Number n ? n.longValue() : 0L;
+                    if (!customerScope.canAccessOwner(customerOwnerId)) {
+                        throw new SecurityException("Bạn không có quyền thao tác trên Khách hàng được chọn để gộp");
                     }
                     customerId = ((Number) existing.get("id")).longValue();
                     customerName = (String) existing.get("name");
@@ -143,14 +148,18 @@ public class LeadConversionService {
                 // 7. Update Lead as Converted & Locked
                 dao.updateLeadAsConverted(conn, leadId, currentUserId, customerId, contactId, dealId);
 
-                // 8. Record Conversion History & Audit Logs
+                // 8. Transfer and relink activities to Customer timeline
+                String leadNotes = (String) lead.get("notes");
+                dao.transferLeadActivitiesToCustomer(conn, leadId, customerId, dealId, currentUserId, leadNotes);
+
+                // 9. Record Conversion History & Audit Logs
                 String payloadJson = JsonUtil.getGson().toJson(request);
                 String snapshotJson = JsonUtil.getGson().toJson(lead);
                 dao.insertConversionHistory(conn, leadId, customerId, contactId, dealId, currentUserId, request.customerMode, payloadJson, snapshotJson);
                 dao.insertAuditLog(conn, currentUserId, "CONVERT", "LEAD", leadId,
                         "Chuyển đổi thành công: Customer #" + customerId + ", Contact #" + contactId + (dealId != null ? ", Deal #" + dealId : ""));
 
-                // 9. Commit transaction
+                // 10. Commit transaction
                 conn.commit();
 
                 // 10. Assemble return result
