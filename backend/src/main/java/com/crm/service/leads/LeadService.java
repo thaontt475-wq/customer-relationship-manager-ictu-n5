@@ -1,9 +1,9 @@
 package com.crm.service.leads;
 
-import com.crm.config.DatabaseConfig;
 import com.crm.dao.leads.LeadDAO;
 import com.crm.dto.leads.EmbedCodeResponse;
 import com.crm.dto.leads.LeadFilterRequest;
+import com.crm.dto.leads.LeadValidationException;
 import com.crm.dto.leads.LeadWriteRequest;
 import com.crm.dto.leads.WebFormLeadRequest;
 import com.crm.model.leads.Lead;
@@ -52,7 +52,6 @@ public class LeadService {
     private final LeadDAO dao;
     private final ScopeResolver scopes;
     private final ScoringHook scoring;
-    private final DataScopeService dataScopeService;
 
     public LeadService() {
         this(new LeadDAO());
@@ -78,7 +77,6 @@ public class LeadService {
         this.dao = dao;
         this.scopes = scopes != null ? scopes : (u, a) -> (dataScopeService != null ? dataScopeService : new DataScopeService()).resolve(u, "lead", a);
         this.scoring = scoring != null ? scoring : NO_SCORING;
-        this.dataScopeService = dataScopeService != null ? dataScopeService : new DataScopeService();
     }
 
     public LeadDAO getLeadDAO() {
@@ -97,13 +95,14 @@ public class LeadService {
     }
 
     public Map<String, Object> create(long user, LeadWriteRequest request) throws Exception {
-        scopes.resolve(user, "create");
+        authorizeCreate(user);
+        LeadWriteRequest lead = LeadValidation.normalize(request);
         try (Connection c = dao.open()) {
             c.setAutoCommit(false);
             try {
-                requireSource(request, dao.sources(c, true));
+                requireSource(lead, dao.sources(c, true));
                 scoring.beforeCreate(c);
-                long id = dao.insert(c, request, user, null);
+                long id = dao.insert(c, lead, user, null);
                 scoring.scoreCreated(c, id);
                 c.commit();
                 DataScopeContext readScope = scopes.resolve(user, "read");
@@ -118,33 +117,24 @@ public class LeadService {
     }
 
     public Map<String, Object> get(long user, long id) throws Exception {
+        if (id <= 0) throw new IllegalArgumentException("ID Lead phải dương");
         DataScopeContext scope = scopes.resolve(user, "read");
         try (Connection c = dao.open()) {
-            Map<String, Object> row = dao.get(c, id, scope, false);
-            if (row == null) {
-                // If lead exists but forbidden by scope -> 403 SecurityException
-                Map<String, Object> unrestricted = dao.get(c, id, null, false);
-                if (unrestricted != null) {
-                    throw new SecurityException("Bạn không có quyền truy cập dữ liệu");
-                }
-            }
-            return row;
+            return dao.get(c, id, scope);
         }
     }
 
     public Map<String, Object> update(long user, long id, LeadWriteRequest request) throws Exception {
-        scopes.resolve(user, "update");
+        if (id <= 0) throw new IllegalArgumentException("ID Lead phải dương");
+        DataScopeContext scope = scopes.resolve(user, "update");
+        LeadWriteRequest lead = LeadValidation.normalize(request);
         try (Connection c = dao.open()) {
             c.setAutoCommit(false);
             try {
-                DataScopeContext scope = scopes.resolve(user, "read");
+                scoring.beforeCreate(c);
                 Map<String, Object> existing = dao.get(c, id, scope, true);
                 if (existing == null) {
-                    Map<String, Object> unrestricted = dao.get(c, id, null, false);
-                    if (unrestricted != null) {
-                        throw new SecurityException("Bạn không có quyền sửa dữ liệu");
-                    }
-                    return null;
+                    throw new NoSuchElementException("Không tìm thấy Lead trong phạm vi dữ liệu");
                 }
 
                 // CRM-122: Prevent modification of converted leads
@@ -153,10 +143,12 @@ public class LeadService {
                     throw new IllegalStateException("Không thể chỉnh sửa Lead đã được chuyển đổi thành khách hàng");
                 }
 
-                requireSource(request, dao.sources(c, true));
-                dao.update(c, id, request);
+                requireSource(lead, dao.sources(c, true));
+                dao.update(c, id, lead);
+                scoring.scoreCreated(c, id);
+                Map<String, Object> result = dao.get(c, id, scope, false);
                 c.commit();
-                return dao.get(c, id, scope, false);
+                return result;
             } catch (Exception e) {
                 c.rollback();
                 throw e;
@@ -167,9 +159,8 @@ public class LeadService {
     }
 
     public static void requireSource(LeadWriteRequest lead, List<Map<String, Object>> sources) {
-        boolean match = sources.stream().anyMatch(s -> Objects.equals(s.get("id"), lead.sourceId()));
-        if (!match) {
-            throw new IllegalArgumentException("Nguồn khách hàng tiềm năng không tồn tại");
+        if (sources.stream().noneMatch(s -> ((Number) s.get("id")).longValue() == lead.sourceId())) {
+            throw new LeadValidationException(List.of(new LeadValidationException.FieldError("sourceId", "Nguồn Lead không tồn tại, đã ngừng hoạt động hoặc sai loại")));
         }
     }
 

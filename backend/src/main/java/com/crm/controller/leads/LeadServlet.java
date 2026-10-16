@@ -40,7 +40,6 @@ public class LeadServlet extends HttpServlet {
     private final LeadImportService imports;
     private final IpRateLimiter rateLimiter;
     private final LeadDAO dao;
-    private final ScopeResolver scopes;
 
     private final AssignmentRuleService ruleService;
     private final LeadAutoAssignmentService autoAssignmentService;
@@ -169,7 +168,6 @@ public class LeadServlet extends HttpServlet {
         this.slaService = slaService != null ? slaService : new LeadSlaService();
         this.conversionService = conversionService != null ? conversionService : new LeadConversionService();
         this.savedFilterService = savedFilterService != null ? savedFilterService : new SavedLeadFilterService();
-        this.scopes = (user, action) -> new DataScopeService().resolve(user, "lead", action);
     }
 
     @Override
