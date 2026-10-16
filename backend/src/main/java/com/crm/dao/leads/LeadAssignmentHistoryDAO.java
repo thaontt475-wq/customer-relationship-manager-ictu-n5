@@ -9,12 +9,42 @@ import java.util.List;
 
 public class LeadAssignmentHistoryDAO {
 
-    public void insert(Connection conn, AssignmentHistory history) throws SQLException {
-        String sql = """
-            INSERT INTO lead_assignment_history
-            (lead_id, lead_name, lead_phone, company_name, rep_id, rep_name, rep_dept, method, action_type, note, assigned_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+    private static volatile Boolean actionTypeExists = null;
+
+    private static boolean checkActionTypeColumn(Connection conn) {
+        if (actionTypeExists != null) return actionTypeExists;
+        try {
+            String catalog = conn.getCatalog();
+            DatabaseMetaData md = conn.getMetaData();
+            try (ResultSet rs = md.getColumns(catalog, null, "lead_assignment_history", "action_type")) {
+                if (rs.next()) {
+                    actionTypeExists = true;
+                    return true;
+                }
+            }
+            actionTypeExists = false;
+            return false;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public long insert(Connection conn, AssignmentHistory history) throws SQLException {
+        boolean hasActionType = history.getActionType() != null && checkActionTypeColumn(conn);
+        String sql;
+        if (hasActionType) {
+            sql = """
+                INSERT INTO lead_assignment_history
+                (lead_id, lead_name, lead_phone, company_name, rep_id, rep_name, rep_dept, method, action_type, note, assigned_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+        } else {
+            sql = """
+                INSERT INTO lead_assignment_history
+                (lead_id, lead_name, lead_phone, company_name, rep_id, rep_name, rep_dept, method, note, assigned_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+        }
         try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setObject(1, history.getLeadId(), Types.BIGINT);
             stmt.setString(2, history.getLeadName());
@@ -24,28 +54,72 @@ public class LeadAssignmentHistoryDAO {
             stmt.setString(6, history.getRepName());
             stmt.setString(7, history.getRepDept());
             stmt.setString(8, history.getMethod());
-            stmt.setString(9, history.getActionType() != null ? history.getActionType() : "ASSIGN");
-            stmt.setString(10, history.getNote());
-            stmt.setTimestamp(11, history.getAssignedAt() != null ? history.getAssignedAt() : new Timestamp(System.currentTimeMillis()));
+            if (hasActionType) {
+                stmt.setString(9, history.getActionType() != null ? history.getActionType() : "ASSIGN");
+                stmt.setString(10, history.getNote());
+                stmt.setTimestamp(11, history.getAssignedAt() != null ? history.getAssignedAt() : new Timestamp(System.currentTimeMillis()));
+            } else {
+                stmt.setString(9, history.getNote());
+                stmt.setTimestamp(10, history.getAssignedAt() != null ? history.getAssignedAt() : new Timestamp(System.currentTimeMillis()));
+            }
 
-            stmt.executeUpdate();
-            try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    history.setId(rs.getLong(1));
+            int affected = stmt.executeUpdate();
+            if (affected > 0) {
+                try (ResultSet rs = stmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        long id = rs.getLong(1);
+                        history.setId(id);
+                        return id;
+                    }
                 }
             }
         }
+        return -1;
     }
 
-    public List<AssignmentHistory> findByLeadId(long leadId) throws SQLException {
+    public long insert(AssignmentHistory history) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            return insert(conn, history);
+        } catch (SQLException e) {
+            System.err.println("Error inserting lead assignment history: " + e.getMessage());
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public List<AssignmentHistory> findAll(int limit) {
+        String sql = "SELECT * FROM lead_assignment_history ORDER BY assigned_at DESC, id DESC LIMIT ?";
+        List<AssignmentHistory> list = new ArrayList<>();
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, limit > 0 ? limit : 100);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching lead assignment history: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<AssignmentHistory> findByLeadId(long leadId) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             return findByLeadId(conn, leadId);
+        } catch (SQLException e) {
+            System.err.println("Error fetching lead assignment history for lead " + leadId + ": " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 
     public List<AssignmentHistory> findByLeadId(Connection conn, long leadId) throws SQLException {
         List<AssignmentHistory> list = new ArrayList<>();
-        String sql = "SELECT * FROM lead_assignment_history WHERE lead_id = ? ORDER BY assigned_at DESC";
+        String sql = "SELECT * FROM lead_assignment_history WHERE lead_id = ? ORDER BY assigned_at DESC, id DESC";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, leadId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -60,7 +134,10 @@ public class LeadAssignmentHistoryDAO {
     private AssignmentHistory mapRow(ResultSet rs) throws SQLException {
         AssignmentHistory h = new AssignmentHistory();
         h.setId(rs.getLong("id"));
-        h.setLeadId(rs.getObject("lead_id", Long.class));
+        long leadId = rs.getLong("lead_id");
+        if (!rs.wasNull()) {
+            h.setLeadId(leadId);
+        }
         h.setLeadName(rs.getString("lead_name"));
         h.setLeadPhone(rs.getString("lead_phone"));
         h.setCompanyName(rs.getString("company_name"));
