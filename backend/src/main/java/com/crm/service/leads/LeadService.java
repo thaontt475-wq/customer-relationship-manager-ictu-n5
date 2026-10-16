@@ -116,7 +116,11 @@ public class LeadService {
             c.setAutoCommit(false);
             try {
                 scoring.beforeCreate(c);
-                if (dao.get(c, id, scope, true) == null) throw new NoSuchElementException("Không tìm thấy Lead trong phạm vi dữ liệu");
+                var existing = dao.get(c, id, scope, true);
+                if (existing == null) throw new NoSuchElementException("Không tìm thấy Lead trong phạm vi dữ liệu");
+                if ("CONVERTED".equalsIgnoreCase((String) existing.get("status")) || Boolean.TRUE.equals(existing.get("isLocked"))) {
+                    throw new IllegalStateException("Lead đã được chuyển đổi hoặc bị khóa, không thể cập nhật.");
+                }
                 requireSource(lead, dao.sources(c, true));
                 dao.update(c, id, lead);
                 scoring.scoreCreated(c, id);
