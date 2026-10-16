@@ -8,7 +8,7 @@ public class NotificationDAO {
  private static final String SELECT="""
   SELECT n.id,n.customer_id AS customerId,n.type,n.title,n.message,
    n.created_at AS createdAt,n.read_at AS readAt
-  FROM notifications n JOIN customers c ON c.id=n.customer_id
+  FROM notifications n LEFT JOIN customers c ON c.id=n.customer_id
   """;
  private List<Map<String,Object>> rows(Connection c,String sql,List<Object> args) throws SQLException {
   try(PreparedStatement p=c.prepareStatement(sql)) {
@@ -39,9 +39,36 @@ public class NotificationDAO {
    p.executeUpdate();
   }
  }
+ public boolean createLeadSlaAlert(Connection c, long recipientUserId, Long leadId, String leadName, String repName, long overdueMinutes) throws SQLException {
+  String title = "Cảnh báo quá hạn SLA phản hồi Lead";
+  String repInfo = (repName != null && !repName.isBlank()) ? "phân cho " + repName : "chưa có người xử lý";
+  String message = String.format("Lead \"%s\" (%s) đã quá hạn phản hồi SLA %d phút. Vui lòng kiểm tra và xử lý.",
+          leadName, repInfo, Math.max(0, overdueMinutes));
+  if (message.length() > 1000) message = message.substring(0, 1000);
+  String key = "LEAD_SLA_OVERDUE:" + leadId + ":" + recipientUserId;
+  String sql = leadId != null
+          ? "INSERT IGNORE INTO notifications(user_id,lead_id,type,title,message,event_key) VALUES(?,?,'LEAD_SLA_OVERDUE',?,?,?)"
+          : "INSERT IGNORE INTO notifications(user_id,type,title,message,event_key) VALUES(?,'LEAD_SLA_OVERDUE',?,?,?)";
+  try (PreparedStatement p = c.prepareStatement(sql)) {
+   int idx = 1;
+   p.setLong(idx++, recipientUserId);
+   if (leadId != null) p.setLong(idx++, leadId);
+   p.setString(idx++, title);
+   p.setString(idx++, message);
+   p.setString(idx++, key);
+   int affected = p.executeUpdate();
+   return affected > 0;
+  }
+ }
  private void ownerScope(DataScopeContext scope,StringBuilder sql,List<Object> args,long user) {
-  sql.append(" WHERE n.user_id=? AND c.is_deleted=0 AND c.status<>'DA_GOP'");args.add(user);
-  scope.appendOwnerPredicate("c.owner_user_id",sql,args);
+  sql.append(" WHERE n.user_id=? AND (n.customer_id IS NULL OR (c.is_deleted=0 AND c.status<>'DA_GOP'");
+  args.add(user);
+  StringBuilder customerPredicate = new StringBuilder();
+  List<Object> customerArgs = new ArrayList<>();
+  scope.appendOwnerPredicate("c.owner_user_id", customerPredicate, customerArgs);
+  sql.append(customerPredicate);
+  args.addAll(customerArgs);
+  sql.append("))");
  }
  public List<Map<String,Object>> list(Connection c,long user,DataScopeContext scope,int page,int size) throws SQLException {
   StringBuilder sql=new StringBuilder(SELECT);List<Object> args=new ArrayList<>();ownerScope(scope,sql,args,user);
@@ -49,7 +76,7 @@ public class NotificationDAO {
   return rows(c,sql.toString(),args);
  }
  public long unread(Connection c,long user,DataScopeContext scope) throws SQLException {
-  StringBuilder sql=new StringBuilder("SELECT COUNT(*) AS total FROM notifications n JOIN customers c ON c.id=n.customer_id");
+  StringBuilder sql=new StringBuilder("SELECT COUNT(*) AS total FROM notifications n LEFT JOIN customers c ON c.id=n.customer_id");
   List<Object> args=new ArrayList<>();ownerScope(scope,sql,args,user);sql.append(" AND n.read_at IS NULL");
   return ((Number)rows(c,sql.toString(),args).getFirst().get("total")).longValue();
  }

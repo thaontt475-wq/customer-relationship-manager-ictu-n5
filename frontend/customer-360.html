@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
 <script src="js/crm-api.js"></script>
@@ -35,15 +35,17 @@
 >
 
 <title>Khách hàng 360</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<link rel="stylesheet" href="css/design-system.css">
-<link rel="stylesheet" href="css/app-shell.css">
-<link rel="stylesheet" href="css/pages/customer-360.css">
-<link rel="stylesheet" href="css/pages/support-tickets.css">
-<link rel="stylesheet" href="css/pages/contacts.css">
-<link rel="stylesheet" href="css/pages/corporate-hierarchy.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+<link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/customer-360.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/support-tickets.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/contacts.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/pages/corporate-hierarchy.css?v=20261014_dark2">
 
-<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
@@ -200,7 +202,7 @@
                 class="quick-btn call"
                 data-quick="call"
             >
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h4l2 5-3 2c2 3 3 4 6 6l2-3 5 2v4c0 2-2 3-4 2C9 19 5 15 3 7 2 5 3 3 5 3Z"/></svg>
+                <i class="fa-solid fa-phone"></i>
                 <span>Gọi ngay</span>
             </button>
 
@@ -209,7 +211,7 @@
                 class="quick-btn email"
                 data-quick="email"
             >
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg>
+                <i class="fa-solid fa-envelope"></i>
                 <span>Gửi Email</span>
             </button>
 
@@ -218,7 +220,7 @@
                 class="quick-btn note"
                 data-quick="note"
             >
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6L16 3ZM14 5l5 5"/></svg>
+                <i class="fa-solid fa-pen-to-square"></i>
                 <span>Ghi chú</span>
             </button>
 
@@ -231,7 +233,7 @@
                 style="background:rgba(37,99,235,0.08); color:var(--crm-primary); border:1px solid rgba(37,99,235,0.25);"
                 title="Quản lý Phân cấp & Tập đoàn Mẹ - Con (CRM-65)"
             >
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M3 7v14M21 7v14M6 18h2v3H6zm8 0h2v3h-2zm-4 0h2v3h-2zm4-6h2v3h-2zm-4 0h2v3h-2zm-4 0h2v3H6zm12-5V3H6v4"/></svg>
+                <i class="fa-solid fa-sitemap"></i>
                 <span>Tập đoàn (CRM-65)</span>
             </button>
 
@@ -242,7 +244,7 @@
                 style="background:var(--crm-surface); color:var(--crm-text); border:1px solid var(--crm-border);"
                 title="Làm mới dữ liệu 360"
             >
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.19"/></svg>
+                <i class="fa-solid fa-rotate-right"></i>
                 <span>Làm mới</span>
             </button>
 
@@ -263,8 +265,8 @@
 
         <!-- Card 1: Won Deals (Tổng giá trị đã ký) -->
         <article class="c360-kpi-card kpi-won">
-            <div class="c360-kpi-icon-wrap" aria-hidden="true">
-                💰
+            <div class="c360-kpi-icon-wrap" aria-hidden="true" style="font-size:24px; color:var(--crm-success);">
+                <i class="fa-solid fa-file-signature"></i>
             </div>
             <div class="c360-kpi-body">
                 <span class="c360-kpi-label">Tổng giá trị đã ký</span>
@@ -278,8 +280,8 @@
 
         <!-- Card 2: Open Pipeline (Giá trị cơ hội đang mở) -->
         <article class="c360-kpi-card kpi-pipeline">
-            <div class="c360-kpi-icon-wrap" aria-hidden="true">
-                🎯
+            <div class="c360-kpi-icon-wrap" aria-hidden="true" style="font-size:24px; color:var(--crm-primary);">
+                <i class="fa-solid fa-bullseye"></i>
             </div>
             <div class="c360-kpi-body">
                 <span class="c360-kpi-label">Cơ hội đang mở (Pipeline)</span>
@@ -293,8 +295,8 @@
 
         <!-- Card 3: Key Contacts & Decision Makers -->
         <article class="c360-kpi-card kpi-contacts">
-            <div class="c360-kpi-icon-wrap" aria-hidden="true">
-                👥
+            <div class="c360-kpi-icon-wrap" aria-hidden="true" style="font-size:24px; color:#7c3aed;">
+                <i class="fa-solid fa-id-card"></i>
             </div>
             <div class="c360-kpi-body">
                 <span class="c360-kpi-label">Người liên hệ & Ra quyết định</span>
@@ -307,8 +309,8 @@
 
         <!-- Card 4: Activity Stream & Account Health -->
         <article class="c360-kpi-card kpi-health">
-            <div class="c360-kpi-icon-wrap" aria-hidden="true">
-                ⚡
+            <div class="c360-kpi-icon-wrap" aria-hidden="true" style="font-size:24px; color:#f59e0b;">
+                <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
             <div class="c360-kpi-body">
                 <span class="c360-kpi-label">Hoạt động tương tác</span>
@@ -334,7 +336,7 @@
             <div class="panel-header" style="margin-bottom:12px;">
 
                 <h2 style="font-size:15px; font-weight:750; color:var(--crm-text); display:flex; align-items:center; gap:8px;">
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24" style="color:var(--crm-primary);"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+                    <i class="fa-solid fa-building" style="color:var(--crm-primary); font-size:18px;"></i>
                     Hồ sơ Pháp nhân
                 </h2>
 
@@ -344,7 +346,7 @@
                     class="edit-icon"
                     title="Chỉnh sửa thông tin công ty"
                 >
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6L16 3ZM14 5l5 5"/></svg>
+                    <i class="fa-solid fa-pen-to-square"></i>
                 </button>
 
             </div>
@@ -407,7 +409,7 @@
             <div id="primaryContactQuickBox" style="margin-top:4px;">
                 <div class="c360-primary-contact-card">
                     <div class="c360-primary-contact-head">
-                        <span>⭐ Đầu mối chính (Primary)</span>
+                        <span style="display:inline-flex; align-items:center; gap:5px;"><i class="fa-solid fa-id-badge" style="color:var(--crm-primary); font-size:13.5px;"></i> Đầu mối chính (Primary)</span>
                         <span id="primaryContactRoleBadge"></span>
                     </div>
                     <div style="font-weight:700; font-size:14px; color:var(--crm-text);" id="primaryContactName">
@@ -417,8 +419,8 @@
                         —
                     </div>
                     <div style="font-size:12px; color:var(--crm-text-2); display:flex; flex-direction:column; gap:3px; margin-top:2px;">
-                        <span id="primaryContactEmail">✉ —</span>
-                        <span id="primaryContactPhone">☎ —</span>
+                        <span id="primaryContactEmail"><i class="fa-solid fa-envelope"></i> —</span>
+                        <span id="primaryContactPhone"><i class="fa-solid fa-phone"></i> —</span>
                     </div>
                 </div>
             </div>
@@ -441,7 +443,7 @@
                         aria-selected="true"
                         aria-controls="timelinePanel"
                     >
-                        <span>🕒 Dòng thời gian</span>
+                        <span><i class="fa-solid fa-clock-rotate-left" style="margin-right:5px;"></i> Dòng thời gian</span>
                         <span class="c360-tab-badge" id="badgeTimelineCount">0</span>
                     </button>
 
@@ -454,7 +456,7 @@
                         aria-selected="false"
                         aria-controls="contactsPanel"
                     >
-                        <span>👥 Người liên hệ</span>
+                        <span><i class="fa-solid fa-address-book" style="margin-right:5px;"></i> Người liên hệ</span>
                         <span class="c360-tab-badge" id="badgeContactsCount">0</span>
                     </button>
 
@@ -467,7 +469,7 @@
                         aria-selected="false"
                         aria-controls="opportunitiesPanel"
                     >
-                        <span>💼 Cơ hội bán hàng</span>
+                        <span><i class="fa-solid fa-bullseye" style="margin-right:5px;"></i> Cơ hội bán hàng</span>
                         <span class="c360-tab-badge" id="badgeOpportunitiesCount">0</span>
                     </button>
 
@@ -480,7 +482,7 @@
                         aria-selected="false"
                         aria-controls="attachmentsPanel"
                     >
-                        <span>📎 Tệp đính kèm</span>
+                        <span><i class="fa-solid fa-paperclip" style="margin-right:5px;"></i> Tệp đính kèm</span>
                         <span class="c360-tab-badge" id="badgeAttachmentsCount">0</span>
                     </button>
 
@@ -493,7 +495,7 @@
                         aria-selected="false"
                         aria-controls="ticketsPanel"
                     >
-                        <span>🎫 Phiếu hỗ trợ</span>
+                        <span><i class="fa-solid fa-ticket" style="margin-right:5px;"></i> Phiếu hỗ trợ</span>
                         <span class="c360-tab-badge" id="ticketCountBadge">0</span>
                     </button>
 
@@ -506,7 +508,7 @@
                         aria-selected="false"
                         aria-controls="hierarchyPanel"
                     >
-                        <span>🏢 Tập đoàn</span>
+                        <span><i class="fa-solid fa-sitemap" style="margin-right:5px;"></i> Tập đoàn</span>
                         <span class="c360-tab-badge" id="hierarchyBadgeCount">0</span>
                     </button>
 
@@ -525,14 +527,14 @@
 
                     <div class="composer-actions">
                         <select id="activityType" class="crm-input">
-                            <option value="note">✎ Ghi chú</option>
-                            <option value="call">☎ Cuộc gọi</option>
-                            <option value="meeting">▣ Cuộc gặp / Họp</option>
-                            <option value="email">✉ Email</option>
+                            <option value="note">Ghi chú</option>
+                            <option value="call">Cuộc gọi</option>
+                            <option value="meeting">Cuộc gặp / Họp</option>
+                            <option value="email">Email</option>
                         </select>
 
                         <button class="crm-btn crm-btn-primary" type="submit">
-                            Ghi nhận hoạt động
+                            <i class="fa-solid fa-paper-plane" style="margin-right:6px;"></i> Ghi nhận hoạt động
                         </button>
                     </div>
                 </form>
@@ -541,20 +543,20 @@
                 <div class="timeline-toolbar">
                     <div class="timeline-filter-chips" role="group" aria-label="Lọc loại hoạt động">
                         <button type="button" class="timeline-chip active" data-filter="all">Tất cả (<span id="countFilterAll">0</span>)</button>
-                        <button type="button" class="timeline-chip" data-filter="call">☎ Cuộc gọi (<span id="countFilterCall">0</span>)</button>
-                        <button type="button" class="timeline-chip" data-filter="meeting">▣ Họp (<span id="countFilterMeeting">0</span>)</button>
-                        <button type="button" class="timeline-chip" data-filter="email">✉ Email (<span id="countFilterEmail">0</span>)</button>
-                        <button type="button" class="timeline-chip" data-filter="note">✎ Ghi chú (<span id="countFilterNote">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="call"><i class="fa-solid fa-phone" style="margin-right:4px;"></i> Cuộc gọi (<span id="countFilterCall">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="meeting"><i class="fa-solid fa-handshake" style="margin-right:4px;"></i> Họp (<span id="countFilterMeeting">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="email"><i class="fa-solid fa-envelope" style="margin-right:4px;"></i> Email (<span id="countFilterEmail">0</span>)</button>
+                        <button type="button" class="timeline-chip" data-filter="note"><i class="fa-solid fa-note-sticky" style="margin-right:4px;"></i> Ghi chú (<span id="countFilterNote">0</span>)</button>
                     </div>
 
                     <div style="display:flex; align-items:center; gap:10px;">
                         <div class="timeline-search-box">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            <i class="fa-solid fa-magnifying-glass"></i>
                             <input id="timelineSearchInput" type="search" class="timeline-search-input" placeholder="Tìm theo từ khóa...">
                         </div>
 
                         <span id="timelinePerfBadge" class="timeline-perf-badge" title="Đo lường thời gian DOM render thực tế">
-                            ⚡ Render: 0ms
+                            <i class="fa-solid fa-gauge-high" style="margin-right:4px;"></i> Render: 0ms
                         </span>
                     </div>
                 </div>
@@ -642,7 +644,7 @@
                     </div>
 
                     <button type="button" id="btnOpenUploadAttachment" class="crm-btn crm-btn-primary" style="font-size:12.5px; min-height:34px;">
-                        <svg class="crm-inline-icon" viewBox="0 0 24 24" style="width:16px; height:16px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        <i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>
                         Tải lên tài liệu mới
                     </button>
                 </div>
@@ -707,7 +709,7 @@
             type="button"
             aria-label="Đóng"
         >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            <i class="fa-solid fa-xmark"></i>
         </button>
     </header>
 
@@ -821,10 +823,10 @@
 <section id="attachmentUploadModal" class="company-modal crm-card" role="dialog" aria-labelledby="modalAttachTitle" aria-modal="true">
     <header class="modal-head">
         <strong id="modalAttachTitle">
-            📎 Tải lên tệp đính kèm mới
+            <i class="fa-solid fa-paperclip" style="margin-right:6px;"></i> Tải lên tệp đính kèm mới
         </strong>
         <button id="closeAttachmentModal" type="button" aria-label="Đóng">
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            <i class="fa-solid fa-xmark"></i>
         </button>
     </header>
 
@@ -1063,7 +1065,7 @@
                         <div class="role-radio-card" data-role="DECISION_MAKER">
                             <input type="radio" name="decisionRole" value="DECISION_MAKER" id="roleDM">
                             <div class="role-radio-info">
-                                <label class="role-radio-title" for="roleDM"><span>👑 Người quyết định</span></label>
+                                <label class="role-radio-title" for="roleDM"><span><i class="fa-solid fa-crown" style="color:#d97706; margin-right:4px;"></i> Người quyết định</span></label>
                                 <div class="role-radio-desc">Có quyền duyệt ngân sách & ký hợp đồng (CEO, Chủ tịch, Giám đốc khối).</div>
                             </div>
                         </div>
@@ -1071,7 +1073,7 @@
                         <div class="role-radio-card" data-role="INFLUENCER">
                             <input type="radio" name="decisionRole" value="INFLUENCER" id="roleINF">
                             <div class="role-radio-info">
-                                <label class="role-radio-title" for="roleINF"><span>⚡ Người ảnh hưởng</span></label>
+                                <label class="role-radio-title" for="roleINF"><span><i class="fa-solid fa-bolt" style="color:#0284c7; margin-right:4px;"></i> Người ảnh hưởng</span></label>
                                 <div class="role-radio-desc">Đánh giá tiêu chuẩn chuyên môn, đề xuất hoặc tác động mạnh đến lựa chọn.</div>
                             </div>
                         </div>
@@ -1079,7 +1081,7 @@
                         <div class="role-radio-card" data-role="END_USER">
                             <input type="radio" name="decisionRole" value="END_USER" id="roleEU" checked>
                             <div class="role-radio-info">
-                                <label class="role-radio-title" for="roleEU"><span>👤 Người dùng cuối</span></label>
+                                <label class="role-radio-title" for="roleEU"><span><i class="fa-solid fa-user" style="color:#16a34a; margin-right:4px;"></i> Người dùng cuối</span></label>
                                 <div class="role-radio-desc">Vận hành trực tiếp sản phẩm hằng ngày, phản hồi trải nghiệm thực tế.</div>
                             </div>
                         </div>
@@ -1087,18 +1089,18 @@
                         <div class="role-radio-card" data-role="BLOCKER">
                             <input type="radio" name="decisionRole" value="BLOCKER" id="roleBLK">
                             <div class="role-radio-info">
-                                <label class="role-radio-title" for="roleBLK"><span style="color:var(--crm-danger);">⚠️ Người cản trở</span></label>
+                                <label class="role-radio-title" for="roleBLK"><span style="color:var(--crm-danger);"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i> Người cản trở</span></label>
                                 <div class="role-radio-desc">Có thể phản đối, siết chặt chi phí, ưu tiên giải pháp nội bộ hoặc trì hoãn đàm phán.</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-field-group" style="background:rgba(217,119,6,0.06); border:1px dashed rgba(217,119,6,0.3); border-radius:8px; padding:12px;">
+                <div class="form-field-group" style="background:rgba(37,99,235,0.05); border:1px dashed rgba(37,99,235,0.3); border-radius:8px; padding:12px;">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                         <input id="contactIsPrimary" type="checkbox" style="width:18px; height:18px;">
-                        <span style="font-weight:700; color:#b45309;">
-                            ⭐ Đặt làm Đầu mối liên hệ chính (Primary Contact) của doanh nghiệp này
+                        <span style="font-weight:700; color:var(--crm-primary);">
+                            <i class="fa-solid fa-id-badge" style="color:var(--crm-primary); margin-right:5px;"></i> Đặt làm Đầu mối liên hệ chính (Primary Contact) của doanh nghiệp này
                         </span>
                     </label>
                 </div>
@@ -1121,7 +1123,7 @@
 <div id="transferContactModal" class="contacts-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTransferTitle">
     <div class="contacts-modal">
         <header class="contacts-modal-head">
-            <h3 id="modalTransferTitle"><span>🔄 Điều chuyển công tác người liên hệ</span></h3>
+            <h3 id="modalTransferTitle"><span><i class="fa-solid fa-right-left" style="margin-right:6px;"></i> Điều chuyển công tác người liên hệ</span></h3>
             <button class="contacts-modal-close" data-close-modal type="button" aria-label="Đóng">✕</button>
         </header>
 
@@ -1144,11 +1146,11 @@
                 <input id="transferNewDepartment" type="hidden">
                 <input id="transferDate" type="hidden">
 
-                <div class="form-field-group" style="background:rgba(217,119,6,0.06); border:1px dashed rgba(217,119,6,0.3); border-radius:8px; padding:10px;">
+                <div class="form-field-group" style="background:rgba(37,99,235,0.05); border:1px dashed rgba(37,99,235,0.3); border-radius:8px; padding:10px;">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                         <input id="transferSetPrimary" type="checkbox" style="width:16px; height:16px;">
-                        <span style="font-weight:600; font-size:13px; color:#b45309;">
-                            ⭐ Đặt làm Đầu mối liên hệ chính tại công ty mới
+                        <span style="font-weight:600; font-size:13px; color:var(--crm-primary);">
+                            <i class="fa-solid fa-id-badge" style="color:var(--crm-primary); margin-right:5px;"></i> Đặt làm Đầu mối liên hệ chính tại công ty mới
                         </span>
                     </label>
                 </div>
@@ -1190,8 +1192,8 @@
 <script src="js/pages/corporate-hierarchy.js"></script>
 <script src="js/pages/customer-360.js"></script>
 
-<script src="js/theme.js"></script>
-<script src="js/shared-shell.js"></script>
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261014_v3"></script>
 <script src="js/ui-core.js"></script>
 <script src="js/page-transition.js"></script>
 <script src="js/ui-effects.js"></script>

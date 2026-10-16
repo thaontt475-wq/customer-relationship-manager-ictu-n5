@@ -7,7 +7,6 @@ import java.io.*;
 import java.net.URI;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.zip.*;
 
 /** Bounded, side-effect-free Excel parsing and field validation. */
 public class CustomerExcelReader {
@@ -36,10 +35,7 @@ public class CustomerExcelReader {
     }
 
     public List<ImportRow> read(InputStream input) throws IOException {
-        byte[] bytes=input.readNBytes(MAX_BYTES+1);
-        if(bytes.length==0) throw new IllegalArgumentException("File Excel rỗng");
-        if(bytes.length>MAX_BYTES) throw new IllegalArgumentException("File Excel tối đa 5MB");
-        checkArchive(bytes);
+        byte[] bytes=BoundedXlsx.read(input);
         try(XSSFWorkbook book=new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
             if(book.getNumberOfSheets()!=1) throw new IllegalArgumentException("File phải có đúng một worksheet Customers");
             Sheet sheet=book.getSheetAt(0);
@@ -107,25 +103,6 @@ public class CustomerExcelReader {
             return validated;
         } catch(IllegalArgumentException e) {throw e;}
         catch(Exception e) {throw new IllegalArgumentException("File .xlsx không hợp lệ hoặc bị hỏng",e);}
-    }
-
-    private void checkArchive(byte[] bytes) throws IOException {
-        long total=0;int entries=0;boolean contentTypes=false;
-        try(ZipInputStream zip=new ZipInputStream(new ByteArrayInputStream(bytes))) {
-            byte[] buffer=new byte[8192];
-            ZipEntry entry;
-            while((entry=zip.getNextEntry())!=null) {
-                if(++entries>1000) throw new IllegalArgumentException("File Excel có quá nhiều thành phần");
-                if(entry.getName().equals("[Content_Types].xml")) contentTypes=true;
-                if(entry.getName().toLowerCase(Locale.ROOT).contains("vbaproject")) throw new IllegalArgumentException("Không chấp nhận file có macro");
-                long size=0;int n;
-                while((n=zip.read(buffer))!=-1) {
-                    total+=n;size+=n;
-                    if(total>64L*1024*1024 || size>20L*1024*1024) throw new IllegalArgumentException("Nội dung giải nén Excel vượt giới hạn");
-                }
-            }
-        } catch(ZipException e) {throw new IllegalArgumentException("File .xlsx không hợp lệ",e);}
-        if(!contentTypes) throw new IllegalArgumentException("File phải có định dạng Excel .xlsx");
     }
 
     private List<String> validate(Map<String,String> v) {
