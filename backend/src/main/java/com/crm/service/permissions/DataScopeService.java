@@ -41,13 +41,28 @@ public class DataScopeService {
                 }
             }
             if (effective == null) {
-                try (PreparedStatement statement = connection.prepareStatement("SELECT data_scope FROM users WHERE id = ?")) {
+                boolean hasPermission = false;
+                try (PreparedStatement statement = connection.prepareStatement("""
+                        SELECT 1 FROM user_roles ur
+                        JOIN role_permissions rp ON rp.role_id = ur.role_id
+                        JOIN permissions p ON p.id = rp.permission_id
+                        WHERE ur.user_id = ? AND p.code = ?
+                        """)) {
                     statement.setLong(1, currentUserId);
+                    statement.setString(2, permission);
                     try (ResultSet rs = statement.executeQuery()) {
-                        if (rs.next()) {
-                            String ds = rs.getString(1);
-                            if (ds != null && !ds.isBlank()) {
-                                effective = ScopeType.valueOf(ds.trim());
+                        hasPermission = rs.next();
+                    }
+                }
+                if (hasPermission) {
+                    try (PreparedStatement statement = connection.prepareStatement("SELECT data_scope FROM users WHERE id = ?")) {
+                        statement.setLong(1, currentUserId);
+                        try (ResultSet rs = statement.executeQuery()) {
+                            if (rs.next()) {
+                                String ds = rs.getString(1);
+                                if (ds != null && !ds.isBlank()) {
+                                    effective = ScopeType.valueOf(ds.trim());
+                                }
                             }
                         }
                     }
