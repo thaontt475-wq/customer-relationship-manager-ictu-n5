@@ -1,5 +1,3 @@
-USE crm_db;
-
 -- ===================================================================
 -- S4-09 / CRM-123: Danh sách, tìm kiếm và lọc Lead & Quản lý SLA, Bộ lọc lưu sẵn
 -- ===================================================================
@@ -81,6 +79,18 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 SET @has_tax_code = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'tax_code');
 SET @sql = IF(@has_tax_code = 0, 'ALTER TABLE leads ADD COLUMN tax_code VARCHAR(50) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_is_deleted = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'is_deleted');
+SET @sql = IF(@has_is_deleted = 0, 'ALTER TABLE leads ADD COLUMN is_deleted TINYINT(1) NOT NULL DEFAULT 0', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_form_id = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'form_id');
+SET @sql = IF(@has_form_id = 0, 'ALTER TABLE leads ADD COLUMN form_id VARCHAR(100) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @has_ip_address = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'ip_address');
+SET @sql = IF(@has_ip_address = 0, 'ALTER TABLE leads ADD COLUMN ip_address VARCHAR(50) NULL', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 2. Bảng quản lý Bộ lọc lưu sẵn cho Lead (saved_lead_filters)

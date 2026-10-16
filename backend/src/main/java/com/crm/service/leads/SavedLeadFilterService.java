@@ -95,15 +95,44 @@ public class SavedLeadFilterService {
     }
 
     public boolean updateCustomFilter(SavedLeadFilter filter, long currentUserId) {
+        long filterId = parseId(filter.getId());
+        SavedLeadFilter existing = filterDAO.findById(filterId);
+        if (existing == null) {
+            throw new NoSuchElementException("Không tìm thấy bộ lọc với ID: " + filterId);
+        }
+        if (existing.getUserId() != currentUserId) {
+            throw new SecurityException("Bạn không có quyền chỉnh sửa bộ lọc của người dùng khác");
+        }
         filter.setUserId(currentUserId);
         return filterDAO.update(filter);
     }
 
     public boolean deleteCustomFilter(long filterId, long currentUserId) {
+        SavedLeadFilter existing = filterDAO.findById(filterId);
+        if (existing == null) {
+            throw new NoSuchElementException("Không tìm thấy bộ lọc với ID: " + filterId);
+        }
+        if (existing.getUserId() != currentUserId) {
+            throw new SecurityException("Bạn không có quyền xóa bộ lọc của người dùng khác");
+        }
         return filterDAO.delete(filterId, currentUserId);
     }
 
     public boolean setDefaultFilter(long filterId, long currentUserId) {
+        SavedLeadFilter existing = filterDAO.findById(filterId);
+        if (existing == null) {
+            throw new NoSuchElementException("Không tìm thấy bộ lọc với ID: " + filterId);
+        }
+        if (existing.getUserId() != currentUserId) {
+            throw new SecurityException("Bạn không có quyền đặt mặc định bộ lọc của người dùng khác");
+        }
         return filterDAO.setDefault(filterId, currentUserId);
+    }
+
+    private long parseId(Object idObj) {
+        if (idObj instanceof Number n) return n.longValue();
+        if (idObj == null) return -1;
+        String s = idObj.toString().replaceAll("[^0-9]", "");
+        return s.isEmpty() ? -1 : Long.parseLong(s);
     }
 }
