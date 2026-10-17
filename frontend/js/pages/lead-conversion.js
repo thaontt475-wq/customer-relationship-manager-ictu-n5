@@ -1272,7 +1272,7 @@
         modal.setAttribute("aria-hidden", "true");
     }
 
-    // 11. EXPORT REPORT TO CSV
+    // 11. EXPORT REPORT TO EXCEL
     function exportConversionReport() {
         const leads = LeadConversionService.getLeads();
         if (!leads.length) {
@@ -1280,31 +1280,73 @@
             return;
         }
 
-        const headers = ["Mã Lead", "Người đại diện", "Chức danh", "Công ty", "Ngành nghề", "Điểm", "Giá trị dự kiến", "Trạng thái", "Ngày chuyển đổi", "Người chuyển đổi"];
-        const rows = leads.map(l => [
-            `"${l.code}"`,
-            `"${l.fullName}"`,
-            `"${l.title || ""}"`,
-            `"${l.companyName}"`,
-            `"${l.industry || ""}"`,
-            l.score,
-            l.estimatedValue,
-            `"${l.status === "CONVERTED" ? "Đã chuyển đổi (Đã khóa)" : "Đủ điều kiện"}"`,
-            `"${l.convertedAt ? formatDateTimeVi(l.convertedAt) : ""}"`,
-            `"${l.convertedBy || ""}"`
-        ]);
+        const columns = [
+            { label: "Mã Lead", key: "code", width: 130, align: "center" },
+            { label: "Người đại diện", key: "fullName", width: 180, align: "left" },
+            { label: "Chức danh", key: "title", width: 160, align: "left" },
+            { label: "Doanh nghiệp / Tổ chức", key: "companyName", width: 220, align: "left" },
+            { label: "Ngành nghề", key: "industry", width: 150, align: "left" },
+            { label: "Điểm Lead", key: "score", width: 90, align: "center" },
+            { label: "Giá trị Dự kiến (VNĐ)", key: "estimatedValue", width: 160, isMoney: true },
+            { label: "Trạng thái", key: "statusText", width: 150, align: "center" },
+            { label: "Thời gian chuyển đổi", key: "convertedTime", width: 150, align: "center" },
+            { label: "Người phụ trách", key: "convertedBy", width: 180, align: "left" }
+        ];
 
-        const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", `Bao_Cao_Chuyen_Doi_Lead_${new Date().toISOString().split("T")[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        let totalValue = 0;
+        const formattedData = leads.map(l => {
+            const val = Number(l.estimatedValue) || 0;
+            totalValue += val;
+            return {
+                code: l.code || "",
+                fullName: l.fullName || "",
+                title: l.title || "",
+                companyName: l.companyName || "",
+                industry: l.industry || "",
+                score: l.score || 0,
+                estimatedValue: val,
+                statusText: l.status === "CONVERTED" ? "Đã chuyển đổi (Đã khóa)" : "Đủ điều kiện",
+                convertedTime: l.convertedAt ? formatDateTimeVi(l.convertedAt) : "--",
+                convertedBy: l.convertedBy || l.assignedSales || "Chưa phân bổ"
+            };
+        });
 
-        showToast("Đã xuất báo cáo chuyển đổi Lead thành công!", "success");
+        if (window.ExcelExportHelper) {
+            window.ExcelExportHelper.exportStyledExcel({
+                title: "BÁO CÁO KẾT QUẢ CHUYỂN ĐỔI LEAD & DOANH THU DỰ KIẾN",
+                filename: `Bao_Cao_Chuyen_Doi_Lead_${new Date().toISOString().split("T")[0]}.xls`,
+                meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng số: ${leads.length} Lead | NovaCRM Enterprise`,
+                columns: columns,
+                data: formattedData,
+                summary: {
+                    label: "TỔNG GIÁ TRỊ DỰ KIẾN:",
+                    mergeCols: 6,
+                    values: {
+                        estimatedValue: totalValue
+                    }
+                }
+            });
+            showToast("✓ Đã xuất tệp Excel Báo cáo chuyển đổi Lead thành công!", "success");
+        } else {
+            // Fallback
+            const headers = ["Mã Lead", "Người đại diện", "Chức danh", "Công ty", "Ngành nghề", "Điểm", "Giá trị dự kiến", "Trạng thái", "Ngày chuyển đổi", "Người chuyển đổi"];
+            const rows = leads.map(l => [
+                `"${l.code}"`, `"${l.fullName}"`, `"${l.title || ""}"`, `"${l.companyName}"`, `"${l.industry || ""}"`,
+                l.score, l.estimatedValue, `"${l.status === "CONVERTED" ? "Đã chuyển đổi" : "Đủ điều kiện"}"`,
+                `"${l.convertedAt ? formatDateTimeVi(l.convertedAt) : ""}"`, `"${l.convertedBy || ""}"`
+            ]);
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Bao_Cao_Chuyen_Doi_Lead_${new Date().toISOString().split("T")[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Đã xuất báo cáo chuyển đổi Lead thành công!", "success");
+        }
     }
+
 
     // 12. ATTACH ALL DOM EVENT LISTENERS
     function initEventHandlers() {

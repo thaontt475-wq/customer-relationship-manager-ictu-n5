@@ -374,13 +374,57 @@ document.getElementById("btnRefreshQuotes")?.addEventListener("click", async () 
     }, 500);
 });
 
-// Export to CSV/Excel
+// Export to Excel / CSV
 document.getElementById("btnExportQuotes")?.addEventListener("click", () => {
     if (!quotes.length) {
         alert("Không có dữ liệu báo giá để xuất!");
         return;
     }
 
+    if (window.ExcelExportHelper) {
+        const columns = [
+            { label: "STT", key: "stt", width: 45, align: "center" },
+            { label: "Mã Báo Giá", key: "code", width: 95, align: "center" },
+            { label: "Khách Hàng", key: "customer", width: 230, align: "left" },
+            { label: "Tổng Tiền (VNĐ)", key: "total", width: 140, isMoney: true },
+            { label: "Chiết Khấu (%)", key: "discountPercent", width: 90, align: "center" },
+            { label: "Trạng Thái", key: "statusName", width: 130, align: "center" },
+            { label: "Duyệt Giá Sàn", key: "approvalName", width: 100, align: "center" },
+            { label: "Hiệu Lực Đến", key: "validUntil", width: 100, align: "center" }
+        ];
+
+        let sumTotal = 0;
+        const exportData = quotes.map((q, idx) => {
+            const totalNum = Number(q.total) || 0;
+            sumTotal += totalNum;
+            return {
+                stt: idx + 1,
+                code: q.code || `BG-${q.id}`,
+                customer: q.customer || "Khách hàng",
+                total: totalNum,
+                discountPercent: (q.discountPercent || 0) + "%",
+                statusName: statusLabel(q.status),
+                approvalName: q.requiresApproval ? "CẦN DUYỆT" : "CHUẨN",
+                validUntil: q.validUntil || "—"
+            };
+        });
+
+        window.ExcelExportHelper.exportStyledExcel({
+            title: "NOVACRM ENTERPRISE - BẢNG KÊ DANH SÁCH BÁO GIÁ THƯƠNG MẠI",
+            filename: `Bao_Gia_NovaCRM_${new Date().toISOString().slice(0, 10)}.xls`,
+            meta: `Ngày xuất: ${new Date().toLocaleDateString('vi-VN')} | Tổng số báo giá: ${quotes.length} | Người xuất: Quản trị viên`,
+            columns: columns,
+            data: exportData,
+            summary: {
+                label: "TỔNG GIÁ TRỊ BÁO GIÁ:",
+                mergeCols: 3,
+                values: { total: sumTotal }
+            }
+        });
+        return;
+    }
+
+    // Fallback CSV
     let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
     csvContent += "Mã báo giá,Khách hàng,Tổng tiền (VNĐ),Chiết khấu (%),Trạng thái,Cần duyệt giá sàn,Hiệu lực đến\n";
 
