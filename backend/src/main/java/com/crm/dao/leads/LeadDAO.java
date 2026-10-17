@@ -146,6 +146,21 @@ public class LeadDAO {
         }
     }
 
+    private Boolean hasLeadScoresTableCache = null;
+
+    private boolean hasLeadScoresTable(Connection conn) {
+        if (Boolean.TRUE.equals(hasLeadScoresTableCache)) {
+            return true;
+        }
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT 1 FROM lead_scores WHERE 1=0")) {
+            hasLeadScoresTableCache = true;
+            return true;
+        } catch (SQLException ignored) {
+            return false;
+        }
+    }
+
     public long insert(Lead lead) {
         try (Connection conn = DatabaseConfig.getConnection()) {
             return insert(conn, lead);
@@ -290,12 +305,22 @@ public class LeadDAO {
     }
 
     public Lead findById(Connection conn, long id, boolean forUpdate) throws SQLException {
-        String sql = """
-            SELECT l.*, u.full_name AS owner_name, u.email AS owner_email
-            FROM leads l
-            LEFT JOIN users u ON (u.id = l.assigned_to_user_id OR u.id = l.owner_user_id OR (l.assigned_to REGEXP '^[0-9]+$' AND u.id = CAST(l.assigned_to AS UNSIGNED)))
-            WHERE l.id = ? AND l.is_deleted = 0
-            """ + (forUpdate ? " FOR UPDATE" : "");
+        boolean withScores = hasLeadScoresTable(conn);
+        String scoreSelect = withScores
+                ? "COALESCE(ls.score, l.score, 0) AS effective_score, CAST(COALESCE(ls.classification, l.tier, l.rating, 'WARM') AS CHAR) AS effective_tier,"
+                : "l.score AS effective_score, CAST(COALESCE(l.tier, l.rating, 'WARM') AS CHAR) AS effective_tier,";
+        String scoreJoin = withScores
+                ? "LEFT JOIN lead_scores ls ON ls.lead_id = l.id "
+                : "";
+
+        String sql = "SELECT l.*, " + scoreSelect +
+                " COALESCE(u_assignee.full_name, u_owner.full_name) AS owner_name, " +
+                " COALESCE(u_assignee.email, u_owner.email) AS owner_email " +
+                "FROM leads l " +
+                scoreJoin +
+                "LEFT JOIN users u_assignee ON u_assignee.id = COALESCE(l.assigned_to_user_id, CASE WHEN l.assigned_to REGEXP '^[0-9]+$' THEN CAST(l.assigned_to AS UNSIGNED) ELSE NULL END) " +
+                "LEFT JOIN users u_owner ON u_owner.id = l.owner_user_id " +
+                "WHERE l.id = ? AND l.is_deleted = 0" + (forUpdate ? " FOR UPDATE" : "");
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -310,34 +335,43 @@ public class LeadDAO {
     // --- S4-09: Filter and Search Methods ---
 
     public List<Lead> findWithFilters(LeadFilterRequest filter, DataScopeContext scope, Long currentUserId) {
-        StringBuilder sql = new StringBuilder("""
-            SELECT l.*, u.full_name AS owner_name, u.email AS owner_email
-            FROM leads l
-            LEFT JOIN users u ON (u.id = l.assigned_to_user_id OR u.id = l.owner_user_id OR (l.assigned_to REGEXP '^[0-9]+$' AND u.id = CAST(l.assigned_to AS UNSIGNED)))
-            WHERE l.is_deleted = 0
-            """);
-
-        List<Object> params = new ArrayList<>();
-        buildFilterPredicates(sql, params, filter, scope, currentUserId);
-        buildOrderClause(sql, filter.getSort());
-
-        int page = filter.getPage();
-        int size = filter.getSize();
-        sql.append(" LIMIT ? OFFSET ?");
-        params.add(size);
-        params.add((page - 1) * size);
-
         List<Lead> list = new ArrayList<>();
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            boolean withScores = hasLeadScoresTable(conn);
+            String scoreSelect = withScores
+                    ? "COALESCE(ls.score, l.score, 0) AS effective_score, CAST(COALESCE(ls.classification, l.tier, l.rating, 'WARM') AS CHAR) AS effective_tier,"
+                    : "l.score AS effective_score, CAST(COALESCE(l.tier, l.rating, 'WARM') AS CHAR) AS effective_tier,";
+            String scoreJoin = withScores
+                    ? "LEFT JOIN lead_scores ls ON ls.lead_id = l.id "
+                    : "";
 
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
+            StringBuilder sql = new StringBuilder("SELECT l.*, " + scoreSelect +
+                    " COALESCE(u_assignee.full_name, u_owner.full_name) AS owner_name, " +
+                    " COALESCE(u_assignee.email, u_owner.email) AS owner_email " +
+                    "FROM leads l " +
+                    scoreJoin +
+                    "LEFT JOIN users u_assignee ON u_assignee.id = COALESCE(l.assigned_to_user_id, CASE WHEN l.assigned_to REGEXP '^[0-9]+$' THEN CAST(l.assigned_to AS UNSIGNED) ELSE NULL END) " +
+                    "LEFT JOIN users u_owner ON u_owner.id = l.owner_user_id " +
+                    "WHERE l.is_deleted = 0");
 
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapRow(rs));
+            List<Object> params = new ArrayList<>();
+            buildFilterPredicates(sql, params, filter, scope, currentUserId, withScores);
+            buildOrderClause(sql, filter.getSort(), withScores);
+
+            int page = filter.getPage();
+            int size = filter.getSize();
+            sql.append(" LIMIT ? OFFSET ?");
+            params.add(size);
+            params.add((page - 1) * size);
+
+            try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                for (int i = 0; i < params.size(); i++) {
+                    ps.setObject(i + 1, params.get(i));
+                }
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        list.add(mapRow(rs));
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -348,26 +382,27 @@ public class LeadDAO {
     }
 
     public int countWithFilters(LeadFilterRequest filter, DataScopeContext scope, Long currentUserId) {
-        StringBuilder sql = new StringBuilder("""
-            SELECT COUNT(*)
-            FROM leads l
-            LEFT JOIN users u ON (u.id = l.assigned_to_user_id OR u.id = l.owner_user_id OR (l.assigned_to REGEXP '^[0-9]+$' AND u.id = CAST(l.assigned_to AS UNSIGNED)))
-            WHERE l.is_deleted = 0
-            """);
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            boolean withScores = hasLeadScoresTable(conn);
+            String scoreJoin = withScores ? "LEFT JOIN lead_scores ls ON ls.lead_id = l.id " : "";
 
-        List<Object> params = new ArrayList<>();
-        buildFilterPredicates(sql, params, filter, scope, currentUserId);
+            StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM leads l " +
+                    scoreJoin +
+                    "LEFT JOIN users u_assignee ON u_assignee.id = COALESCE(l.assigned_to_user_id, CASE WHEN l.assigned_to REGEXP '^[0-9]+$' THEN CAST(l.assigned_to AS UNSIGNED) ELSE NULL END) " +
+                    "LEFT JOIN users u_owner ON u_owner.id = l.owner_user_id " +
+                    "WHERE l.is_deleted = 0");
 
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            List<Object> params = new ArrayList<>();
+            buildFilterPredicates(sql, params, filter, scope, currentUserId, withScores);
 
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
+            try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                for (int i = 0; i < params.size(); i++) {
+                    ps.setObject(i + 1, params.get(i));
+                }
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1);
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -379,48 +414,50 @@ public class LeadDAO {
 
     public Map<String, Object> getLeadStats(DataScopeContext scope, Long currentUserId) {
         Map<String, Object> stats = new LinkedHashMap<>();
-        StringBuilder sql = new StringBuilder("""
-            SELECT 
-                COUNT(*) AS total,
-                SUM(CASE WHEN (l.tier = 'HOT' OR l.rating = 'HOT') THEN 1 ELSE 0 END) AS hot_count,
-                SUM(CASE WHEN (l.tier = 'WARM' OR l.rating = 'WARM') THEN 1 ELSE 0 END) AS warm_count,
-                SUM(CASE WHEN (l.tier = 'COLD' OR l.rating = 'COLD') THEN 1 ELSE 0 END) AS cold_count,
-                SUM(CASE WHEN l.sla_deadline IS NOT NULL AND l.sla_deadline < NOW() AND l.status NOT IN ('CONVERTED', 'LOST') THEN 1 ELSE 0 END) AS overdue_count,
-                SUM(CASE WHEN l.assigned_to IS NULL THEN 1 ELSE 0 END) AS unassigned_count,
-                SUM(CASE WHEN l.status = 'NEW' THEN 1 ELSE 0 END) AS new_count,
-                SUM(CASE WHEN l.status = 'IN_PROGRESS' THEN 1 ELSE 0 END) AS in_progress_count,
-                SUM(CASE WHEN l.status = 'QUALIFIED' THEN 1 ELSE 0 END) AS qualified_count,
-                SUM(CASE WHEN l.status = 'CONVERTED' THEN 1 ELSE 0 END) AS converted_count,
-                COALESCE(SUM(l.estimated_value), 0) AS total_estimated_value
-            FROM leads l
-            WHERE l.is_deleted = 0
-            """);
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            boolean withScores = hasLeadScoresTable(conn);
+            String tierCol = withScores ? "CAST(COALESCE(ls.classification, l.tier, l.rating) AS CHAR)" : "CAST(COALESCE(l.tier, l.rating) AS CHAR)";
+            String scoreJoin = withScores ? "LEFT JOIN lead_scores ls ON ls.lead_id = l.id " : "";
 
-        List<Object> params = new ArrayList<>();
-        if (scope != null) {
-            scope.appendCoalescedOwnerPredicate("l.assigned_to", "l.owner_user_id", sql, params);
-        }
+            StringBuilder sql = new StringBuilder("SELECT " +
+                    "COUNT(*) AS total, " +
+                    "SUM(CASE WHEN (" + tierCol + " = 'HOT') THEN 1 ELSE 0 END) AS hot_count, " +
+                    "SUM(CASE WHEN (" + tierCol + " = 'WARM') THEN 1 ELSE 0 END) AS warm_count, " +
+                    "SUM(CASE WHEN (" + tierCol + " = 'COLD') THEN 1 ELSE 0 END) AS cold_count, " +
+                    "SUM(CASE WHEN l.sla_deadline IS NOT NULL AND l.sla_deadline < NOW() AND l.status NOT IN ('CONVERTED', 'LOST') THEN 1 ELSE 0 END) AS overdue_count, " +
+                    "SUM(CASE WHEN (l.assigned_to IS NULL AND l.assigned_to_user_id IS NULL) THEN 1 ELSE 0 END) AS unassigned_count, " +
+                    "SUM(CASE WHEN l.status = 'NEW' THEN 1 ELSE 0 END) AS new_count, " +
+                    "SUM(CASE WHEN l.status = 'IN_PROGRESS' THEN 1 ELSE 0 END) AS in_progress_count, " +
+                    "SUM(CASE WHEN l.status = 'QUALIFIED' THEN 1 ELSE 0 END) AS qualified_count, " +
+                    "SUM(CASE WHEN l.status = 'CONVERTED' THEN 1 ELSE 0 END) AS converted_count, " +
+                    "COALESCE(SUM(l.estimated_value), 0) AS total_estimated_value " +
+                    "FROM leads l " +
+                    scoreJoin +
+                    "WHERE l.is_deleted = 0");
 
-        try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
+            List<Object> params = new ArrayList<>();
+            if (scope != null) {
+                scope.appendCoalescedOwnerPredicate("l.assigned_to", "l.owner_user_id", sql, params);
             }
 
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    stats.put("total", rs.getInt("total"));
-                    stats.put("hotCount", rs.getInt("hot_count"));
-                    stats.put("warmCount", rs.getInt("warm_count"));
-                    stats.put("coldCount", rs.getInt("cold_count"));
-                    stats.put("overdueCount", rs.getInt("overdue_count"));
-                    stats.put("unassignedCount", rs.getInt("unassigned_count"));
-                    stats.put("newCount", rs.getInt("new_count"));
-                    stats.put("inProgressCount", rs.getInt("in_progress_count"));
-                    stats.put("qualifiedCount", rs.getInt("qualified_count"));
-                    stats.put("convertedCount", rs.getInt("converted_count"));
-                    stats.put("totalEstimatedValue", rs.getDouble("total_estimated_value"));
+            try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                for (int i = 0; i < params.size(); i++) {
+                    ps.setObject(i + 1, params.get(i));
+                }
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        stats.put("total", rs.getInt("total"));
+                        stats.put("hotCount", rs.getInt("hot_count"));
+                        stats.put("warmCount", rs.getInt("warm_count"));
+                        stats.put("coldCount", rs.getInt("cold_count"));
+                        stats.put("overdueCount", rs.getInt("overdue_count"));
+                        stats.put("unassignedCount", rs.getInt("unassigned_count"));
+                        stats.put("newCount", rs.getInt("new_count"));
+                        stats.put("inProgressCount", rs.getInt("in_progress_count"));
+                        stats.put("qualifiedCount", rs.getInt("qualified_count"));
+                        stats.put("convertedCount", rs.getInt("converted_count"));
+                        stats.put("totalEstimatedValue", rs.getDouble("total_estimated_value"));
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -431,7 +468,7 @@ public class LeadDAO {
     }
 
     private void buildFilterPredicates(StringBuilder sql, List<Object> params,
-                                       LeadFilterRequest filter, DataScopeContext scope, Long currentUserId) {
+                                       LeadFilterRequest filter, DataScopeContext scope, Long currentUserId, boolean withScores) {
         // 1. Data Scope
         if (scope != null) {
             scope.appendCoalescedOwnerPredicate("l.assigned_to", "l.owner_user_id", sql, params);
@@ -451,8 +488,8 @@ public class LeadDAO {
         // 3. Tier / Rating (HOT / WARM / COLD)
         String tier = filter.getTier();
         if (tier != null && !tier.isBlank() && !"ALL".equalsIgnoreCase(tier)) {
-            sql.append(" AND (l.tier = ? OR l.rating = ?)");
-            params.add(tier.trim().toUpperCase());
+            String tierCol = withScores ? "CAST(COALESCE(ls.classification, l.tier, l.rating) AS CHAR)" : "CAST(COALESCE(l.tier, l.rating) AS CHAR)";
+            sql.append(" AND ").append(tierCol).append(" = ?");
             params.add(tier.trim().toUpperCase());
         }
 
@@ -471,22 +508,28 @@ public class LeadDAO {
         String owner = filter.getOwner();
         Long ownerId = filter.getOwnerId();
         if (ownerId != null && ownerId > 0) {
-            sql.append(" AND l.assigned_to = ?");
+            sql.append(" AND (l.assigned_to = ? OR l.assigned_to_user_id = ?)");
+            params.add(ownerId);
             params.add(ownerId);
         } else if (owner != null && !owner.isBlank() && !"ALL".equalsIgnoreCase(owner)) {
             if ("UNASSIGNED".equalsIgnoreCase(owner)) {
-                sql.append(" AND l.assigned_to IS NULL");
+                sql.append(" AND l.assigned_to IS NULL AND l.assigned_to_user_id IS NULL");
             } else if ("CURRENT_USER".equalsIgnoreCase(owner)) {
                 if (currentUserId != null) {
-                    sql.append(" AND l.assigned_to = ?");
+                    sql.append(" AND (l.assigned_to = ? OR l.assigned_to_user_id = ?)");
+                    params.add(currentUserId);
                     params.add(currentUserId);
                 }
             } else if (owner.matches("\\d+")) {
-                sql.append(" AND l.assigned_to = ?");
-                params.add(Long.parseLong(owner));
+                long uid = Long.parseLong(owner);
+                sql.append(" AND (l.assigned_to = ? OR l.assigned_to_user_id = ?)");
+                params.add(uid);
+                params.add(uid);
             } else {
-                sql.append(" AND LOWER(u.full_name) LIKE ?");
-                params.add("%" + owner.trim().toLowerCase() + "%");
+                sql.append(" AND (LOWER(COALESCE(u_assignee.full_name, '')) LIKE ? OR LOWER(COALESCE(u_owner.full_name, '')) LIKE ?)");
+                String kwOwner = "%" + owner.trim().toLowerCase() + "%";
+                params.add(kwOwner);
+                params.add(kwOwner);
             }
         }
 
@@ -538,7 +581,7 @@ public class LeadDAO {
         }
     }
 
-    private void buildOrderClause(StringBuilder sql, String sort) {
+    private void buildOrderClause(StringBuilder sql, String sort, boolean withScores) {
         if (sort == null || sort.isBlank()) {
             sql.append(" ORDER BY l.id DESC");
             return;
@@ -556,7 +599,10 @@ public class LeadDAO {
                     l.sla_deadline ASC, 
                     l.id DESC
                 """);
-            case "SCORE_DESC" -> sql.append(" ORDER BY l.score DESC, l.id DESC");
+            case "SCORE_DESC" -> {
+                String scoreCol = withScores ? "COALESCE(ls.score, l.score, 0)" : "COALESCE(l.score, 0)";
+                sql.append(" ORDER BY ").append(scoreCol).append(" DESC, l.id DESC");
+            }
             case "NEWEST" -> sql.append(" ORDER BY l.created_at DESC, l.id DESC");
             case "OLDEST" -> sql.append(" ORDER BY l.created_at ASC, l.id ASC");
             case "VALUE_DESC" -> sql.append(" ORDER BY l.estimated_value DESC, l.id DESC");
@@ -972,9 +1018,29 @@ public class LeadDAO {
         try { lead.setRegion(rs.getString("region")); } catch (SQLException ignored) {}
         try { lead.setRegionCode(rs.getString("region_code")); } catch (SQLException ignored) {}
         try { lead.setEmployeeCount(rs.getObject("employee_count", Integer.class)); } catch (SQLException ignored) {}
-        try { lead.setScore(rs.getObject("score", Integer.class)); } catch (SQLException ignored) {}
-        try { lead.setRating(rs.getString("rating")); } catch (SQLException ignored) {}
-        try { lead.setTier(rs.getString("tier")); } catch (SQLException ignored) {}
+        try {
+            Integer effScore = rs.getObject("effective_score", Integer.class);
+            if (effScore != null) {
+                lead.setScore(effScore);
+            } else {
+                lead.setScore(rs.getObject("score", Integer.class));
+            }
+        } catch (SQLException ignored) {
+            try { lead.setScore(rs.getObject("score", Integer.class)); } catch (SQLException ignored2) {}
+        }
+        try {
+            String effTier = rs.getString("effective_tier");
+            if (effTier != null && !effTier.isBlank()) {
+                lead.setTier(effTier);
+                lead.setRating(effTier);
+            } else {
+                lead.setRating(rs.getString("rating"));
+                lead.setTier(rs.getString("tier"));
+            }
+        } catch (SQLException ignored) {
+            try { lead.setRating(rs.getString("rating")); } catch (SQLException ignored2) {}
+            try { lead.setTier(rs.getString("tier")); } catch (SQLException ignored2) {}
+        }
         try { lead.setStatus(rs.getString("status")); } catch (SQLException ignored) {}
         try { lead.setNotes(rs.getString("notes")); } catch (SQLException ignored) {}
         try { lead.setFormId(rs.getString("form_id")); } catch (SQLException ignored) {}
