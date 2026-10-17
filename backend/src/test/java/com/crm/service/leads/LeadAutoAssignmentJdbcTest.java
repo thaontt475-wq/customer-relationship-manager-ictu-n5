@@ -56,8 +56,8 @@ public class LeadAutoAssignmentJdbcTest {
         physical = DatabaseConfig.getConnection();
 
         try (var s = physical.createStatement()) {
-            s.execute("CREATE TEMPORARY TABLE users (id BIGINT PRIMARY KEY, username VARCHAR(50), full_name VARCHAR(255), is_active BOOLEAN DEFAULT 1) ENGINE=InnoDB");
-            s.execute("INSERT INTO users VALUES (101, 'rep1', 'Nguyễn Văn Hùng', 1), (102, 'rep2', 'Trần Thu Hà', 1), (103, 'lead1', 'Lê Trưởng Nhóm', 1)");
+            s.execute("CREATE TEMPORARY TABLE users (id BIGINT PRIMARY KEY, username VARCHAR(50), full_name VARCHAR(255), is_active BOOLEAN DEFAULT 1, status VARCHAR(30) DEFAULT 'ACTIVE', team_id BIGINT NULL) ENGINE=InnoDB");
+            s.execute("INSERT INTO users(id,username,full_name,is_active) VALUES (101, 'rep1', 'Nguyễn Văn Hùng', 1), (102, 'rep2', 'Trần Thu Hà', 1), (103, 'lead1', 'Lê Trưởng Nhóm', 1)");
 
             s.execute("CREATE TEMPORARY TABLE roles (id BIGINT PRIMARY KEY, code VARCHAR(50), name VARCHAR(100)) ENGINE=InnoDB");
             s.execute("INSERT INTO roles VALUES (1, 'ADMIN', 'Admin'), (2, 'TEAM_LEAD', 'Trưởng nhóm'), (3, 'SALES_REP', 'Nhân viên')");
@@ -69,7 +69,7 @@ public class LeadAutoAssignmentJdbcTest {
             s.execute("INSERT INTO role_permissions VALUES (1, 1), (1, 2), (1, 3), (2, 1)");
 
             s.execute("CREATE TEMPORARY TABLE user_roles (user_id BIGINT, role_id BIGINT, PRIMARY KEY(user_id, role_id)) ENGINE=InnoDB");
-            s.execute("INSERT INTO user_roles VALUES (103, 2), (101, 3)");
+            s.execute("INSERT INTO user_roles VALUES (103, 2), (101, 3), (102, 3)");
 
             s.execute("CREATE TEMPORARY TABLE leads (" +
                     "id BIGINT PRIMARY KEY AUTO_INCREMENT, " +
@@ -83,7 +83,7 @@ public class LeadAutoAssignmentJdbcTest {
                     "region VARCHAR(100) NULL, " +
                     "region_code VARCHAR(50) NULL, " +
                     "industry VARCHAR(100) NULL, " +
-                    "assigned_to BIGINT NULL, " +
+                    "assigned_to BIGINT NULL, assigned_to_user_id BIGINT NULL, assigned_at DATETIME NULL, sla_deadline DATETIME NULL, sla_total_minutes INT DEFAULT 120, accepted_at DATETIME NULL, rejected_at DATETIME NULL, sla_result VARCHAR(30) NULL, is_locked BOOLEAN DEFAULT 0, " +
                     "unassigned_reason VARCHAR(255) NULL, " +
                     "is_deleted TINYINT(1) NOT NULL DEFAULT 0, " +
                     "created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " +
@@ -134,7 +134,7 @@ public class LeadAutoAssignmentJdbcTest {
                         r.setRegion(rs.getString("region"));
                         r.setIndustry(rs.getString("industry"));
                         r.setMechanism(rs.getString("mechanism"));
-                        r.setReps(List.of("101", "102"));
+                        r.setReps(rs.getString("reps") == null ? List.of() : com.google.gson.JsonParser.parseString(rs.getString("reps")).getAsJsonArray().asList().stream().map(com.google.gson.JsonElement::getAsString).toList());
                         r.setLastAssignedIndex(rs.getInt("last_assigned_index"));
                         list.add(r);
                     }
@@ -218,6 +218,51 @@ public class LeadAutoAssignmentJdbcTest {
         }
     }
 
+    private LeadDAO productionDao() {
+        return new LeadDAO() { @Override public Connection open() { return borrowed(); } };
+    }
+
+    @Test
+    void productionAssignmentInitializesSlaAndCannotOverwriteAcceptedOrConvertedLead() throws Exception {
+        try(var s=physical.createStatement()) {
+            s.execute("INSERT INTO leads(id,full_name,status) VALUES(800,'QA lifecycle','NEW'),(801,'QA converted','CONVERTED')");
+        }
+        var real=productionDao();
+        assertTrue(real.updateAssignment(borrowed(),800,101L,"PENDING_RESPONSE",null));
+        try(var s=physical.createStatement();var r=s.executeQuery("SELECT assigned_to,assigned_to_user_id,status,assigned_at,sla_deadline FROM leads WHERE id=800")) {
+            assertTrue(r.next());assertEquals(101,r.getLong(1));assertEquals(101,r.getLong(2));assertEquals("PENDING_RESPONSE",r.getString(3));
+            assertEquals(120*60_000L,r.getTimestamp(5).getTime()-r.getTimestamp(4).getTime());
+        }
+        assertFalse(real.updateAssignment(borrowed(),800,102L,"PENDING_RESPONSE",null));
+        assertFalse(real.updateAssignment(borrowed(),801,102L,"PENDING_RESPONSE",null));
+        assertFalse(real.findUnassignedOrPendingQueue().stream().anyMatch(l->l.getId()==800L||l.getId()==801L));
+    }
+
+    @Test
+    void realSalesCatalogExcludesInventedInactiveAndNonSalesUsersAndCountsLegacyIds() throws Exception {
+        try(var s=physical.createStatement()) {
+            s.execute("CREATE TEMPORARY TABLE teams(id BIGINT PRIMARY KEY,name VARCHAR(100))");
+            s.execute("UPDATE users SET status='INACTIVE' WHERE id=103");
+            s.execute("INSERT INTO users(id,username,full_name) VALUES(104,'outsider','Not a sales user')");
+            s.execute("ALTER TABLE leads MODIFY assigned_to VARCHAR(50) NULL");
+            s.execute("INSERT INTO leads(full_name,assigned_to,status) VALUES('Legacy','USR-101','PENDING_RESPONSE'),('Malformed','not-an-id','PENDING_RESPONSE'),('Closed','101','CONVERTED')");
+        }
+        var reps=productionDao().getSalesRepsWithWorkload();
+        assertEquals(List.of("101","102"),reps.stream().map(SalesRepDTO::getId).toList());
+        assertEquals(1,reps.get(0).getCurrentLeads());assertEquals(0,reps.get(1).getCurrentLeads());
+    }
+
+    @Test
+    void missingConfiguredRepDoesNotFallBackToUnrelatedSalesUser() throws Exception {
+        try(var s=physical.createStatement()) {
+            s.execute("INSERT INTO lead_assignment_rules(id,name,reps) VALUES(1,'Missing rep','[\"999999\"]')");
+            s.execute("INSERT INTO leads(id,full_name,status) VALUES(900,'No accidental assignment','NEW')");
+        }
+        assertFalse(service.assignLead(leadDAO.findById(900)));
+        try(var s=physical.createStatement();var r=s.executeQuery("SELECT assigned_to FROM leads WHERE id=900")){assertTrue(r.next());assertNull(r.getObject(1));}
+        assertThrows(IllegalArgumentException.class,()->service.assignLeadManual(900,"bogus-101","QA invalid ID"));
+    }
+
     @Test
     void testFirstMatchWinsEvaluatesHighestPriorityRule() throws Exception {
         try (var s = physical.createStatement()) {
@@ -233,7 +278,7 @@ public class LeadAutoAssignmentJdbcTest {
 
         assertTrue(assigned, "Lead should be assigned");
         assertEquals(101L, lead.getAssignedTo(), "First match (priority 1) must win");
-        assertEquals("ASSIGNED", lead.getStatus());
+        assertEquals("PENDING_RESPONSE", lead.getStatus());
     }
 
     @Test
@@ -291,7 +336,7 @@ public class LeadAutoAssignmentJdbcTest {
 
         Lead updated = leadDAO.findById(20);
         assertEquals(102L, updated.getAssignedTo());
-        assertEquals("ASSIGNED", updated.getStatus());
+        assertEquals("PENDING_RESPONSE", updated.getStatus());
 
         // Check history table
         try (var ps = physical.prepareStatement("SELECT * FROM lead_assignment_history WHERE lead_id = 20");
@@ -341,7 +386,7 @@ public class LeadAutoAssignmentJdbcTest {
         assertEquals(1, count, "Pending queue processing should assign 1 lead");
 
         Lead lead = leadDAO.findById(50);
-        assertEquals("ASSIGNED", lead.getStatus());
+        assertEquals("PENDING_RESPONSE", lead.getStatus());
         assertEquals(101L, lead.getAssignedTo());
     }
 

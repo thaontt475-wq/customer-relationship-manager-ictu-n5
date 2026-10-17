@@ -48,6 +48,8 @@ class LeadCaptureJdbcTest {
         try(Connection c=DatabaseConfig.getConnection()) {
             assertTrue(c.getCatalog().startsWith("crm_sprint1_test"));
             for(String sql:List.of("DELETE FROM lead_capture_submissions WHERE form_token IN (SELECT token FROM lead_capture_forms WHERE owner_user_id=?)",
+                    "DELETE FROM lead_scores WHERE lead_id IN (SELECT id FROM leads WHERE owner_user_id=?)",
+                    "DELETE FROM lead_scoring_profiles WHERE lead_id IN (SELECT id FROM leads WHERE owner_user_id=?)",
                     "DELETE FROM leads WHERE owner_user_id=?","DELETE FROM lead_capture_forms WHERE owner_user_id=?"))
                 try(var p=c.prepareStatement(sql)){p.setLong(1,marketing);p.executeUpdate();}
             for(long id:new long[]{marketing,otherMarketing,denied}) {
