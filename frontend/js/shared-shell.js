@@ -71,6 +71,9 @@
             import:
                 `<i class="fa-solid fa-file-import"></i>`,
 
+            excel:
+                `<i class="fa-solid fa-file-excel"></i>`,
+
             audit:
                 `<i class="fa-solid fa-clipboard-list"></i>`,
 
@@ -519,8 +522,8 @@
             key: "admin_users",
             label: "Tổ chức & Người dùng",
             icon: `<i class="fa-solid fa-user-gear"></i>`,
-            patterns: ["organization.html", "users.html", "import-users.html"],
-            names: ["ORGANIZATION", "USERS", "IMPORT_USERS"]
+            patterns: ["organization.html", "users.html", "import-users.html", "excel-templates.html"],
+            names: ["ORGANIZATION", "USERS", "IMPORT_USERS", "USER_IMPORT", "EXCEL_TEMPLATES"]
         },
         {
             key: "admin_settings",
@@ -931,7 +934,8 @@
             { name: "CUSTOM_FIELDS", label: "Trường tùy chỉnh", path: "custom-fields.html", icon: "custom", section: "admin" },
             { name: "PIPELINE_SETTINGS", label: "Cấu hình Pipeline", path: "pipeline-settings.html", icon: "settings", section: "admin" },
             { name: "WIN_LOSS_SETTINGS", label: "Cấu hình Win/Loss", path: "win-loss-settings.html", icon: "winLoss", section: "admin" },
-            { name: "AUDIT_LOG", label: "Nhật ký hệ thống", path: "audit-log.html", icon: "audit", section: "admin" }
+            { name: "AUDIT_LOG", label: "Nhật ký hệ thống", path: "audit-log.html", icon: "audit", section: "admin" },
+            { name: "EXCEL_TEMPLATES", label: "Mẫu Excel & Báo cáo", path: "excel-templates.html", icon: "excel", section: "admin" }
         ];
     }
 
