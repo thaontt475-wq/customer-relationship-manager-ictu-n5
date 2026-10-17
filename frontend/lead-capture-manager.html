@@ -22,9 +22,9 @@
     
     <!-- Design System & App Shell CSS -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/pages/lead-capture.css?v=20261017_s401_fullqa_v1">
+    <link rel="stylesheet" href="css/pages/lead-capture.css?v=20261017_v2">
 </head>
 
 <body class="crm-private">
@@ -428,12 +428,66 @@
     </div>
 </div>
 
+<!-- ================= MODAL XÁC NHẬN XÓA LEAD CHUYÊN NGHIỆP ================= -->
+<div class="lead-modal-backdrop" id="deleteLeadModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="delete-modal-box">
+        <div class="delete-modal-header">
+            <div class="delete-icon-wrapper">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div style="flex: 1;">
+                <h3 class="delete-modal-title" id="deleteModalTitle">Xác nhận xóa Lead</h3>
+                <p class="delete-modal-subtitle">Khách hàng tiềm năng này sẽ bị xóa khỏi danh sách quản lý.</p>
+            </div>
+            <button type="button" class="crm-icon-btn delete-modal-close" id="btnCancelDeleteModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="delete-modal-body">
+            <!-- Lead Target Info Card -->
+            <div class="delete-target-card">
+                <div class="delete-lead-avatar" id="deleteLeadAvatar">NT</div>
+                <div class="delete-lead-info">
+                    <div class="delete-lead-name" id="deleteLeadName">Nông Quang Tiệp</div>
+                    <div class="delete-lead-meta">
+                        <span id="deleteLeadCode">Mã: 211</span>
+                        <span style="opacity: 0.5;">&bull;</span>
+                        <span id="deleteLeadCompany">công ty một mình tôi</span>
+                    </div>
+                    <div class="delete-lead-contacts">
+                        <span><i class="fa-solid fa-phone text-primary"></i> <span id="deleteLeadPhone">0337233871</span></span>
+                        <span><i class="fa-solid fa-envelope text-primary"></i> <span id="deleteLeadEmail">nongquangtiep06@gmail.com</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger notice banner -->
+            <div class="delete-warning-banner">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div class="delete-warning-text">
+                    <strong>Cảnh báo dữ liệu:</strong> Sau khi xóa, Lead sẽ được chuyển vào thùng rác hệ thống (xóa mềm) và dừng toàn bộ luồng tiếp nhận SLA cũng như phân bổ tự động.
+                </div>
+            </div>
+        </div>
+
+        <div class="delete-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnDismissDeleteModal">
+                <i class="fa-solid fa-xmark"></i> Hủy bỏ
+            </button>
+            <button type="button" class="crm-btn crm-btn-danger" id="btnConfirmDeleteModal">
+                <i class="fa-solid fa-trash-can"></i> Xác nhận xóa
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- TOAST CONTAINER -->
 <div id="leadToastContainer" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
 
 <!-- SCRIPTS -->
 <script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261017_s401_fullqa_v1"></script>
-<script src="js/pages/lead-capture.js?v=20261017_s401_fullqa_v1"></script>
+<script src="js/shared-shell.js?v=20261017_v6"></script>
+<script src="js/pages/lead-capture.js?v=20261017_v2"></script>
 </body>
 </html>

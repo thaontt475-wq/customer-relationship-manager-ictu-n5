@@ -445,104 +445,292 @@
 
     /* =====================================================
        NAVIGATION
+    /* =====================================================
+       NAVIGATION & COLLAPSIBLE GROUPS
     ===================================================== */
 
-    function renderNavigation(
-        target
-    ) {
-
-        if (!target) {
-            return;
+    const WORKSPACE_GROUPS = [
+        {
+            key: "customers",
+            label: "Khách hàng & Liên hệ",
+            icon: `<i class="fa-solid fa-users"></i>`,
+            patterns: ["customers.html", "customer-360.html", "contacts.html"],
+            names: ["CUSTOMERS", "CUSTOMER_360", "CONTACTS"]
+        },
+        {
+            key: "leads",
+            label: "Quản lý Lead & Marketing",
+            icon: `<i class="fa-solid fa-bullhorn"></i>`,
+            patterns: [
+                "leads.html",
+                "lead-manual-import.html",
+                "lead-capture-manager.html",
+                "campaigns.html",
+                "lead-assignment.html",
+                "lead-sla-response.html",
+                "lead-scoring.html",
+                "lead-duplicates.html",
+                "lead-conversion.html"
+            ],
+            names: [
+                "LEADS",
+                "LEAD_MANUAL_IMPORT",
+                "LEAD_CAPTURE",
+                "CAMPAIGNS",
+                "LEAD_ASSIGNMENT",
+                "LEAD_SLA_RESPONSE",
+                "LEAD_SCORING",
+                "LEAD_DUPLICATES",
+                "LEAD_CONVERSION"
+            ]
+        },
+        {
+            key: "sales",
+            label: "Bán hàng & Hợp đồng",
+            icon: `<i class="fa-solid fa-briefcase"></i>`,
+            patterns: [
+                "pipeline.html",
+                "quotations.html",
+                "quote-editor.html",
+                "contracts.html",
+                "contract-create.html",
+                "products.html"
+            ],
+            names: ["PIPELINE", "QUOTES", "CONTRACTS", "PRODUCTS"]
+        },
+        {
+            key: "support",
+            label: "Dịch vụ & Chăm sóc",
+            icon: `<i class="fa-solid fa-headset"></i>`,
+            patterns: ["support-tickets.html", "periodic-care.html"],
+            names: ["SUPPORT_TICKETS", "PERIODIC_CARE"]
+        },
+        {
+            key: "activities",
+            label: "Lịch trình & Hoạt động",
+            icon: `<i class="fa-solid fa-calendar-days"></i>`,
+            patterns: ["activities.html", "calendar.html", "tasks.html"],
+            names: ["ACTIVITIES", "CALENDAR", "TASKS"]
         }
+    ];
 
+    const ADMIN_GROUPS = [
+        {
+            key: "admin_users",
+            label: "Tổ chức & Người dùng",
+            icon: `<i class="fa-solid fa-user-gear"></i>`,
+            patterns: ["organization.html", "users.html", "import-users.html"],
+            names: ["ORGANIZATION", "USERS", "IMPORT_USERS"]
+        },
+        {
+            key: "admin_settings",
+            label: "Cấu hình & Nhật ký",
+            icon: `<i class="fa-solid fa-sliders"></i>`,
+            patterns: [
+                "master-data.html",
+                "custom-fields.html",
+                "pipeline-settings.html",
+                "win-loss-settings.html",
+                "audit-log.html"
+            ],
+            names: [
+                "MASTER_DATA",
+                "CUSTOM_FIELDS",
+                "PIPELINE_SETTINGS",
+                "WIN_LOSS_SETTINGS",
+                "AUDIT_LOG"
+            ]
+        }
+    ];
 
-        const workspace =
-            currentMenu.filter(
-                item =>
-                    item.section ===
-                    "workspace"
-            );
+    function isItemInGroup(item, group) {
+        if (!item) return false;
+        if (group.patterns && group.patterns.includes(item.path)) return true;
+        if (item.name && group.names && group.names.includes(item.name)) return true;
+        return false;
+    }
 
+    function isGroupActive(groupItems) {
+        return groupItems.some(item => currentPage === item.path);
+    }
 
-        const admin =
-            currentMenu.filter(
-                item =>
-                    item.section ===
-                    "admin"
-            );
+    function isGroupExpanded(groupKey, hasActiveChild) {
+        if (hasActiveChild) {
+            return true; // Tự động mở rộng nhóm chứa trang hiện tại
+        }
+        try {
+            const stored = localStorage.getItem("crm_nav_group_" + groupKey);
+            if (stored === "closed") return false;
+            if (stored === "open") return true;
+        } catch (_) {}
+        // Mặc định thu gọn các nhóm khác để thanh điều hướng tinh gọn
+        return false;
+    }
 
+    function renderNavigation(target) {
+        if (!target) return;
+
+        const workspace = currentMenu.filter(item => item.section === "workspace");
+        const admin = currentMenu.filter(item => item.section === "admin");
 
         let html = "";
 
-
         if (workspace.length) {
-
             html += `
                 <div class="crm-nav-section">
                     KHÔNG GIAN LÀM VIỆC
                 </div>
             `;
 
+            // 1. Mục đứng độc lập (Tổng quan)
+            const topStandalone = workspace.filter(item => item.path === "dashboard.html");
+            topStandalone.forEach(item => {
+                html += navigationItemHtml(item);
+            });
 
-            html +=
-                workspace
-                    .map(
-                        navigationItemHtml
-                    )
-                    .join("");
+            // 2. Các nhóm chức năng có liên quan (Thu gọn / Mở ra)
+            WORKSPACE_GROUPS.forEach(group => {
+                const groupItems = workspace.filter(
+                    item => item.path !== "dashboard.html" && isItemInGroup(item, group)
+                );
+                if (groupItems.length > 0) {
+                    html += navigationGroupHtml(group, groupItems);
+                }
+            });
+
+            // 3. Các mục workspace chưa gán nhóm (dự phòng)
+            const unmatchedWorkspace = workspace.filter(
+                item => item.path !== "dashboard.html" && !WORKSPACE_GROUPS.some(g => isItemInGroup(item, g))
+            );
+            unmatchedWorkspace.forEach(item => {
+                html += navigationItemHtml(item);
+            });
         }
 
-
         if (admin.length) {
-
             html += `
                 <div class="crm-nav-section">
                     QUẢN TRỊ
                 </div>
             `;
 
+            ADMIN_GROUPS.forEach(group => {
+                const groupItems = admin.filter(item => isItemInGroup(item, group));
+                if (groupItems.length > 0) {
+                    html += navigationGroupHtml(group, groupItems);
+                }
+            });
 
-            html +=
-                admin
-                    .map(
-                        navigationItemHtml
-                    )
-                    .join("");
+            const unmatchedAdmin = admin.filter(
+                item => !ADMIN_GROUPS.some(g => isItemInGroup(item, g))
+            );
+            unmatchedAdmin.forEach(item => {
+                html += navigationItemHtml(item);
+            });
         }
 
-
-        target.innerHTML =
-            html;
+        target.innerHTML = html;
+        initNavigationGroupEvents(target);
     }
 
+    function navigationGroupHtml(group, groupItems) {
+        const hasActive = isGroupActive(groupItems);
+        const isExpanded = isGroupExpanded(group.key, hasActive);
+
+        return `
+            <div class="crm-nav-group${isExpanded ? " is-expanded" : ""}${hasActive ? " has-active" : ""}" data-group-key="${escapeHtml(group.key)}">
+                <button type="button" class="crm-nav-group-header" aria-expanded="${isExpanded}">
+                    <span class="crm-nav-icon">
+                        ${group.icon}
+                    </span>
+                    <span class="crm-nav-label">
+                        ${escapeHtml(group.label)}
+                    </span>
+                    ${hasActive ? '<span class="crm-group-active-dot" title="Có mục đang mở"></span>' : ''}
+                    <span class="crm-group-count">${groupItems.length}</span>
+                    <span class="crm-group-arrow">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </span>
+                </button>
+                <div class="crm-nav-group-items" style="${isExpanded ? "" : "display: none;"}">
+                    ${groupItems.map(navigationSubItemHtml).join("")}
+                </div>
+            </div>
+        `;
+    }
+
+    function navigationSubItemHtml(item) {
+        const active = currentPage === item.path ? " active" : "";
+        return `
+            <a
+                href="${escapeHtml(item.path)}"
+                class="crm-nav-item crm-nav-subitem${active}"
+                title="${escapeHtml(item.label)}"
+            >
+                <span class="crm-subitem-bullet" aria-hidden="true"></span>
+                <span class="crm-nav-icon crm-subitem-icon">
+                    ${icon(item.icon)}
+                </span>
+                <span class="crm-nav-label">
+                    ${escapeHtml(item.label)}
+                </span>
+            </a>
+        `;
+    }
 
     function navigationItemHtml(item) {
-
-        const active =
-            currentPage === item.path
-                ?
-                " active"
-                :
-                "";
-
-
+        const active = currentPage === item.path ? " active" : "";
         return `
             <a
                 href="${escapeHtml(item.path)}"
                 class="crm-nav-item${active}"
                 title="${escapeHtml(item.label)}"
             >
-
                 <span class="crm-nav-icon">
                     ${icon(item.icon)}
                 </span>
-
                 <span class="crm-nav-label">
                     ${escapeHtml(item.label)}
                 </span>
-
             </a>
         `;
+    }
+
+    function initNavigationGroupEvents(container) {
+        if (!container) return;
+        const headers = container.querySelectorAll(".crm-nav-group-header");
+        headers.forEach(header => {
+            header.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const groupEl = this.closest(".crm-nav-group");
+                if (!groupEl) return;
+
+                const groupKey = groupEl.dataset.groupKey;
+                const itemsEl = groupEl.querySelector(".crm-nav-group-items");
+                const isCurrentlyExpanded = groupEl.classList.contains("is-expanded");
+                const willExpand = !isCurrentlyExpanded;
+
+                if (willExpand) {
+                    groupEl.classList.add("is-expanded");
+                    this.setAttribute("aria-expanded", "true");
+                    if (itemsEl) {
+                        itemsEl.style.display = "";
+                    }
+                } else {
+                    groupEl.classList.remove("is-expanded");
+                    this.setAttribute("aria-expanded", "false");
+                    if (itemsEl) {
+                        itemsEl.style.display = "none";
+                    }
+                }
+
+                try {
+                    localStorage.setItem("crm_nav_group_" + groupKey, willExpand ? "open" : "closed");
+                } catch (_) {}
+            });
+        });
     }
 
 
@@ -1920,6 +2108,23 @@
        Search này tìm chức năng/menu mà account có quyền.
     ===================================================== */
 
+    function positionSearchPanel(panel) {
+        if (!panel) return;
+        const searchInput = byId("globalSearch");
+        const searchWrap = document.querySelector(".crm-search");
+        const anchor = searchWrap || searchInput;
+        if (!anchor) return;
+
+        const rect = anchor.getBoundingClientRect();
+        panel.style.setProperty("position", "fixed", "important");
+        panel.style.setProperty("top", `${Math.round(rect.bottom + 6)}px`, "important");
+        panel.style.setProperty("left", `${Math.round(rect.left)}px`, "important");
+        panel.style.setProperty("width", `${Math.round(rect.width)}px`, "important");
+        panel.style.setProperty("min-width", "320px", "important");
+        panel.style.setProperty("max-width", "min(500px, calc(100vw - 32px))", "important");
+        panel.style.setProperty("z-index", "99999", "important");
+    }
+
     function ensureSearchPanel() {
 
         let panel =
@@ -1928,7 +2133,6 @@
             );
 
         if (panel) {
-
             return panel;
         }
 
@@ -1944,12 +2148,7 @@
         panel.className =
             "crm-search-panel";
 
-
-        document.body
-            .appendChild(
-                panel
-            );
-
+        document.body.appendChild(panel);
 
         return panel;
     }
@@ -2078,6 +2277,8 @@
                     .join("");
         }
 
+
+        positionSearchPanel(panel);
 
         panel.classList.add(
             "open"
@@ -2238,6 +2439,44 @@
         },
         true
     );
+
+
+    document.addEventListener(
+        "focusin",
+        function (event) {
+
+            if (
+                event.target?.id
+                !==
+                "globalSearch"
+            ) {
+                return;
+            }
+
+            if (event.target.value?.trim()) {
+                renderSearchResults(
+                    event.target.value
+                );
+            }
+
+        },
+        true
+    );
+
+
+    window.addEventListener("resize", function () {
+        const panel = byId("crmSearchPanel");
+        if (panel && panel.classList.contains("open")) {
+            positionSearchPanel(panel);
+        }
+    });
+
+    window.addEventListener("scroll", function () {
+        const panel = byId("crmSearchPanel");
+        if (panel && panel.classList.contains("open")) {
+            positionSearchPanel(panel);
+        }
+    }, true);
 
 
     document.addEventListener(

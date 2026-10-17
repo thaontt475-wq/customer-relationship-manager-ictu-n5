@@ -21,6 +21,8 @@
     // Trạng thái ứng dụng
     let allLeads = [];
     let currentSelectedLead = null;
+    let currentLeadToDelete = null;
+    let isDeletingLead = false;
 
     // DOM Elements
     const dom = {
@@ -78,6 +80,18 @@
         btnModalCancel: document.getElementById("btnModalCancel"),
         btnModalMarkContacted: document.getElementById("btnModalMarkContacted"),
         btnModalConvertCustomer: document.getElementById("btnModalConvertCustomer"),
+
+        // Delete Modal
+        deleteLeadModal: document.getElementById("deleteLeadModal"),
+        deleteLeadAvatar: document.getElementById("deleteLeadAvatar"),
+        deleteLeadName: document.getElementById("deleteLeadName"),
+        deleteLeadCode: document.getElementById("deleteLeadCode"),
+        deleteLeadCompany: document.getElementById("deleteLeadCompany"),
+        deleteLeadPhone: document.getElementById("deleteLeadPhone"),
+        deleteLeadEmail: document.getElementById("deleteLeadEmail"),
+        btnCancelDeleteModal: document.getElementById("btnCancelDeleteModal"),
+        btnDismissDeleteModal: document.getElementById("btnDismissDeleteModal"),
+        btnConfirmDeleteModal: document.getElementById("btnConfirmDeleteModal"),
 
         // Toast Container
         toastContainer: document.getElementById("leadToastContainer")
@@ -607,17 +621,107 @@
        =================================================================== */
 
     /**
+    /**
      * Chuyển đổi Lead thành Khách hàng chính thức trong hệ thống CRM
      */
     function handleConvertLeadToCustomer(lead) {
-        showToast("Chức năng chuyển đổi Lead hiện chưa khả dụng.", "warning");
+        if (!lead || !lead.id) return;
+        if (lead.status === "CONVERTED") {
+            showToast("Lead này đã được chuyển đổi thành khách hàng trước đó.", "warning");
+            return;
+        }
+        // Điều hướng sang phân hệ Chuyển đổi Lead 3-trong-1 (CRM-122)
+        window.location.href = `lead-conversion.html?leadId=${encodeURIComponent(lead.id)}`;
     }
 
     /**
-     * Xóa Lead khỏi danh sách
+     * Mở modal xác nhận xóa Lead chuyên nghiệp
      */
     function handleDeleteLead(lead) {
-        showToast("Chức năng xóa Lead hiện chưa khả dụng. Dữ liệu chưa được thay đổi.", "warning");
+        openDeleteLeadModal(lead);
+    }
+
+    function openDeleteLeadModal(lead) {
+        if (!lead || !lead.id) return;
+        currentLeadToDelete = lead;
+
+        if (dom.deleteLeadAvatar) {
+            dom.deleteLeadAvatar.textContent = getInitials(lead.fullName || "Lead");
+        }
+        if (dom.deleteLeadName) {
+            dom.deleteLeadName.textContent = lead.fullName || `Lead #${lead.id}`;
+        }
+        if (dom.deleteLeadCode) {
+            dom.deleteLeadCode.textContent = lead.code ? `Mã: ${lead.code}` : `Mã định danh: #${lead.id}`;
+        }
+        if (dom.deleteLeadCompany) {
+            dom.deleteLeadCompany.textContent = lead.companyName || "Chưa có thông tin doanh nghiệp";
+        }
+        if (dom.deleteLeadPhone) {
+            dom.deleteLeadPhone.textContent = lead.phone || "Chưa có số điện thoại";
+        }
+        if (dom.deleteLeadEmail) {
+            dom.deleteLeadEmail.textContent = lead.email || "Chưa có email";
+        }
+
+        if (dom.btnConfirmDeleteModal) {
+            dom.btnConfirmDeleteModal.disabled = false;
+            dom.btnConfirmDeleteModal.innerHTML = '<i class="fa-solid fa-trash-can"></i> Xác nhận xóa';
+        }
+        if (dom.btnDismissDeleteModal) dom.btnDismissDeleteModal.disabled = false;
+        if (dom.btnCancelDeleteModal) dom.btnCancelDeleteModal.disabled = false;
+
+        const modal = dom.deleteLeadModal || document.getElementById("deleteLeadModal");
+        if (modal) {
+            modal.classList.add("active");
+        }
+    }
+
+    function closeDeleteLeadModal() {
+        if (isDeletingLead) return;
+        const modal = dom.deleteLeadModal || document.getElementById("deleteLeadModal");
+        if (modal) {
+            modal.classList.remove("active");
+        }
+        currentLeadToDelete = null;
+    }
+
+    async function executeDeleteLead() {
+        if (!currentLeadToDelete || isDeletingLead) return;
+        const lead = currentLeadToDelete;
+        const nameDisplay = lead.fullName ? `"${lead.fullName}"` : `mã #${lead.id}`;
+
+        try {
+            isDeletingLead = true;
+            if (dom.btnConfirmDeleteModal) {
+                dom.btnConfirmDeleteModal.disabled = true;
+                dom.btnConfirmDeleteModal.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xóa...';
+            }
+            if (dom.btnDismissDeleteModal) dom.btnDismissDeleteModal.disabled = true;
+            if (dom.btnCancelDeleteModal) dom.btnCancelDeleteModal.disabled = true;
+
+            await CrmApi.request(`/api/leads/${lead.id}`, {
+                method: "DELETE"
+            });
+
+            allLeads = allLeads.filter(l => String(l.id) !== String(lead.id));
+            isDeletingLead = false;
+            closeDeleteLeadModal();
+            updateKpiCounters();
+            renderLeadsTable();
+            showToast(`Đã xóa Lead ${nameDisplay} thành công khỏi hệ thống!`, "success");
+        } catch (error) {
+            isDeletingLead = false;
+            if (dom.btnConfirmDeleteModal) {
+                dom.btnConfirmDeleteModal.disabled = false;
+                dom.btnConfirmDeleteModal.innerHTML = '<i class="fa-solid fa-trash-can"></i> Thử lại';
+            }
+            if (dom.btnDismissDeleteModal) dom.btnDismissDeleteModal.disabled = false;
+            if (dom.btnCancelDeleteModal) dom.btnCancelDeleteModal.disabled = false;
+
+            const message = apiErrorMessage(error, "Không thể xóa Lead này");
+            showToast(message, "danger");
+        }
     }
 
     function openCaptureForm() {
@@ -652,6 +756,28 @@
                 handleConvertLeadToCustomer(currentSelectedLead);
             });
         }
+
+        // Delete Modal Event Listeners
+        if (dom.btnCancelDeleteModal) dom.btnCancelDeleteModal.addEventListener("click", closeDeleteLeadModal);
+        if (dom.btnDismissDeleteModal) dom.btnDismissDeleteModal.addEventListener("click", closeDeleteLeadModal);
+        if (dom.btnConfirmDeleteModal) dom.btnConfirmDeleteModal.addEventListener("click", executeDeleteLead);
+
+        if (dom.deleteLeadModal) {
+            dom.deleteLeadModal.addEventListener("click", (e) => {
+                if (e.target === dom.deleteLeadModal) closeDeleteLeadModal();
+            });
+        }
+
+        // Keyboard Shortcut: ESC to close any open modal
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                if (dom.deleteLeadModal && dom.deleteLeadModal.classList.contains("active")) {
+                    closeDeleteLeadModal();
+                } else if (dom.leadDetailModal && dom.leadDetailModal.classList.contains("active")) {
+                    closeLeadDetailModal();
+                }
+            }
+        });
     }
 
     function openLeadDetailModal(lead) {
