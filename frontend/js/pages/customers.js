@@ -928,6 +928,52 @@
             return;
         }
 
+        if (window.ExcelExportHelper) {
+            const columns = [
+                { label: "STT", key: "stt", width: 45, align: "center" },
+                { label: "Mã KH", key: "code", width: 65, align: "center" },
+                { label: "Tên Doanh Nghiệp / Công Ty", key: "companyName", width: 240, align: "left" },
+                { label: "Mã Số Thuế", key: "taxCode", width: 100, align: "center" },
+                { label: "Trạng Thái", key: "statusName", width: 120, align: "center" },
+                { label: "Ngành Nghề", key: "industryName", width: 160, align: "left" },
+                { label: "Quy Mô", key: "companySizeName", width: 140, align: "left" },
+                { label: "Email", key: "email", width: 180, align: "left" },
+                { label: "Số Điện Thoại", key: "phone", width: 110, align: "center" },
+                { label: "Website", key: "website", width: 160, align: "left" },
+                { label: "Địa Chỉ Trụ Sở", key: "address", width: 260, align: "left" },
+                { label: "Người Phụ Trách", key: "ownerName", width: 140, align: "left" }
+            ];
+
+            const exportData = customersList.map((c, idx) => {
+                const industry = INDUSTRIES.find(i => Number(i.id) === Number(c.industryId))?.name || "—";
+                const companySize = COMPANY_SIZES.find(s => Number(s.id) === Number(c.companySizeId))?.name || "—";
+                return {
+                    stt: idx + 1,
+                    code: `KH-${c.id}`,
+                    companyName: c.companyName || c.name || "—",
+                    taxCode: c.taxCode || "—",
+                    statusName: getStatusLabel(c.status),
+                    industryName: industry,
+                    companySizeName: companySize,
+                    email: c.email || "—",
+                    phone: c.phone || "—",
+                    website: c.website || "—",
+                    address: c.address || "—",
+                    ownerName: c.ownerName || c.owner || "—"
+                };
+            });
+
+            window.ExcelExportHelper.exportStyledExcel({
+                title: "NOVACRM ENTERPRISE - BÁO CÁO DANH SÁCH KHÁCH HÀNG DOANH NGHIỆP",
+                filename: `Danh_Sach_Khach_Hang_NovaCRM_${new Date().toISOString().slice(0, 10)}.xls`,
+                meta: `Ngày xuất: ${new Date().toLocaleDateString('vi-VN')} | Tổng số khách hàng: ${customersList.length} | Hệ thống NovaCRM Enterprise`,
+                columns: columns,
+                data: exportData
+            });
+            showToast("Đã xuất tệp Excel danh sách khách hàng thành công!");
+            return;
+        }
+
         const headers = [
             "Mã khách hàng",
             "Tên công ty / Doanh nghiệp",

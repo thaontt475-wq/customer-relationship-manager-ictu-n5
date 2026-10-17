@@ -1263,12 +1263,52 @@
     }
 
     /**
-     * Export Contacts to CSV with Vietnamese UTF-8 BOM
+     * Export Contacts to Excel (Styled Spreadsheet) / CSV
      */
     function exportContactsToCsv() {
         const contacts = store.getAllContacts();
         if (!contacts.length) {
             alert("Không có dữ liệu người liên hệ để xuất.");
+            return;
+        }
+
+        if (window.ExcelExportHelper) {
+            const columns = [
+                { label: "STT", key: "stt", width: 45, align: "center" },
+                { label: "Mã LH", key: "code", width: 65, align: "center" },
+                { label: "Họ và Tên", key: "fullName", width: 160, align: "left" },
+                { label: "Doanh Nghiệp Trực Thuộc", key: "companyName", width: 220, align: "left" },
+                { label: "Chức Danh", key: "jobTitle", width: 160, align: "left" },
+                { label: "Phòng Ban", key: "department", width: 130, align: "left" },
+                { label: "Email", key: "email", width: 170, align: "left" },
+                { label: "Số Điện Thoại", key: "phone", width: 110, align: "center" },
+                { label: "Vai Trò Quyết Định", key: "decisionRoleName", width: 180, align: "left" },
+                { label: "Đầu Mối Chính", key: "primaryLabel", width: 100, align: "center" },
+                { label: "Trạng Thái", key: "statusLabel", width: 100, align: "center" }
+            ];
+
+            const exportData = contacts.map((c, idx) => ({
+                stt: idx + 1,
+                code: `CT-${c.id}`,
+                fullName: c.fullName || "—",
+                companyName: c.companyName || "—",
+                jobTitle: c.jobTitle || "—",
+                department: c.department || "—",
+                email: c.email || "—",
+                phone: c.phone || "—",
+                decisionRoleName: DECISION_ROLES[c.decisionRole]?.label || c.decisionRole || "—",
+                primaryLabel: c.isPrimary ? "CÓ" : "KHÔNG",
+                statusLabel: c.status === "ACTIVE" ? "HOẠT ĐỘNG" : "TẠM DỪNG"
+            }));
+
+            window.ExcelExportHelper.exportStyledExcel({
+                title: "NOVACRM ENTERPRISE - DANH BẠ NGƯỜI LIÊN HỆ & ĐẦU MỐI DOANH NGHIỆP",
+                filename: `Danh_Ba_Nguoi_Lien_He_NovaCRM_${new Date().toISOString().slice(0, 10)}.xls`,
+                meta: `Ngày xuất: ${new Date().toLocaleDateString('vi-VN')} | Tổng số liên hệ: ${contacts.length} | Hệ thống NovaCRM Enterprise`,
+                columns: columns,
+                data: exportData
+            });
+            showToast("Đã xuất tệp Excel danh bạ người liên hệ thành công!");
             return;
         }
 

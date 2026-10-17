@@ -41,7 +41,8 @@ public class AuthenticationFilter
                         (uri.equals(req.getContextPath() + "/api/leads/web-form") ||
                          uri.equals(req.getContextPath() + "/api/leads/web-form/submit"))) ||
                 ("GET".equalsIgnoreCase(req.getMethod()) &&
-                        uri.equals(req.getContextPath() + "/api/leads/health")) ||
+                        (uri.equals(req.getContextPath() + "/api/leads/health") ||
+                         uri.startsWith(req.getContextPath() + "/api/templates/excel/"))) ||
                 "OPTIONS".equalsIgnoreCase(
                         req.getMethod()
                 )

@@ -850,23 +850,60 @@
             return;
         }
 
-        let csv = "\uFEFFMã phiếu,Khách hàng,Tiêu đề,Danh mục,Mức ưu tiên,Trạng thái,Người xử lý,Ngày tạo,Hạn cam kết,Quá hạn SLA\n";
-        items.forEach(t => {
-            const p = PRIORITIES[t.priority]?.label || t.priority;
-            const s = STATUSES[t.status]?.label || t.status;
-            const c = CATEGORIES[t.category]?.label || t.category;
-            csv += `"${t.ticketCode}","${t.customerName}","${t.title.replace(/"/g, '""')}","${c}","${p}","${s}","${t.assigneeName || ''}","${t.createdAt}","${t.dueDate}","${t.slaBreached ? 'CÓ' : 'KHÔNG'}"\n`;
-        });
+        const columns = [
+            { label: "Mã Phiếu", key: "ticketCode", width: 120, align: "center" },
+            { label: "Khách hàng", key: "customerName", width: 220, align: "left" },
+            { label: "Tiêu đề yêu cầu", key: "title", width: 250, align: "left" },
+            { label: "Danh mục", key: "category", width: 150, align: "left" },
+            { label: "Độ ưu tiên", key: "priority", width: 120, align: "center" },
+            { label: "Trạng thái", key: "status", width: 130, align: "center" },
+            { label: "Người xử lý", key: "assignee", width: 160, align: "left" },
+            { label: "Ngày tạo", key: "createdAt", width: 140, align: "center" },
+            { label: "Hạn cam kết SLA", key: "dueDate", width: 140, align: "center" },
+            { label: "Vi phạm SLA", key: "slaBreached", width: 120, align: "center" }
+        ];
 
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Danh_sach_phieu_ho_tro_${new Date().toISOString().slice(0, 10)}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast("Đã xuất file báo cáo CSV thành công", "success");
+        const formattedData = items.map(t => ({
+            ticketCode: t.ticketCode || "",
+            customerName: t.customerName || "",
+            title: t.title || "",
+            category: CATEGORIES[t.category]?.label || t.category || "",
+            priority: PRIORITIES[t.priority]?.label || t.priority || "",
+            status: STATUSES[t.status]?.label || t.status || "",
+            assignee: t.assigneeName || "Chưa phân công",
+            createdAt: t.createdAt || "",
+            dueDate: t.dueDate || "",
+            slaBreached: t.slaBreached ? "CÓ (Quá hạn)" : "Không"
+        }));
+
+        if (window.ExcelExportHelper) {
+            window.ExcelExportHelper.exportStyledExcel({
+                title: "BÁO CÁO PHIẾU HỖ TRỢ & CHĂM SÓC KHÁCH HÀNG (SUPPORT TICKETS)",
+                filename: `Danh_Sach_Phieu_Ho_Tro_${new Date().toISOString().slice(0, 10)}.xls`,
+                meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng: ${items.length} phiếu | NovaCRM`,
+                columns: columns,
+                data: formattedData
+            });
+            showToast("✓ Đã xuất báo cáo phiếu hỗ trợ ra file Excel thành công!", "success");
+        } else {
+            let csv = "\uFEFFMã phiếu,Khách hàng,Tiêu đề,Danh mục,Mức ưu tiên,Trạng thái,Người xử lý,Ngày tạo,Hạn cam kết,Quá hạn SLA\n";
+            items.forEach(t => {
+                const p = PRIORITIES[t.priority]?.label || t.priority;
+                const s = STATUSES[t.status]?.label || t.status;
+                const c = CATEGORIES[t.category]?.label || t.category;
+                csv += `"${t.ticketCode}","${t.customerName}","${t.title.replace(/"/g, '""')}","${c}","${p}","${s}","${t.assigneeName || ''}","${t.createdAt}","${t.dueDate}","${t.slaBreached ? 'CÓ' : 'KHÔNG'}"\n`;
+            });
+            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Danh_sach_phieu_ho_tro_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Đã xuất file báo cáo CSV thành công", "success");
+        }
     }
+
 
     /* =========================================================
        GLOBAL API EXPORT (window.SupportTicketsManager)
