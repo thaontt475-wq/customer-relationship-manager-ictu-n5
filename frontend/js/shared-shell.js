@@ -980,8 +980,12 @@
                 }
             }
 
-            // CRM-113 (S4-01): Ensure Lead Capture from Website Form is in workspace menu
-            if (!currentMenu.some(m => m.path === "lead-capture-manager.html" || m.name === "LEAD_CAPTURE")) {
+            // CRM-113 (S4-01): Match the manager's lead.read permission gate.
+            const canReadLeadCapture = currentSession?.permissions?.includes("lead.read") === true;
+            if (!canReadLeadCapture) {
+                currentMenu = currentMenu.filter(m => m.path !== "lead-capture-manager.html" && m.name !== "LEAD_CAPTURE");
+            }
+            if (canReadLeadCapture && !currentMenu.some(m => m.path === "lead-capture-manager.html" || m.name === "LEAD_CAPTURE")) {
                 const pipelineIndex = currentMenu.findIndex(m => m.path === "pipeline.html");
                 const leadItem = {
                     name: "LEAD_CAPTURE",
