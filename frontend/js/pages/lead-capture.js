@@ -16,6 +16,7 @@
 (function () {
     let registeredFormUrl = null;
     let loadingLeads = false;
+    let preparingCapture = false;
 
     // Trạng thái ứng dụng
     let allLeads = [];
@@ -40,6 +41,10 @@
         cfgShowNotes: document.getElementById("cfgShowNotes"),
         txtEmbedCode: document.getElementById("txtEmbedCode"),
         btnCopyEmbedCode: document.getElementById("btnCopyEmbedCode"),
+        captureStatus: document.getElementById("leadCaptureStatus"),
+        captureStatusText: document.getElementById("leadCaptureStatusText"),
+        btnRetryCapture: document.getElementById("btnRetryCapture"),
+        listStatus: document.getElementById("leadListStatus"),
 
         // Live Preview
         livePreviewIframe: document.getElementById("livePreviewIframe"),
@@ -95,30 +100,80 @@
        =================================================================== */
 
     async function init() {
-        const actions = [dom.btnGenerateDemoLead, dom.btnEmptyCreateLead, dom.btnCopyEmbedCode];
-        actions.forEach(button => { if (button) button.disabled = true; });
-        document.getElementById("btnOpenPublicForm")?.removeAttribute("href");
+        setCaptureActions(false);
         bindNavigationTabs();
         bindGeneratorEvents();
         bindFilterEvents();
         bindModalEvents();
         bindWindowListeners();
+        dom.btnRetryCapture?.addEventListener("click", prepareCapture);
+        updateEmbedCodeAndPreview();
+        await prepareCapture();
+    }
 
+    function setCaptureActions(enabled) {
+        [dom.btnGenerateDemoLead, dom.btnEmptyCreateLead, dom.btnCopyEmbedCode]
+            .forEach(button => { if (button) button.disabled = !enabled; });
+        const openLink = document.getElementById("btnOpenPublicForm");
+        openLink?.setAttribute("aria-disabled", String(!enabled));
+        if (!enabled) openLink?.removeAttribute("href");
+    }
+
+    function captureStatus(message, retry = false) {
+        if (dom.captureStatus) dom.captureStatus.hidden = !message;
+        if (dom.captureStatusText) dom.captureStatusText.textContent = message;
+        if (dom.btnRetryCapture) {
+            dom.btnRetryCapture.hidden = !retry;
+            dom.btnRetryCapture.disabled = preparingCapture;
+        }
+    }
+
+    function apiErrorMessage(error, action) {
+        const explanations = {
+            401: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+            403: "Tài khoản không có quyền thực hiện thao tác này.",
+            404: "Không tìm thấy API Lead Capture trên máy chủ đang chạy.",
+            500: "Máy chủ chưa thể xử lý biểu mẫu."
+        };
+        const status = error.status ? ` (HTTP ${error.status})` : "";
+        const details = explanations[error.status] || "Kiểm tra kết nối và thử lại.";
+        return `${action}${status}: ${details} ${error.message || ""}`.trim();
+    }
+
+    async function prepareCapture() {
+        if (preparingCapture) return;
+        preparingCapture = true;
+        setCaptureActions(false);
+        captureStatus("Đang chuẩn bị biểu mẫu thu thập Lead…");
+        let listRequest;
         try {
             const session = await CrmApi.session();
-            if (!session.permissions?.includes("lead.read")) throw new Error("Bạn không có quyền xem Lead");
+            if (!session.permissions?.includes("lead.read")) {
+                const denied = new Error("Bạn không có quyền xem Lead");
+                denied.status = 403;
+                throw denied;
+            }
+            // Listing must remain available if preparing a new public form fails.
+            listRequest = loadLeadsData();
             if (session.permissions?.includes("lead.create")) {
                 const embed = await CrmApi.request("/api/leads/embed-code?formId=crm-web-lead-form");
+                if (!embed?.formUrl || !embed?.formId) throw new Error("Máy chủ trả về biểu mẫu không hợp lệ");
                 registeredFormUrl = embed.formUrl;
-                actions.forEach(button => { if (button) button.disabled = false; });
                 updateEmbedCodeAndPreview();
+                setCaptureActions(true);
+                captureStatus("");
             } else {
-                [dom.btnGenerateDemoLead, dom.btnEmptyCreateLead, dom.btnCopyEmbedCode].forEach(b => { if (b) b.disabled = true; });
-                document.getElementById("btnOpenPublicForm")?.removeAttribute("href");
+                captureStatus("Bạn có quyền xem Lead, nhưng chưa được cấp quyền tạo biểu mẫu.");
             }
-            await loadLeadsData();
         } catch (error) {
-            showToast(error.message, "danger");
+            registeredFormUrl = null;
+            setCaptureActions(false);
+            updateEmbedCodeAndPreview();
+            captureStatus(apiErrorMessage(error, "Không thể chuẩn bị mã nhúng"), ![401, 403].includes(error.status));
+        } finally {
+            preparingCapture = false;
+            if (dom.btnRetryCapture) dom.btnRetryCapture.disabled = false;
+            if (listRequest) await listRequest;
         }
     }
 
@@ -145,7 +200,7 @@
             dom.paneGenerator.style.display = "none";
             dom.paneLeads.style.display = "block";
             // Làm mới bảng dữ liệu khi chuyển tab
-            renderLeadsTable();
+            loadLeadsData();
         }
     }
 
@@ -237,9 +292,9 @@
      * Đồng bộ URL vào Iframe và tạo thẻ nhúng HTML
      */
     function updateEmbedCodeAndPreview() {
-        if (!registeredFormUrl) return;
-        const formUrl = new URL(registeredFormUrl);
+        const formUrl = new URL(registeredFormUrl || `${CrmApi.base}/lead-capture-form.html`);
         const params = formUrl.searchParams;
+        if (!registeredFormUrl) params.set("preview", "true");
         if (generatorState.title) params.set("title", generatorState.title);
         if (generatorState.subtitle) params.set("subtitle", generatorState.subtitle);
         if (generatorState.btnText) params.set("btn", generatorState.btnText);
@@ -250,7 +305,7 @@
 
         const queryString = params.toString();
         const fullPreviewSrc = `${formUrl.origin}${formUrl.pathname}?${queryString}`;
-        document.getElementById("btnOpenPublicForm").href = fullPreviewSrc;
+        if (registeredFormUrl) document.getElementById("btnOpenPublicForm").href = fullPreviewSrc;
 
         // Cập nhật Live Preview
         if (dom.livePreviewIframe) {
@@ -262,7 +317,7 @@
         const embedSnippet = `<iframe src="${absoluteUrl}" width="100%" height="560" style="border:none; border-radius:14px; box-shadow:0 15px 35px rgba(0,0,0,0.1); max-width:540px; margin:0 auto; display:block;" title="Biểu mẫu thu thập Lead Website" loading="lazy"></iframe>`;
 
         if (dom.txtEmbedCode) {
-            dom.txtEmbedCode.value = embedSnippet;
+            dom.txtEmbedCode.value = registeredFormUrl ? embedSnippet : "";
         }
     }
 
@@ -287,8 +342,11 @@
 
     function fallbackCopy(text) {
         dom.txtEmbedCode.select();
-        document.execCommand("copy");
-        showToast("Đã sao chép mã nhúng vào Clipboard!", "success");
+        if (document.execCommand("copy")) {
+            showToast("Đã sao chép mã nhúng vào Clipboard!", "success");
+        } else {
+            showToast("Trình duyệt chưa cho phép sao chép. Hãy chọn mã và nhấn Ctrl+C.", "warning");
+        }
     }
 
     /* ===================================================================
@@ -301,6 +359,7 @@
     async function loadLeadsData() {
         if (loadingLeads) return;
         loadingLeads = true;
+        if (dom.listStatus) dom.listStatus.hidden = true;
         try {
             const list = [];
             for (let page = 1; ; page++) {
@@ -310,8 +369,12 @@
             }
             allLeads = list;
         } catch (error) {
-            allLeads = [];
-            showToast(error.message, "danger");
+            const message = apiErrorMessage(error, "Không thể tải danh sách Lead");
+            if (dom.listStatus) {
+                dom.listStatus.textContent = message;
+                dom.listStatus.hidden = false;
+            }
+            showToast(message, "danger");
         } finally {
             loadingLeads = false;
             updateKpiCounters();
@@ -698,6 +761,8 @@
         switch (status) {
             case "NEW":
                 return { cls: "status-new", label: "Mới (Chưa liên hệ)", icon: "fa-circle-dot" };
+            case "PENDING_ASSIGNMENT":
+                return { cls: "status-contacted", label: "Chờ phân bổ", icon: "fa-clock" };
             case "CONTACTED":
                 return { cls: "status-contacted", label: "Đã liên hệ", icon: "fa-phone-flip" };
             case "CONVERTED":
@@ -705,7 +770,7 @@
             case "REJECTED":
                 return { cls: "status-rejected", label: "Không liên lạc được", icon: "fa-circle-xmark" };
             default:
-                return { cls: "status-new", label: "Mới", icon: "fa-circle-dot" };
+                return { cls: "status-contacted", label: "Trạng thái khác", icon: "fa-circle-question" };
         }
     }
 

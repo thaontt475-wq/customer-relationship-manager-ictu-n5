@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
     <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/pages/lead-capture.css?v=20261014_preview_fix2">
+    <link rel="stylesheet" href="css/pages/lead-capture.css?v=20261017_s401_fullqa_v1">
 </head>
 
 <body class="crm-private">
@@ -133,16 +133,21 @@
         </div>
 
         <div class="lead-head-actions">
-            <a href="lead-capture-form.html" target="_blank" class="crm-btn crm-btn-secondary" id="btnOpenPublicForm">
+            <a target="_blank" rel="noopener" aria-disabled="true" class="crm-btn crm-btn-secondary" id="btnOpenPublicForm">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 Mở Form công khai
             </a>
-            <button type="button" class="crm-btn crm-btn-primary" id="btnGenerateDemoLead">
+            <button type="button" class="crm-btn crm-btn-primary" id="btnGenerateDemoLead" disabled>
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                 Nhập Lead mới
             </button>
         </div>
     </section>
+
+    <div id="leadCaptureStatus" class="lead-capture-status" role="status" aria-live="polite" hidden>
+        <span id="leadCaptureStatusText"></span>
+        <button type="button" id="btnRetryCapture" class="crm-btn crm-btn-secondary crm-btn-sm" hidden>Thử lại</button>
+    </div>
 
     <!-- 2. NAVIGATION TABS -->
     <nav class="lead-nav-tabs" aria-label="Phân hệ Lead Capture">
@@ -232,11 +237,11 @@
                         <span class="embed-code-title">
                             <i class="fa-solid fa-code"></i> Mã HTML nhúng Website
                         </span>
-                        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnCopyEmbedCode">
+                        <button type="button" class="crm-btn crm-btn-secondary crm-btn-sm" id="btnCopyEmbedCode" disabled>
                             <i class="fa-solid fa-copy"></i> Sao chép mã
                         </button>
                     </div>
-                    <textarea id="txtEmbedCode" class="embed-code-textarea" readonly rows="4"></textarea>
+                    <textarea id="txtEmbedCode" class="embed-code-textarea" readonly rows="4" aria-label="Mã HTML nhúng Website" placeholder="Mã nhúng sẽ xuất hiện khi biểu mẫu sẵn sàng."></textarea>
                     <p style="margin: 8px 0 0; font-size: 11.5px; color: var(--crm-muted);">
                         <i class="fa-solid fa-circle-info"></i> Dán đoạn mã này vào bất kỳ vị trí nào trên Landing Page, Blog hoặc Website của công ty.
                     </p>
@@ -267,7 +272,7 @@
                 </div>
 
                 <div class="preview-canvas-wrapper">
-                    <iframe id="livePreviewIframe" class="preview-iframe-frame" src="lead-capture-form.html" title="Xem trước biểu mẫu thu thập Lead"></iframe>
+                    <iframe id="livePreviewIframe" class="preview-iframe-frame" src="lead-capture-form.html?preview=true" title="Xem trước biểu mẫu thu thập Lead"></iframe>
                 </div>
             </div>
 
@@ -276,6 +281,7 @@
 
     <!-- ================= TAB 2: DANH SÁCH LEAD THU THẬP ================= -->
     <section class="tab-pane-content" id="paneLeads" style="display:none;">
+        <p id="leadListStatus" class="lead-capture-status" role="status" aria-live="polite" hidden></p>
         
         <!-- KPI COUNTERS -->
         <div class="leads-kpi-grid">
@@ -385,7 +391,7 @@
                 </div>
                 <h3>Chưa có dữ liệu Lead nào</h3>
                 <p>Khách hàng tiềm năng điền từ biểu mẫu trên Website hoặc nút Nhập Lead mới sẽ xuất hiện tại đây.</p>
-                <button type="button" class="crm-btn crm-btn-primary" id="btnEmptyCreateLead">
+                <button type="button" class="crm-btn crm-btn-primary" id="btnEmptyCreateLead" disabled>
                     <i class="fa-solid fa-wand-magic-sparkles"></i> Nhập Lead mới
                 </button>
             </div>
@@ -427,7 +433,7 @@
 
 <!-- SCRIPTS -->
 <script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/pages/lead-capture.js?v=20261017_s401"></script>
+<script src="js/shared-shell.js?v=20261017_s401_fullqa_v1"></script>
+<script src="js/pages/lead-capture.js?v=20261017_s401_fullqa_v1"></script>
 </body>
 </html>
