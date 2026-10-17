@@ -391,6 +391,7 @@
                 <p class="lead-form-subtitle" id="formSubtitle">Để lại thông tin, chuyên viên Corporate CRM sẽ liên hệ tư vấn trong 15 phút.</p>
             </header>
 
+            <p id="previewNotice" role="status" hidden>Bản xem trước. Chỉ biểu mẫu đã sẵn sàng mới tiếp nhận thông tin.</p>
             <form id="leadCaptureForm" novalidate>
                 <!-- Anti-spam Honeypot field (hidden from legitimate humans) -->
                 <div class="website-hp-field">
@@ -543,6 +544,11 @@
             const notesInput = document.getElementById("leadNotes");
             const hpInput = document.getElementById("website_hp");
             const submitBtn = document.getElementById("btnSubmitLead");
+            const previewOnly = urlParams.get("preview") === "true";
+            if (previewOnly) {
+                submitBtn.disabled = true;
+                document.getElementById("previewNotice").hidden = false;
+            }
             const formContent = document.getElementById("formContentWrap");
             const successView = document.getElementById("successView");
             const btnSendAnother = document.getElementById("btnSendAnother");
@@ -602,7 +608,7 @@
             // 3. Form Submission Handler
             form.addEventListener("submit", async function(e) {
                 e.preventDefault();
-                if (submitting) return;
+                if (submitting || previewOnly) return;
 
                 if (hpInput.value) {
                     showToast("Không thể tiếp nhận biểu mẫu này.", true);
