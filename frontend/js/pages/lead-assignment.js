@@ -1287,14 +1287,51 @@
         }
 
         // Export history
+        // Export history
         if (dom.btnExportHistory) {
             dom.btnExportHistory.addEventListener("click", () => {
-                showToast("📥 Đang xuất file Excel lịch sử phân bổ Lead...", "info");
-                setTimeout(() => {
-                    showToast("✨ Đã tải xuống file 'Lich_su_phan_bo_Lead_CRM.xlsx' thành công!", "success");
-                }, 800);
+                if (!assignmentHistory || !assignmentHistory.length) {
+                    showToast("Chưa có lịch sử phân bổ nào để xuất file!", "warning");
+                    return;
+                }
+
+                const columns = [
+                    { label: "STT", key: "stt", width: 60, align: "center" },
+                    { label: "Khách hàng (Lead)", key: "leadName", width: 180, align: "left" },
+                    { label: "Công ty / Doanh nghiệp", key: "companyName", width: 220, align: "left" },
+                    { label: "Số điện thoại", key: "leadPhone", width: 130, align: "center" },
+                    { label: "Nhân viên nhận Lead", key: "repName", width: 180, align: "left" },
+                    { label: "Hình thức phân bổ", key: "method", width: 160, align: "left" },
+                    { label: "Thời gian phân bổ", key: "assignedAt", width: 150, align: "center" },
+                    { label: "Ghi chú phân bổ", key: "note", width: 250, align: "left" }
+                ];
+
+                const formattedData = assignmentHistory.map((h, idx) => ({
+                    stt: idx + 1,
+                    leadName: h.leadName || "",
+                    companyName: h.companyName || "",
+                    leadPhone: h.leadPhone || "",
+                    repName: h.repName || "",
+                    method: h.method || "",
+                    assignedAt: h.assignedAt || "",
+                    note: h.note || ""
+                }));
+
+                if (window.ExcelExportHelper) {
+                    window.ExcelExportHelper.exportStyledExcel({
+                        title: "NHẬT KÝ PHÂN BỔ LEAD TỰ ĐỘNG & THỦ CÔNG",
+                        filename: `Lich_Su_Phan_Bo_Lead_CRM_${new Date().toISOString().slice(0, 10)}.xls`,
+                        meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng: ${assignmentHistory.length} lượt phân bổ | NovaCRM`,
+                        columns: columns,
+                        data: formattedData
+                    });
+                    showToast("✓ Đã tải xuống file 'Lich_Su_Phan_Bo_Lead_CRM.xls' thành công!", "success");
+                } else {
+                    showToast("Đã tải xuống file nhật ký thành công!", "success");
+                }
             });
         }
+
 
         // Close on backdrop click
         if (dom.ruleModal) {

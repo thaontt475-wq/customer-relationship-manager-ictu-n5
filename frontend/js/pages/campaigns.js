@@ -1158,31 +1158,77 @@ function exportCampaignsToCSV() {
         return;
     }
 
-    const headers = ["Mã chiến dịch", "Tên chiến dịch", "Trạng thái", "Hình thức", "Ngày bắt đầu", "Ngày kết thúc", "Ngân sách", "Doanh thu kỳ vọng", "Mô tả"];
-    const rows = campaigns.map(c => [
-        `"${(c.code || '').replace(/"/g, '""')}"`,
-        `"${(c.name || '').replace(/"/g, '""')}"`,
-        `"${(c.status || '').replace(/"/g, '""')}"`,
-        `"${(c.type || '').replace(/"/g, '""')}"`,
-        `"${c.startDate || ''}"`,
-        `"${c.endDate || ''}"`,
-        c.budget || 0,
-        c.expectedRevenue || 0,
-        `"${(c.description || '').replace(/"/g, '""')}"`
-    ]);
+    const columns = [
+        { label: "Mã Chiến dịch", key: "code", width: 130, align: "center" },
+        { label: "Tên Chiến dịch", key: "name", width: 220, align: "left" },
+        { label: "Trạng thái", key: "status", width: 130, align: "center" },
+        { label: "Kênh triển khai", key: "type", width: 150, align: "left" },
+        { label: "Ngày bắt đầu", key: "startDate", width: 120, align: "center" },
+        { label: "Ngày kết thúc", key: "endDate", width: 120, align: "center" },
+        { label: "Ngân sách (VNĐ)", key: "budget", width: 160, isMoney: true },
+        { label: "Doanh thu kỳ vọng (VNĐ)", key: "expectedRevenue", width: 160, isMoney: true },
+        { label: "Mô tả mục tiêu", key: "description", width: 250, align: "left" }
+    ];
 
-    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `danh_sach_chien_dich_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    notify("Đã xuất danh sách chiến dịch ra file CSV!", "success");
+    let totalBudget = 0;
+    let totalRevenue = 0;
+    const formattedData = campaigns.map(c => {
+        const b = Number(c.budget) || 0;
+        const r = Number(c.expectedRevenue) || 0;
+        totalBudget += b;
+        totalRevenue += r;
+        return {
+            code: c.code || "",
+            name: c.name || "",
+            status: c.status || "",
+            type: c.type || "",
+            startDate: c.startDate || "",
+            endDate: c.endDate || "",
+            budget: b,
+            expectedRevenue: r,
+            description: c.description || ""
+        };
+    });
+
+    if (window.ExcelExportHelper) {
+        window.ExcelExportHelper.exportStyledExcel({
+            title: "BÁO CÁO KẾ HOẠCH & CHIẾN DỊCH MARKETING (CAMPAIGNS)",
+            filename: `Danh_Sach_Chien_Dich_${new Date().toISOString().slice(0, 10)}.xls`,
+            meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng số: ${campaigns.length} chiến dịch | NovaCRM Enterprise`,
+            columns: columns,
+            data: formattedData,
+            summary: {
+                label: "TỔNG NGÂN SÁCH & DOANH THU KỲ VỌNG:",
+                mergeCols: 6,
+                values: {
+                    budget: totalBudget,
+                    expectedRevenue: totalRevenue
+                }
+            }
+        });
+        notify("✓ Đã xuất danh sách chiến dịch ra file Excel định dạng đẹp!", "success");
+    } else {
+        const headers = ["Mã chiến dịch", "Tên chiến dịch", "Trạng thái", "Hình thức", "Ngày bắt đầu", "Ngày kết thúc", "Ngân sách", "Doanh thu kỳ vọng", "Mô tả"];
+        const rows = campaigns.map(c => [
+            `"${(c.code || '').replace(/"/g, '""')}"`, `"${(c.name || '').replace(/"/g, '""')}"`,
+            `"${(c.status || '').replace(/"/g, '""')}"`, `"${(c.type || '').replace(/"/g, '""')}"`,
+            `"${c.startDate || ''}"`, `"${c.endDate || ''}"`, c.budget || 0, c.expectedRevenue || 0,
+            `"${(c.description || '').replace(/"/g, '""')}"`
+        ]);
+        const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `danh_sach_chien_dich_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        notify("Đã xuất danh sách chiến dịch ra file CSV!", "success");
+    }
 }
+
 
 function escapeHtml(str) {
     if (!str) return "";

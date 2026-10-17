@@ -547,6 +547,53 @@ function exportContractsCSV() {
         return;
     }
 
+    if (window.ExcelExportHelper) {
+        const columns = [
+            { label: "STT", key: "stt", width: 45, align: "center" },
+            { label: "Số Hợp Đồng", key: "contractNumber", width: 95, align: "center" },
+            { label: "Tên Hợp Đồng", key: "title", width: 260, align: "left" },
+            { label: "Khách Hàng", key: "customerName", width: 220, align: "left" },
+            { label: "Giá Trị HĐ (VNĐ)", key: "totalAmount", width: 140, isMoney: true },
+            { label: "Báo Giá Gốc", key: "quoteNumber", width: 95, align: "center" },
+            { label: "Trạng Thái", key: "statusName", width: 120, align: "center" },
+            { label: "Ngày Hiệu Lực", key: "startDate", width: 100, align: "center" },
+            { label: "Ngày Hết Hạn", key: "endDate", width: 100, align: "center" }
+        ];
+
+        let sumTotal = 0;
+        const exportData = contractsData.map((c, idx) => {
+            const amount = Number(c.total_amount || c.totalAmount) || 0;
+            sumTotal += amount;
+            return {
+                stt: idx + 1,
+                contractNumber: c.contract_number || c.contractNumber || `HD-${c.id}`,
+                title: c.title || "Hợp đồng kinh tế",
+                customerName: c.customer_name || c.customerName || "Khách hàng",
+                totalAmount: amount,
+                quoteNumber: c.quote_number || c.quoteNumber || "—",
+                statusName: renderStatusLabel((c.status || '').toUpperCase()),
+                startDate: c.start_date || c.startDate || "—",
+                endDate: c.end_date || c.endDate || "—"
+            };
+        });
+
+        window.ExcelExportHelper.exportStyledExcel({
+            title: "NOVACRM ENTERPRISE - BÁO CÁO TỔNG HỢP HỢP ĐỒNG KINH TẾ",
+            filename: `Hop_Dong_NovaCRM_${new Date().toISOString().slice(0, 10)}.xls`,
+            meta: `Ngày xuất: ${new Date().toLocaleDateString('vi-VN')} | Tổng số hợp đồng: ${contractsData.length} | Đơn vị: VNĐ`,
+            columns: columns,
+            data: exportData,
+            summary: {
+                label: "TỔNG GIÁ TRỊ HỢP ĐỒNG:",
+                mergeCols: 4,
+                values: { totalAmount: sumTotal }
+            }
+        });
+        showToast("Đã xuất tệp Excel danh sách hợp đồng thành công!");
+        return;
+    }
+
+    // Fallback CSV
     let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
     csvContent += "Mã hợp đồng,Tên hợp đồng,Khách hàng,Giá trị (VNĐ),Báo giá liên kết,Trạng thái,Ngày ký,Ngày hiệu lực,Ngày hết hạn\n";
 

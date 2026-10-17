@@ -647,33 +647,73 @@
             return;
         }
 
-        const headers = ["STT", "Tên Doanh Nghiệp", "Mã Số Thuế", "Lĩnh Vực", "Người Phụ Trách", "Lần Tương Tác Cuối", "Hình Thức", "Số Ngày Chưa CS", "Giá Trị Hợp Đồng (VNĐ)", "Trạng Thái"];
-        
-        const rows = listToExport.map((c, idx) => [
-            idx + 1,
-            `"${(c.name || '').replace(/"/g, '""')}"`,
-            `"${c.taxCode || ''}"`,
-            `"${(c.industry || '').replace(/"/g, '""')}"`,
-            `"${(c.ownerName || '').replace(/"/g, '""')}"`,
-            `"${formatDateVi(c.lastInteractionAt)}"`,
-            `"${getChannelLabel(c.lastInteractionType)}"`,
-            c.daysInactive,
-            c.contractValue || 0,
-            `"${c.isContactedRecently ? 'Đã chăm sóc gần đây' : 'Cần chăm sóc ngay'}"`
-        ]);
+        const columns = [
+            { label: "STT", key: "stt", width: 60, align: "center" },
+            { label: "Tên Doanh Nghiệp", key: "name", width: 220, align: "left" },
+            { label: "Mã Số Thuế", key: "taxCode", width: 130, align: "center" },
+            { label: "Lĩnh Vực", key: "industry", width: 160, align: "left" },
+            { label: "Người Phụ Trách", key: "ownerName", width: 160, align: "left" },
+            { label: "Lần Tương Tác Cuối", key: "lastInteraction", width: 140, align: "center" },
+            { label: "Hình Thức", key: "channel", width: 140, align: "left" },
+            { label: "Số Ngày Chưa CS", key: "daysInactive", width: 120, align: "center" },
+            { label: "Giá Trị Hợp Đồng (VNĐ)", key: "contractValue", width: 160, isMoney: true },
+            { label: "Trạng Thái", key: "status", width: 160, align: "center" }
+        ];
 
-        const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        const filename = `Bao_Cao_Cham_Soc_Dinh_Ky_CRM_${new Date().toISOString().slice(0, 10)}.csv`;
+        let totalValue = 0;
+        const formattedData = listToExport.map((c, idx) => {
+            const val = Number(c.contractValue) || 0;
+            totalValue += val;
+            return {
+                stt: idx + 1,
+                name: c.name || "",
+                taxCode: c.taxCode || "",
+                industry: c.industry || "",
+                ownerName: c.ownerName || "",
+                lastInteraction: formatDateVi(c.lastInteractionAt),
+                channel: getChannelLabel(c.lastInteractionType),
+                daysInactive: c.daysInactive || 0,
+                contractValue: val,
+                status: c.isContactedRecently ? "Đã chăm sóc gần đây" : "Cần chăm sóc ngay"
+            };
+        });
 
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(link.href);
-
-        showToast(`Đã xuất báo cáo ${listToExport.length} khách hàng thành công!`, "success");
+        if (window.ExcelExportHelper) {
+            window.ExcelExportHelper.exportStyledExcel({
+                title: "BÁO CÁO THEO DÕI & CHĂM SÓC KHÁCH HÀNG ĐỊNH KỲ",
+                filename: `Bao_Cao_Cham_Soc_Dinh_Ky_CRM_${new Date().toISOString().slice(0, 10)}.xls`,
+                meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng: ${listToExport.length} khách hàng | NovaCRM`,
+                columns: columns,
+                data: formattedData,
+                summary: {
+                    label: "TỔNG GIÁ TRỊ HỢP ĐỒNG:",
+                    mergeCols: 8,
+                    values: {
+                        contractValue: totalValue
+                    }
+                }
+            });
+            showToast(`✓ Đã xuất báo cáo ${listToExport.length} khách hàng ra file Excel thành công!`, "success");
+        } else {
+            const headers = ["STT", "Tên Doanh Nghiệp", "Mã Số Thuế", "Lĩnh Vực", "Người Phụ Trách", "Lần Tương Tác Cuối", "Hình Thức", "Số Ngày Chưa CS", "Giá Trị Hợp Đồng (VNĐ)", "Trạng Thái"];
+            const rows = listToExport.map((c, idx) => [
+                idx + 1, `"${(c.name || '').replace(/"/g, '""')}"`, `"${c.taxCode || ''}"`,
+                `"${(c.industry || '').replace(/"/g, '""')}"`, `"${(c.ownerName || '').replace(/"/g, '""')}"`,
+                `"${formatDateVi(c.lastInteractionAt)}"`, `"${getChannelLabel(c.lastInteractionType)}"`,
+                c.daysInactive, c.contractValue || 0, `"${c.isContactedRecently ? 'Đã chăm sóc gần đây' : 'Cần chăm sóc ngay'}"`
+            ]);
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            const filename = `Bao_Cao_Cham_Soc_Dinh_Ky_CRM_${new Date().toISOString().slice(0, 10)}.csv`;
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            showToast(`Đã xuất báo cáo ${listToExport.length} khách hàng thành công!`, "success");
+        }
     }
+
 
     /* =========================================================
        11. UTILITY FUNCTIONS

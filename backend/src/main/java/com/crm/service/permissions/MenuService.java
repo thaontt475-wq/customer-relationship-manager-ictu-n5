@@ -174,6 +174,20 @@ public class MenuService {
             );
         }
 
+        if (permissions.contains("user.import") || permissions.contains("user.read")) {
+
+            menu.add(
+                    item(
+                            "EXCEL_TEMPLATES",
+                            "Mẫu Excel & Báo cáo",
+                            "excel-templates.html",
+                            "admin",
+                            "import"
+                    )
+            );
+        }
+
+
 
         if (permissions.contains("audit.read")) {
 
