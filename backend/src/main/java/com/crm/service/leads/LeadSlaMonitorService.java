@@ -112,25 +112,23 @@ public class LeadSlaMonitorService {
      */
     public List<Long> findTeamLeadUserIds(Connection c, long leadId) throws SQLException {
         String findTeamLeadsSql = """
-            SELECT DISTINCT tl.id
-            FROM leads l
-            JOIN users rep ON rep.id = COALESCE(l.assigned_to_user_id, l.owner_user_id)
-            JOIN (
-                WITH RECURSIVE ancestor_teams(id, parent_id, leader_id) AS (
-                    SELECT t.id, t.parent_id, t.leader_id FROM teams t
-                    UNION ALL
-                    SELECT p.id, p.parent_id, p.leader_id FROM teams p
-                    JOIN ancestor_teams a ON a.parent_id = p.id
-                    WHERE p.active = TRUE
-                )
-                SELECT at.id AS team_id, at.leader_id
-                FROM ancestor_teams at
-            ) t_hier ON t_hier.team_id = rep.team_id
-            JOIN users tl ON ((tl.id = t_hier.leader_id) OR (tl.team_id = t_hier.team_id))
+            WITH RECURSIVE assigned_rep(id, team_id) AS (
+                SELECT rep.id, rep.team_id FROM leads l
+                JOIN users rep ON rep.id = COALESCE(l.assigned_to_user_id, l.owner_user_id)
+                WHERE l.id = ?
+            ), ancestor_teams(id, parent_id, leader_id) AS (
+                SELECT t.id, t.parent_id, t.leader_id FROM teams t
+                JOIN assigned_rep rep ON rep.team_id = t.id WHERE t.active = TRUE
+                UNION ALL
+                SELECT p.id, p.parent_id, p.leader_id FROM teams p
+                JOIN ancestor_teams a ON a.parent_id = p.id WHERE p.active = TRUE
+            )
+            SELECT DISTINCT tl.id FROM ancestor_teams t_hier
+            JOIN users tl ON ((tl.id = t_hier.leader_id) OR (tl.team_id = t_hier.id))
             JOIN user_roles ur ON ur.user_id = tl.id
             JOIN roles r ON r.id = ur.role_id
-            WHERE l.id = ? AND (r.code IN ('TEAM_LEAD', 'MANAGER') OR tl.id = t_hier.leader_id)
-              AND tl.status = 'ACTIVE' AND tl.id != rep.id
+            WHERE (r.code IN ('TEAM_LEAD', 'MANAGER') OR tl.id = t_hier.leader_id)
+              AND tl.status = 'ACTIVE' AND tl.id NOT IN (SELECT id FROM assigned_rep)
             """;
 
         List<Long> result = new ArrayList<>();

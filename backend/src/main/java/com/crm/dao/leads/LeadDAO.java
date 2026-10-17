@@ -770,11 +770,12 @@ public class LeadDAO {
     // --- S4-06: Lead Auto-Assignment Methods ---
 
     public List<Lead> findUnassignedOrPendingQueue() {
-        String sql = "SELECT * FROM leads WHERE (status = 'PENDING_ASSIGNMENT' OR assigned_to IS NULL) " +
-                "AND is_deleted = 0 ORDER BY created_at DESC";
+        String sql = "SELECT * FROM leads WHERE status IN ('NEW','PENDING_ASSIGNMENT') " +
+                "AND assigned_to IS NULL AND assigned_to_user_id IS NULL " +
+                "AND is_locked = 0 AND is_deleted = 0 ORDER BY created_at DESC";
         List<Lead> leads = new ArrayList<>();
 
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -859,23 +860,31 @@ public class LeadDAO {
     }
 
     public boolean updateAssignment(Connection conn, long leadId, Long assignedTo, String status, String reason) throws SQLException {
-        String sql = "UPDATE leads SET assigned_to = ?, status = ?, unassigned_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        String assignedAt = assignedTo == null ? "NULL" : "CURRENT_TIMESTAMP";
+        String deadline = assignedTo == null ? "NULL" :
+                "DATE_ADD(CURRENT_TIMESTAMP, INTERVAL IF(sla_total_minutes > 0, sla_total_minutes, 120) MINUTE)";
+        String sql = "UPDATE leads SET assigned_to = ?, assigned_to_user_id = ?, status = ?, unassigned_reason = ?, " +
+                "assigned_at = " + assignedAt + ", sla_deadline = " + deadline + ", " +
+                "accepted_at = NULL, rejected_at = NULL, sla_result = NULL, updated_at = CURRENT_TIMESTAMP " +
+                "WHERE id = ? AND status IN ('NEW','PENDING_ASSIGNMENT') AND assigned_to IS NULL " +
+                "AND assigned_to_user_id IS NULL AND is_locked = 0 AND is_deleted = 0";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             if (assignedTo != null) {
                 ps.setLong(1, assignedTo);
             } else {
                 ps.setNull(1, Types.BIGINT);
             }
-            ps.setString(2, status != null ? status : "ASSIGNED");
-            ps.setString(3, reason);
-            ps.setLong(4, leadId);
+            if (assignedTo == null) ps.setNull(2, Types.BIGINT); else ps.setLong(2, assignedTo);
+            ps.setString(3, status != null ? status : "PENDING_RESPONSE");
+            ps.setString(4, reason);
+            ps.setLong(5, leadId);
 
             return ps.executeUpdate() > 0;
         }
     }
 
     public boolean updateAssignment(long leadId, Long assignedTo, String status, String reason) {
-        try (Connection conn = DatabaseConfig.getConnection()) {
+        try (Connection conn = open()) {
             return updateAssignment(conn, leadId, assignedTo, status, reason);
         } catch (SQLException e) {
             System.err.println("Error updating lead assignment: " + e.getMessage());
@@ -887,21 +896,14 @@ public class LeadDAO {
     public List<SalesRepDTO> getSalesRepsWithWorkload() {
         Map<String, SalesRepDTO> repsMap = new LinkedHashMap<>();
 
-        // Standard reps configured in the CRM sales team
-        repsMap.put("USR-101", new SalesRepDTO("USR-101", "Nguyễn Văn Hùng", "NH", "Senior Sales B2B", "Phòng Kinh doanh Miền Bắc", "NORTH", 8, 25, true));
-        repsMap.put("USR-102", new SalesRepDTO("USR-102", "Trần Thu Hà", "TH", "Chuyên viên Bất động sản", "Phòng Kinh doanh Miền Bắc", "NORTH", 14, 25, true));
-        repsMap.put("USR-103", new SalesRepDTO("USR-103", "Lê Hoàng Cường", "LC", "Trưởng nhóm Sales Miền Trung", "Chi nhánh Đà Nẵng", "CENTRAL", 6, 20, true));
-        repsMap.put("USR-104", new SalesRepDTO("USR-104", "Phạm Thu Dung", "PD", "Senior Sales Enterprise", "Phòng Kinh doanh Miền Nam", "SOUTH", 12, 25, true));
-        repsMap.put("USR-105", new SalesRepDTO("USR-105", "Vũ Hải Đăng", "VĐ", "Chuyên viên Giải pháp CNTT", "Phòng Kinh doanh Miền Nam", "SOUTH", 9, 25, true));
-        repsMap.put("USR-106", new SalesRepDTO("USR-106", "Đỗ Minh Tuấn", "MT", "Key Account Manager", "Khối Khách hàng Lớn (VIP)", "NATIONWIDE", 5, 15, true));
-
-        // Query database users and teams to enrich or add dynamic reps
-        String sql = "SELECT u.id, u.full_name, u.email, t.name as team_name " +
+        // Assignment targets must be active, real sales users, never display fixtures.
+        String sql = "SELECT DISTINCT u.id, u.full_name, t.name as team_name " +
                 "FROM users u " +
+                "JOIN user_roles ur ON ur.user_id=u.id JOIN roles r ON r.id=ur.role_id " +
                 "LEFT JOIN teams t ON u.team_id = t.id " +
-                "WHERE u.status = 'ACTIVE'";
+                "WHERE u.status = 'ACTIVE' AND r.code IN ('SALES_REP','TEAM_LEAD') ORDER BY u.id";
 
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -927,17 +929,19 @@ public class LeadDAO {
                 repsMap.putIfAbsent(idKey, rep);
             }
         } catch (SQLException e) {
-            System.err.println("Error querying active users for sales reps: " + e.getMessage());
+            throw new IllegalStateException("Không thể tải nhân viên phân bổ", e);
         }
 
         // Count current leads assigned to each rep
-        String countSql = "SELECT assigned_to, COUNT(*) as cnt FROM leads WHERE assigned_to IS NOT NULL AND is_deleted = 0 GROUP BY assigned_to";
-        try (Connection conn = DatabaseConfig.getConnection();
+        String countSql = "SELECT COALESCE(assigned_to_user_id, CASE WHEN assigned_to REGEXP '^(USR-)?[0-9]+$' " +
+                "THEN CAST(SUBSTRING_INDEX(assigned_to,'-',-1) AS UNSIGNED) END) AS rep_user_id, COUNT(*) AS cnt " +
+                "FROM leads WHERE is_deleted=0 AND status NOT IN ('CONVERTED','MERGED','REJECTED') GROUP BY rep_user_id";
+        try (Connection conn = open();
              PreparedStatement ps = conn.prepareStatement(countSql);
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                long assignedTo = rs.getLong("assigned_to");
+                long assignedTo = rs.getLong("rep_user_id");
                 int cnt = rs.getInt("cnt");
                 String key = String.valueOf(assignedTo);
                 if (repsMap.containsKey(key)) {
@@ -945,7 +949,7 @@ public class LeadDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error querying lead counts: " + e.getMessage());
+            throw new IllegalStateException("Không thể tải tải công việc nhân viên", e);
         }
 
         return new ArrayList<>(repsMap.values());

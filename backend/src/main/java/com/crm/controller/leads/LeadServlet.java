@@ -320,6 +320,7 @@ public class LeadServlet extends HttpServlet {
             // --- S4-06 Auto Assignment Routes ---
             if ("/assignment-rules".equals(path)) {
                 if ("GET".equals(method)) {
+                    authService.requirePermission(req, "lead.assignment_rules");
                     List<AssignmentRule> rules = ruleService.getAllRules();
                     ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách quy tắc phân bổ thành công", rules));
                     return;
@@ -352,6 +353,7 @@ public class LeadServlet extends HttpServlet {
                     return;
                 }
                 String leadIdStr = path.substring(1, path.indexOf("/assignment-history"));
+                authService.requirePermission(req, "lead.assign");
                 try {
                     long leadId = Long.parseLong(leadIdStr);
                     List<AssignmentHistory> history = historyDAO.findByLeadId(leadId);
@@ -361,6 +363,7 @@ public class LeadServlet extends HttpServlet {
             }
 
             if ("/queue".equals(path) || "/unassigned".equals(path)) {
+                authService.requirePermission(req, "lead.assign");
                 if (!"GET".equals(method)) {
                     unsupported(resp, "GET");
                     return;
@@ -371,6 +374,7 @@ public class LeadServlet extends HttpServlet {
             }
 
             if ("/reps".equals(path) || "/sales-reps".equals(path)) {
+                authService.requirePermission(req, "lead.assign");
                 if (!"GET".equals(method)) {
                     unsupported(resp, "GET");
                     return;
