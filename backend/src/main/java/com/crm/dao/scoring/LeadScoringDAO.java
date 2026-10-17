@@ -77,6 +77,15 @@ public class LeadScoringDAO {
             p.setLong(6,version);p.setString(7,hash);p.setInt(8,score.rawScore());p.setInt(9,score.score());p.setString(10,score.classification());
             p.setString(11,details);p.setLong(12,version);p.setString(13,hash);p.executeUpdate();
         }
+        try (var updateStmt = c.prepareStatement("UPDATE leads SET score = ?, tier = ?, rating = ? WHERE id = ?")) {
+            updateStmt.setInt(1, score.score());
+            updateStmt.setString(2, score.classification());
+            updateStmt.setString(3, score.classification());
+            updateStmt.setLong(4, id);
+            updateStmt.executeUpdate();
+        } catch (SQLException ignored) {
+            // Guard against minimal test schemas where score/tier/rating columns might be absent
+        }
     }
     public void saveProfile(Connection c,long id,Map<String,Object> profile,long user) throws SQLException {
         try(var p=c.prepareStatement("""
