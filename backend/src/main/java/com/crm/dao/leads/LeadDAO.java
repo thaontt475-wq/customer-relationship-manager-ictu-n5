@@ -478,7 +478,7 @@ public class LeadDAO {
         String status = filter.getStatus();
         if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
             if ("IN_PROGRESS".equalsIgnoreCase(status)) {
-                sql.append(" AND l.status IN ('IN_PROGRESS', 'CONTACTED')");
+                sql.append(" AND l.status IN ('IN_PROGRESS', 'CONTACTED', 'CONTACTING')");
             } else {
                 sql.append(" AND l.status = ?");
                 params.add(status.trim().toUpperCase());
@@ -684,7 +684,8 @@ public class LeadDAO {
                 sql.append(")) ");
             }
         } else {
-            sql.append("(assigned_to_user_id = ? OR assigned_to = ? OR assigned_to = ?) ");
+            sql.append("(assigned_to_user_id = ? OR assigned_to = ? OR assigned_to = ? " +
+                       "OR id IN (SELECT lead_id FROM lead_assignment_history WHERE (rep_id = ? OR rep_id = ?) AND action_type = 'REJECT')) ");
         }
 
         sql.append("ORDER BY FIELD(status, 'PENDING_RESPONSE', 'CONTACTING', 'REJECTED', 'PENDING_ASSIGNMENT'), id DESC");
@@ -694,7 +695,9 @@ public class LeadDAO {
             if (scope == null || scope.scopeType() == ScopeType.SELF) {
                 stmt.setLong(1, userId);
                 stmt.setLong(2, userId);
-                stmt.setLong(3, userId);
+                stmt.setString(3, "USR-" + userId);
+                stmt.setString(4, String.valueOf(userId));
+                stmt.setString(5, "USR-" + userId);
             }
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

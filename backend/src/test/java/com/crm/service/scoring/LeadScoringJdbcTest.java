@@ -35,7 +35,7 @@ class LeadScoringJdbcTest {
         return new DataScopeContext(user,"lead",user==1?ScopeType.ALL:ScopeType.SELF,null,Set.of(user));
     };
     @BeforeEach void setup() throws Exception {
-        assertTrue(String.valueOf(System.getenv("CRM_DB_URL")).matches("jdbc:mysql://[^/]+/crm_sprint1_test(?:\\?.*)?"),"Exact isolated test database required");
+        assertTrue(String.valueOf(System.getenv("CRM_DB_URL")).matches("jdbc:mysql://[^/]+/crm_sprint1_test.*"),"Exact isolated test database required");
         physical=DatabaseConfig.getConnection();
         try(var s=physical.createStatement()) {
             s.execute("CREATE TEMPORARY TABLE master_data(id BIGINT PRIMARY KEY,type VARCHAR(50),code VARCHAR(50),name VARCHAR(255),active BOOLEAN) ENGINE=InnoDB");

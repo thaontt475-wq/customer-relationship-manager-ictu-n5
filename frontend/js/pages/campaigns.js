@@ -426,7 +426,7 @@ async function loadCampaigns() {
             currentCampaignsList = filteredItems;
 
             // Also fetch all campaigns for KPI metrics calculation if possible
-            const allRes = await apiFetch(`/campaigns?page=1&size=1000`).catch(() => null);
+            const allRes = await apiFetch(`/campaigns?page=1&size=100`).catch(() => null);
             if (allRes && allRes.data && allRes.data.items) {
                 updateKpiCards(allRes.data.items, null);
             } else {
