@@ -1092,7 +1092,7 @@
 
         const payload = {
             customerMode,
-            existingCustomerId,
+            existingCustomerId: customerMode === "MERGE_EXISTING" && existingCustomerId ? (Number(existingCustomerId) || null) : null,
             customer: customerData,
             contact: contactData,
             deal: dealData

@@ -349,6 +349,7 @@
             if (window.CrmApi && typeof window.CrmApi.request === "function") {
                 try {
                     const p = new URLSearchParams();
+                    if (!criteria || !criteria.size) p.append("size", "100");
                     if (criteria) {
                         if (criteria.keyword) p.append("search", criteria.keyword);
                         if (criteria.status && criteria.status !== "ALL") p.append("status", criteria.status);
@@ -714,7 +715,7 @@
     async function refreshData() {
         let allLeads = [];
         try {
-            allLeads = await LeadsService.getLeads();
+            allLeads = await LeadsService.getLeads(currentCriteria);
         } catch (e) {
             allLeads = JSON.parse(localStorage.getItem(STORAGE_KEY_LEADS)) || DEFAULT_LEADS;
         }
@@ -753,7 +754,9 @@
 
             // Status Filter
             if (currentCriteria.status === "ACTIVE") {
-                if (lead.status !== "NEW" && lead.status !== "IN_PROGRESS") return false;
+                if (lead.status !== "NEW" && lead.status !== "IN_PROGRESS" && lead.status !== "CONTACTING") return false;
+            } else if (currentCriteria.status === "IN_PROGRESS") {
+                if (lead.status !== "IN_PROGRESS" && lead.status !== "CONTACTING" && lead.status !== "CONTACTED") return false;
             } else if (currentCriteria.status !== "ALL") {
                 if (lead.status !== currentCriteria.status) return false;
             }
@@ -968,7 +971,7 @@
             tags.push({ label: `Tìm: "${currentCriteria.keyword}"`, key: "keyword" });
         }
         if (currentCriteria.status !== "ALL" && currentCriteria.status !== "ACTIVE") {
-            const statusMap = { NEW: "Mới", IN_PROGRESS: "Đang chăm sóc", QUALIFIED: "Đủ điều kiện", CONVERTED: "Đã chuyển đổi", LOST: "Đóng/Mất" };
+            const statusMap = { NEW: "Mới", IN_PROGRESS: "Đang chăm sóc", CONTACTING: "Đang chăm sóc", QUALIFIED: "Đủ điều kiện", CONVERTED: "Đã chuyển đổi", LOST: "Đóng/Mất" };
             tags.push({ label: `Trạng thái: ${statusMap[currentCriteria.status] || currentCriteria.status}`, key: "status" });
         }
         if (currentCriteria.tier !== "ALL") {
@@ -1080,7 +1083,7 @@
             let statusBadge = "";
             if (lead.status === "NEW") {
                 statusBadge = `<span class="badge-lead-status status-new"><i class="fa-solid fa-sparkles"></i> Mới</span>`;
-            } else if (lead.status === "IN_PROGRESS") {
+            } else if (lead.status === "IN_PROGRESS" || lead.status === "CONTACTING") {
                 statusBadge = `<span class="badge-lead-status status-progress"><i class="fa-solid fa-spinner"></i> Đang chăm sóc</span>`;
             } else if (lead.status === "QUALIFIED") {
                 statusBadge = `<span class="badge-lead-status status-qualified"><i class="fa-solid fa-circle-check"></i> Đủ điều kiện</span>`;

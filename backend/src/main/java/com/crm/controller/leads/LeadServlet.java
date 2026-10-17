@@ -298,6 +298,12 @@ public class LeadServlet extends HttpServlet {
                 }
                 long leadId = parseLeadId(path, "/convert");
                 JsonObject bodyJson = json(req, 32768);
+                if (bodyJson.has("existingCustomerId")) {
+                    var el = bodyJson.get("existingCustomerId");
+                    if (el == null || el.isJsonNull() || (el.isJsonPrimitive() && el.getAsString().isBlank())) {
+                        bodyJson.remove("existingCustomerId");
+                    }
+                }
                 if (leadId <= 0 && bodyJson.has("leadId") && !bodyJson.get("leadId").isJsonNull()) {
                     try {
                         String rawId = bodyJson.get("leadId").getAsString();
@@ -345,6 +351,17 @@ public class LeadServlet extends HttpServlet {
                     unsupported(resp, "PUT, DELETE");
                     return;
                 }
+            }
+
+            if ("/assignment-history".equals(path)) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                authService.requirePermission(req, "lead.assign");
+                List<AssignmentHistory> history = historyDAO.findAll(100);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Lấy lịch sử phân bổ Lead thành công", history));
+                return;
             }
 
             if (path.endsWith("/assignment-history") && path.length() > "/assignment-history".length()) {

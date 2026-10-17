@@ -1215,13 +1215,14 @@
                 assignBtn.innerHTML = origText;
             }
 
+            const leadName = currentManualAssignLead ? (currentManualAssignLead.fullName || currentManualAssignLead.name || "Lead") : "Lead";
             closeManualAssignModal();
             updateKpis();
             renderRulesTable();
             renderQueueTable();
             renderHistoryTable();
 
-            showToast(`🎯 Đã phân bổ thành công Lead "${currentManualAssignLead.fullName}" cho chuyên viên ${targetRep.name}!`, "success");
+            showToast(`🎯 Đã phân bổ thành công Lead "${leadName}" cho chuyên viên ${targetRep.name}!`, "success");
         } catch (err) {
             if (assignBtn) {
                 assignBtn.disabled = false;
