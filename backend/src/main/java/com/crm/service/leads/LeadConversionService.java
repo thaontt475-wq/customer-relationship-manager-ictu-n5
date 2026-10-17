@@ -4,6 +4,7 @@ import com.crm.dao.leads.LeadConversionDAO;
 import com.crm.dto.leads.*;
 import com.crm.service.permissions.DataScopeContext;
 import com.crm.service.permissions.DataScopeService;
+import com.crm.service.permissions.ScopeType;
 import com.crm.util.JsonUtil;
 
 import java.math.BigDecimal;
@@ -32,6 +33,44 @@ public class LeadConversionService {
         this.scopeResolver = scopeResolver;
     }
 
+    public boolean canAccessLead(DataScopeContext scope, Map<String, Object> lead) {
+        if (scope == null) return false;
+        if (scope.scopeType() == ScopeType.ALL) return true;
+
+        Long assignedUserId = extractAssignedUserId(lead);
+        if (assignedUserId != null) {
+            if (assignedUserId == scope.currentUserId() || scope.canAccessOwner(assignedUserId)) {
+                return true;
+            }
+        }
+
+        long ownerId = lead.get("ownerUserId") instanceof Number n ? n.longValue() : 0L;
+        if (ownerId > 0 && (ownerId == scope.currentUserId() || scope.canAccessOwner(ownerId))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private Long extractAssignedUserId(Map<String, Object> lead) {
+        Object atUser = lead.get("assignedToUserId");
+        if (atUser instanceof Number n) {
+            return n.longValue();
+        }
+        Object atObj = lead.get("assignedTo");
+        if (atObj instanceof Number n) {
+            return n.longValue();
+        }
+        if (atObj != null) {
+            String s = atObj.toString().trim();
+            if (s.startsWith("USR-")) s = s.substring(4);
+            if (s.matches("^[0-9]+$")) {
+                try { return Long.parseLong(s); } catch (Exception ignored) {}
+            }
+        }
+        return null;
+    }
+
     public LeadConvertDuplicateCheckDTO checkConvertDuplicates(long currentUserId, long leadId) throws Exception {
         DataScopeContext scope = scopeResolver.resolve(currentUserId, "lead", "read");
 
@@ -41,8 +80,7 @@ public class LeadConversionService {
                 throw new NoSuchElementException("Không tìm thấy thông tin Lead");
             }
 
-            long ownerId = lead.get("ownerUserId") instanceof Number n ? n.longValue() : 0L;
-            if (!scope.canAccessOwner(ownerId)) {
+            if (!canAccessLead(scope, lead)) {
                 throw new SecurityException("Bạn không có quyền truy cập dữ liệu Lead này");
             }
 
@@ -81,8 +119,7 @@ public class LeadConversionService {
                 }
 
                 // 2. Data Scope enforcement
-                long ownerId = lead.get("ownerUserId") instanceof Number n ? n.longValue() : 0L;
-                if (!scope.canAccessOwner(ownerId)) {
+                if (!canAccessLead(scope, lead)) {
                     throw new SecurityException("Bạn không có quyền chuyển đổi Lead này");
                 }
 
@@ -200,8 +237,7 @@ public class LeadConversionService {
             if (lead == null) {
                 return null;
             }
-            long ownerId = lead.get("ownerUserId") instanceof Number n ? n.longValue() : 0L;
-            if (!scope.canAccessOwner(ownerId)) {
+            if (!canAccessLead(scope, lead)) {
                 throw new SecurityException("Bạn không có quyền truy cập dữ liệu Lead này");
             }
             return lead;

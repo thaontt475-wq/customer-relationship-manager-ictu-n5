@@ -16,16 +16,35 @@ public class LeadConversionDAO {
         return DatabaseConfig.getConnection();
     }
 
+    private final Set<String> existingColumnsCache = new HashSet<>();
+
+    private boolean hasColumn(Connection conn, String column) {
+        if (!existingColumnsCache.isEmpty()) {
+            return existingColumnsCache.contains(column.toLowerCase());
+        }
+        try {
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery("SELECT * FROM leads WHERE 1=0")) {
+                ResultSetMetaData rsm = rs.getMetaData();
+                for (int i = 1; i <= rsm.getColumnCount(); i++) {
+                    existingColumnsCache.add(rsm.getColumnLabel(i).toLowerCase());
+                    existingColumnsCache.add(rsm.getColumnName(i).toLowerCase());
+                }
+                return existingColumnsCache.contains(column.toLowerCase());
+            }
+        } catch (SQLException ignored) {
+            return false;
+        }
+    }
+
     public Map<String, Object> lockLeadForConversion(Connection c, long leadId) throws SQLException {
-        String sql = """
-                SELECT id, full_name, company_name, email, phone, source_id, notes, status,
-                       owner_user_id, created_by, title, tax_code, address, website,
-                       company_phone, industry, score, tier, estimated_value, buying_role,
-                       is_locked, converted_at, converted_by, merged_into_id
-                FROM leads
-                WHERE id = ?
-                FOR UPDATE
-                """;
+        boolean hasAssigned = hasColumn(c, "assigned_to_user_id");
+        String assignedCols = hasAssigned ? ", assigned_to, assigned_to_user_id" : "";
+        String sql = "SELECT id, full_name, company_name, email, phone, source_id, notes, status, " +
+                     "owner_user_id, created_by, title, tax_code, address, website, " +
+                     "company_phone, industry, score, tier, estimated_value, buying_role, " +
+                     "is_locked, converted_at, converted_by, merged_into_id" + assignedCols + " " +
+                     "FROM leads WHERE id = ? FOR UPDATE";
         try (PreparedStatement stmt = c.prepareStatement(sql)) {
             stmt.setLong(1, leadId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -38,14 +57,13 @@ public class LeadConversionDAO {
     }
 
     public Map<String, Object> findLeadById(Connection c, long leadId) throws SQLException {
-        String sql = """
-                SELECT id, full_name, company_name, email, phone, source_id, notes, status,
-                       owner_user_id, created_by, title, tax_code, address, website,
-                       company_phone, industry, score, tier, estimated_value, buying_role,
-                       is_locked, converted_at, converted_by, merged_into_id
-                FROM leads
-                WHERE id = ?
-                """;
+        boolean hasAssigned = hasColumn(c, "assigned_to_user_id");
+        String assignedCols = hasAssigned ? ", assigned_to, assigned_to_user_id" : "";
+        String sql = "SELECT id, full_name, company_name, email, phone, source_id, notes, status, " +
+                     "owner_user_id, created_by, title, tax_code, address, website, " +
+                     "company_phone, industry, score, tier, estimated_value, buying_role, " +
+                     "is_locked, converted_at, converted_by, merged_into_id" + assignedCols + " " +
+                     "FROM leads WHERE id = ?";
         try (PreparedStatement stmt = c.prepareStatement(sql)) {
             stmt.setLong(1, leadId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -339,6 +357,11 @@ public class LeadConversionDAO {
     }
 
     public List<LeadDTO> searchLeads(Connection c, DataScopeContext scope, String status, String keyword, int limit, int offset) throws SQLException {
+        boolean hasAssigned = hasColumn(c, "assigned_to_user_id");
+        String userJoin = hasAssigned
+                ? "LEFT JOIN users u ON u.id = COALESCE(l.assigned_to_user_id, CASE WHEN l.assigned_to REGEXP '^[0-9]+$' THEN CAST(l.assigned_to AS UNSIGNED) ELSE NULL END, l.owner_user_id)"
+                : "LEFT JOIN users u ON u.id = l.owner_user_id";
+
         StringBuilder sql = new StringBuilder("""
                 SELECT l.id, l.full_name, l.company_name, l.email, l.phone, l.source_id, l.notes,
                        l.status, l.owner_user_id, l.created_by, l.title, l.tax_code, l.address,
@@ -351,7 +374,9 @@ public class LeadConversionDAO {
                        opp.name AS conv_opp_name,
                        opp.amount AS conv_opp_amount
                 FROM leads l
-                LEFT JOIN users u ON u.id = l.owner_user_id
+                """);
+        sql.append(" ").append(userJoin).append("\n");
+        sql.append("""
                 LEFT JOIN customers cust ON cust.id = l.converted_customer_id
                 LEFT JOIN contacts ct ON ct.id = l.converted_contact_id
                 LEFT JOIN opportunities opp ON opp.id = l.converted_opportunity_id
@@ -360,7 +385,11 @@ public class LeadConversionDAO {
 
         List<Object> params = new ArrayList<>();
         if (scope != null) {
-            scope.appendOwnerPredicate("l.owner_user_id", sql, params);
+            if (hasAssigned) {
+                scope.appendCoalescedOwnerPredicate("l.assigned_to_user_id", "l.owner_user_id", sql, params);
+            } else {
+                scope.appendOwnerPredicate("l.owner_user_id", sql, params);
+            }
         }
         if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
             sql.append(" AND l.status = ?");
@@ -455,6 +484,8 @@ public class LeadConversionDAO {
         map.put("convertedAt", rs.getTimestamp("converted_at"));
         map.put("convertedBy", rs.getObject("converted_by"));
         map.put("mergedIntoId", rs.getObject("merged_into_id"));
+        try { map.put("assignedTo", rs.getObject("assigned_to")); } catch (SQLException ignored) {}
+        try { map.put("assignedToUserId", rs.getObject("assigned_to_user_id")); } catch (SQLException ignored) {}
         return map;
     }
 

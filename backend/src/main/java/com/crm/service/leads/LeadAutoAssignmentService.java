@@ -52,6 +52,11 @@ public class LeadAutoAssignmentService {
         Map<String, SalesRepDTO> repLookup = new HashMap<>();
         for (SalesRepDTO r : allReps) {
             repLookup.put(r.getId(), r);
+            Long userId = parseLongSafe(r.getId());
+            if (userId != null) {
+                repLookup.put(String.valueOf(userId), r);
+                repLookup.put("USR-" + userId, r);
+            }
         }
 
         AssignmentRule matchedRule = null;
@@ -98,11 +103,6 @@ public class LeadAutoAssignmentService {
                 targetRep = repLookup.get(targetId);
             }
 
-            // Fallback rep if lookup failed
-            if (targetRep == null && !allReps.isEmpty()) {
-                targetRep = allReps.get(0);
-            }
-
             if (targetRep != null) {
                 Long repUserId = parseLongSafe(targetRep.getId());
 
@@ -123,14 +123,19 @@ public class LeadAutoAssignmentService {
                 try (Connection conn = open()) {
                     conn.setAutoCommit(false);
                     try {
-                        ruleDAO.updatePointerAndStats(conn, matchedRule.getId(), nextIndex, repUserId);
-                        leadDAO.updateAssignment(conn, lead.getId(), repUserId, "ASSIGNED", null);
+                        if (!leadDAO.updateAssignment(conn, lead.getId(), repUserId, "PENDING_RESPONSE", null)) {
+                            conn.rollback();
+                            return false;
+                        }
+                        if (!ruleDAO.updatePointerAndStats(conn, matchedRule.getId(), nextIndex, repUserId))
+                            throw new SQLException("Assignment rule no longer exists");
                         historyDAO.insert(conn, history);
                         conn.commit();
 
                         lead.setAssignedTo(repUserId);
                         lead.setAssignedToRepId(targetRep.getId());
-                        lead.setStatus("ASSIGNED");
+                        lead.setAssignedToUserId(repUserId);
+                        lead.setStatus("PENDING_RESPONSE");
                         return true;
                     } catch (Exception e) {
                         conn.rollback();
@@ -231,11 +236,13 @@ public class LeadAutoAssignmentService {
         List<SalesRepDTO> allReps = leadDAO.getSalesRepsWithWorkload();
         SalesRepDTO targetRep = null;
         for (SalesRepDTO r : allReps) {
-            if (r.getId().equalsIgnoreCase(repId)) {
+            if (Objects.equals(parseLongSafe(r.getId()), parseLongSafe(repId)) && parseLongSafe(repId) != null) {
                 targetRep = r;
                 break;
             }
         }
+
+        if (targetRep == null) throw new IllegalArgumentException("Nhân viên phân bổ không tồn tại hoặc không có quyền Sales");
 
         String repName = targetRep != null ? targetRep.getName() : "Chuyên viên " + repId;
         String repDept = targetRep != null ? targetRep.getDept() : "Phòng Kinh doanh";
@@ -256,7 +263,7 @@ public class LeadAutoAssignmentService {
         try (Connection conn = open()) {
             conn.setAutoCommit(false);
             try {
-                boolean updated = leadDAO.updateAssignment(conn, leadId, repUserId, "ASSIGNED", null);
+                boolean updated = leadDAO.updateAssignment(conn, leadId, repUserId, "PENDING_RESPONSE", null);
                 if (!updated) {
                     conn.rollback();
                     return false;
@@ -276,8 +283,8 @@ public class LeadAutoAssignmentService {
     private Long parseLongSafe(String str) {
         if (str == null || str.isBlank()) return null;
         try {
-            String digits = str.replaceAll("[^0-9]", "");
-            return digits.isEmpty() ? null : Long.parseLong(digits);
+            if (!str.matches("(?:USR-)?[1-9][0-9]*")) return null;
+            return Long.parseLong(str.startsWith("USR-") ? str.substring(4) : str);
         } catch (NumberFormatException e) {
             return null;
         }

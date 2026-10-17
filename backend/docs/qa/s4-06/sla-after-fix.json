@@ -1,0 +1,63 @@
+{
+  "ids": {
+    "main": 748,
+    "duplicate": 749,
+    "rr1": 750,
+    "rr2": 751,
+    "unmatched": 752,
+    "rules": [
+      1,
+      2,
+      3
+    ]
+  },
+  "marker": "QA4FOLLOW1792209934007",
+  "rows": [
+    {
+      "type": "http",
+      "name": "SLA ancestor-team alert after fix",
+      "path": "/api/leads/check-sla",
+      "kind": "admin",
+      "method": "POST",
+      "payload": {},
+      "status": 200,
+      "expected": 200,
+      "body": {
+        "success": true,
+        "message": "Đã kiểm tra SLA và phát thông báo",
+        "data": {
+          "notificationsSent": 0
+        }
+      },
+      "pass": true
+    },
+    {
+      "type": "http",
+      "name": "SLA dedup repeat after fix",
+      "path": "/api/leads/check-sla",
+      "kind": "admin",
+      "method": "POST",
+      "payload": {},
+      "status": 200,
+      "expected": 200,
+      "body": {
+        "success": true,
+        "message": "Đã kiểm tra SLA và phát thông báo",
+        "data": {
+          "notificationsSent": 0
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "exactly one real ancestor leader notification exists",
+      "type": "assertion",
+      "pass": true
+    },
+    {
+      "type": "sql",
+      "query": "SELECT id,user_id,lead_id,event_key FROM notifications WHERE lead_id=752 AND user_id=4269",
+      "result": "id\tuser_id\tlead_id\tevent_key\r\n140\t4269\t752\tLEAD_SLA_OVERDUE:752:4269\r\n"
+    }
+  ]
+}

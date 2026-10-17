@@ -1,0 +1,58 @@
+[
+  {
+    "kind": "admin",
+    "endpoint": "/api/leads/assignment-rules",
+    "status": 200,
+    "count": 0,
+    "fabricatedRepIds": []
+  },
+  {
+    "kind": "admin",
+    "endpoint": "/api/leads/sales-reps",
+    "status": 200,
+    "count": 15,
+    "fabricatedRepIds": [
+      "USR-101",
+      "USR-102",
+      "USR-103",
+      "USR-104",
+      "USR-105",
+      "USR-106"
+    ]
+  },
+  {
+    "kind": "admin",
+    "endpoint": "/api/leads/queue",
+    "status": 200,
+    "count": 10,
+    "fabricatedRepIds": []
+  },
+  {
+    "kind": "denied",
+    "endpoint": "/api/leads/assignment-rules",
+    "status": 200,
+    "count": 0,
+    "fabricatedRepIds": []
+  },
+  {
+    "kind": "denied",
+    "endpoint": "/api/leads/sales-reps",
+    "status": 200,
+    "count": 15,
+    "fabricatedRepIds": [
+      "USR-101",
+      "USR-102",
+      "USR-103",
+      "USR-104",
+      "USR-105",
+      "USR-106"
+    ]
+  },
+  {
+    "kind": "denied",
+    "endpoint": "/api/leads/queue",
+    "status": 200,
+    "count": 10,
+    "fabricatedRepIds": []
+  }
+]
