@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -37,9 +37,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
 
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
 
-    <link rel="stylesheet" href="css/pages/dashboard.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/dashboard.css?v=20261017_apexcharts_v1">
 
 
 
@@ -423,82 +423,64 @@
 
 
             <!-- FUNNEL -->
-
-            <article class="crm-card dashboard-panel">
-
+            <article class="crm-card dashboard-panel funnel-panel">
                 <header class="panel-head">
-
                     <div>
-
-                        <h2>
-                            Biểu đồ Phễu
-                        </h2>
-
-                        <p>
-                            Phân bố cơ hội theo giai đoạn.
-                        </p>
-
+                        <div class="panel-tag-chip">
+                            <i class="fa-solid fa-filter"></i>
+                            <span>Pipeline Funnel</span>
+                        </div>
+                        <h2>Biểu đồ Phễu Cơ hội</h2>
+                        <p>Phân bố số lượng & giá trị cơ hội qua từng giai đoạn bán hàng.</p>
                     </div>
 
-
-                    <a href="pipeline.html" class="panel-link">
-                        Xem Pipeline →
-                    </a>
-
+                    <div class="panel-head-actions">
+                        <div class="chart-view-toggle" id="funnelViewToggle">
+                            <button type="button" class="view-btn active" data-view="funnel" title="Biểu đồ phễu ngang"><i class="fa-solid fa-bars-staggered"></i></button>
+                            <button type="button" class="view-btn" data-view="donut" title="Biểu đồ cơ cấu tròn"><i class="fa-solid fa-chart-pie"></i></button>
+                        </div>
+                        <a href="pipeline.html" class="panel-link">Xem Pipeline →</a>
+                    </div>
                 </header>
 
+                <div id="funnelChartContainer" class="chart-canvas-wrapper"></div>
+                <div id="funnelContainer" class="funnel-container" style="display: none;"></div>
 
-                <div id="funnelContainer" class="funnel-container"></div>
-
-
-                <div id="funnelEmpty" class="dashboard-empty">
-                    Chưa có cơ hội để hiển thị.
+                <div id="funnelEmpty" class="dashboard-empty" style="display: none;">
+                    <i class="fa-solid fa-chart-simple empty-icon"></i>
+                    <span>Chưa có cơ hội để hiển thị biểu đồ.</span>
                 </div>
 
+                <footer class="panel-stats-footer" id="funnelStatsFooter"></footer>
             </article>
 
-
             <!-- FORECAST -->
-
-            <article class="crm-card dashboard-panel">
-
+            <article class="crm-card dashboard-panel forecast-panel">
                 <header class="panel-head">
-
                     <div>
-
-                        <h2>
-                            Dự báo doanh số
-                        </h2>
-
-                        <p>
-                            Giá trị cơ hội × xác suất thắng.
-                        </p>
-
+                        <div class="panel-tag-chip chip-emerald">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>Dự báo Doanh số</span>
+                        </div>
+                        <h2>Doanh thu Kỳ vọng & Trọng số</h2>
+                        <p>Tổng giá trị phễu so sánh với giá trị kỳ vọng theo xác suất.</p>
                     </div>
 
+                    <div class="forecast-metric-badge">
+                        <span class="forecast-metric-label">Dự báo kỳ vọng</span>
+                        <strong id="forecastTotal">0 ₫</strong>
+                    </div>
                 </header>
 
+                <div id="forecastChartContainer" class="chart-canvas-wrapper"></div>
+                <div id="forecastBars" class="forecast-bars" style="display: none;"></div>
 
-                <div class="forecast-total">
-
-                    <span>
-                        Dự báo hiện tại
-                    </span>
-
-                    <strong id="forecastTotal">
-                        0 ₫
-                    </strong>
-
+                <div id="forecastEmpty" class="dashboard-empty" style="display: none;">
+                    <i class="fa-solid fa-sack-dollar empty-icon"></i>
+                    <span>Chưa có dữ liệu dự báo doanh số.</span>
                 </div>
 
-
-                <div id="forecastBars" class="forecast-bars"></div>
-
-
-                <div id="forecastEmpty" class="dashboard-empty">
-                    Chưa có dữ liệu dự báo.
-                </div>
-
+                <footer class="panel-stats-footer" id="forecastStatsFooter"></footer>
             </article>
 
 
@@ -781,15 +763,15 @@
 
 
 
-    <script src="js/pages/dashboard.js"></script>
-
+    <script src="js/apexcharts.min.js"></script>
+    <script src="js/pages/dashboard.js?v=20261017_apexcharts_v2"></script>
     <script src="js/page-transition.js"></script>
 
 
 
 
     <script src="js/theme.js?v=20261014_v3"></script>
-    <script src="js/shared-shell.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
     <script src="js/ui-core.js"></script>
     <script src="js/ui-effects.js"></script>
 </body>

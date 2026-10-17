@@ -115,6 +115,20 @@ public class MenuService {
         }
 
 
+        if (permissions.contains("contract.read")) {
+
+            menu.add(
+                    item(
+                            "CONTRACTS",
+                            "Hợp đồng",
+                            "contracts.html",
+                            "workspace",
+                            "contract"
+                    )
+            );
+        }
+
+
         if (permissions.contains("product.read")) {
 
             menu.add(

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <script>
@@ -39,9 +39,9 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/products.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/pages/products.css?v=20261017_pro_v3">
 
 
 
@@ -109,76 +109,155 @@
 
         <div>
 
-            <p>
-                Danh mục bán hàng / Sản phẩm
+            <p class="products-breadcrumb">
+                <i class="fa-solid fa-layer-group"></i> Danh mục bán hàng / Sản phẩm
             </p>
 
             <h1>
+                <i class="fa-solid fa-boxes-stacked header-title-icon"></i>
                 Sản phẩm & Bảng giá
             </h1>
 
-            <span>
-                Quản lý giá niêm yết, giá sàn và trạng thái kinh doanh.
-            </span>
+            <p class="products-head-desc">
+                Quản lý danh mục hàng hóa, bảng giá niêm yết, giá sàn và trạng thái kinh doanh doanh nghiệp.
+            </p>
 
         </div>
 
 
         <button
             id="addProduct"
-            class="crm-btn crm-btn-primary"
+            class="add-product-btn"
             type="button"
         >
-            + Thêm sản phẩm
+            <i class="fa-solid fa-plus"></i>
+            <span>Thêm sản phẩm</span>
         </button>
 
     </section>
 
+    <!-- EXECUTIVE KPI SUMMARY CARDS -->
+    <section class="products-kpi-grid">
+        <div class="products-kpi-card">
+            <div class="kpi-icon-wrap kpi-blue">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Tổng sản phẩm</span>
+                <div class="kpi-value" id="kpiTotalProducts">0</div>
+                <span class="kpi-sub">Trong toàn bộ danh mục</span>
+            </div>
+        </div>
+
+        <div class="products-kpi-card">
+            <div class="kpi-icon-wrap kpi-green">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Đang kinh doanh</span>
+                <div class="kpi-value" id="kpiActiveProducts">0</div>
+                <span class="kpi-sub" id="kpiActiveRate">Sẵn sàng bán hàng</span>
+            </div>
+        </div>
+
+        <div class="products-kpi-card">
+            <div class="kpi-icon-wrap kpi-amber">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Giá niêm yết TB</span>
+                <div class="kpi-value" id="kpiAvgListPrice">0 ₫</div>
+                <span class="kpi-sub">Mức giá trung bình</span>
+            </div>
+        </div>
+
+        <div class="products-kpi-card">
+            <div class="kpi-icon-wrap kpi-purple">
+                <i class="fa-solid fa-arrows-rotate"></i>
+            </div>
+            <div class="kpi-content">
+                <span class="kpi-label">Dịch vụ thuê bao</span>
+                <div class="kpi-value" id="kpiSubscriptionCount">0</div>
+                <span class="kpi-sub">Doanh thu định kỳ (MRR)</span>
+            </div>
+        </div>
+    </section>
 
     <section class="crm-card products-filter">
 
-        <input
-            id="productSearch"
-            class="crm-input"
-            type="search"
-            placeholder="Tìm mã / tên sản phẩm..."
-        >
+        <!-- STATUS TABS (TẤT CẢ / ĐANG KINH DOANH / NGỪNG BÁN) -->
+        <div class="filter-tabs-bar">
+            <div class="products-status-tabs" role="tablist">
+                <button type="button" class="status-tab-btn active" data-status-tab="" role="tab">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Tất cả</span>
+                    <span class="tab-count" id="tabCountAll">0</span>
+                </button>
+                <button type="button" class="status-tab-btn" data-status-tab="active" role="tab">
+                    <span class="tab-dot dot-green"></span>
+                    <span>Đang kinh doanh</span>
+                    <span class="tab-count" id="tabCountActive">0</span>
+                </button>
+                <button type="button" class="status-tab-btn" data-status-tab="inactive" role="tab">
+                    <span class="tab-dot dot-gray"></span>
+                    <span>Ngừng kinh doanh</span>
+                    <span class="tab-count" id="tabCountInactive">0</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-controls-row">
+            <div class="filter-search-box">
+                <i class="fa-solid fa-magnifying-glass filter-search-icon"></i>
+                <input
+                    id="productSearch"
+                    class="crm-input with-search-icon"
+                    type="search"
+                    placeholder="Tìm theo mã sản phẩm hoặc tên dịch vụ..."
+                    autocomplete="off"
+                >
+            </div>
 
 
-        <select
-            id="productTypeFilter"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả loại
-            </option>
+            <div class="filter-select-box">
+                <select
+                    id="productTypeFilter"
+                    class="crm-input"
+                >
+                    <option value="">
+                        Tất cả loại sản phẩm
+                    </option>
 
-            <option value="one-time">
-                Sản phẩm một lần
-            </option>
+                    <option value="one-time">
+                        Sản phẩm một lần
+                    </option>
 
-            <option value="subscription">
-                Dịch vụ thuê bao
-            </option>
-        </select>
+                    <option value="subscription">
+                        Dịch vụ thuê bao
+                    </option>
+                </select>
+            </div>
 
 
-        <select
-            id="productStatusFilter"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả trạng thái
-            </option>
+            <div class="filter-select-box">
+                <select
+                    id="productStatusFilter"
+                    class="crm-input"
+                >
+                    <option value="">
+                        Tất cả trạng thái
+                    </option>
 
-            <option value="active">
-                Đang kinh doanh
-            </option>
+                    <option value="active">
+                        Đang kinh doanh
+                    </option>
 
-            <option value="inactive">
-                Ngừng kinh doanh
-            </option>
-        </select>
+                    <option value="inactive">
+                        Ngừng kinh doanh
+                    </option>
+                </select>
+            </div>
+        </div>
 
     </section>
 
@@ -187,19 +266,19 @@
 
         <div class="products-table-scroll">
 
-            <table>
+            <table class="products-enterprise-table">
 
                 <thead>
                 <tr>
-                    <th>Mã</th>
-                    <th>Tên</th>
-                    <th>Loại</th>
-                    <th>Đơn vị</th>
-                    <th>Giá niêm yết</th>
-                    <th>Giá sàn</th>
-                    <th>Giá vốn</th>
-                    <th>Trạng thái</th>
-                    <th></th>
+                    <th style="width: 140px;">Mã SP</th>
+                    <th>Tên sản phẩm / Dịch vụ</th>
+                    <th style="width: 160px;">Loại hình</th>
+                    <th style="width: 100px;">Đơn vị</th>
+                    <th style="width: 150px; text-align: right;">Giá niêm yết</th>
+                    <th style="width: 150px; text-align: right;">Giá sàn</th>
+                    <th style="width: 150px; text-align: right;">Giá vốn</th>
+                    <th style="width: 150px; text-align: center;">Trạng thái</th>
+                    <th style="width: 160px; text-align: right;">Thao tác</th>
                 </tr>
                 </thead>
 
@@ -215,16 +294,16 @@
             class="product-empty"
         >
 
-            <div>
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4ZM4 7v10l8 4 8-4V7M12 11v10"/></svg>
+            <div class="empty-icon-wrap">
+                <i class="fa-solid fa-box-open"></i>
             </div>
 
             <strong>
-                Chưa có sản phẩm
+                Chưa có sản phẩm phù hợp
             </strong>
 
             <span>
-                Bấm “Thêm sản phẩm” để bắt đầu.
+                Không tìm thấy sản phẩm nào theo bộ lọc hiện tại. Bấm "Thêm sản phẩm" để khởi tạo.
             </span>
 
         </div>
@@ -238,206 +317,419 @@
 <aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
 
 
-<!-- PRODUCT DRAWER -->
+<!-- PRODUCT MODAL (CỬA SỔ NỔI THÊM / SỬA SẢN PHẨM) -->
 
 <div
     id="productOverlay"
     class="product-overlay"
+    aria-hidden="true"
 ></div>
 
 
-<aside
+<div
     id="productDrawer"
-    class="product-drawer"
+    class="product-drawer product-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="productDrawerTitle"
 >
 
-    <header>
+    <header class="modal-dialog-head">
 
-        <div>
+        <div class="modal-title-wrap">
 
-            <strong id="productDrawerTitle">
-                Thêm sản phẩm
-            </strong>
+            <div class="modal-icon-badge">
+                <i class="fa-solid fa-cube"></i>
+            </div>
 
-            <span>
-                Thông tin sản phẩm và bảng giá
-            </span>
+            <div>
+                <strong id="productDrawerTitle">
+                    Thêm sản phẩm mới
+                </strong>
+
+                <span>
+                    Thông tin sản phẩm, đơn vị tính & chính sách bảng giá
+                </span>
+            </div>
 
         </div>
 
 
         <button
             id="closeProductDrawer"
+            class="modal-close-btn"
             type="button"
+            aria-label="Đóng cửa sổ"
+            title="Đóng (Esc)"
         >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            <i class="fa-solid fa-xmark"></i>
         </button>
 
     </header>
 
 
-    <form id="productForm">
+    <form id="productForm" class="modal-dialog-form">
 
         <input
             id="editingProduct"
             type="hidden"
         >
 
+        <div class="modal-form-content">
 
-        <div class="product-two-cols">
+            <div class="product-two-cols">
 
-            <label>
-                Mã sản phẩm
-                <em>*</em>
+                <div class="form-group">
+                    <label for="productCode">
+                        Mã sản phẩm
+                        <em>*</em>
+                    </label>
 
-                <input
-                    id="productCode"
-                    class="crm-input"
-                    type="text"
-                >
-            </label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-barcode input-lead-icon"></i>
+                        <input
+                            id="productCode"
+                            class="crm-input with-lead-icon"
+                            type="text"
+                            placeholder="VD: PRD-ERP-01"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+                </div>
 
 
-            <label>
-                Đơn vị tính
+                <div class="form-group">
+                    <label for="productUnit">
+                        Đơn vị tính
+                    </label>
 
-                <input
-                    id="productUnit"
-                    class="crm-input"
-                    type="text"
-                    placeholder="License, tháng..."
-                >
-            </label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-box-archive input-lead-icon"></i>
+                        <input
+                            id="productUnit"
+                            class="crm-input with-lead-icon"
+                            type="text"
+                            placeholder="License, tháng, gói..."
+                        >
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+                <label for="productName">
+                    Tên sản phẩm / dịch vụ
+                    <em>*</em>
+                </label>
+
+                <div class="input-icon-wrap">
+                    <i class="fa-solid fa-tag input-lead-icon"></i>
+                    <input
+                        id="productName"
+                        class="crm-input with-lead-icon"
+                        type="text"
+                        placeholder="VD: Phần mềm Quản trị Quan hệ Khách hàng CRM"
+                        required
+                    >
+                </div>
+            </div>
+
+
+            <div class="product-two-cols">
+
+                <div class="form-group">
+                    <label for="productType">
+                        Loại sản phẩm
+                    </label>
+
+                    <select
+                        id="productType"
+                        class="crm-input"
+                    >
+                        <option value="one-time">
+                            📦 Sản phẩm một lần
+                        </option>
+
+                        <option value="subscription">
+                            🔄 Dịch vụ thuê bao
+                        </option>
+                    </select>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="productStatus">
+                        Trạng thái kinh doanh
+                    </label>
+
+                    <select
+                        id="productStatus"
+                        class="crm-input"
+                    >
+                        <option value="active">
+                            🟢 Đang kinh doanh
+                        </option>
+
+                        <option value="inactive">
+                            ⚪ Ngừng kinh doanh
+                        </option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="form-section-title">
+                <i class="fa-solid fa-coins"></i>
+                <span>Chính sách giá & Chi phí (VNĐ)</span>
+            </div>
+
+
+            <div class="product-two-cols">
+
+                <div class="form-group">
+                    <label for="listPrice">
+                        Giá niêm yết
+                    </label>
+
+                    <div class="input-currency-wrap">
+                        <input
+                            id="listPrice"
+                            class="crm-input"
+                            type="number"
+                            min="0"
+                            step="1000"
+                            placeholder="0"
+                        >
+                        <span class="currency-tag">₫</span>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="floorPrice">
+                        Giá sàn (Tối thiểu)
+                    </label>
+
+                    <div class="input-currency-wrap">
+                        <input
+                            id="floorPrice"
+                            class="crm-input"
+                            type="number"
+                            min="0"
+                            step="1000"
+                            placeholder="0"
+                        >
+                        <span class="currency-tag">₫</span>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+                <label for="costPrice">
+                    Giá vốn (Chi phí gốc)
+                </label>
+
+                <div class="input-currency-wrap">
+                    <input
+                        id="costPrice"
+                        class="crm-input"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        placeholder="0"
+                    >
+                    <span class="currency-tag">₫</span>
+                </div>
+
+                <small class="rbac-notice">
+                    <i class="fa-solid fa-shield-halved"></i> Khi bật RBAC, trường này chỉ hiển thị cho Giám đốc kinh doanh / Quản trị viên.
+                </small>
+            </div>
+
+
+            <div
+                id="productError"
+                class="product-error"
+                role="alert"
+            ></div>
 
         </div>
 
 
-        <label>
-            Tên sản phẩm / dịch vụ
-            <em>*</em>
-
-            <input
-                id="productName"
-                class="crm-input"
-                type="text"
-            >
-        </label>
-
-
-        <label>
-            Loại
-
-            <select
-                id="productType"
-                class="crm-input"
-            >
-                <option value="one-time">
-                    Sản phẩm một lần
-                </option>
-
-                <option value="subscription">
-                    Dịch vụ thuê bao
-                </option>
-            </select>
-        </label>
-
-
-        <div class="product-two-cols">
-
-            <label>
-                Giá niêm yết
-
-                <input
-                    id="listPrice"
-                    class="crm-input"
-                    type="number"
-                    min="0"
-                >
-            </label>
-
-
-            <label>
-                Giá sàn
-
-                <input
-                    id="floorPrice"
-                    class="crm-input"
-                    type="number"
-                    min="0"
-                >
-            </label>
-
-        </div>
-
-
-        <label>
-            Giá vốn
-
-            <input
-                id="costPrice"
-                class="crm-input"
-                type="number"
-                min="0"
-            >
-
-            <small>
-                Khi nối RBAC, trường này chỉ hiển thị cho Giám đốc kinh doanh.
-            </small>
-        </label>
-
-
-        <label>
-            Trạng thái
-
-            <select
-                id="productStatus"
-                class="crm-input"
-            >
-                <option value="active">
-                    Đang kinh doanh
-                </option>
-
-                <option value="inactive">
-                    Ngừng kinh doanh
-                </option>
-            </select>
-        </label>
-
-
-        <div
-            id="productError"
-            class="product-error"
-        ></div>
-
-
-        <footer>
+        <footer class="modal-dialog-footer">
 
             <button
                 id="cancelProduct"
                 class="crm-btn crm-btn-secondary"
                 type="button"
             >
-                Hủy
+                Hủy bỏ
             </button>
 
             <button
                 class="crm-btn crm-btn-primary"
                 type="submit"
             >
-                Lưu
+                <i class="fa-solid fa-check"></i>
+                <span>Lưu thông tin</span>
             </button>
 
         </footer>
 
     </form>
 
-</aside>
+</div>
+
+
+<!-- CONFIRM DISCONTINUE MODAL (CỬA SỔ XÁC NHẬN NGỪNG KINH DOANH) -->
+<div
+    id="discontinueOverlay"
+    class="product-overlay"
+    aria-hidden="true"
+></div>
+
+<div
+    id="discontinueModal"
+    class="product-modal confirm-dialog-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="discontinueModalTitle"
+>
+    <header class="modal-dialog-head">
+        <div class="modal-title-wrap">
+            <div class="modal-icon-badge badge-warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <strong id="discontinueModalTitle">Ngừng kinh doanh sản phẩm</strong>
+                <span>Chuyển đổi trạng thái phân phối sản phẩm trong hệ thống</span>
+            </div>
+        </div>
+        <button id="closeDiscontinueModal" class="modal-close-btn" type="button" title="Đóng (Esc)">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </header>
+
+    <div class="confirm-modal-body">
+        <p class="confirm-intro-text">
+            Bạn có chắc chắn muốn chuyển sản phẩm sau sang trạng thái <strong>Ngừng kinh doanh</strong>?
+        </p>
+
+        <div class="confirm-product-card">
+            <div class="confirm-product-header">
+                <span class="product-code-badge" id="discontinueProductCode">PRD-CODE</span>
+                <span class="product-unit-tag" id="discontinueProductUnit">License</span>
+            </div>
+            <h3 class="confirm-product-name" id="discontinueProductName">Tên sản phẩm</h3>
+            <div class="confirm-product-prices">
+                <div>
+                    <span class="price-sub-label">Giá niêm yết:</span>
+                    <strong class="price-list" id="discontinueProductListPrice">0 ₫</strong>
+                </div>
+                <div>
+                    <span class="price-sub-label">Giá sàn:</span>
+                    <span class="price-floor" id="discontinueProductFloorPrice">0 ₫</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="confirm-warning-alert">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <div>
+                <strong>Lưu ý quan trọng:</strong>
+                <p>Sản phẩm này sẽ không thể chọn khi nhân viên kinh doanh tạo Báo giá hoặc Hợp đồng mới. Các báo giá và hợp đồng đã lập trước đây vẫn được bảo lưu an toàn.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="modal-dialog-footer">
+        <button id="cancelDiscontinueBtn" class="crm-btn crm-btn-secondary" type="button">
+            Hủy bỏ
+        </button>
+        <button id="confirmDiscontinueBtn" class="crm-btn crm-btn-danger" type="button">
+            <i class="fa-solid fa-power-off"></i>
+            <span>Xác nhận ngừng bán</span>
+        </button>
+    </footer>
+</div>
+
+
+<!-- CONFIRM REACTIVATE MODAL (CỬA SỔ XÁC NHẬN MỞ BÁN LẠI) -->
+<div
+    id="activateOverlay"
+    class="product-overlay"
+    aria-hidden="true"
+></div>
+
+<div
+    id="activateModal"
+    class="product-modal confirm-dialog-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="activateModalTitle"
+>
+    <header class="modal-dialog-head">
+        <div class="modal-title-wrap">
+            <div class="modal-icon-badge badge-success">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+                <strong id="activateModalTitle">Mở bán lại sản phẩm</strong>
+                <span>Kích hoạt lại kinh doanh cho sản phẩm này</span>
+            </div>
+        </div>
+        <button id="closeActivateModal" class="modal-close-btn" type="button" title="Đóng (Esc)">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </header>
+
+    <div class="confirm-modal-body">
+        <p class="confirm-intro-text">
+            Bạn có chắc chắn muốn đưa sản phẩm sau hoạt động trở lại danh mục <strong>Đang kinh doanh</strong>?
+        </p>
+
+        <div class="confirm-product-card">
+            <div class="confirm-product-header">
+                <span class="product-code-badge" id="activateProductCode">PRD-CODE</span>
+                <span class="product-unit-tag" id="activateProductUnit">License</span>
+            </div>
+            <h3 class="confirm-product-name" id="activateProductName">Tên sản phẩm</h3>
+            <div class="confirm-product-prices">
+                <div>
+                    <span class="price-sub-label">Giá niêm yết:</span>
+                    <strong class="price-list" id="activateProductListPrice">0 ₫</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="confirm-info-alert">
+            <i class="fa-solid fa-circle-info"></i>
+            <div>
+                <strong>Thông báo:</strong>
+                <p>Sau khi mở bán lại, sản phẩm sẽ ngay lập tức sẵn sàng để nhân viên lập báo giá và thêm vào hợp đồng khách hàng.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="modal-dialog-footer">
+        <button id="cancelActivateBtn" class="crm-btn crm-btn-secondary" type="button">
+            Hủy bỏ
+        </button>
+        <button id="confirmActivateBtn" class="crm-btn crm-btn-primary btn-success-action" type="button">
+            <i class="fa-solid fa-rotate-left"></i>
+            <span>Mở bán lại ngay</span>
+        </button>
+    </footer>
+</div>
 
 
 
 
-
-<script src="js/pages/products.js"></script>
+<script src="js/pages/products.js?v=20261017_pro_v3"></script>
 
 <script src="js/page-transition.js"></script>
 
@@ -445,7 +737,7 @@
 
 
 <script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261017_v6"></script>
 <script src="js/ui-core.js"></script>
 <script src="js/ui-effects.js"></script>
 </body>

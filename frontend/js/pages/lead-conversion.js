@@ -252,7 +252,47 @@
 
         getLeadById(id) {
             const leads = this.getLeads();
-            return leads.find(l => l.id === id || l.code === id) || null;
+            return leads.find(l => String(l.id) === String(id) || l.code === id) || null;
+        },
+
+        async getLeadByIdAsync(id) {
+            let lead = this.getLeadById(id);
+            if (!lead && window.CrmApi) {
+                try {
+                    const res = await window.CrmApi.request(`/api/leads/${id}`);
+                    if (res) {
+                        const data = res.data || res;
+                        lead = {
+                            id: data.id,
+                            code: data.code || `LEAD-2026-${data.id}`,
+                            fullName: data.fullName || data.name || "Khách hàng",
+                            title: data.title || "Người đại diện",
+                            buyingRole: "DECISION_MAKER",
+                            phone: data.phone || "",
+                            email: data.email || "",
+                            companyName: data.companyName || data.name || "Doanh nghiệp",
+                            industry: data.industry || "CNTT & Viễn thông",
+                            taxCode: data.taxCode || "",
+                            companyPhone: data.phone || "",
+                            address: data.address || "",
+                            website: data.website || "",
+                            score: data.score || 85,
+                            tier: data.tier || "TIER_A",
+                            estimatedValue: data.estimatedValue || 150000000,
+                            assignedSales: data.owner || "Nông Quang Tiệp",
+                            notes: data.notes || "",
+                            status: data.status || "QUALIFIED",
+                            isLocked: data.isLocked || data.status === "CONVERTED"
+                        };
+                        const list = this.getLeads();
+                        list.unshift(lead);
+                        this.saveLeads(list);
+                    }
+                } catch (e) {
+                    console.warn("Could not fetch lead from backend:", e);
+                }
+            }
+            return lead;
         },
 
         getExistingCustomers() {
@@ -881,7 +921,7 @@
 
     // 7. MODAL 1: OPEN & PRE-FILL 3-IN-1 CONVERSION MODAL
     async function openConversionModal(leadId) {
-        const lead = LeadConversionService.getLeadById(leadId);
+        const lead = await LeadConversionService.getLeadByIdAsync(leadId);
         if (!lead) {
             showToast("Không tìm thấy Lead!", "error");
             return;
@@ -1395,10 +1435,17 @@
     }
 
     // 13. DOM READY BOOTSTRAP
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
         LeadConversionService.init();
         initEventHandlers();
         refreshData();
+
+        // Check if redirected from other screens with ?leadId=...
+        const urlParams = new URLSearchParams(window.location.search);
+        const leadIdParam = urlParams.get("leadId");
+        if (leadIdParam) {
+            await openConversionModal(leadIdParam);
+        }
     });
 
 })();
