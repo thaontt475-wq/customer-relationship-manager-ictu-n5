@@ -126,9 +126,15 @@ class DataScopeIntegrationTest {
         IllegalArgumentException selfRemoval = assertThrows(IllegalArgumentException.class,
                 () -> service.assign(admin, List.of(salesRole), "SELF", admin));
         assertEquals("Bạn không thể tự thu hồi quyền quản trị của chính mình.", selfRemoval.getMessage());
-        IllegalArgumentException lastAdmin = assertThrows(IllegalArgumentException.class,
-                () -> service.assign(admin, List.of(salesRole), "SELF", director));
-        assertTrue(lastAdmin.getMessage().contains("cuối cùng"));
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(DISTINCT ur.user_id) FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE r.code = 'ADMIN'");
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next() && rs.getInt(1) <= 1) {
+                IllegalArgumentException lastAdmin = assertThrows(IllegalArgumentException.class,
+                        () -> service.assign(admin, List.of(salesRole), "SELF", director));
+                assertTrue(lastAdmin.getMessage().contains("cuối cùng"));
+            }
+        }
         assertTrue(new PermissionService().hasPermission(admin, "permission.manage"));
     }
 

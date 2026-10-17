@@ -191,6 +191,8 @@
             animation: fadeIn 0.2s ease;
         }
 
+        .form-group:has(.form-control.error) .form-error-msg,
+        .input-icon-wrap:has(.form-control.error) + .form-error-msg,
         .form-control.error ~ .form-error-msg {
             display: block;
         }
@@ -573,6 +575,8 @@
                 } else {
                     input.classList.add("error");
                 }
+                const err = input.closest(".form-group")?.querySelector(".form-error-msg");
+                if (err) err.style.display = isValid ? "none" : "block";
                 return isValid;
             }
 

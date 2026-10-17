@@ -1,0 +1,49 @@
+{
+  "name": "sales catalog excludes actual non-sales users; Admin added TEAM_LEAD for SLA fixture is eligible",
+  "pass": true,
+  "status": 200,
+  "deniedIds": [
+    "4270",
+    "4271",
+    "4274"
+  ],
+  "body": {
+    "success": true,
+    "message": "Lấy danh sách chuyên viên kinh doanh thành công",
+    "data": [
+      {
+        "id": "4269",
+        "name": "QA S4 Follow admin",
+        "initials": "QA",
+        "title": "Chuyên viên Kinh doanh",
+        "dept": "QA4FOLLOW1792209934007 parent",
+        "region": "NATIONWIDE",
+        "currentLeads": 0,
+        "maxCapacity": 25,
+        "isOnline": true
+      },
+      {
+        "id": "4272",
+        "name": "QA S4 Follow rep1",
+        "initials": "QR",
+        "title": "Chuyên viên Kinh doanh",
+        "dept": "QA4FOLLOW1792209934007 child",
+        "region": "NATIONWIDE",
+        "currentLeads": 3,
+        "maxCapacity": 25,
+        "isOnline": true
+      },
+      {
+        "id": "4273",
+        "name": "QA S4 Follow rep2",
+        "initials": "QR",
+        "title": "Chuyên viên Kinh doanh",
+        "dept": "QA4FOLLOW1792209934007 child",
+        "region": "NATIONWIDE",
+        "currentLeads": 4,
+        "maxCapacity": 25,
+        "isOnline": true
+      }
+    ]
+  }
+}

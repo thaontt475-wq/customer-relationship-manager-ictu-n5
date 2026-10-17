@@ -68,14 +68,23 @@ public final class DatabaseConfig {
     }
 
     public static String getUrl() {
+        String sys = System.getProperty("crm.db.url");
+        if (!isValidValue(sys)) sys = System.getProperty("db.url");
+        if (isValidValue(sys)) return sys.trim();
         return getPropertyOrEnv("crm.db.url", "CRM_DB_URL", PROPERTIES.getProperty("db.url", DEFAULT_URL));
     }
 
     public static String getUsername() {
+        String sys = System.getProperty("crm.db.username");
+        if (!isValidValue(sys)) sys = System.getProperty("db.username");
+        if (isValidValue(sys)) return sys.trim();
         return getPropertyOrEnv("crm.db.username", "CRM_DB_USERNAME", PROPERTIES.getProperty("db.username", DEFAULT_USER));
     }
 
     public static String getPassword() {
+        String sys = System.getProperty("crm.db.password");
+        if (!isValidValue(sys)) sys = System.getProperty("db.password");
+        if (isValidValue(sys)) return sys.trim();
         return getPropertyOrEnv("crm.db.password", "CRM_DB_PASSWORD", PROPERTIES.getProperty("db.password", ""));
     }
 

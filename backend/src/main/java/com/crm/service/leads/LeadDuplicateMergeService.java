@@ -167,12 +167,18 @@ public class LeadDuplicateMergeService {
                     throw new SecurityException("Lead phụ nằm ngoài phạm vi phân quyền của người dùng");
                 }
 
-                // Verify neither is already merged
+                // Verify neither is already merged or converted
                 if ("MERGED".equals(master.get("status")) || master.get("mergedIntoId") != null) {
                     throw new IllegalStateException("Lead chính đã được gộp trước đó");
                 }
                 if ("MERGED".equals(duplicate.get("status")) || duplicate.get("mergedIntoId") != null) {
                     throw new IllegalStateException("Lead phụ đã được gộp trước đó");
+                }
+                if ("CONVERTED".equals(master.get("status")) || master.get("convertedAt") != null) {
+                    throw new IllegalStateException("Không thể gộp Lead chính đã chuyển đổi thành công");
+                }
+                if ("CONVERTED".equals(duplicate.get("status")) || duplicate.get("convertedAt") != null) {
+                    throw new IllegalStateException("Không thể gộp Lead phụ đã chuyển đổi thành công");
                 }
 
                 String beforeMaster = JsonUtil.getGson().toJson(master);
