@@ -38,6 +38,30 @@ const overlay =
         "productOverlay"
     );
 
+const discontinueModal =
+    document.getElementById(
+        "discontinueModal"
+    );
+
+const discontinueOverlay =
+    document.getElementById(
+        "discontinueOverlay"
+    );
+
+const activateModal =
+    document.getElementById(
+        "activateModal"
+    );
+
+const activateOverlay =
+    document.getElementById(
+        "activateOverlay"
+    );
+
+let pendingDiscontinueId = null;
+let pendingActivateId = null;
+let globalAllProducts = [];
+
 
 /* =========================================================
    INIT
@@ -212,6 +236,30 @@ async function loadProducts() {
                 ? data.items
                 : [];
 
+        // Synchronize status tabs active state
+        const curStatus = status || "";
+        document.querySelectorAll(".status-tab-btn").forEach(btn => {
+            if (btn.dataset.statusTab === curStatus) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+
+        // Fetch or cache globalAllProducts for accurate counters
+        if (!status && !keyword) {
+            globalAllProducts = products;
+        } else if (!globalAllProducts.length) {
+            api("/api/products")
+                .then(res => {
+                    if (Array.isArray(res?.items)) {
+                        globalAllProducts = res.items;
+                        updateKpiMetrics();
+                    }
+                })
+                .catch(() => {});
+        }
+
 
         render();
 
@@ -374,6 +422,33 @@ function bindEvents() {
             }
         );
 
+    // Status tabs click event
+    document.querySelectorAll(".status-tab-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".status-tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            const tabStatus = btn.dataset.statusTab || "";
+            const statusFilter = document.getElementById("productStatusFilter");
+            if (statusFilter) {
+                statusFilter.value = tabStatus;
+            }
+            loadProducts();
+        });
+    });
+
+    // Discontinue modal controls
+    document.getElementById("closeDiscontinueModal")?.addEventListener("click", closeDiscontinueModal);
+    document.getElementById("cancelDiscontinueBtn")?.addEventListener("click", closeDiscontinueModal);
+    document.getElementById("confirmDiscontinueBtn")?.addEventListener("click", confirmDiscontinue);
+    discontinueOverlay?.addEventListener("click", closeDiscontinueModal);
+
+    // Reactivate modal controls
+    document.getElementById("closeActivateModal")?.addEventListener("click", closeActivateModal);
+    document.getElementById("cancelActivateBtn")?.addEventListener("click", closeActivateModal);
+    document.getElementById("confirmActivateBtn")?.addEventListener("click", confirmActivate);
+    activateOverlay?.addEventListener("click", closeActivateModal);
+
     document.addEventListener(
         "click",
         async event => {
@@ -404,9 +479,22 @@ function bindEvents() {
                         discontinue.dataset
                             .discontinueProduct
                     );
-                await discontinueProduct(
-                    id
+                openDiscontinueModal(id);
+                return;
+            }
+
+            const activate =
+                event.target.closest(
+                    "[data-activate-product]"
                 );
+
+            if (activate) {
+                const id =
+                    Number(
+                        activate.dataset
+                            .activateProduct
+                    );
+                openActivateModal(id);
                 return;
             }
 
@@ -418,6 +506,15 @@ function bindEvents() {
             }
         }
     );
+
+    // ESC key closes any open modal
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            if (drawer?.classList.contains("open")) closeDrawer();
+            if (discontinueModal?.classList.contains("open")) closeDiscontinueModal();
+            if (activateModal?.classList.contains("open")) closeActivateModal();
+        }
+    });
 }
 
 
@@ -580,72 +677,180 @@ async function saveProductForm() {
 
 
 /* =========================================================
-   DISCONTINUE
+   DISCONTINUE (NGỪNG KINH DOANH) MODAL
 ========================================================= */
 
-async function discontinueProduct(
-    id
-) {
-
-    const product =
-        products.find(
-            item =>
-                Number(item.id)
-                ===
-                Number(id)
-        );
-
+function openDiscontinueModal(id) {
+    const product = products.find(item => Number(item.id) === Number(id))
+        || globalAllProducts.find(item => Number(item.id) === Number(id));
 
     if (!product) {
-
         return;
     }
 
+    pendingDiscontinueId = product.id;
 
-    const ok =
-        window.confirm(
-            `Ngừng kinh doanh sản phẩm "${product.name}"?`
-        );
+    const elCode = document.getElementById("discontinueProductCode");
+    const elName = document.getElementById("discontinueProductName");
+    const elUnit = document.getElementById("discontinueProductUnit");
+    const elListPrice = document.getElementById("discontinueProductListPrice");
+    const elFloorPrice = document.getElementById("discontinueProductFloorPrice");
+
+    if (elCode) elCode.textContent = product.code;
+    if (elName) elName.textContent = product.name;
+    if (elUnit) elUnit.textContent = product.unit || "—";
+    if (elListPrice) elListPrice.textContent = money(product.listPrice);
+    if (elFloorPrice) elFloorPrice.textContent = money(product.floorPrice);
+
+    discontinueModal?.classList.add("open");
+    discontinueOverlay?.classList.add("open");
+    discontinueOverlay?.classList.add("show");
+    document.body.classList.add("modal-open");
+}
 
 
-    if (!ok) {
+function closeDiscontinueModal() {
+    pendingDiscontinueId = null;
+    discontinueModal?.classList.remove("open");
+    discontinueOverlay?.classList.remove("open");
+    discontinueOverlay?.classList.remove("show");
+    document.body.classList.remove("modal-open");
+}
 
+
+async function confirmDiscontinue() {
+    if (!pendingDiscontinueId) {
         return;
     }
 
+    const btn = document.getElementById("confirmDiscontinueBtn");
 
     try {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang xử lý...</span>';
+        }
 
         await api(
-            `/api/products/${id}`,
+            `/api/products/${pendingDiscontinueId}`,
             {
-                method:
-                    "DELETE"
+                method: "DELETE"
             }
         );
 
-
+        closeDiscontinueModal();
+        globalAllProducts = [];
         await loadProducts();
 
-
     } catch (error) {
-
-        console.error(
-            "Discontinue product error:",
-            error
-        );
-
-
-        alert(
-            error.message ||
-            "Không thể ngừng kinh doanh sản phẩm."
-        );
+        console.error("Discontinue product error:", error);
+        alert(error.message || "Không thể ngừng kinh doanh sản phẩm.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-power-off"></i> <span>Xác nhận ngừng bán</span>';
+        }
     }
 }
 
 
 /* =========================================================
-   DRAWER
+   REACTIVATE (MỞ BÁN LẠI) MODAL
+========================================================= */
+
+function openActivateModal(id) {
+    const product = products.find(item => Number(item.id) === Number(id))
+        || globalAllProducts.find(item => Number(item.id) === Number(id));
+
+    if (!product) {
+        return;
+    }
+
+    pendingActivateId = product.id;
+
+    const elCode = document.getElementById("activateProductCode");
+    const elName = document.getElementById("activateProductName");
+    const elUnit = document.getElementById("activateProductUnit");
+    const elListPrice = document.getElementById("activateProductListPrice");
+
+    if (elCode) elCode.textContent = product.code;
+    if (elName) elName.textContent = product.name;
+    if (elUnit) elUnit.textContent = product.unit || "—";
+    if (elListPrice) elListPrice.textContent = money(product.listPrice);
+
+    activateModal?.classList.add("open");
+    activateOverlay?.classList.add("open");
+    activateOverlay?.classList.add("show");
+    document.body.classList.add("modal-open");
+}
+
+
+function closeActivateModal() {
+    pendingActivateId = null;
+    activateModal?.classList.remove("open");
+    activateOverlay?.classList.remove("open");
+    activateOverlay?.classList.remove("show");
+    document.body.classList.remove("modal-open");
+}
+
+
+async function confirmActivate() {
+    if (!pendingActivateId) {
+        return;
+    }
+
+    const product = products.find(item => Number(item.id) === Number(pendingActivateId))
+        || globalAllProducts.find(item => Number(item.id) === Number(pendingActivateId));
+
+    if (!product) {
+        return;
+    }
+
+    const btn = document.getElementById("confirmActivateBtn");
+
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang kích hoạt...</span>';
+        }
+
+        const payload = {
+            code: product.code,
+            name: product.name,
+            type: normalizeProductType(product.type) === "subscription" ? "SUBSCRIPTION" : "ONE_TIME",
+            unit: product.unit || null,
+            listPrice: Number(product.listPrice) || 0,
+            floorPrice: Number(product.floorPrice) || 0,
+            costPrice: Number(product.costPrice) || 0,
+            active: true
+        };
+
+        await api(
+            `/api/products/${product.id}`,
+            {
+                method: "PUT",
+                body: JSON.stringify(payload)
+            }
+        );
+
+        closeActivateModal();
+        globalAllProducts = [];
+        await loadProducts();
+
+    } catch (error) {
+        console.error("Reactivate product error:", error);
+        alert(error.message || "Không thể mở bán lại sản phẩm.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>Mở bán lại ngay</span>';
+        }
+    }
+}
+
+
+/* =========================================================
+   DRAWER / MODAL
 ========================================================= */
 
 function openDrawer(
@@ -662,7 +867,9 @@ function openDrawer(
     }
 
     if (id !== null) {
-        const product = products.find(item => Number(item.id) === Number(id));
+        const product = products.find(item => Number(item.id) === Number(id))
+            || globalAllProducts.find(item => Number(item.id) === Number(id));
+
         if (product) {
             setValue("editingProduct", product.id);
             setValue("productCode", product.code);
@@ -675,99 +882,114 @@ function openDrawer(
             setValue("productStatus", product.active ? "active" : "inactive");
 
             if (titleEl) titleEl.textContent = "Sửa sản phẩm: " + product.code;
-            if (submitBtn) submitBtn.textContent = "Cập nhật";
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Cập nhật</span>';
+            }
         }
     } else {
-        if (titleEl) titleEl.textContent = "Thêm sản phẩm";
-        if (submitBtn) submitBtn.textContent = "Lưu";
+        if (titleEl) titleEl.textContent = "Thêm sản phẩm mới";
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Lưu thông tin</span>';
+        }
         setValue("productStatus", "active");
         setValue("productType", "one-time");
     }
 
+    drawer?.classList.add("open");
+    overlay?.classList.add("open");
+    overlay?.classList.add("show");
+    document.body.classList.add("modal-open");
+    document.body.classList.add("drawer-open");
 
-    drawer
-        ?.classList
-        .add(
-            "open"
-        );
-
-    overlay
-        ?.classList
-        .add(
-            "show"
-        );
-
-    document.body
-        .classList
-        .add(
-            "drawer-open"
-        );
+    setTimeout(() => {
+        const codeInput = document.getElementById("productCode");
+        if (codeInput && !id) codeInput.focus();
+    }, 120);
 }
 
 
 function closeDrawer() {
-
-    drawer
-        ?.classList
-        .remove(
-            "open"
-        );
-
-    overlay
-        ?.classList
-        .remove(
-            "show"
-        );
-
-    document.body
-        .classList
-        .remove(
-            "drawer-open"
-        );
+    drawer?.classList.remove("open");
+    overlay?.classList.remove("open");
+    overlay?.classList.remove("show");
+    document.body.classList.remove("modal-open");
+    document.body.classList.remove("drawer-open");
 }
 
 
 /* =========================================================
-   RENDER
+   RENDER & KPI METRICS
 ========================================================= */
 
+function updateKpiMetrics() {
+    const dataSource = globalAllProducts.length ? globalAllProducts : products;
+
+    const totalCount = dataSource.length;
+    const activeCount = dataSource.filter(p => p.active).length;
+    const inactiveCount = dataSource.filter(p => !p.active).length;
+    const subCount = dataSource.filter(p => normalizeProductType(p.type) === "subscription").length;
+    const sumListPrice = dataSource.reduce((acc, p) => acc + (Number(p.listPrice) || 0), 0);
+    const avgListPrice = totalCount > 0 ? (sumListPrice / totalCount) : 0;
+    const activeRate = totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0;
+
+    const elTotal = document.getElementById("kpiTotalProducts");
+    const elActive = document.getElementById("kpiActiveProducts");
+    const elActiveRate = document.getElementById("kpiActiveRate");
+    const elAvgPrice = document.getElementById("kpiAvgListPrice");
+    const elSub = document.getElementById("kpiSubscriptionCount");
+
+    if (elTotal) elTotal.textContent = totalCount.toLocaleString("vi-VN");
+    if (elActive) elActive.textContent = activeCount.toLocaleString("vi-VN");
+    if (elActiveRate) elActiveRate.textContent = `${activeRate}% danh mục sẵn sàng bán (${inactiveCount} ngừng bán)`;
+    if (elAvgPrice) elAvgPrice.textContent = money(avgListPrice);
+    if (elSub) elSub.textContent = `${subCount.toLocaleString("vi-VN")} dịch vụ`;
+
+    // Status Tab count badges
+    const tabAll = document.getElementById("tabCountAll");
+    const tabAct = document.getElementById("tabCountActive");
+    const tabInact = document.getElementById("tabCountInactive");
+    if (tabAll) tabAll.textContent = totalCount;
+    if (tabAct) tabAct.textContent = activeCount;
+    if (tabInact) tabInact.textContent = inactiveCount;
+}
+
+
 function render() {
+    // Update KPI metrics on top cards & status tabs
+    updateKpiMetrics();
 
     if (!body) {
-
         return;
     }
 
+    const type = value("productTypeFilter");
 
-    const type =
-        value(
-            "productTypeFilter"
-        );
-
-
-    const filtered =
-        products.filter(
-            product => {
-
-                if (
-                    type &&
-                    normalizeProductType(product.type) !==
-                    type
-                ) {
-                    return false;
-                }
-
-                return true;
-            }
-        );
+    const filtered = products.filter(product => {
+        if (type && normalizeProductType(product.type) !== type) {
+            return false;
+        }
+        return true;
+    });
 
     body.innerHTML = "";
 
     if (empty) {
-        empty.style.display =
-            filtered.length
-                ? "none"
-                : "flex";
+        if (!filtered.length) {
+            empty.style.display = "flex";
+            const curStatus = value("productStatusFilter");
+            const strongEl = empty.querySelector("strong");
+            const spanEl = empty.querySelector("span");
+
+            if (curStatus === "inactive") {
+                if (strongEl) strongEl.textContent = "Không có sản phẩm nào ngừng bán";
+                if (spanEl) spanEl.textContent = "Hiện tại toàn bộ sản phẩm trong danh mục đều đang hoạt động kinh doanh.";
+            } else {
+                if (strongEl) strongEl.textContent = "Chưa có sản phẩm phù hợp";
+                if (spanEl) spanEl.textContent = "Không tìm thấy sản phẩm nào theo bộ lọc hiện tại. Bấm \"Thêm sản phẩm\" để khởi tạo.";
+            }
+        } else {
+            empty.style.display = "none";
+        }
     }
 
     for (const product of filtered) {
@@ -780,95 +1002,95 @@ function render() {
         const isSub = normalizeProductType(product.type) === "subscription";
 
         tr.innerHTML = `
-            <td class="product-code">
-                ${escapeHtml(product.code)}
+            <td>
+                <span class="product-code-badge">
+                    <i class="fa-solid fa-cube"></i>
+                    ${escapeHtml(product.code)}
+                </span>
             </td>
             <td>
-                ${escapeHtml(product.name)}
+                <div class="product-name-cell">
+                    ${escapeHtml(product.name)}
+                </div>
             </td>
             <td>
-                ${isSub ? "Dịch vụ thuê bao" : "Sản phẩm một lần"}
-            </td>
-
-            <td>
-                ${escapeHtml(
-                    product.unit ||
-                    "—"
-                )}
-            </td>
-
-            <td>
-                ${money(
-                    product.listPrice
-                )}
+                <span class="product-type-badge ${isSub ? "subscription" : "one-time"}">
+                    <i class="${isSub ? "fa-solid fa-arrows-rotate" : "fa-solid fa-box"}"></i>
+                    ${isSub ? "Thuê bao" : "Một lần"}
+                </span>
             </td>
 
             <td>
-                ${money(
-                    product.floorPrice
-                )}
+                <span class="product-unit-tag">
+                    ${escapeHtml(product.unit || "—")}
+                </span>
             </td>
 
-            <td>
+            <td style="text-align: right;">
+                <span class="price-list">${money(product.listPrice)}</span>
+            </td>
+
+            <td style="text-align: right;">
+                <span class="price-floor">${money(product.floorPrice)}</span>
+            </td>
+
+            <td style="text-align: right;">
                 ${
-                    product.costPrice ===
-                    undefined
-
-                    ? "Không có quyền xem"
-
-                    : money(
-                        product.costPrice
-                    )
+                    product.costPrice === undefined
+                        ? `<span class="price-restricted"><i class="fa-solid fa-lock"></i> Giới hạn RBAC</span>`
+                        : `<span class="price-cost">${money(product.costPrice)}</span>`
                 }
             </td>
 
-            <td>
-
-                <span
-                    class="product-status ${status}"
-                >
-                    ${
-                        product.active
-                            ? "Đang bán"
-                            : "Ngừng kinh doanh"
-                    }
+            <td style="text-align: center;">
+                <span class="status-pill ${status}">
+                    <span class="status-dot"></span>
+                    ${product.active ? "Đang kinh doanh" : "Ngừng bán"}
                 </span>
-
             </td>
 
-            <td>
-
-                <button
-                    type="button"
-                    class="product-action"
-                    data-edit-product="${product.id}"
-                >
-                    Sửa
-                </button>
-
-                ${
-                    product.active
-
-                    ? `
+            <td style="text-align: right;">
+                <div class="action-btn-group">
                     <button
                         type="button"
-                        class="product-action"
-                        data-discontinue-product="${product.id}"
+                        class="action-btn btn-edit"
+                        data-edit-product="${product.id}"
+                        title="Chỉnh sửa sản phẩm"
                     >
-                        Ngừng bán
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Sửa</span>
                     </button>
-                    `
 
-                    : ""
-                }
-
+                    ${
+                        product.active
+                            ? `
+                            <button
+                                type="button"
+                                class="action-btn btn-discontinue"
+                                data-discontinue-product="${product.id}"
+                                title="Chuyển sang trạng thái ngừng kinh doanh"
+                            >
+                                <i class="fa-solid fa-power-off"></i>
+                                <span>Ngừng bán</span>
+                            </button>
+                            `
+                            : `
+                            <button
+                                type="button"
+                                class="action-btn btn-activate"
+                                data-activate-product="${product.id}"
+                                title="Kích hoạt mở bán lại sản phẩm này"
+                            >
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Mở bán lại</span>
+                            </button>
+                            `
+                    }
+                </div>
             </td>
         `;
 
-
-        body.appendChild(
-            tr
-        );
+        body.appendChild(tr);
     }
 }
 

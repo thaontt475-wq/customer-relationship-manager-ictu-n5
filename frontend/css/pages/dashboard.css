@@ -267,134 +267,251 @@
     color: var(--crm-primary-dark, #1d4ed8);
 }
 
-/* 4. FUNNEL CHART REDESIGN */
-.funnel-container {
-    min-height: 240px;
+/* 4. ENTERPRISE CHART HEADERS & CONTROLS */
+.panel-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.22);
+    margin-bottom: 6px;
+}
+
+.chip-emerald {
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.panel-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chart-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--crm-border);
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.view-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--crm-muted);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    transition: all 160ms ease;
+}
+
+.view-btn:hover {
+    color: var(--crm-text);
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.view-btn.active {
+    background: var(--crm-primary);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+/* Forecast Metric Badge */
+.forecast-metric-badge {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 12px;
-    padding: 24px 22px;
+    align-items: flex-end;
+    gap: 2px;
 }
 
-.funnel-row {
-    display: grid;
-    grid-template-columns: 140px 1fr 90px;
-    align-items: center;
-    gap: 14px;
-}
-
-.funnel-stage {
-    color: var(--crm-text-2);
-    font-size: 12.5px;
+.forecast-metric-label {
+    font-size: 11px;
     font-weight: 600;
-    text-align: right;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--crm-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
-.funnel-track {
-    height: 32px;
-    display: flex;
-    justify-content: flex-start;
-    background: var(--crm-surface-soft);
-    border-radius: 8px;
-    padding: 3px;
-    border: 1px solid var(--crm-border);
-}
-
-.funnel-bar {
-    height: 100%;
-    min-width: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 700;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-    transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.funnel-value {
-    color: var(--crm-text);
-    font-size: 12.5px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-}
-
-/* 5. FORECAST REDESIGN */
-.forecast-total {
-    margin: 18px 22px 14px;
-    padding: 16px 20px;
-    border-radius: var(--crm-radius-md);
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(99, 102, 241, 0.06) 100%);
-    border: 1px solid rgba(37, 99, 235, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.forecast-total span {
-    color: var(--crm-text-2);
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.forecast-total strong {
-    font-size: 24px;
+.forecast-metric-badge strong {
+    font-size: 22px;
     font-weight: 800;
-    color: var(--crm-primary);
+    color: #10b981;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
 }
 
-.forecast-bars {
-    display: grid;
-    gap: 14px;
-    padding: 6px 22px 22px;
+/* Chart Canvas Wrapper */
+.chart-canvas-wrapper {
+    min-height: 290px;
+    padding: 14px 16px 6px;
+    position: relative;
+    width: 100%;
 }
 
-.forecast-row {
-    display: grid;
-    grid-template-columns: 140px 1fr 100px;
-    gap: 14px;
+.chart-canvas-wrapper .apexcharts-canvas {
+    margin: 0 auto;
+}
+
+/* Panel Stats Footer */
+.panel-stats-footer {
+    display: flex;
     align-items: center;
-}
-
-.forecast-label {
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--crm-text-2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.forecast-track {
-    height: 10px;
-    overflow: hidden;
-    border-radius: 999px;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--crm-border);
     background: var(--crm-surface-soft);
-    border: 1px solid var(--crm-border);
+    font-size: 12px;
+    color: var(--crm-muted);
+    flex-wrap: wrap;
+    margin-top: auto;
 }
 
-.forecast-progress {
-    height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #6366f1 0%, #3b82f6 100%);
-    transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+.panel-stats-footer:empty {
+    display: none;
 }
 
-.forecast-value {
-    font-size: 12.5px;
-    font-weight: 600;
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--crm-text-2);
+}
+
+.stat-chip strong {
     color: var(--crm-text);
-    text-align: right;
+    font-weight: 700;
+}
+
+.stat-chip i {
+    font-size: 13px;
+    color: var(--crm-primary);
+}
+
+/* Custom Tooltips for ApexCharts */
+.crm-chart-tooltip {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.6);
+    padding: 12px 14px;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 12.5px;
+    min-width: 190px;
+}
+
+.tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tooltip-badge {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.tooltip-prob-badge {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    font-weight: 700;
+}
+
+.tooltip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tooltip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.tooltip-row span {
+    color: #94a3b8;
+}
+
+.tooltip-row strong {
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
+}
+
+/* Dark Mode Overrides for Dashboard Charts */
+html[data-theme="dark"] .panel-tag-chip {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+html[data-theme="dark"] .chip-emerald {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+html[data-theme="dark"] .chart-view-toggle {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+html[data-theme="dark"] .view-btn:hover {
+    background: #334155;
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .view-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .forecast-metric-badge strong {
+    color: #34d399;
+}
+
+html[data-theme="dark"] .panel-stats-footer {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .stat-chip {
+    color: #cbd5e1;
+}
+
+html[data-theme="dark"] .stat-chip strong {
+    color: #f8fafc;
+}
+
+html[data-theme="dark"] .stat-chip i {
+    color: #60a5fa;
 }
 
 /* 6. RECENT ACTIVITIES & TASKS */
@@ -687,4 +804,249 @@ html[data-theme="dark"] .trend-pending { background: #78350f; color: #fde68a; bo
 .dashboard-empty::before {
     content: ""; position: absolute; left: calc(50% - 16px); top: calc(50% - 48px);
     width: 32px; height: 32px; border-radius: 8px; background: #eff6ff center / 20px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.8'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Cpath d='M7 9h10M7 14h6'/%3E%3C/svg%3E"); pointer-events: none;
+}
+
+/* =========================================================
+   9. MODERN APEXCHARTS ENTERPRISE STYLING
+========================================================= */
+
+.panel-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--crm-border);
+    flex-wrap: wrap;
+}
+
+.panel-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.panel-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: rgba(37, 99, 235, 0.1);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    margin-bottom: 6px;
+}
+
+.panel-tag-chip.chip-emerald {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.chart-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: var(--crm-surface-soft);
+    border: 1px solid var(--crm-border);
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.chart-view-toggle .view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--crm-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chart-view-toggle .view-btn:hover {
+    color: var(--crm-text);
+}
+
+.chart-view-toggle .view-btn.active {
+    background: var(--crm-surface);
+    color: var(--crm-primary);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.forecast-metric-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.forecast-metric-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--crm-muted);
+}
+
+.forecast-metric-badge strong {
+    font-size: 17px;
+    font-weight: 800;
+    color: #10b981;
+    font-variant-numeric: tabular-nums;
+}
+
+.chart-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 280px;
+    padding: 10px 14px 4px 14px;
+    box-sizing: border-box;
+}
+
+.panel-stats-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--crm-border);
+    background: var(--crm-surface-soft);
+    border-radius: 0 0 var(--crm-radius-md) var(--crm-radius-md);
+}
+
+.stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--crm-muted);
+    font-weight: 500;
+}
+
+.stat-chip strong {
+    color: var(--crm-text);
+    font-weight: 700;
+}
+
+.stat-chip i {
+    font-size: 11px;
+    color: var(--crm-primary);
+}
+
+/* Tooltip & ApexCharts Overrides */
+.apexcharts-canvas {
+    font-family: inherit !important;
+}
+
+.apexcharts-tooltip {
+    border-radius: 10px !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28) !important;
+    overflow: hidden !important;
+}
+
+html[data-theme="dark"] .apexcharts-tooltip {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border: 1px solid #334155 !important;
+    color: #f8fafc !important;
+    backdrop-filter: blur(8px);
+}
+
+html[data-theme="dark"] .apexcharts-tooltip-title {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-bottom: 1px solid #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+html[data-theme="dark"] .chart-view-toggle .view-btn.active {
+    background: #1e293b;
+    color: #60a5fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .forecast-metric-badge {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+html[data-theme="dark"] .panel-stats-footer {
+    background: rgba(15, 23, 42, 0.6);
+    border-top-color: #334155;
+}
+
+html[data-theme="dark"] .panel-tag-chip {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+html[data-theme="dark"] .panel-tag-chip.chip-emerald {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Custom Tooltip Inside ApexCharts */
+.crm-chart-tooltip {
+    min-width: 240px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    background: inherit;
+}
+
+.crm-chart-tooltip .tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0 6px 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.crm-chart-tooltip .tooltip-header strong {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.crm-chart-tooltip .tooltip-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.crm-chart-tooltip .tooltip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.crm-chart-tooltip .tooltip-row span {
+    color: #64748b;
+    font-size: 12px;
+}
+
+html[data-theme="dark"] .crm-chart-tooltip .tooltip-row span {
+    color: #94a3b8;
+}
+
+.crm-chart-tooltip .tooltip-row strong {
+    font-size: 12px;
+    font-weight: 700;
+    color: inherit;
 }

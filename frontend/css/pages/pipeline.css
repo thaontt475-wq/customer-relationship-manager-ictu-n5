@@ -339,183 +339,202 @@
 
 
 /* =========================================================
-   OPPORTUNITY DRAWER
+   OPPORTUNITY MODAL (CỬA SỔ NỔI THÊM / SỬA CƠ HỘI)
 ========================================================= */
 
 .pipeline-overlay {
     position: fixed;
-
     inset: 0;
-
-    z-index: 2000;
-
-    background: rgba(15,23,42,.35);
-
+    z-index: 2400;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     opacity: 0;
-
     visibility: hidden;
-
-    transition: opacity 180ms ease, visibility 0s linear 180ms;
+    transition: opacity 220ms ease, visibility 0s linear 220ms;
 }
 
 .pipeline-overlay.open {
     opacity: 1;
     visibility: visible;
-
     transition-delay: 0s;
 }
 
-
-.opportunity-drawer {
+.opportunity-drawer,
+.opportunity-modal {
     position: fixed;
-
-    top: 0;
-    right: 0;
-    bottom: 0;
-
-    z-index: 2100;
-
-    width: min(430px,100%);
-
+    top: 50%;
+    left: 50%;
+    z-index: 2500;
+    width: min(580px, calc(100vw - 32px));
+    max-height: min(88vh, 760px);
     display: flex;
-
     flex-direction: column;
-
-    background: #fff;
-
-    box-shadow: -18px 0 45px rgba(15,23,42,.16);
-
-    transform: translateX(102%);
-
-    transition: transform 240ms var(--crm-ease), visibility 0s linear 240ms;
+    background: var(--crm-surface);
+    color: var(--crm-text);
+    border-radius: 16px;
+    border: 1px solid var(--crm-border);
+    box-shadow: 0 25px 65px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(15, 23, 42, 0.06);
+    opacity: 0;
     visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, calc(-50% + 18px)) scale(0.96);
+    transition: opacity 200ms ease, transform 240ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 240ms;
+    overflow: hidden;
 }
 
-.opportunity-drawer.open {
-    transform: translateX(0);
+.opportunity-drawer.open,
+.opportunity-modal.open {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
     visibility: visible;
-
+    pointer-events: auto;
     transition-delay: 0s;
 }
 
-
-.drawer-head {
-    min-height: 70px;
-
+.drawer-head,
+.modal-dialog-head {
+    min-height: 72px;
     display: flex;
-
     align-items: center;
     justify-content: space-between;
-
-    gap: 15px;
-
-    padding: 15px 18px;
-
+    gap: 16px;
+    padding: 16px 24px;
     border-bottom: 1px solid var(--crm-border);
+    background: var(--crm-surface-soft, var(--crm-surface));
+    color: var(--crm-text);
+    flex-shrink: 0;
 }
 
-.drawer-head strong {
-    display: block;
-
-    font-size: 15px;
+.modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
-.drawer-head span {
+.modal-icon-badge {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(59, 130, 246, 0.22) 100%);
+    color: #2563eb;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.drawer-head strong,
+.modal-dialog-head strong {
     display: block;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--crm-text);
+}
 
-    margin-top: 4px;
-
+.drawer-head span,
+.modal-dialog-head span {
+    display: block;
+    margin-top: 3px;
     color: var(--crm-muted);
-
-    font-size: 12px;
+    font-size: 12.5px;
 }
 
+.modal-close-btn,
 .drawer-head button {
-    width: 35px;
-    height: 35px;
-
-    border: 0;
-
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid transparent;
     background: transparent;
-
-    font-size: 23px;
+    color: var(--crm-muted);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
+.modal-close-btn:hover,
+.drawer-head button:hover {
+    background: var(--crm-surface-soft);
+    color: var(--crm-text);
+    border-color: var(--crm-border);
+}
 
 .opportunity-form {
     flex: 1;
-
     overflow-y: auto;
-
-    padding: 18px 18px 95px;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
 }
 
 .opportunity-form > label,
 .opportunity-form .form-grid label {
-    display: block;
-
-    margin-bottom: 15px;
-
-    color: var(--crm-text-2);
-
-    font-size: 12px;
-
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+    color: var(--crm-text);
+    font-size: 13px;
     font-weight: 600;
+    gap: 6px;
 }
 
 .opportunity-form em {
     color: var(--crm-danger);
-
     font-style: normal;
+    margin-left: 2px;
 }
 
 .opportunity-form input,
 .opportunity-form select {
-    margin-top: 6px;
+    margin-top: 0;
+    height: 42px;
+    padding: 0 14px;
+    font-size: 13.5px;
+    border-radius: 8px;
+    border: 1px solid var(--crm-border);
+    background: var(--crm-surface);
+    color: var(--crm-text);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.opportunity-form input:focus,
+.opportunity-form select:focus {
+    border-color: var(--crm-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    outline: none;
 }
 
 .opportunity-form small {
     display: block;
-
     min-height: 14px;
-
-    margin-top: 4px;
-
+    margin-top: 2px;
     color: var(--crm-danger);
-
     font-size: 12px;
+    font-weight: 500;
 }
 
 .form-grid {
     display: grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
 }
 
-.drawer-footer {
-    position: absolute;
-
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    min-height: 72px;
-
+.drawer-footer,
+.modal-dialog-footer {
+    position: static;
+    min-height: 64px;
     display: flex;
-
     align-items: center;
     justify-content: flex-end;
-
-    gap: 8px;
-
-    padding: 12px 18px;
-
+    gap: 10px;
+    padding: 14px 24px;
     border-top: 1px solid var(--crm-border);
-
-    background: #fff;
+    background: var(--crm-surface-soft);
+    flex-shrink: 0;
 }
 
 
@@ -816,18 +835,37 @@
         cursor: default;
     }
 
-    .opportunity-drawer {
-        width: 100%;
-        visibility: hidden;
-}
+    .opportunity-drawer,
+    .opportunity-modal {
+        width: min(580px, calc(100vw - 24px));
+    }
 }
 
-
-@media (max-width:480px) {
+@media (max-width: 580px) {
+    .opportunity-drawer,
+    .opportunity-modal {
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - 24px);
+        border-radius: 12px;
+    }
 
     .form-grid {
-        grid-template-columns:
-            1fr;
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .drawer-head,
+    .modal-dialog-head {
+        padding: 14px 18px;
+    }
+
+    .opportunity-form {
+        padding: 16px 18px;
+    }
+
+    .drawer-footer,
+    .modal-dialog-footer {
+        padding: 12px 18px;
     }
 }
 
@@ -1046,6 +1084,8 @@ html[data-theme="dark"] .card-avatar,
     background: #334155 !important;
     color: #93c5fd !important;
     border: 1px solid #475569 !important;
+}
+
 html[data-theme="dark"] .pipeline-filter,
 [data-theme="dark"] .pipeline-filter {
     background: #172033 !important;
@@ -1092,19 +1132,75 @@ html[data-theme="dark"] .card-menu button:hover,
 }
 
 html[data-theme="dark"] .opportunity-drawer,
-[data-theme="dark"] .opportunity-drawer {
-    background: #172033 !important;
-    border-left: 1px solid #334155 !important;
+html[data-theme="dark"] .opportunity-modal,
+[data-theme="dark"] .opportunity-drawer,
+[data-theme="dark"] .opportunity-modal {
+    background: #111827 !important;
+    border: 1px solid #374151 !important;
     color: #f8fafc !important;
-    box-shadow: -18px 0 45px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 25px 65px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
 }
 
+html[data-theme="dark"] .drawer-head,
+html[data-theme="dark"] .modal-dialog-head,
 html[data-theme="dark"] .opportunity-drawer header,
-html[data-theme="dark"] .opportunity-drawer footer,
+html[data-theme="dark"] .opportunity-modal header,
+[data-theme="dark"] .drawer-head,
+[data-theme="dark"] .modal-dialog-head,
 [data-theme="dark"] .opportunity-drawer header,
-[data-theme="dark"] .opportunity-drawer footer {
-    background: #1e293b !important;
-    border-color: #334155 !important;
+[data-theme="dark"] .opportunity-modal header {
+    background: #172033 !important;
+    border-bottom: 1px solid #334155 !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .drawer-head strong,
+html[data-theme="dark"] .modal-dialog-head strong,
+[data-theme="dark"] .drawer-head strong,
+[data-theme="dark"] .modal-dialog-head strong {
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .drawer-head span,
+html[data-theme="dark"] .modal-dialog-head span,
+[data-theme="dark"] .drawer-head span,
+[data-theme="dark"] .modal-dialog-head span {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .drawer-footer,
+html[data-theme="dark"] .modal-dialog-footer,
+html[data-theme="dark"] .opportunity-drawer footer,
+html[data-theme="dark"] .opportunity-modal footer,
+[data-theme="dark"] .drawer-footer,
+[data-theme="dark"] .modal-dialog-footer,
+[data-theme="dark"] .opportunity-drawer footer,
+[data-theme="dark"] .opportunity-modal footer {
+    background: #172033 !important;
+    border-top: 1px solid #334155 !important;
+}
+
+html[data-theme="dark"] .modal-icon-badge,
+[data-theme="dark"] .modal-icon-badge {
+    background: rgba(37, 99, 235, 0.22) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(59, 130, 246, 0.35) !important;
+}
+
+html[data-theme="dark"] .modal-close-btn,
+html[data-theme="dark"] .drawer-head button,
+[data-theme="dark"] .modal-close-btn,
+[data-theme="dark"] .drawer-head button {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .modal-close-btn:hover,
+html[data-theme="dark"] .drawer-head button:hover,
+[data-theme="dark"] .modal-close-btn:hover,
+[data-theme="dark"] .drawer-head button:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
 }
 
 html[data-theme="dark"] .close-deal-modal,
