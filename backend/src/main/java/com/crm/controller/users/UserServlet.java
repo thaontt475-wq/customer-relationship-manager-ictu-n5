@@ -73,7 +73,7 @@ public class UserServlet
                         response,
                         200,
                         ApiResponse.success(
-                                "Láº¥y danh sÃ¡ch user thÃ nh cÃ´ng",
+                                "Lấy danh sách người dùng thành công",
                                 users.search(
                                         request.getParameter(
                                                 "keyword"
