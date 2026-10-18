@@ -1,851 +1,616 @@
+/**
+ * ===================================================================
+ * MASTER DATA MANAGEMENT - FRONTEND CONTROLLER
+ * Corporate CRM System
+ * ===================================================================
+ */
+
 "use strict";
 
-const API_BASE =
-    `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
-let currentCategory =
-    "industry";
-
+let currentCategory = "industry";
 let values = [];
+let searchQuery = "";
+let statusFilter = "ALL";
 
-
-const categoryLabels = {
-    "industry":
-        "Ngành nghề",
-
-    "company-size":
-        "Quy mô doanh nghiệp",
-
-    "lead-source":
-        "Nguồn Lead",
-
-    "activity-type":
-        "Loại hoạt động",
-
-    "region":
-        "Khu vực địa lý"
+const categoryMeta = {
+    "industry": {
+        label: "Ngành nghề",
+        icon: "fa-industry",
+        desc: "Quản lý các giá trị phân loại ngành nghề phục vụ quản lý hồ sơ khách hàng và cơ hội bán hàng."
+    },
+    "lead-source": {
+        label: "Nguồn Lead",
+        icon: "fa-bullseye",
+        desc: "Quản lý các kênh tiếp cận và nguồn gốc phát sinh khách hàng tiềm năng trong CRM."
+    },
+    "activity-type": {
+        label: "Loại hoạt động",
+        icon: "fa-calendar-check",
+        desc: "Quản lý các loại tương tác như cuộc gọi, họp, email và tác vụ chăm sóc khách hàng."
+    },
+    "company-size": {
+        label: "Quy mô doanh nghiệp",
+        icon: "fa-users",
+        desc: "Quản lý các khung quy mô nhân sự của đối tác và khách hàng doanh nghiệp."
+    },
+    "region": {
+        label: "Khu vực địa lý",
+        icon: "fa-map-location-dot",
+        desc: "Quản lý các vùng miền, khu vực địa lý phục vụ chia địa bàn và quản lý đội ngũ kinh doanh."
+    }
 };
 
+const modal = document.getElementById("masterDrawer");
+const overlay = document.getElementById("masterOverlay");
 
-const drawer =
-    document.getElementById(
-        "masterDrawer"
-    );
+// INITIALIZATION
+document.addEventListener("DOMContentLoaded", () => {
+    initEvents();
+    loadValues();
+    fetchAllCategoryCounts();
+});
 
-const overlay =
-    document.getElementById(
-        "masterOverlay"
-    );
+function initEvents() {
+    // Category Switcher
+    document.querySelectorAll(".category-button").forEach(button => {
+        button.addEventListener("click", async () => {
+            const cat = button.dataset.category;
+            if (cat === currentCategory) return;
 
+            document.querySelectorAll(".category-button").forEach(b => b.classList.remove("active"));
+            button.classList.add("active");
 
-document
-    .querySelectorAll(
-        ".category-button"
-    )
-    .forEach(button => {
+            currentCategory = cat;
+            searchQuery = "";
+            statusFilter = "ALL";
 
-        button.addEventListener(
-            "click",
-            async () => {
+            const searchInput = document.getElementById("masterSearchInput");
+            if (searchInput) searchInput.value = "";
+            const clearBtn = document.getElementById("clearSearchBtn");
+            if (clearBtn) clearBtn.style.display = "none";
+            const filterSelect = document.getElementById("masterStatusFilter");
+            if (filterSelect) filterSelect.value = "ALL";
 
-                document
-                    .querySelectorAll(
-                        ".category-button"
-                    )
-                    .forEach(item => {
-
-                        item.classList.remove(
-                            "active"
-                        );
-
-                    });
-
-                button.classList.add(
-                    "active"
-                );
-
-                currentCategory =
-                    button.dataset.category;
-
-                document
-                    .getElementById(
-                        "categoryTitle"
-                    )
-                    .textContent =
-                        categoryLabels[
-                            currentCategory
-                        ]
-                        ||
-                        currentCategory;
-
-                await loadValues();
-            }
-        );
+            updateCategoryHeader();
+            await loadValues();
+        });
     });
 
+    // Add Item Buttons
+    document.getElementById("addMasterItem")?.addEventListener("click", () => openModal());
+    document.getElementById("addMasterItemTable")?.addEventListener("click", () => openModal());
 
-document
-    .getElementById(
-        "addMasterItem"
-    )
-    ?.addEventListener(
-        "click",
-        () => openDrawer()
-    );
+    // Refresh Button
+    document.getElementById("btnRefreshMaster")?.addEventListener("click", () => {
+        loadValues();
+        fetchAllCategoryCounts();
+        showToast("Đã làm mới dữ liệu danh mục!", "info");
+    });
 
+    // Close Modal
+    document.getElementById("closeMasterDrawer")?.addEventListener("click", closeModal);
+    document.getElementById("cancelMaster")?.addEventListener("click", closeModal);
+    overlay?.addEventListener("click", closeModal);
 
-document
-    .getElementById(
-        "closeMasterDrawer"
-    )
-    ?.addEventListener(
-        "click",
-        closeDrawer
-    );
-
-
-document
-    .getElementById(
-        "cancelMaster"
-    )
-    ?.addEventListener(
-        "click",
-        closeDrawer
-    );
-
-
-overlay
-    ?.addEventListener(
-        "click",
-        closeDrawer
-    );
-
-
-document
-    .getElementById(
-        "masterForm"
-    )
-    ?.addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-            await saveForm();
+    // Escape Key to close modal
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && modal?.classList.contains("open")) {
+            closeModal();
         }
-    );
+    });
 
+    // Form submit
+    document.getElementById("masterForm")?.addEventListener("submit", async event => {
+        event.preventDefault();
+        await saveForm();
+    });
 
-document.addEventListener(
-    "click",
-    async event => {
-
-        const edit =
-            event.target.closest(
-                "[data-edit-master]"
-            );
-
-        if (edit) {
-
-            openDrawer(
-                Number(
-                    edit.dataset.editMaster
-                )
-            );
-
-            return;
-        }
-
-
-        const up =
-            event.target.closest(
-                "[data-master-up]"
-            );
-
-        if (up) {
-
-            await moveItem(
-                Number(
-                    up.dataset.masterUp
-                ),
-                -1
-            );
-
-            return;
-        }
-
-
-        const down =
-            event.target.closest(
-                "[data-master-down]"
-            );
-
-        if (down) {
-
-            await moveItem(
-                Number(
-                    down.dataset.masterDown
-                ),
-                1
-            );
-        }
+    // Code auto uppercase
+    const codeInput = document.getElementById("masterCode");
+    if (codeInput) {
+        codeInput.addEventListener("input", () => {
+            codeInput.value = codeInput.value.toUpperCase().replace(/\s+/g, "_");
+        });
     }
-);
 
-
-async function api(
-    path,
-    options = {}
-) {
-
-    const response =
-        await fetch(
-            API_BASE + path,
-            {
-                credentials:
-                    "include",
-
-                headers: {
-                    "Content-Type":
-                        "application/json",
-
-                    ...(options.headers || {})
-                },
-
-                ...options
+    // Search input
+    const searchInput = document.getElementById("masterSearchInput");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    if (searchInput) {
+        searchInput.addEventListener("input", event => {
+            searchQuery = event.target.value.trim().toLowerCase();
+            if (clearSearchBtn) {
+                clearSearchBtn.style.display = searchQuery ? "block" : "none";
             }
-        );
+            render();
+        });
+    }
 
-    const result =
-        await response.json()
-            .catch(
-                () => ({
-                    success: false,
-                    message:
-                        "Phản hồi API không hợp lệ"
-                })
-            );
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener("click", () => {
+            if (searchInput) {
+                searchInput.value = "";
+                searchQuery = "";
+                clearSearchBtn.style.display = "none";
+                render();
+                searchInput.focus();
+            }
+        });
+    }
+
+    // Status filter
+    document.getElementById("masterStatusFilter")?.addEventListener("change", event => {
+        statusFilter = event.target.value;
+        render();
+    });
+
+    // Status switch toggle in modal
+    const statusSwitch = document.getElementById("masterStatusSwitch");
+    const statusSelect = document.getElementById("masterStatus");
+    if (statusSwitch && statusSelect) {
+        statusSwitch.addEventListener("change", () => {
+            statusSelect.value = statusSwitch.checked ? "active" : "inactive";
+        });
+    }
+
+    // Table delegated actions (Edit, Up, Down, Toggle)
+    document.addEventListener("click", async event => {
+        // Edit
+        const editBtn = event.target.closest("[data-edit-master]");
+        if (editBtn) {
+            openModal(Number(editBtn.dataset.editMaster));
+            return;
+        }
+
+        // Toggle Status
+        const toggleBtn = event.target.closest("[data-toggle-master]");
+        if (toggleBtn) {
+            await toggleItemStatus(Number(toggleBtn.dataset.toggleMaster));
+            return;
+        }
+
+        // Move Up
+        const upBtn = event.target.closest("[data-master-up]");
+        if (upBtn) {
+            await moveItem(Number(upBtn.dataset.masterUp), -1);
+            return;
+        }
+
+        // Move Down
+        const downBtn = event.target.closest("[data-master-down]");
+        if (downBtn) {
+            await moveItem(Number(downBtn.dataset.masterDown), 1);
+        }
+    });
+}
+
+function updateCategoryHeader() {
+    const meta = categoryMeta[currentCategory] || {
+        label: currentCategory,
+        icon: "fa-folder",
+        desc: "Quản lý dữ liệu danh mục."
+    };
+
+    const titleEl = document.getElementById("categoryTitle");
+    if (titleEl) titleEl.textContent = meta.label;
+
+    const descEl = document.getElementById("categoryDesc");
+    if (descEl) descEl.textContent = meta.desc;
+
+    const badgeIconEl = document.getElementById("categoryIconBadge");
+    if (badgeIconEl) badgeIconEl.innerHTML = `<i class="fa-solid ${meta.icon}"></i>`;
+
+    const kpiLabel = document.getElementById("kpiCategoryLabel");
+    if (kpiLabel) kpiLabel.textContent = `Giá trị ${meta.label}`;
+
+    const modalBadge = document.getElementById("modalCategoryBadge");
+    if (modalBadge) modalBadge.textContent = meta.label;
+}
+
+// API CLIENT
+async function api(path, options = {}) {
+    const response = await fetch(API_BASE + path, {
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {})
+        },
+        ...options
+    });
+
+    const result = await response.json().catch(() => ({
+        success: false,
+        message: "Phản hồi API không hợp lệ"
+    }));
 
     if (!response.ok) {
-
-        throw new Error(
-            result.message
-            ||
-            "Có lỗi xảy ra"
-        );
+        throw new Error(result.message || "Có lỗi xảy ra");
     }
 
     return result;
 }
 
-
+// LOAD VALUES
 async function loadValues() {
-
     try {
-
-        const result =
-            await api(
-                `/api/master-data/${encodeURIComponent(currentCategory)}`
-            );
-
-        values =
-            Array.isArray(
-                result.data
-            )
-            ?
-            result.data
-            :
-            [];
-
+        const result = await api(`/api/master-data/${encodeURIComponent(currentCategory)}`);
+        values = Array.isArray(result.data) ? result.data : [];
+        updateKpis();
         render();
-
+        updateCategoryCountBadge(currentCategory, values.length);
     } catch (error) {
-
-        console.error(
-            "Load master data error:",
-            error
-        );
-
+        console.error("Load master data error:", error);
         values = [];
-
+        updateKpis();
         render();
-
-        alert(
-            error.message
-            ||
-            "Không thể tải danh mục."
-        );
+        showToast(error.message || "Không thể tải danh mục.", "error");
     }
 }
 
+// PRE-FETCH COUNTS FOR ALL CATEGORIES
+async function fetchAllCategoryCounts() {
+    for (const key of Object.keys(categoryMeta)) {
+        try {
+            const res = await api(`/api/master-data/${encodeURIComponent(key)}`);
+            if (res.data && Array.isArray(res.data)) {
+                updateCategoryCountBadge(key, res.data.length);
+            }
+        } catch (e) {
+            // Ignore background count failure
+        }
+    }
+}
 
-async function saveForm() {
+function updateCategoryCountBadge(catKey, count) {
+    const badge = document.getElementById(`count-${catKey}`);
+    if (badge) {
+        badge.textContent = count;
+    }
+}
 
-    const code =
-        value(
-            "masterCode"
-        );
+// UPDATE KPIS
+function updateKpis() {
+    const totalEl = document.getElementById("kpiCategoryTotal");
+    const activeEl = document.getElementById("kpiActiveTotal");
+    const inactiveEl = document.getElementById("kpiInactiveTotal");
 
-    const name =
-        value(
-            "masterName"
-        );
+    const total = values.length;
+    const active = values.filter(v => v.active).length;
+    const inactive = total - active;
 
-    const status =
-        value(
-            "masterStatus"
-        );
+    if (totalEl) totalEl.textContent = total;
+    if (activeEl) activeEl.textContent = active;
+    if (inactiveEl) inactiveEl.textContent = inactive;
+}
 
-    const errorBox =
-        document.getElementById(
-            "masterError"
-        );
+// RENDER LIST
+function render() {
+    const list = document.getElementById("masterList");
+    const empty = document.getElementById("masterEmpty");
+    if (!list) return;
 
-    if (errorBox) {
-        errorBox.textContent = "";
+    list.innerHTML = "";
+
+    // Apply Filters
+    let filtered = values.filter(item => {
+        if (statusFilter === "active" && !item.active) return false;
+        if (statusFilter === "inactive" && item.active) return false;
+
+        if (searchQuery) {
+            const code = String(item.code || "").toLowerCase();
+            const name = String(item.name || "").toLowerCase();
+            return code.includes(searchQuery) || name.includes(searchQuery);
+        }
+        return true;
+    });
+
+    if (empty) {
+        empty.style.display = (filtered.length === 0) ? "flex" : "none";
     }
 
+    filtered.forEach((item, index) => {
+        const row = document.createElement("article");
+        row.className = "master-item";
 
-    if (
-        !code
-        ||
-        !name
-    ) {
+        const statusClass = item.active ? "active" : "inactive";
+        const statusText = item.active ? "Đang dùng" : "Ngừng dùng";
+        const toggleIcon = item.active ? "fa-toggle-on" : "fa-toggle-off";
+        const toggleTitle = item.active ? "Bấm để ngừng sử dụng" : "Bấm để kích hoạt sử dụng";
 
-        if (errorBox) {
+        row.innerHTML = `
+            <div class="master-order">
+                <button
+                    type="button"
+                    data-master-up="${item.id}"
+                    title="Di chuyển lên trên"
+                    ${index === 0 ? "disabled" : ""}
+                >
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <button
+                    type="button"
+                    data-master-down="${item.id}"
+                    title="Di chuyển xuống dưới"
+                    ${index === filtered.length - 1 ? "disabled" : ""}
+                >
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+            </div>
 
-            errorBox.textContent =
-                "Mã và tên hiển thị là bắt buộc.";
-        }
+            <div>
+                <span class="master-code">${escapeHtml(item.code)}</span>
+            </div>
 
+            <div class="master-name">
+                ${escapeHtml(item.name)}
+            </div>
+
+            <div>
+                <span class="master-status ${statusClass}">
+                    ${statusText}
+                </span>
+            </div>
+
+            <div class="master-actions">
+                <button
+                    type="button"
+                    class="btn-item-action"
+                    data-edit-master="${item.id}"
+                    title="Chỉnh sửa thông tin"
+                >
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Sửa</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-item-action btn-item-toggle"
+                    data-toggle-master="${item.id}"
+                    title="${toggleTitle}"
+                >
+                    <i class="fa-solid ${toggleIcon}" style="color: ${item.active ? '#34d399' : '#64748b'};"></i>
+                </button>
+            </div>
+        `;
+
+        list.appendChild(row);
+    });
+}
+
+// TOGGLE ITEM STATUS (1-CLICK)
+async function toggleItemStatus(id) {
+    const item = values.find(r => Number(r.id) === Number(id));
+    if (!item) return;
+
+    const newActive = !item.active;
+    try {
+        await api(`/api/master-data/${encodeURIComponent(currentCategory)}/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+                code: item.code,
+                name: item.name,
+                active: newActive,
+                displayOrder: item.displayOrder
+            })
+        });
+
+        item.active = newActive;
+        updateKpis();
+        render();
+        showToast(
+            newActive
+                ? `Đã kích hoạt giá trị "${item.name}"!`
+                : `Đã ngừng sử dụng giá trị "${item.name}"!`,
+            "success"
+        );
+    } catch (error) {
+        console.error("Toggle master status error:", error);
+        showToast(error.message || "Không thể cập nhật trạng thái.", "error");
+    }
+}
+
+// REORDER ITEMS
+async function moveItem(id, direction) {
+    const index = values.findIndex(item => Number(item.id) === Number(id));
+    const targetIndex = index + direction;
+
+    if (index < 0 || targetIndex < 0 || targetIndex >= values.length) {
         return;
     }
 
+    const current = values[index];
+    const target = values[targetIndex];
 
-    const editingId =
-        value(
-            "editingMasterId"
-        );
+    const currentOrder = Number(current.displayOrder);
+    const targetOrder = Number(target.displayOrder);
 
+    try {
+        await api(`/api/master-data/${encodeURIComponent(currentCategory)}/${current.id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+                code: current.code,
+                name: current.name,
+                active: current.active,
+                displayOrder: targetOrder
+            })
+        });
 
-    const existing =
-        editingId
-        ?
-        values.find(
-            item =>
-                Number(item.id)
-                ===
-                Number(editingId)
-        )
-        :
-        null;
+        await api(`/api/master-data/${encodeURIComponent(currentCategory)}/${target.id}`, {
+            method: "PUT",
+            body: JSON.stringify({
+                code: target.code,
+                name: target.name,
+                active: target.active,
+                displayOrder: currentOrder
+            })
+        });
 
+        await loadValues();
+        showToast("Đã cập nhật thứ tự sắp xếp!", "success");
+    } catch (error) {
+        console.error("Move master data error:", error);
+        showToast(error.message || "Không thể thay đổi thứ tự.", "error");
+    }
+}
+
+// SAVE FORM
+async function saveForm() {
+    const code = value("masterCode");
+    const name = value("masterName");
+    const statusSwitch = document.getElementById("masterStatusSwitch");
+    const active = statusSwitch ? statusSwitch.checked : (value("masterStatus") === "active");
+
+    const errorBox = document.getElementById("masterError");
+    if (errorBox) {
+        errorBox.textContent = "";
+        errorBox.style.display = "none";
+    }
+
+    if (!code || !name) {
+        if (errorBox) {
+            errorBox.textContent = "Mã danh mục và tên hiển thị là bắt buộc.";
+            errorBox.style.display = "flex";
+        }
+        return;
+    }
+
+    const editingId = value("editingMasterId");
+    const existing = editingId
+        ? values.find(item => Number(item.id) === Number(editingId))
+        : null;
 
     const body = {
         code,
         name,
-
-        active:
-            status ===
-            "active",
-
-        displayOrder:
-            existing
-            ?
-            Number(
-                existing.displayOrder
-            )
-            :
-            undefined
+        active,
+        displayOrder: existing ? Number(existing.displayOrder) : undefined
     };
 
-
     try {
-
         if (editingId) {
-
-            await api(
-                `/api/master-data/${encodeURIComponent(currentCategory)}/${editingId}`,
-                {
-                    method:
-                        "PUT",
-
-                    body:
-                        JSON.stringify(
-                            body
-                        )
-                }
-            );
-
+            await api(`/api/master-data/${encodeURIComponent(currentCategory)}/${editingId}`, {
+                method: "PUT",
+                body: JSON.stringify(body)
+            });
+            showToast(`Cập nhật thành công "${name}"!`, "success");
         } else {
-
-            await api(
-                `/api/master-data/${encodeURIComponent(currentCategory)}`,
-                {
-                    method:
-                        "POST",
-
-                    body:
-                        JSON.stringify(
-                            body
-                        )
-                }
-            );
+            await api(`/api/master-data/${encodeURIComponent(currentCategory)}`, {
+                method: "POST",
+                body: JSON.stringify(body)
+            });
+            showToast(`Thêm mới thành công "${name}"!`, "success");
         }
 
-
-        closeDrawer();
-
+        closeModal();
         await loadValues();
-
+        fetchAllCategoryCounts();
     } catch (error) {
-
-        console.error(
-            "Save master data error:",
-            error
-        );
-
+        console.error("Save master data error:", error);
         if (errorBox) {
-
-            errorBox.textContent =
-                error.message
-                ||
-                "Không thể lưu danh mục.";
+            errorBox.textContent = error.message || "Không thể lưu danh mục.";
+            errorBox.style.display = "flex";
         }
     }
 }
 
+// MODAL WINDOW MANAGEMENT
+function openModal(editingId = null) {
+    document.getElementById("masterForm")?.reset();
+    setValue("editingMasterId", "");
 
-async function moveItem(
-    id,
-    direction
-) {
-
-    const index =
-        values.findIndex(
-            item =>
-                Number(item.id)
-                ===
-                Number(id)
-        );
-
-
-    const targetIndex =
-        index + direction;
-
-
-    if (
-        index < 0
-        ||
-        targetIndex < 0
-        ||
-        targetIndex >=
-            values.length
-    ) {
-
-        return;
+    const errorBox = document.getElementById("masterError");
+    if (errorBox) {
+        errorBox.textContent = "";
+        errorBox.style.display = "none";
     }
 
+    const meta = categoryMeta[currentCategory] || { label: currentCategory };
+    const catSubtitle = document.getElementById("masterDrawerCategory");
+    if (catSubtitle) catSubtitle.textContent = `Phân loại: ${meta.label}`;
 
-    const current =
-        values[index];
+    const modalBadge = document.getElementById("modalCategoryBadge");
+    if (modalBadge) modalBadge.textContent = meta.label;
 
-    const target =
-        values[targetIndex];
-
-
-    const currentOrder =
-        Number(
-            current.displayOrder
-        );
-
-    const targetOrder =
-        Number(
-            target.displayOrder
-        );
-
-
-    try {
-
-        await api(
-            `/api/master-data/${encodeURIComponent(currentCategory)}/${current.id}`,
-            {
-                method:
-                    "PUT",
-
-                body:
-                    JSON.stringify({
-                        code:
-                            current.code,
-
-                        name:
-                            current.name,
-
-                        active:
-                            current.active,
-
-                        displayOrder:
-                            targetOrder
-                    })
-            }
-        );
-
-
-        await api(
-            `/api/master-data/${encodeURIComponent(currentCategory)}/${target.id}`,
-            {
-                method:
-                    "PUT",
-
-                body:
-                    JSON.stringify({
-                        code:
-                            target.code,
-
-                        name:
-                            target.name,
-
-                        active:
-                            target.active,
-
-                        displayOrder:
-                            currentOrder
-                    })
-            }
-        );
-
-
-        await loadValues();
-
-    } catch (error) {
-
-        console.error(
-            "Move master data error:",
-            error
-        );
-
-        alert(
-            error.message
-            ||
-            "Không thể thay đổi thứ tự."
-        );
-    }
-}
-
-
-function render() {
-
-    const list =
-        document.getElementById(
-            "masterList"
-        );
-
-    const empty =
-        document.getElementById(
-            "masterEmpty"
-        );
-
-
-    if (!list) {
-        return;
-    }
-
-
-    list.innerHTML = "";
-
-
-    if (empty) {
-
-        empty.style.display =
-            values.length
-            ?
-            "none"
-            :
-            "flex";
-    }
-
-
-    values.forEach(
-        (
-            item,
-            index
-        ) => {
-
-            const row =
-                document.createElement(
-                    "article"
-                );
-
-
-            const status =
-                item.active
-                ?
-                "active"
-                :
-                "inactive";
-
-
-            row.className =
-                "master-item";
-
-
-            row.innerHTML = `
-
-                <div class="master-order">
-
-                    <button
-                        type="button"
-                        data-master-up="${item.id}"
-                        ${index === 0 ? "disabled" : ""}
-                    >
-                        ↑
-                    </button>
-
-                    <button
-                        type="button"
-                        data-master-down="${item.id}"
-                        ${
-                            index ===
-                            values.length - 1
-                            ?
-                            "disabled"
-                            :
-                            ""
-                        }
-                    >
-                        ↓
-                    </button>
-
-                </div>
-
-                <div class="master-code">
-                    ${escapeHtml(item.code)}
-                </div>
-
-                <div class="master-name">
-                    ${escapeHtml(item.name)}
-                </div>
-
-                <span class="master-status ${status}">
-                    ${
-                        item.active
-                        ?
-                        "Đang dùng"
-                        :
-                        "Ngừng dùng"
-                    }
-                </span>
-
-                <div>
-                    <button
-                        type="button"
-                        data-edit-master="${item.id}"
-                    >
-                        Sửa
-                    </button>
-                </div>
-            `;
-
-
-            list.appendChild(
-                row
-            );
-        }
-    );
-}
-
-
-function openDrawer(
-    editingId = null
-) {
-
-    document
-        .getElementById(
-            "masterForm"
-        )
-        ?.reset();
-
-
-    setValue(
-        "editingMasterId",
-        ""
-    );
-
-
-    if (
-        document.getElementById(
-            "masterError"
-        )
-    ) {
-
-        document.getElementById(
-            "masterError"
-        ).textContent =
-            "";
-    }
-
-
-    document
-        .getElementById(
-            "masterDrawerCategory"
-        )
-        .textContent =
-            categoryLabels[
-                currentCategory
-            ]
-            ||
-            currentCategory;
-
+    const statusSwitch = document.getElementById("masterStatusSwitch");
 
     if (editingId !== null) {
-
-        const item =
-            values.find(
-                record =>
-                    Number(record.id)
-                    ===
-                    Number(editingId)
-            );
-
-
+        const item = values.find(record => Number(record.id) === Number(editingId));
         if (item) {
+            setValue("editingMasterId", item.id);
+            setValue("masterCode", item.code);
+            setValue("masterName", item.name);
+            setValue("masterStatus", item.active ? "active" : "inactive");
+            if (statusSwitch) statusSwitch.checked = Boolean(item.active);
 
-            setValue(
-                "editingMasterId",
-                item.id
-            );
-
-            setValue(
-                "masterCode",
-                item.code
-            );
-
-            setValue(
-                "masterName",
-                item.name
-            );
-
-            setValue(
-                "masterStatus",
-                item.active
-                ?
-                "active"
-                :
-                "inactive"
-            );
-
-
-            document
-                .getElementById(
-                    "masterDrawerTitle"
-                )
-                .textContent =
-                    "Sửa giá trị";
-
+            const title = document.getElementById("masterDrawerTitle");
+            if (title) title.textContent = "Chỉnh sửa giá trị";
         }
-
     } else {
+        setValue("masterStatus", "active");
+        if (statusSwitch) statusSwitch.checked = true;
 
-        setValue(
-            "masterStatus",
-            "active"
-        );
-
-
-        document
-            .getElementById(
-                "masterDrawerTitle"
-            )
-            .textContent =
-                "Thêm giá trị";
+        const title = document.getElementById("masterDrawerTitle");
+        if (title) title.textContent = "Thêm giá trị danh mục";
     }
 
-
-    drawer
-        ?.classList
-        .add(
-            "open"
-        );
-
-    overlay
-        ?.classList
-        .add(
-            "open"
-        );
+    modal?.classList.add("open");
+    overlay?.classList.add("open");
+    document.getElementById("masterCode")?.focus();
 }
 
-
-function closeDrawer() {
-
-    drawer
-        ?.classList
-        .remove(
-            "open"
-        );
-
-    overlay
-        ?.classList
-        .remove(
-            "open"
-        );
+function closeModal() {
+    modal?.classList.remove("open");
+    overlay?.classList.remove("open");
 }
 
+// FLOATING TOAST
+let toastTimer = null;
+function showToast(message, type = "success") {
+    const toast = document.getElementById("masterToast");
+    const msgEl = document.getElementById("toastMessage");
+    if (!toast || !msgEl) return;
 
+    msgEl.textContent = message;
+    const icon = toast.querySelector("i");
+    if (icon) {
+        if (type === "error") {
+            icon.className = "fa-solid fa-circle-exclamation";
+            icon.style.color = "#f87171";
+        } else if (type === "info") {
+            icon.className = "fa-solid fa-circle-info";
+            icon.style.color = "#38bdf8";
+        } else {
+            icon.className = "fa-solid fa-circle-check";
+            icon.style.color = "#34d399";
+        }
+    }
+
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3200);
+}
+
+// HELPERS
 function value(id) {
-
-    return document
-        .getElementById(id)
-        ?.value
-        ?.trim()
-        ??
-        "";
+    return document.getElementById(id)?.value?.trim() ?? "";
 }
 
-
-function setValue(
-    id,
-    newValue
-) {
-
-    const element =
-        document.getElementById(
-            id
-        );
-
+function setValue(id, newValue) {
+    const element = document.getElementById(id);
     if (element) {
-
-        element.value =
-            newValue ?? "";
+        element.value = newValue ?? "";
     }
 }
 
-
-function escapeHtml(value) {
-
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
-
-
-loadValues();

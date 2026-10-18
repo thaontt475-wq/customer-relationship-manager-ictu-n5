@@ -22,7 +22,8 @@ public class LeadDuplicateMergeService {
     private final ScopeResolver scopes;
 
     public LeadDuplicateMergeService() {
-        this(new LeadDuplicateMergeDAO(), (user, module, action) -> new DataScopeService().resolve(user, module, action));
+        this(new LeadDuplicateMergeDAO(),
+                (user, module, action) -> new DataScopeService().resolve(user, module, action));
     }
 
     public LeadDuplicateMergeService(LeadDuplicateMergeDAO dao, ScopeResolver scopes) {
@@ -35,7 +36,8 @@ public class LeadDuplicateMergeService {
         DataScopeContext customerScope = null;
         try {
             customerScope = scopes.resolve(userId, "customer", "read");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         List<LeadDuplicatePairDTO> duplicatePairs = new ArrayList<>();
 
@@ -69,7 +71,8 @@ public class LeadDuplicateMergeService {
         // Sort by confidence descending, then by detectedAt descending
         duplicatePairs.sort((p1, p2) -> {
             int cmp = Integer.compare(p2.getConfidence(), p1.getConfidence());
-            if (cmp != 0) return cmp;
+            if (cmp != 0)
+                return cmp;
             return p2.getDetectedAt().compareTo(p1.getDetectedAt());
         });
 
@@ -101,18 +104,21 @@ public class LeadDuplicateMergeService {
             throw new IllegalArgumentException("Họ và tên Lead chính không được để trống");
         }
         fullName = fullName.trim();
-        if (fullName.length() > 150) fullName = fullName.substring(0, 150);
+        if (fullName.length() > 150)
+            fullName = fullName.substring(0, 150);
 
         String email = (String) request.mergedData.get("email");
         if (email != null) {
             email = email.trim();
-            if (email.length() > 255) email = email.substring(0, 255);
+            if (email.length() > 255)
+                email = email.substring(0, 255);
         }
 
         String phone = (String) request.mergedData.get("phone");
         if (phone != null) {
             phone = phone.trim();
-            if (phone.length() > 50) phone = phone.substring(0, 50);
+            if (phone.length() > 50)
+                phone = phone.substring(0, 50);
         }
 
         if ((email == null || email.isBlank()) && (phone == null || phone.isBlank())) {
@@ -122,13 +128,15 @@ public class LeadDuplicateMergeService {
         String companyName = (String) request.mergedData.get("companyName");
         if (companyName != null) {
             companyName = companyName.trim();
-            if (companyName.length() > 255) companyName = companyName.substring(0, 255);
+            if (companyName.length() > 255)
+                companyName = companyName.substring(0, 255);
         }
 
         String title = (String) request.mergedData.get("title");
         if (title != null) {
             title = title.trim();
-            if (title.length() > 150) title = title.substring(0, 150);
+            if (title.length() > 150)
+                title = title.substring(0, 150);
         }
 
         DataScopeContext mergeScope = scopes.resolve(userId, "lead", "merge");
@@ -205,9 +213,10 @@ public class LeadDuplicateMergeService {
                 if (reqNotes != null && !reqNotes.isBlank()) {
                     finalNotes = reqNotes;
                 } else {
-                    finalNotes = "[Gốc]: " + (masterNotes != null ? masterNotes : "Không có")
-                            + "\n--- [Lịch sử gộp từ Lead #" + request.duplicateId + "]: "
-                            + (dupNotes != null ? dupNotes : "Không có");
+                    finalNotes = "📌 [Hồ sơ gốc - Lead #" + request.masterId + "]: "
+                            + (masterNotes != null && !masterNotes.isBlank() ? masterNotes : "Không có")
+                            + "\n\n🔄 [Lịch sử gộp từ Lead #" + request.duplicateId + "]: "
+                            + (dupNotes != null && !dupNotes.isBlank() ? dupNotes : "Không có");
                 }
                 if (finalNotes.length() > 2000) {
                     finalNotes = finalNotes.substring(0, 1996) + "...";
@@ -243,8 +252,7 @@ public class LeadDuplicateMergeService {
                         beforeDuplicate,
                         JsonUtil.getGson().toJson(afterMaster),
                         JsonUtil.getGson().toJson(request.mergedData),
-                        true
-                );
+                        true);
 
                 // 5. Audit log
                 dao.insertAuditLog(
@@ -255,8 +263,7 @@ public class LeadDuplicateMergeService {
                         "MERGE",
                         "Gộp Lead #" + request.duplicateId + " vào Master Lead #" + request.masterId,
                         beforeMaster,
-                        JsonUtil.getGson().toJson(afterMaster)
-                );
+                        JsonUtil.getGson().toJson(afterMaster));
 
                 c.commit();
 
@@ -322,8 +329,7 @@ public class LeadDuplicateMergeService {
                         "LINK_CUSTOMER",
                         "Liên kết Lead #" + request.leadId + " vào Khách hàng #" + request.customerId,
                         null,
-                        null
-                );
+                        null);
 
                 c.commit();
 

@@ -18,7 +18,7 @@ public class LeadDuplicateMergeDAO {
         String key = (table + "." + column).toLowerCase(Locale.ROOT);
         return columnCache.computeIfAbsent(key, k -> {
             try (Statement s = c.createStatement();
-                 ResultSet rs = s.executeQuery("SHOW COLUMNS FROM " + table)) {
+                    ResultSet rs = s.executeQuery("SHOW COLUMNS FROM " + table)) {
                 while (rs.next()) {
                     if (column.equalsIgnoreCase(rs.getString("Field"))) {
                         return true;
@@ -26,14 +26,16 @@ public class LeadDuplicateMergeDAO {
                 }
             } catch (Exception ignored) {
                 try (Statement s = c.createStatement();
-                     ResultSet rs = s.executeQuery("SELECT * FROM " + table + " WHERE 1=0")) {
+                        ResultSet rs = s.executeQuery("SELECT * FROM " + table + " WHERE 1=0")) {
                     ResultSetMetaData md = rs.getMetaData();
                     for (int i = 1; i <= md.getColumnCount(); i++) {
-                        if (column.equalsIgnoreCase(md.getColumnLabel(i)) || column.equalsIgnoreCase(md.getColumnName(i))) {
+                        if (column.equalsIgnoreCase(md.getColumnLabel(i))
+                                || column.equalsIgnoreCase(md.getColumnName(i))) {
                             return true;
                         }
                     }
-                } catch (Exception ignored2) {}
+                } catch (Exception ignored2) {
+                }
             }
             return false;
         });
@@ -43,7 +45,7 @@ public class LeadDuplicateMergeDAO {
         String key = table.toLowerCase(Locale.ROOT);
         return tableCache.computeIfAbsent(key, k -> {
             try (Statement s = c.createStatement();
-                 ResultSet rs = s.executeQuery("SELECT 1 FROM " + table + " WHERE 1=0")) {
+                    ResultSet rs = s.executeQuery("SELECT 1 FROM " + table + " WHERE 1=0")) {
                 return true;
             } catch (Exception ignored) {
                 return false;
@@ -51,7 +53,8 @@ public class LeadDuplicateMergeDAO {
         });
     }
 
-    public List<Map<String, Object>> findActiveLeads(Connection c, DataScopeContext scope, int limit) throws SQLException {
+    public List<Map<String, Object>> findActiveLeads(Connection c, DataScopeContext scope, int limit)
+            throws SQLException {
         boolean hasMergedInto = hasColumn(c, "leads", "merged_into_id");
         boolean hasTitle = hasColumn(c, "leads", "title");
         boolean hasCustomerId = hasColumn(c, "leads", "customer_id");
@@ -98,7 +101,8 @@ public class LeadDuplicateMergeDAO {
         return results;
     }
 
-    public List<Map<String, Object>> findActiveCustomers(Connection c, DataScopeContext customerScope, int limit) throws SQLException {
+    public List<Map<String, Object>> findActiveCustomers(Connection c, DataScopeContext customerScope, int limit)
+            throws SQLException {
         if (!hasTable(c, "customers")) {
             return Collections.emptyList();
         }
@@ -106,7 +110,8 @@ public class LeadDuplicateMergeDAO {
         boolean hasMergedInto = hasColumn(c, "customers", "merged_into_id");
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT c.id, c.name, c.email, c.phone, c.address, c.status, c.owner_user_id AS ownerUserId, c.created_at AS createdAt ");
+        sql.append(
+                "SELECT c.id, c.name, c.email, c.phone, c.address, c.status, c.owner_user_id AS ownerUserId, c.created_at AS createdAt ");
         sql.append("FROM customers c WHERE 1=1 ");
         if (hasIsDeleted) {
             sql.append("AND c.is_deleted = 0 ");
@@ -171,19 +176,22 @@ public class LeadDuplicateMergeDAO {
         try (PreparedStatement p = c.prepareStatement(sql.toString())) {
             p.setLong(1, leadId);
             try (ResultSet rs = p.executeQuery()) {
-                if (!rs.next()) return null;
+                if (!rs.next())
+                    return null;
                 return mapLeadRow(rs, hasTitle, hasMergedInto);
             }
         }
     }
 
     public Map<String, Object> findCustomerById(Connection c, long customerId) throws SQLException {
-        if (!hasTable(c, "customers")) return null;
+        if (!hasTable(c, "customers"))
+            return null;
         String sql = "SELECT * FROM customers WHERE id = ?";
         try (PreparedStatement p = c.prepareStatement(sql)) {
             p.setLong(1, customerId);
             try (ResultSet rs = p.executeQuery()) {
-                if (!rs.next()) return null;
+                if (!rs.next())
+                    return null;
                 Map<String, Object> map = new LinkedHashMap<>();
                 for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
                     map.put(rs.getMetaData().getColumnLabel(i), rs.getObject(i));
@@ -231,10 +239,12 @@ public class LeadDuplicateMergeDAO {
         return list;
     }
 
-    public void updateMasterLead(Connection c, long masterId, Map<String, Object> fields, long userId) throws SQLException {
+    public void updateMasterLead(Connection c, long masterId, Map<String, Object> fields, long userId)
+            throws SQLException {
         boolean hasTitle = hasColumn(c, "leads", "title");
 
-        StringBuilder sql = new StringBuilder("UPDATE leads SET full_name = ?, company_name = ?, email = ?, phone = ?, notes = ?");
+        StringBuilder sql = new StringBuilder(
+                "UPDATE leads SET full_name = ?, company_name = ?, email = ?, phone = ?, notes = ?");
         if (fields.containsKey("sourceId")) {
             sql.append(", source_id = ?");
         }
@@ -300,15 +310,15 @@ public class LeadDuplicateMergeDAO {
             String beforeDuplicate,
             String afterMaster,
             String overrides,
-            boolean retainHistory
-    ) throws SQLException {
-        if (!hasTable(c, "lead_merge_history")) return;
+            boolean retainHistory) throws SQLException {
+        if (!hasTable(c, "lead_merge_history"))
+            return;
 
         String sql = """
-            INSERT INTO lead_merge_history
-            (master_lead_id, duplicate_lead_id, performed_by, before_master, before_duplicate, after_master, field_overrides, retain_history)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+                INSERT INTO lead_merge_history
+                (master_lead_id, duplicate_lead_id, performed_by, before_master, before_duplicate, after_master, field_overrides, retain_history)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
         try (PreparedStatement p = c.prepareStatement(sql)) {
             p.setLong(1, masterId);
             p.setLong(2, duplicateId);
@@ -322,16 +332,19 @@ public class LeadDuplicateMergeDAO {
         }
     }
 
-    public void linkLeadToCustomer(Connection c, long leadId, long customerId, long userId, String notes) throws SQLException {
+    public void linkLeadToCustomer(Connection c, long leadId, long customerId, long userId, String notes)
+            throws SQLException {
         boolean hasCustomerId = hasColumn(c, "leads", "customer_id");
         if (hasCustomerId) {
-            try (PreparedStatement p = c.prepareStatement("UPDATE leads SET customer_id = ?, status = 'CONVERTED', updated_at = CURRENT_TIMESTAMP WHERE id = ?")) {
+            try (PreparedStatement p = c.prepareStatement(
+                    "UPDATE leads SET customer_id = ?, status = 'CONVERTED', updated_at = CURRENT_TIMESTAMP WHERE id = ?")) {
                 p.setLong(1, customerId);
                 p.setLong(2, leadId);
                 p.executeUpdate();
             }
         } else {
-            try (PreparedStatement p = c.prepareStatement("UPDATE leads SET status = 'CONVERTED', updated_at = CURRENT_TIMESTAMP WHERE id = ?")) {
+            try (PreparedStatement p = c.prepareStatement(
+                    "UPDATE leads SET status = 'CONVERTED', updated_at = CURRENT_TIMESTAMP WHERE id = ?")) {
                 p.setLong(1, leadId);
                 p.executeUpdate();
             }
@@ -350,18 +363,24 @@ public class LeadDuplicateMergeDAO {
     }
 
     public Long resolveSourceId(Connection c, Object sourceVal) throws SQLException {
-        if (sourceVal == null) return null;
-        if (sourceVal instanceof Number num) return num.longValue();
+        if (sourceVal == null)
+            return null;
+        if (sourceVal instanceof Number num)
+            return num.longValue();
         String str = sourceVal.toString().trim();
         if (str.matches("[1-9][0-9]*")) {
-            try { return Long.parseLong(str); } catch (Exception ignored) {}
+            try {
+                return Long.parseLong(str);
+            } catch (Exception ignored) {
+            }
         }
         String sql = "SELECT id FROM master_data WHERE type = 'lead-source' AND (code = ? OR name = ?) LIMIT 1";
         try (PreparedStatement p = c.prepareStatement(sql)) {
             p.setString(1, str);
             p.setString(2, str);
             try (ResultSet rs = p.executeQuery()) {
-                if (rs.next()) return rs.getLong(1);
+                if (rs.next())
+                    return rs.getLong(1);
             }
         }
         return null;
@@ -375,9 +394,9 @@ public class LeadDuplicateMergeDAO {
             String action,
             String description,
             String beforeVal,
-            String afterVal
-    ) throws SQLException {
-        if (!hasTable(c, "audit_logs")) return;
+            String afterVal) throws SQLException {
+        if (!hasTable(c, "audit_logs"))
+            return;
 
         String sql = "INSERT INTO audit_logs(user_id, entity_type, entity_id, action, description, before_value, after_value) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement p = c.prepareStatement(sql)) {
@@ -396,8 +415,10 @@ public class LeadDuplicateMergeDAO {
         for (String name : names) {
             try {
                 String val = rs.getString(name);
-                if (val != null) return val;
-            } catch (SQLException ignored) {}
+                if (val != null)
+                    return val;
+            } catch (SQLException ignored) {
+            }
         }
         return null;
     }
@@ -406,8 +427,10 @@ public class LeadDuplicateMergeDAO {
         for (String name : names) {
             try {
                 Object obj = rs.getObject(name);
-                if (obj instanceof Number n) return n.longValue();
-            } catch (SQLException ignored) {}
+                if (obj instanceof Number n)
+                    return n.longValue();
+            } catch (SQLException ignored) {
+            }
         }
         return null;
     }
@@ -416,8 +439,10 @@ public class LeadDuplicateMergeDAO {
         for (String name : names) {
             try {
                 Timestamp ts = rs.getTimestamp(name);
-                if (ts != null) return ts;
-            } catch (SQLException ignored) {}
+                if (ts != null)
+                    return ts;
+            } catch (SQLException ignored) {
+            }
         }
         return null;
     }

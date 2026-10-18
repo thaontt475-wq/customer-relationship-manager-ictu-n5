@@ -423,8 +423,8 @@ html[data-theme="dark"] .dup-actions .btn-attach-cust:hover {
 
 .merge-modal-box {
     width: 100%;
-    max-width: 1100px;
-    max-height: 90vh;
+    max-width: 1220px;
+    max-height: 92vh;
     background: var(--crm-surface);
     border: 1px solid var(--crm-border);
     border-radius: 14px;
@@ -598,7 +598,7 @@ html[data-theme="dark"] .dup-actions .btn-attach-cust:hover {
 .preview-summary-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 9px;
 }
 
 .preview-field-item {
@@ -611,11 +611,357 @@ html[data-theme="dark"] .dup-actions .btn-attach-cust:hover {
     font-weight: 700;
     color: var(--crm-muted);
     text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
 }
 
 .preview-field-item .val {
     font-weight: 700;
     color: var(--crm-primary);
+    word-break: break-word;
+}
+
+/* ===================================================================
+   ENHANCED HISTORY & MERGED NOTES TIMELINE
+   =================================================================== */
+
+/* Rich Notes Picker in Column A and Column B */
+.field-row-picker.rich-notes-picker {
+    padding: 10px 12px;
+    background: var(--crm-surface-soft);
+    border: 1px solid var(--crm-border);
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.field-row-picker.rich-notes-picker:hover {
+    border-color: var(--crm-primary);
+    background: rgba(37, 99, 235, 0.04);
+}
+
+.field-row-picker.rich-notes-picker.selected {
+    border-color: var(--crm-primary);
+    background: rgba(37, 99, 235, 0.09);
+    box-shadow: 0 0 0 1px var(--crm-primary);
+}
+
+.picker-check {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--crm-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.notes-display-box {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.note-comment-line {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--crm-text);
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    line-height: 1.45;
+}
+
+.note-comment-line i {
+    font-size: 12px;
+    color: var(--crm-primary);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.note-pills-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 3px;
+}
+
+.note-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+    border: 1px solid transparent;
+}
+
+.note-pill i {
+    font-size: 10px;
+}
+
+.note-pill.tag-blue {
+    background: rgba(37, 99, 235, 0.12);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.25);
+}
+
+.note-pill.tag-purple {
+    background: rgba(147, 51, 234, 0.12);
+    color: #a855f7;
+    border-color: rgba(168, 85, 247, 0.25);
+}
+
+.note-pill.tag-amber {
+    background: rgba(217, 119, 6, 0.14);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.25);
+}
+
+.note-pill.tag-emerald {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.note-pill.tag-slate {
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--crm-text-2);
+    border-color: var(--crm-border);
+}
+
+/* History Section in Preview Column */
+.history-section-item {
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--crm-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.history-section-label {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--crm-text-2);
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.history-mode-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 700;
+    background: rgba(22, 163, 74, 0.12);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+.history-mode-pill.single {
+    background: rgba(100, 116, 139, 0.12);
+    color: var(--crm-text-2);
+    border-color: var(--crm-border);
+}
+
+/* Vertical Merge Timeline Box */
+.merge-history-timeline-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    padding-left: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.merge-history-timeline-box::-webkit-scrollbar {
+    width: 4px;
+}
+.merge-history-timeline-box::-webkit-scrollbar-thumb {
+    background: var(--crm-border);
+    border-radius: 4px;
+}
+
+.merge-history-timeline-box::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 16px;
+    bottom: 20px;
+    width: 2px;
+    background: linear-gradient(180deg, #f59e0b 0%, #3b82f6 100%);
+    opacity: 0.5;
+}
+
+.timeline-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.timeline-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    flex-shrink: 0;
+    z-index: 2;
+    box-shadow: 0 0 0 2px var(--crm-surface);
+}
+
+.timeline-dot.master-dot {
+    background: #f59e0b;
+    color: #0f172a;
+}
+
+.timeline-dot.merged-dot {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.timeline-card {
+    flex: 1;
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-step.step-master .timeline-card {
+    border-left: 3px solid #f59e0b;
+}
+
+.timeline-step.step-merged .timeline-card {
+    border-left: 3px solid #3b82f6;
+}
+
+.timeline-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.timeline-card-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--crm-text);
+}
+
+.timeline-source-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.timeline-source-badge.src-master {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+}
+
+.timeline-source-badge.src-dup {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.timeline-connector-label {
+    margin-left: 32px;
+    margin-top: -6px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* History Text Preview Wrap */
+.history-text-preview-wrap {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.btn-toggle-plain-note {
+    background: var(--crm-surface);
+    border: 1px solid var(--crm-border);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--crm-text-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-toggle-plain-note:hover {
+    background: var(--crm-surface-soft);
+    color: var(--crm-primary);
+    border-color: var(--crm-primary);
+}
+
+.plain-note-collapse {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: fadeIn 0.15s ease;
+}
+
+.plain-note-textarea {
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    line-height: 1.45;
+    background: var(--crm-surface);
+    color: var(--crm-text);
+    border: 1px solid var(--crm-border);
+    border-radius: 6px;
+    padding: 7px 9px;
+    resize: vertical;
+    white-space: pre;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.plain-note-tip {
+    font-size: 10.5px;
+    color: var(--crm-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* HISTORY MERGE POLICY OPTION */
