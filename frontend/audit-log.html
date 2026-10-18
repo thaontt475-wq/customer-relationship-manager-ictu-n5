@@ -1,253 +1,353 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
+    <title>Nhật Ký Thay Đổi &amp; Giám Sát Dữ Liệu | Corporate CRM</title>
 
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>Audit Log</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Design System & Shell -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/audit-log.css?v=20261014_dark2">
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/pages/audit-log.css?v=20261018_v4">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
+        <div class="crm-brand">
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="crm-brand-name">Corporate CRM</span>
+        </div>
+        <nav id="desktopNavigation" class="crm-nav"></nav>
+    </aside>
 
-<aside class="crm-sidebar">
-
-    <div class="crm-brand">
-        <div class="crm-brand-mark">C</div>
-        <span class="crm-brand-name">Corporate CRM</span>
-    </div>
-
-    <nav class="crm-nav">
-
-        <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
-            <span class="crm-nav-label">Tổng quan</span>
-        </a>
-
-        <div class="crm-nav-section">
-            Quản trị
+    <!-- TOPBAR -->
+    <header class="crm-topbar">
+        <div class="crm-search">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--crm-muted); font-size:1rem; margin-right:8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
+            <kbd>Ctrl K</kbd>
         </div>
 
-        <a href="users.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-list-check"></i></span>
-            <span class="crm-nav-label">Audit Log</span>
-        </a>
+        <div class="crm-top-actions">
+            <button id="themeToggle" class="crm-shell-icon-button" type="button" title="Chuyển đổi giao diện" aria-label="Chuyển đổi giao diện">
+                <i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>
+            </button>
 
-    </nav>
+            <button id="notificationButton" class="crm-shell-icon-button" type="button" title="Thông báo" aria-label="Thông báo">
+                <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                <span class="crm-notification-dot" hidden></span>
+            </button>
 
-    
+            <div class="crm-user">
+                <button id="userButton" class="crm-user-button" type="button">
+                    <div class="crm-avatar" id="topAvatar">U</div>
+                    <div class="crm-user-copy">
+                        <span class="crm-user-name" id="shellUserName">Quản trị viên</span>
+                        <span class="crm-user-role" id="shellUserRole">Quản trị hệ thống</span>
+                    </div>
+                    <span><i class="fa-solid fa-angle-down"></i></span>
+                </button>
 
-</aside>
-
-
-<header class="crm-topbar">
-
-    <div class="crm-search">
-
-        <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="m20 20-4-4"/>
-        </svg>
-
-        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
-        <kbd>Ctrl K</kbd>
-
-    </div>
-
-</header>
-
-
-<main class="crm-main audit-page">
-
-    <section class="audit-head">
-
-        <p>
-            Quản trị / Audit Log
-        </p>
-
-        <h1>
-            Nhật ký thay đổi
-        </h1>
-
-        <span>
-            Theo dõi thay đổi trên dữ liệu nhạy cảm.
-        </span>
-
-    </section>
-
-
-    <section class="crm-card audit-filter">
-
-        <input
-            id="auditUser"
-            class="crm-input"
-            type="search"
-            placeholder="Người thực hiện"
-        >
-
-
-        <select
-            id="auditObject"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả loại đối tượng
-            </option>
-
-            <option>
-                Chiết khấu
-            </option>
-
-            <option>
-                Chỉ tiêu
-            </option>
-
-            <option>
-                Quyền sở hữu
-            </option>
-
-            <option>
-                Vai trò người dùng
-            </option>
-        </select>
-
-
-        <input
-            id="auditFrom"
-            class="crm-input"
-            type="date"
-        >
-
-
-        <input
-            id="auditTo"
-            class="crm-input"
-            type="date"
-        >
-
-
-        <button
-            id="clearAudit"
-            class="crm-btn crm-btn-secondary"
-            type="button"
-        >
-            Đặt lại
-        </button>
-
-    </section>
-
-
-    <section class="crm-card audit-table-card">
-
-        <div class="audit-table-scroll">
-
-            <table>
-
-                <thead>
-                <tr>
-                    <th>Thời điểm</th>
-                    <th>Người thực hiện</th>
-                    <th>Đối tượng</th>
-                    <th>Trường thay đổi</th>
-                    <th>Giá trị trước</th>
-                    <th>Giá trị sau</th>
-                </tr>
-                </thead>
-
-                <tbody id="auditBody"></tbody>
-
-            </table>
-
+                <div id="userDropdown" class="crm-user-dropdown">
+                    <a href="profile.html"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+                    <a href="change-password.html"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a>
+                    <button type="button" id="logoutButton"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                </div>
+            </div>
         </div>
+    </header>
 
+    <!-- MAIN CONTENT -->
+    <main class="crm-main audit-page">
 
-        <div
-            id="auditEmpty"
-            class="audit-empty"
-        >
-
+        <!-- 1. HEAD & ACTIONS -->
+        <section class="audit-head">
             <div>
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/></svg>
+                <p class="audit-kicker">
+                    <i class="fa-solid fa-gear"></i> Quản trị hệ thống &nbsp;/&nbsp; <i class="fa-solid fa-clipboard-list"></i> Giám sát dữ liệu
+                </p>
+                <h1>
+                    <i class="fa-solid fa-clock-rotate-left"></i> Nhật Ký Thay Đổi &amp; Giám Sát Hệ Thống
+                    <span class="audit-badge-live"><span class="audit-pulse-dot"></span> Giám sát Realtime</span>
+                </h1>
+                <p>
+                    Theo dõi toàn bộ lịch sử thao tác dữ liệu nhạy cảm, điều chỉnh quyền hạn RBAC, chuyển đổi Lead, điều chỉnh chiết khấu và sở hữu khách hàng.
+                </p>
             </div>
 
-            <strong>
-                Chưa có dữ liệu Audit
-            </strong>
+            <div class="audit-head-actions">
+                <button id="btnExportAudit" class="crm-btn crm-btn-secondary" type="button" title="Xuất toàn bộ nhật ký ra tệp CSV">
+                    <i class="fa-solid fa-file-excel" style="color:#10b981;"></i> Xuất báo cáo CSV
+                </button>
+                <button id="btnRefreshAudit" class="crm-btn crm-btn-secondary" type="button" title="Tải lại nhật ký mới nhất">
+                    <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                </button>
+            </div>
+        </section>
 
-            <span>
-                Log thật sẽ xuất hiện khi nối backend.
-            </span>
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="audit-kpi-grid">
+            <div class="audit-kpi-card">
+                <div class="audit-kpi-icon blue">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div class="audit-kpi-info">
+                    <h4 id="kpiTotalLogs">0</h4>
+                    <p>Tổng sự kiện ghi nhận</p>
+                </div>
+            </div>
 
+            <div class="audit-kpi-card">
+                <div class="audit-kpi-icon purple">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="audit-kpi-info">
+                    <h4 id="kpiRoleChanges">0</h4>
+                    <p>Thay đổi vai trò &amp; Quyền</p>
+                </div>
+            </div>
+
+            <div class="audit-kpi-card">
+                <div class="audit-kpi-icon amber">
+                    <i class="fa-solid fa-code-merge"></i>
+                </div>
+                <div class="audit-kpi-info">
+                    <h4 id="kpiLeadActions">0</h4>
+                    <p>Gộp &amp; Chuyển đổi Lead</p>
+                </div>
+            </div>
+
+            <div class="audit-kpi-card">
+                <div class="audit-kpi-icon green">
+                    <i class="fa-regular fa-clock"></i>
+                </div>
+                <div class="audit-kpi-info">
+                    <h4 id="kpiLastActivity">—</h4>
+                    <p>Hoạt động gần nhất</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SEARCH & FILTERS -->
+        <section class="crm-card audit-filter">
+            <div class="audit-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                    id="auditUser"
+                    type="search"
+                    placeholder="Tìm theo người thực hiện, nội dung, ID..."
+                >
+            </div>
+
+            <select id="auditObject">
+                <option value="">Tất cả loại đối tượng</option>
+                <option value="Vai trò người dùng">Vai trò người dùng</option>
+                <option value="Quyền sở hữu">Quyền sở hữu dữ liệu</option>
+                <option value="Lead & Dữ liệu">Lead &amp; Chuyển đổi</option>
+                <option value="Chiết khấu">Chiết khấu thương mại</option>
+                <option value="Chỉ tiêu">Chỉ tiêu doanh số (KPI)</option>
+            </select>
+
+            <input id="auditFrom" type="date" title="Từ ngày">
+            <input id="auditTo" type="date" title="Đến ngày">
+
+            <button id="clearAudit" class="crm-btn crm-btn-secondary" type="button">
+                <i class="fa-solid fa-rotate-left"></i> Đặt lại
+            </button>
+        </section>
+
+        <!-- 4. TABLE SECTION -->
+        <section class="crm-card audit-table-card">
+            <div class="audit-table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Thời điểm</th>
+                            <th>Người thực hiện</th>
+                            <th>Đối tượng</th>
+                            <th>Nội dung thay đổi</th>
+                            <th>Giá trị trước (Before)</th>
+                            <th>Giá trị sau (After)</th>
+                            <th style="text-align: right; padding-right: 24px;">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditBody"></tbody>
+                </table>
+            </div>
+
+            <div id="auditEmpty" class="audit-empty" style="display: none;">
+                <div>
+                    <i class="fa-solid fa-clipboard-question"></i>
+                </div>
+                <strong>Chưa có bản ghi nhật ký phù hợp</strong>
+                <span>Thử điều chỉnh lại bộ lọc thời gian hoặc từ khóa tìm kiếm.</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOBILE DRAWER & NAVIGATION -->
+    <header class="crm-mobile-header">
+        <button id="mobileMenuButton" class="crm-mobile-menu" type="button">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="crm-avatar">U</div>
+    </header>
+    <div id="drawerOverlay" class="crm-drawer-overlay"></div>
+    <aside id="mobileDrawer" class="crm-mobile-drawer">
+        <div class="crm-mobile-drawer-header">
+            <div class="crm-brand">
+                <div class="crm-brand-mark"><i class="fa-solid fa-building-columns"></i></div>
+                <span class="crm-brand-name">Corporate CRM</span>
+            </div>
+        </div>
+        <nav id="mobileNavigation" class="crm-nav"></nav>
+    </aside>
+
+    <!-- =========================================================
+         5. FLOATING CENTERED MODAL: CHI TIẾT NHẬT KÝ THAY ĐỔI
+    ========================================================= -->
+    <div id="auditModalOverlay" class="audit-modal-overlay"></div>
+
+    <div id="auditDetailModal" class="audit-modal" role="dialog" aria-modal="true" aria-labelledby="modalEventTitle">
+        <header class="audit-modal-header">
+            <div class="audit-modal-header-info">
+                <div id="modalHeaderBadge" class="audit-modal-badge">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <div class="audit-modal-header-topline">
+                        <span id="modalActionPill" class="audit-action-pill">UPDATE</span>
+                        <span id="modalLogIdBadge" class="audit-id-badge">ID: —</span>
+                    </div>
+                    <strong id="modalEventTitle">Chi tiết nhật ký thay đổi</strong>
+                    <p id="modalEventSubtitle">Thời điểm ghi nhận</p>
+                </div>
+            </div>
+
+            <button id="closeAuditDetailModal" class="audit-modal-close" type="button" aria-label="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </header>
+
+        <div class="audit-modal-body">
+            <!-- 1. Metadata Grid -->
+            <div class="audit-detail-info-grid">
+                <div class="audit-info-item">
+                    <span><i class="fa-solid fa-user-circle"></i> Người thực hiện</span>
+                    <strong id="modalActorName">—</strong>
+                </div>
+                <div class="audit-info-item">
+                    <span><i class="fa-solid fa-cubes"></i> Đối tượng tác động</span>
+                    <strong id="modalEntityType">—</strong>
+                </div>
+                <div class="audit-info-item">
+                    <span><i class="fa-solid fa-fingerprint"></i> Mã định danh thực thể</span>
+                    <strong id="modalEntityId">—</strong>
+                </div>
+                <div class="audit-info-item">
+                    <span><i class="fa-solid fa-server"></i> Nguồn ghi nhật ký</span>
+                    <strong id="modalSource">—</strong>
+                </div>
+            </div>
+
+            <!-- 2. EXECUTIVE BUSINESS SUMMARY (TÓM TẮT THAY ĐỔI NGHIỆP VỤ) -->
+            <div class="audit-change-summary-card">
+                <div class="audit-summary-header">
+                    <span class="audit-summary-icon">
+                        <i id="modalSummaryIcon" class="fa-solid fa-wand-magic-sparkles"></i>
+                    </span>
+                    <div>
+                        <h5 id="modalSummaryHeading">Phân tích chi tiết thay đổi</h5>
+                        <p id="modalSummaryDesc">Nội dung và các thực thể chịu tác động trong lần thay đổi này.</p>
+                    </div>
+                </div>
+                <div id="modalSummaryBadges" class="audit-summary-tags">
+                    <!-- Dynamic Badges -->
+                </div>
+            </div>
+
+            <!-- 3. DETAILED CHANGE BREAKDOWN (BẢNG CHI TIẾT NỘI DUNG ĐÃ THAY ĐỔI) -->
+            <div class="audit-breakdown-section">
+                <div class="audit-section-title">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>NỘI DUNG &amp; THỰC THỂ ĐÃ THAY ĐỔI CỤ THỂ</span>
+                </div>
+                <div id="modalChangeBreakdown" class="audit-breakdown-list">
+                    <!-- Dynamic change items inserted by JS -->
+                </div>
+            </div>
+
+            <!-- 4. SIDE-BY-SIDE VISUAL DIFF (SO SÁNH TRỰC QUAN TRƯỚC VÀ SAU) -->
+            <div class="audit-diff-section">
+                <div class="audit-section-title">
+                    <i class="fa-solid fa-code-compare"></i>
+                    <span>SO SÁNH ĐỐI CHIẾU TRƯỚC &amp; SAU (BEFORE vs AFTER)</span>
+                </div>
+
+                <div class="audit-diff-container">
+                    <div class="audit-diff-box before">
+                        <span class="audit-diff-box-title">
+                            <span><i class="fa-solid fa-circle-minus"></i> DỮ LIỆU BAN ĐẦU (BEFORE)</span>
+                            <span id="modalBeforeCountBadge" class="audit-diff-count-badge">Gốc</span>
+                        </span>
+                        <div id="modalBeforeContent" class="audit-diff-content">—</div>
+                    </div>
+
+                    <div class="audit-diff-arrow">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span class="audit-arrow-label">Áp dụng</span>
+                    </div>
+
+                    <div class="audit-diff-box after">
+                        <span class="audit-diff-box-title">
+                            <span><i class="fa-solid fa-circle-plus"></i> DỮ LIỆU CẬP NHẬT (AFTER)</span>
+                            <span id="modalAfterCountBadge" class="audit-diff-count-badge">Mới</span>
+                        </span>
+                        <div id="modalAfterContent" class="audit-diff-content">—</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-    </section>
+        <footer class="audit-modal-footer">
+            <button id="copyAuditJsonBtn" class="crm-btn-ghost" type="button" title="Sao chép toàn bộ thông tin log">
+                <i class="fa-regular fa-copy"></i> Sao chép Log
+            </button>
+            <button id="cancelAuditDetail" class="crm-btn crm-btn-secondary" type="button">
+                Đóng cửa sổ
+            </button>
+        </footer>
+    </div>
 
-</main>
-
-<header class="crm-mobile-header"></header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
-
-
-
-
-
-<script src="js/pages/audit-log.js"></script>
-
-<script src="js/page-transition.js"></script>
-
-
-
-
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261017_v6"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/pages/audit-log.js?v=20261018_v4"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
 </body>
 </html>

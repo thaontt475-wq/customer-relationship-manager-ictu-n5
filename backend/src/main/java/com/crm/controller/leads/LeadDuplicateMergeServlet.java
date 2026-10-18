@@ -26,7 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-@WebServlet({"/api/leads/duplicates", "/api/leads/merge", "/api/leads/attach-customer", "/api/leads/link-customer"})
+@WebServlet({ "/api/leads/duplicates", "/api/leads/merge", "/api/leads/attach-customer", "/api/leads/link-customer" })
 public class LeadDuplicateMergeServlet extends HttpServlet {
 
     private final LeadDuplicateMergeService service;
@@ -58,7 +58,8 @@ public class LeadDuplicateMergeServlet extends HttpServlet {
                 List<LeadDuplicatePairDTO> duplicates = service.getDuplicates(userId);
                 if ("envelope".equalsIgnoreCase(req.getParameter("format"))
                         || "true".equalsIgnoreCase(req.getParameter("envelope"))) {
-                    ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách lead trùng lặp thành công", duplicates));
+                    ResponseUtil.json(resp, 200,
+                            ApiResponse.success("Lấy danh sách lead trùng lặp thành công", duplicates));
                 } else {
                     ResponseUtil.rawJson(resp, 200, duplicates);
                 }
@@ -69,7 +70,8 @@ public class LeadDuplicateMergeServlet extends HttpServlet {
                     return;
                 }
                 JsonObject json = readJsonBody(req, resp);
-                if (json == null) return;
+                if (json == null)
+                    return;
 
                 LeadMergeRequest body = new LeadMergeRequest();
                 body.masterId = parseJsonId(json, "masterId");
@@ -79,8 +81,8 @@ public class LeadDuplicateMergeServlet extends HttpServlet {
                 if (json.has("mergedData") && json.get("mergedData").isJsonObject()) {
                     body.mergedData = JsonUtil.getGson().fromJson(
                             json.getAsJsonObject("mergedData"),
-                            new TypeToken<Map<String, Object>>() {}.getType()
-                    );
+                            new TypeToken<Map<String, Object>>() {
+                            }.getType());
                 } else {
                     throw new IllegalArgumentException("Thiếu dữ liệu mergedData");
                 }
@@ -94,12 +96,14 @@ public class LeadDuplicateMergeServlet extends HttpServlet {
                     return;
                 }
                 JsonObject json = readJsonBody(req, resp);
-                if (json == null) return;
+                if (json == null)
+                    return;
 
                 LeadAttachCustomerRequest body = new LeadAttachCustomerRequest();
                 body.leadId = parseJsonId(json, "leadId");
                 body.customerId = parseJsonId(json, "customerId");
-                body.notes = json.has("notes") && !json.get("notes").isJsonNull() ? json.get("notes").getAsString() : null;
+                body.notes = json.has("notes") && !json.get("notes").isJsonNull() ? json.get("notes").getAsString()
+                        : null;
 
                 Map<String, Object> result = service.attachToCustomer(userId, body);
                 ResponseUtil.json(resp, 200, ApiResponse.success("Liên kết Lead vào Khách hàng thành công", result));
@@ -118,10 +122,12 @@ public class LeadDuplicateMergeServlet extends HttpServlet {
             ResponseUtil.json(resp, 409, ApiResponse.error(e.getMessage(), null));
         } catch (SQLException e) {
             log("Lead merge database error", e);
-            boolean conflict = "23000".equals(e.getSQLState()) || "40001".equals(e.getSQLState()) || e.getErrorCode() == 1205;
+            boolean conflict = "23000".equals(e.getSQLState()) || "40001".equals(e.getSQLState())
+                    || e.getErrorCode() == 1205;
             ResponseUtil.json(resp, conflict ? 409 : 500, ApiResponse.error(
                     conflict ? "Dữ liệu xung đột đồng thời; giao tác merge đã tự động rollback"
-                            : "Lỗi cơ sở dữ liệu khi xử lý gộp lead", null));
+                            : "Lỗi cơ sở dữ liệu khi xử lý gộp lead",
+                    null));
         } catch (Exception e) {
             log("Lead duplicate merge error", e);
             ResponseUtil.json(resp, 500, ApiResponse.error("Lỗi máy chủ nội bộ: " + e.getMessage(), null));

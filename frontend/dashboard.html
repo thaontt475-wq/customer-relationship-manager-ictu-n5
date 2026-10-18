@@ -39,7 +39,7 @@
 
     <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
 
-    <link rel="stylesheet" href="css/pages/dashboard.css?v=20261017_apexcharts_v1">
+    <link rel="stylesheet" href="css/pages/dashboard.css?v=20261018_pro_v1">
 
 
 
@@ -485,149 +485,119 @@
 
 
             <!-- ACTIVITIES -->
-
-            <article class="crm-card dashboard-panel">
-
+            <article class="crm-card dashboard-panel dashboard-activity-panel">
                 <header class="panel-head">
-
                     <div>
-
-                        <h2>
-                            Hoạt động gần đây
-                        </h2>
-
-                        <p>
-                            Các tương tác mới nhất.
-                        </p>
-
+                        <div class="panel-title-row">
+                            <h2>Hoạt động gần đây</h2>
+                            <span class="panel-badge-pill" id="recentActivitiesCount">0 mới nhất</span>
+                        </div>
+                        <p>Nhật ký tương tác khách hàng & cơ hội bán hàng</p>
                     </div>
-
-
                     <a href="activities.html" class="panel-link">
-                        Xem tất cả →
+                        Xem tất cả <i class="fa-solid fa-arrow-right"></i>
                     </a>
-
                 </header>
-
 
                 <div id="recentActivities" class="recent-activities"></div>
 
-
-                <div id="recentActivitiesEmpty" class="dashboard-empty small">
-                    Chưa có hoạt động.
+                <div id="recentActivitiesEmpty" class="dashboard-empty-state">
+                    <div class="empty-state-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <h4>Chưa có hoạt động mới</h4>
+                    <p>Các cuộc gọi, email, cuộc họp và ghi chú tương tác gần nhất sẽ hiển thị tại đây.</p>
+                    <a href="activities.html" class="crm-btn crm-btn-secondary crm-btn-sm"><i class="fa-solid fa-plus"></i> Tạo hoạt động</a>
                 </div>
-
             </article>
 
-
             <!-- TODO -->
-
-            <article class="crm-card dashboard-panel">
-
+            <article class="crm-card dashboard-panel dashboard-tasks-panel">
                 <header class="panel-head">
-
                     <div>
-
-                        <h2>
-                            Công việc cần chú ý
-                        </h2>
-
-                        <p>
-                            Task chưa hoàn thành.
-                        </p>
-
+                        <div class="panel-title-row">
+                            <h2>Công việc cần chú ý</h2>
+                            <span class="panel-badge-pill warning" id="dashboardTasksCount">0 đang mở</span>
+                        </div>
+                        <p>Nhiệm vụ ưu tiên & công việc sắp hoặc quá hạn</p>
                     </div>
-
-
                     <a href="tasks.html" class="panel-link">
-                        Xem công việc →
+                        Xem công việc <i class="fa-solid fa-arrow-right"></i>
                     </a>
-
                 </header>
-
 
                 <div id="dashboardTasks" class="dashboard-tasks"></div>
 
-
-                <div id="dashboardTasksEmpty" class="dashboard-empty small">
-                    Không có công việc đang mở.
+                <div id="dashboardTasksEmpty" class="dashboard-empty-state">
+                    <div class="empty-state-icon success-glow"><i class="fa-solid fa-circle-check"></i></div>
+                    <h4>Không có việc tồn đọng</h4>
+                    <p>Tất cả nhiệm vụ đã được xử lý hoặc hoàn thành đúng hạn.</p>
+                    <a href="tasks.html" class="crm-btn crm-btn-secondary crm-btn-sm"><i class="fa-solid fa-plus"></i> Tạo công việc mới</a>
                 </div>
-
             </article>
-
 
         </section>
 
-
         <!-- SYSTEM SUMMARY -->
+        <section class="dashboard-system-grid" aria-label="Chỉ số hệ thống">
 
-        <section class="dashboard-system-grid">
-
-
-            <a href="customers.html" class="crm-card system-tile">
-
-                <span>
-                    Khách hàng
-                </span>
-
-                <strong id="systemCustomers">
-                    —
-                </strong>
-
+            <a href="customers.html" class="crm-card system-tile tile-customers" title="Xem danh sách khách hàng">
+                <div class="system-tile-top">
+                    <div class="system-tile-icon"><i class="fa-solid fa-building-user"></i></div>
+                    <span class="system-tile-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </div>
+                <div class="system-tile-body">
+                    <strong class="system-tile-value" id="systemCustomers">0</strong>
+                    <span class="system-tile-label">Khách hàng</span>
+                    <span class="system-tile-desc">Doanh nghiệp & cá nhân</span>
+                </div>
             </a>
 
-
-            <a href="users.html" class="crm-card system-tile">
-
-                <span>
-                    Người dùng
-                </span>
-
-                <strong id="systemUsers">
-                    0
-                </strong>
-
+            <a href="users.html" class="crm-card system-tile tile-users" title="Quản lý tài khoản người dùng">
+                <div class="system-tile-top">
+                    <div class="system-tile-icon"><i class="fa-solid fa-user-shield"></i></div>
+                    <span class="system-tile-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </div>
+                <div class="system-tile-body">
+                    <strong class="system-tile-value" id="systemUsers">0</strong>
+                    <span class="system-tile-label">Người dùng</span>
+                    <span class="system-tile-desc">Tài khoản & phân quyền</span>
+                </div>
             </a>
 
-
-            <a href="products.html" class="crm-card system-tile">
-
-                <span>
-                    Sản phẩm
-                </span>
-
-                <strong id="systemProducts">
-                    0
-                </strong>
-
+            <a href="products.html" class="crm-card system-tile tile-products" title="Danh mục sản phẩm & dịch vụ">
+                <div class="system-tile-top">
+                    <div class="system-tile-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <span class="system-tile-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </div>
+                <div class="system-tile-body">
+                    <strong class="system-tile-value" id="systemProducts">0</strong>
+                    <span class="system-tile-label">Sản phẩm</span>
+                    <span class="system-tile-desc">Danh mục & bảng giá</span>
+                </div>
             </a>
 
-
-            <a href="quotations.html" class="crm-card system-tile">
-
-                <span>
-                    Báo giá
-                </span>
-
-                <strong id="systemQuotes">
-                    0
-                </strong>
-
+            <a href="quotations.html" class="crm-card system-tile tile-quotes" title="Theo dõi báo giá bán hàng">
+                <div class="system-tile-top">
+                    <div class="system-tile-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <span class="system-tile-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </div>
+                <div class="system-tile-body">
+                    <strong class="system-tile-value" id="systemQuotes">0</strong>
+                    <span class="system-tile-label">Báo giá</span>
+                    <span class="system-tile-desc">Đang đàm phán & duyệt</span>
+                </div>
             </a>
 
-
-            <a href="calendar.html" class="crm-card system-tile">
-
-                <span>
-                    Hoạt động có lịch
-                </span>
-
-                <strong id="systemScheduled">
-                    0
-                </strong>
-
+            <a href="calendar.html" class="crm-card system-tile tile-scheduled" title="Xem lịch hẹn & hoạt động">
+                <div class="system-tile-top">
+                    <div class="system-tile-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <span class="system-tile-arrow"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </div>
+                <div class="system-tile-body">
+                    <strong class="system-tile-value" id="systemScheduled">0</strong>
+                    <span class="system-tile-label">Lịch hẹn & Sự kiện</span>
+                    <span class="system-tile-desc">Lịch tương tác sắp tới</span>
+                </div>
             </a>
-
 
         </section>
 
@@ -764,7 +734,7 @@
 
 
     <script src="js/apexcharts.min.js"></script>
-    <script src="js/pages/dashboard.js?v=20261017_apexcharts_v2"></script>
+    <script src="js/pages/dashboard.js?v=20261018_pro_v1"></script>
     <script src="js/page-transition.js"></script>
 
 

@@ -517,6 +517,39 @@ function filteredUsers() {
 }
 
 
+const AVATAR_GRADIENTS = [
+    "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+    "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+    "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+    "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
+    "linear-gradient(135deg, #06b6d4 0%, #0e7490 100%)",
+    "linear-gradient(135deg, #6366f1 0%, #4338ca 100%)"
+];
+
+function getRoleBadgeClass(roleName) {
+    const lower = (roleName || "").toLowerCase();
+    if (lower.includes("quản trị") || lower.includes("admin")) return "role-admin";
+    if (lower.includes("giám đốc") || lower.includes("trưởng nhóm") || lower.includes("lead")) return "role-leader";
+    if (lower.includes("kinh doanh") || lower.includes("sale")) return "role-sales";
+    if (lower.includes("marketing")) return "role-mkt";
+    if (lower.includes("kế toán")) return "role-acc";
+    if (lower.includes("chăm sóc") || lower.includes("cskh")) return "role-cskh";
+    return "role-default";
+}
+
+function updateKpiCards() {
+    const kpiTotal = document.getElementById("kpiTotalUsers");
+    const kpiActive = document.getElementById("kpiActiveUsers");
+    const kpiLocked = document.getElementById("kpiLockedUsers");
+    const kpiTeams = document.getElementById("kpiTeamsCount");
+
+    if (kpiTotal) kpiTotal.textContent = totalItems || users.length || 0;
+    if (kpiActive) kpiActive.textContent = users.filter(u => String(u.status || "").toUpperCase() === "ACTIVE").length || 0;
+    if (kpiLocked) kpiLocked.textContent = users.filter(u => String(u.status || "").toUpperCase() === "LOCKED").length || 0;
+    if (kpiTeams) kpiTeams.textContent = teams.length || 0;
+}
+
 function render() {
 
     const filtered =
@@ -550,21 +583,19 @@ function render() {
             Number(sessionUser?.id) ===
             Number(user.id);
 
+        const grad = AVATAR_GRADIENTS[(Number(user.id) || 0) % AVATAR_GRADIENTS.length];
+
         tr.innerHTML = `
 
             <td>
-
                 <div class="user-cell">
-
-                    <span class="user-avatar">
+                    <span class="user-avatar" style="background:${grad};">
                         ${initials(user.fullName)}
                     </span>
-
                     <div>
                         <strong>
                             ${escapeHtml(user.fullName)}
                         </strong>
-
                         ${
                             current
                             ?
@@ -573,75 +604,65 @@ function render() {
                             ""
                         }
                     </div>
-
                 </div>
-
             </td>
 
-
             <td>
-                ${escapeHtml(user.email)}
+                <div class="user-email-cell">
+                    <i class="fa-regular fa-envelope"></i>
+                    <span>${escapeHtml(user.email)}</span>
+                </div>
             </td>
 
-
             <td>
-
                 <div class="role-list">
-
                     ${
                         roleNames.length
                         ?
                         roleNames
                             .map(
                                 role =>
-                                `<span class="role-pill">
+                                `<span class="role-pill ${getRoleBadgeClass(role)}">
                                     ${escapeHtml(role)}
                                 </span>`
                             )
                             .join("")
                         :
-                        "—"
+                        `<span style="color:#64748b;">—</span>`
                     }
-
                 </div>
-
             </td>
 
-
             <td>
-                ${escapeHtml(normalizeTeamName(user.teamName) || "—")}
+                <div class="team-cell">
+                    <i class="fa-solid fa-users-rectangle"></i>
+                    <span>${escapeHtml(normalizeTeamName(user.teamName) || "—")}</span>
+                </div>
             </td>
 
-
             <td>
-
                 <span class="user-status ${status.toLowerCase()}">
-
                     ${
                         status === "ACTIVE"
-                        ? "Đang hoạt động"
+                        ? '<span class="status-pulse-dot"></span> Đang hoạt động'
                         :
                         status === "LOCKED"
-                        ? "Đã khóa"
+                        ? '<i class="fa-solid fa-lock" style="font-size:0.75rem;"></i> Đã khóa'
                         :
                         status
                     }
-
                 </span>
-
             </td>
 
-
             <td>
-
                 <div class="user-actions">
-
                     <button
-                        class="user-action"
+                        class="user-action edit"
                         data-edit-user="${user.id}"
                         type="button"
+                        title="Chỉnh sửa thông tin và vai trò"
                     >
-                        Sửa
+                        <i class="fa-solid fa-pen-to-square"></i> Sửa
                     </button>
 
                     ${
@@ -653,8 +674,9 @@ function render() {
                             class="user-action lock"
                             data-lock-user="${user.id}"
                             type="button"
+                            title="Khóa tài khoản và bàn giao dữ liệu"
                         >
-                            Khóa
+                            <i class="fa-solid fa-lock"></i> Khóa
                         </button>
                         `
                         :
@@ -670,8 +692,9 @@ function render() {
                             class="user-action unlock"
                             data-unlock-user="${user.id}"
                             type="button"
+                            title="Mở khóa tài khoản"
                         >
-                            Mở khóa
+                            <i class="fa-solid fa-lock-open"></i> Mở khóa
                         </button>
                         `
                         :
@@ -683,19 +706,18 @@ function render() {
                         ?
                         `
                         <button
-                            class="user-action"
+                            class="user-action delete"
                             data-delete-user="${user.id}"
                             type="button"
+                            title="Xóa vĩnh viễn tài khoản"
                         >
-                            Xóa
+                            <i class="fa-solid fa-trash-can"></i> Xóa
                         </button>
                         `
                         :
                         ""
                     }
-
                 </div>
-
             </td>
         `;
 
@@ -703,6 +725,8 @@ function render() {
             tr
         );
     });
+
+    updateKpiCards();
 
 
     const paginationInfo =
@@ -929,6 +953,13 @@ function bindEvents() {
         "click",
         handleActionClick
     );
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeUserDrawer();
+            closeLockModal();
+        }
+    });
 }
 
 
