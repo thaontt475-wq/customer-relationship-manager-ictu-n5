@@ -1,407 +1,326 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+    </script>
 
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
+    <title>Cấu hình Pipeline &amp; Giai đoạn | Corporate CRM</title>
 
-<meta charset="UTF-8">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-<meta
-    name="viewport"
-    content="width=device-width,initial-scale=1.0"
->
-
-<title>Cấu hình Pipeline</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Design System & Shell -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/pipeline-settings.css?v=20261014_dark2">
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/pages/pipeline-settings.css?v=20261018_v4">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
-
-<aside class="crm-sidebar">
-
-    <div class="crm-brand">
-        <div class="crm-brand-mark">C</div>
-        <span class="crm-brand-name">Corporate CRM</span>
-    </div>
-
-    <nav class="crm-nav">
-
-        <div class="crm-nav-section">
-            Không gian làm việc
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
+        <div class="crm-brand">
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="crm-brand-name">Corporate CRM</span>
         </div>
 
-        <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
-            <span class="crm-nav-label">Tổng quan</span>
-        </a>
+        <nav id="desktopNavigation" class="crm-nav">
+            <!-- Sidebar populated by shared-shell.js -->
+        </nav>
+    </aside>
 
-        <a href="pipeline.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Người dùng</span>
-        </a>
+    <!-- TOPBAR -->
+    <header class="crm-topbar">
+        <div class="crm-search">
+            <i class="fa-solid fa-magnifying-glass" style="color: #64748b; margin-right: 8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
+            <kbd>Ctrl K</kbd>
+        </div>
 
-        <a
-            href="pipeline-settings.html"
-            class="crm-nav-item active"
-        >
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Cấu hình Pipeline</span>
-        </a>
-
-    </nav>
-
-    
-
-</aside>
-
-
-<header class="crm-topbar">
-
-    <div class="crm-search">
-
-        <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="m20 20-4-4"/>
-        </svg>
-
-        <input
-            id="globalSearch"
-            type="search"
-            placeholder="Tìm kiếm..."
-        >
-
-        <kbd>Ctrl K</kbd>
-
-    </div>
-
-
-    <div class="crm-top-actions">
-
-        <div class="crm-user">
-
-            <button
-                id="userButton"
-                class="crm-user-button"
-                type="button"
-            >
-
-                <div class="crm-avatar">
-                    A
-                </div>
-
-                <div class="crm-user-copy">
-                    <span class="crm-user-name">Administrator</span>
-                    <span class="crm-user-role">Quản trị</span>
-                </div>
-
-                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
-
+        <div class="crm-topbar-actions">
+            <button class="crm-icon-btn" type="button" title="Cài đặt">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button class="crm-icon-btn" type="button" title="Thông báo">
+                <i class="fa-solid fa-bell"></i>
             </button>
 
-            <div
-                id="userDropdown"
-                class="crm-user-dropdown"
-            >
-                <a href="#">Hồ sơ cá nhân</a>
-                <button type="button">Đăng xuất</button>
-            </div>
-
-        </div>
-
-    </div>
-
-</header>
-
-
-<main class="crm-main pipeline-settings-page">
-
-    <section class="settings-head">
-
-        <div>
-
-            <p class="settings-kicker">
-                Cấu hình / Pipeline
-            </p>
-
-            <h1>
-                Giai đoạn & Xác suất
-            </h1>
-
-            <p>
-                Cấu hình trình tự các giai đoạn của cơ hội bán hàng.
-            </p>
-
-        </div>
-
-        <button
-            id="addStageButton"
-            class="crm-btn crm-btn-primary"
-            type="button"
-        >
-            + Thêm giai đoạn
-        </button>
-
-    </section>
-
-
-    <div class="settings-layout">
-
-        <aside class="crm-card settings-nav">
-
-            <a class="active" href="#">
-                Pipeline & Giai đoạn
-            </a>
-
-            <a href="#">
-                Lý do Thắng / Thua
-            </a>
-
-            <a href="#">
-                Đối thủ cạnh tranh
-            </a>
-
-            <a href="#">
-                Danh mục dùng chung
-            </a>
-
-            <a href="#">
-                Trường tùy chỉnh
-            </a>
-
-        </aside>
-
-
-        <section class="crm-card stages-panel">
-
-            <header class="stages-header">
-
-                <div>
-
-                    <h2>
-                        Chuỗi giai đoạn
-                    </h2>
-
-                    <p>
-                        Dùng nút ↑ ↓ để thay đổi thứ tự hiển thị.
-                    </p>
-
+            <div class="crm-profile-pill">
+                <span class="crm-avatar" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">NT</span>
+                <div class="crm-profile-text">
+                    <strong>Nông Quang Tiệp</strong>
+                    <small>Quản trị viên, Quản lý, Bán hàng</small>
                 </div>
-
-            </header>
-
-
-            <div
-                id="stageList"
-                class="stage-list"
-            ></div>
-
-
-            <div
-                id="stageEmpty"
-                class="stage-empty"
-            >
-                Chưa có giai đoạn Pipeline.
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: #64748b;"></i>
             </div>
-
-        </section>
-
-    </div>
-
-</main>
-
-<header class="crm-mobile-header"></header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
-
-
-<!-- =========================================================
-     STAGE DRAWER
-========================================================= -->
-
-<div
-    id="stageOverlay"
-    class="stage-overlay"
-></div>
-
-
-<aside
-    id="stageDrawer"
-    class="stage-drawer"
->
-
-    <header>
-
-        <div>
-
-            <strong id="stageDrawerTitle">
-                Thêm giai đoạn
-            </strong>
-
-            <span>
-                Cấu hình xác suất và điều kiện rời giai đoạn
-            </span>
-
         </div>
-
-        <button
-            id="closeStageDrawer"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
-        </button>
-
     </header>
 
+    <!-- MAIN CONTENT -->
+    <main class="crm-main pipeline-settings-page">
 
-    <form id="stageForm">
-
-        <input
-            id="editingStageIndex"
-            type="hidden"
-        >
-
-
-        <label>
-            Tên giai đoạn
-            <em>*</em>
-
-            <input
-                id="stageName"
-                class="crm-input"
-                type="text"
-                placeholder="VD: Tiếp cận"
-            >
-        </label>
-
-
-        <label>
-            Xác suất thắng mặc định
-            <em>*</em>
-
-            <div class="probability-field">
-
-                <input
-                    id="stageProbability"
-                    class="crm-input"
-                    type="number"
-                    min="0"
-                    max="100"
-                >
-
-                <span>%</span>
-
+        <!-- 1. HEAD & ACTIONS -->
+        <section class="settings-head">
+            <div>
+                <p class="settings-kicker">
+                    <i class="fa-solid fa-gear"></i> Quản trị hệ thống &nbsp;/&nbsp; <i class="fa-solid fa-diagram-project"></i> Quy trình bán hàng
+                </p>
+                <h1>
+                    <i class="fa-solid fa-filter-circle-dollar"></i> Chuỗi Giai Đoạn &amp; Xác Suất Pipeline
+                    <span class="pipeline-badge-live"><span class="pipeline-pulse-dot"></span> Pipeline 1.0</span>
+                </h1>
+                <p class="settings-head-desc">
+                    Cấu hình và chuẩn hóa trình tự phễu bán hàng, tỷ lệ chuyển đổi xác suất qua từng giai đoạn và điều kiện tiên quyết khi dịch chuyển deal.
+                </p>
             </div>
-        </label>
 
+            <div class="settings-head-actions">
+                <button id="btnRefreshStages" class="crm-btn crm-btn-secondary" type="button" title="Tải lại chuỗi giai đoạn">
+                    <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                </button>
+                <button id="btnResetDefaultStages" class="crm-btn crm-btn-secondary" type="button" title="Khôi phục 6 giai đoạn bán hàng chuẩn B2B">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color:#f59e0b;"></i> Đặt lại chuẩn B2B
+                </button>
+                <button id="addStageButton" class="crm-btn crm-btn-primary" type="button">
+                    <i class="fa-solid fa-plus"></i> Thêm giai đoạn mới
+                </button>
+            </div>
+        </section>
 
-        <label>
-            Điều kiện bắt buộc để rời giai đoạn
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="pipeline-kpi-grid">
+            <div class="pipeline-kpi-card">
+                <div class="pipeline-kpi-icon blue">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="pipeline-kpi-info">
+                    <h4 id="kpiStageCount">6</h4>
+                    <p>Số giai đoạn hoạt động</p>
+                </div>
+            </div>
 
-            <textarea
-                id="stageCondition"
-                rows="4"
-                placeholder="VD: Phải có ít nhất một cuộc gặp..."
-            ></textarea>
-        </label>
+            <div class="pipeline-kpi-card">
+                <div class="pipeline-kpi-icon green">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div class="pipeline-kpi-info">
+                    <h4 id="kpiWonProb">100%</h4>
+                    <p>Chốt thành công (Won)</p>
+                </div>
+            </div>
 
+            <div class="pipeline-kpi-card">
+                <div class="pipeline-kpi-icon rose">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <div class="pipeline-kpi-info">
+                    <h4 id="kpiLostProb">0%</h4>
+                    <p>Đóng thất bại (Lost)</p>
+                </div>
+            </div>
 
-        <label class="condition-toggle">
+            <div class="pipeline-kpi-card">
+                <div class="pipeline-kpi-icon amber">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="pipeline-kpi-info">
+                    <h4 id="kpiFunnelFlow">10% ➔ 100%</h4>
+                    <p>Biên độ phễu chuyển đổi</p>
+                </div>
+            </div>
+        </section>
 
-            <input
-                id="stageConditionRequired"
-                type="checkbox"
-            >
+        <!-- 3. MAIN WORKSPACE LAYOUT -->
+        <div class="settings-layout">
 
-            Bắt buộc thỏa điều kiện trước khi chuyển giai đoạn
-        </label>
+            <!-- SIDE NAVIGATION MENU -->
+            <aside class="crm-card settings-nav">
+                <a class="active" href="pipeline-settings.html">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>Pipeline &amp; Giai đoạn</span>
+                </a>
+                <a href="win-loss-settings.html">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span>Lý do Thắng / Thua</span>
+                </a>
+                <a href="win-loss-settings.html">
+                    <i class="fa-solid fa-chess-knight"></i>
+                    <span>Đối thủ cạnh tranh</span>
+                </a>
+                <a href="master-data.html">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Danh mục dùng chung</span>
+                </a>
+            </aside>
 
+            <!-- MAIN STAGES PANEL -->
+            <section class="crm-card stages-panel">
 
-        <div
-            id="stageFormError"
-            class="stage-form-error"
-        ></div>
+                <header class="stages-header">
+                    <div>
+                        <h2>
+                            <i class="fa-solid fa-list-ol" style="color: #38bdf8;"></i>
+                            Trình Tự Chuỗi Giai Đoạn Bán Hàng
+                        </h2>
+                        <p>
+                            Sử dụng các nút mũi tên để thay đổi thứ tự giai đoạn hiển thị trên Pipeline Kanban.
+                        </p>
+                    </div>
 
+                    <span style="font-size: 0.8rem; color: #64748b; font-weight: 500;">
+                        Kéo thả &amp; sắp xếp linh hoạt
+                    </span>
+                </header>
 
-        <footer>
+                <!-- VISUAL PIPELINE FUNNEL STRIP -->
+                <div class="funnel-visualizer-section">
+                    <div class="funnel-visualizer-title">
+                        <i class="fa-solid fa-eye"></i> Dòng chảy phễu bán hàng đồ họa (Funnel Flow)
+                    </div>
+                    <div id="funnelStepsStrip" class="funnel-steps-strip">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
 
-            <button
-                id="cancelStage"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Hủy
+                <!-- STAGE LIST HEADER -->
+                <div class="stage-list-header-wrap">
+                    <div class="stage-list-header">
+                        <span>Thứ tự</span>
+                        <span>Bước</span>
+                        <span>Tên giai đoạn</span>
+                        <span class="header-center">Xác suất % thắng</span>
+                        <span>Điều kiện chuyển tiếp</span>
+                        <span class="header-right">Thao tác</span>
+                    </div>
+                </div>
+
+                <!-- STAGE LIST -->
+                <div id="stageList" class="stage-list">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- EMPTY STATE -->
+                <div id="stageEmpty" class="stage-empty" style="display: none;">
+                    <div class="stage-empty-icon">
+                        <i class="fa-solid fa-diagram-project"></i>
+                    </div>
+                    <h5 style="color: #f1f5f9; margin: 0;">Chưa có giai đoạn Pipeline nào</h5>
+                    <p style="color: #94a3b8; font-size: 0.86rem; margin: 0;">Hãy nạp bộ 6 giai đoạn bán hàng chuẩn B2B để khởi động quy trình quản lý cơ hội kinh doanh.</p>
+                    <button class="crm-btn crm-btn-primary" type="button" onclick="resetDefaultStages()" style="margin-top: 8px;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Nạp bộ giai đoạn chuẩn B2B
+                    </button>
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- MOBILE DRAWERS -->
+    <header class="crm-mobile-header"></header>
+    <div id="drawerOverlay" class="crm-drawer-overlay"></div>
+    <aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+    <!-- =========================================================
+         4. FLOATING CENTERED MODAL: THÊM & SỬA GIAI ĐOẠN
+    ========================================================= -->
+    <div id="stageOverlay" class="stage-overlay"></div>
+
+    <section id="stageModal" class="stage-modal" role="dialog" aria-modal="true" aria-labelledby="stageModalTitle">
+        <header>
+            <div class="stage-modal-header-info">
+                <span id="stageModalBadge" class="stage-modal-badge">
+                    <i class="fa-solid fa-layer-group"></i>
+                </span>
+                <div>
+                    <strong id="stageModalTitle">Thêm giai đoạn mới</strong>
+                    <span id="stageModalSubtitle">Cấu hình xác suất và điều kiện chuyển tiếp giai đoạn</span>
+                </div>
+            </div>
+
+            <button id="closeStageModal" class="stage-modal-close" type="button" aria-label="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </header>
 
-            <button
-                class="crm-btn crm-btn-primary"
-                type="submit"
-            >
-                Lưu giai đoạn
-            </button>
+        <form id="stageForm">
+            <input id="editingStageIndex" type="hidden">
 
-        </footer>
+            <div class="stage-form-group">
+                <label for="stageName">
+                    Tên giai đoạn <em>*</em>
+                </label>
+                <div class="stage-input-wrap">
+                    <i class="fa-solid fa-tag"></i>
+                    <input id="stageName" class="crm-input" type="text" placeholder="Ví dụ: Khảo sát nhu cầu, Báo giá, Đàm phán..." required autofocus>
+                </div>
+            </div>
 
-    </form>
+            <div class="stage-form-group">
+                <label for="stageProbability">
+                    Xác suất thắng mặc định (Win Probability %) <em>*</em>
+                </label>
+                <div class="probability-slider-wrap">
+                    <div class="stage-input-wrap" style="width: 100px;">
+                        <i class="fa-solid fa-percent"></i>
+                        <input id="stageProbability" class="crm-input" type="number" min="0" max="100" value="10" required>
+                    </div>
+                    <input id="stageProbSlider" type="range" min="0" max="100" value="10">
+                </div>
+            </div>
 
-</aside>
+            <div class="stage-form-group">
+                <label for="stageCondition">
+                    Điều kiện bắt buộc để rời giai đoạn
+                </label>
+                <div class="stage-input-wrap">
+                    <i class="fa-solid fa-list-check" style="top: 20px;"></i>
+                    <textarea id="stageCondition" class="crm-input" rows="3" placeholder="Ví dụ: Bắt buộc đã gửi báo giá chính thức, có biên bản làm việc..."></textarea>
+                </div>
+            </div>
 
+            <label class="condition-toggle-wrap">
+                <input id="stageConditionRequired" type="checkbox">
+                <span>Bắt buộc thỏa điều kiện trước khi cho phép dịch chuyển cơ hội</span>
+            </label>
 
+            <div id="stageFormError" class="stage-form-error"></div>
 
+            <footer>
+                <button id="cancelStage" class="crm-btn crm-btn-secondary" type="button">
+                    Hủy bỏ
+                </button>
+                <button id="submitStageBtn" class="crm-btn crm-btn-primary" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu giai đoạn
+                </button>
+            </footer>
+        </form>
+    </section>
 
-
-<script src="js/pages/pipeline-settings.js"></script>
-
-<script src="js/page-transition.js"></script>
-
-
-
-
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261017_v6"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/pages/pipeline-settings.js?v=20261018_v3"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
 </body>
 </html>

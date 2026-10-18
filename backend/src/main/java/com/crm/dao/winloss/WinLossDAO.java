@@ -90,8 +90,15 @@ public class WinLossDAO {
                 new ArrayList<>();
 
         if (type != null) {
-            sql.append(" AND type = ?");
-            params.add(type);
+            String t = type.trim().toUpperCase();
+            if ("WON".equals(t) || "WIN".equals(t)) {
+                sql.append(" AND type IN ('WON', 'WIN')");
+            } else if ("LOST".equals(t) || "LOSS".equals(t)) {
+                sql.append(" AND type IN ('LOST', 'LOSS')");
+            } else {
+                sql.append(" AND type = ?");
+                params.add(type);
+            }
         }
 
         if (active != null) {

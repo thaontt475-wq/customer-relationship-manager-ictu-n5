@@ -611,16 +611,124 @@
         }
     }
 
+    function sanitizeLeadText(text) {
+        if (!text || typeof text !== "string") return text || "";
+        return text.replace(/Kh\?\?ch\s*h\?\?ng\s*ti\?\?\?m\s*n\?\?ng/gi, "Khách hàng tiềm năng")
+                   .replace(/ti\?\?\?m\s*n\?\?ng/gi, "tiềm năng")
+                   .replace(/Kh\?\?ch\s*h\?\?ng/gi, "Khách hàng");
+    }
+
+    function parseNotes(rawNotes) {
+        if (!rawNotes || typeof rawNotes !== "string") {
+            return { general: "", attributes: [] };
+        }
+        const clean = sanitizeLeadText(rawNotes);
+        const lines = clean.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const attributes = [];
+        const generalLines = [];
+
+        lines.forEach(line => {
+            const kvMatch = line.match(/^(\[)?([^:\]]{2,30}):\s*(.+?)(\])?$/);
+            if (kvMatch) {
+                const key = kvMatch[2].trim();
+                const val = kvMatch[3].trim();
+                attributes.push({ key, val });
+            } else {
+                generalLines.push(line);
+            }
+        });
+
+        return {
+            general: generalLines.join(" • "),
+            attributes: attributes
+        };
+    }
+
+    function renderNotesContentHtml(parsed, rawNotes) {
+        if (!rawNotes || !rawNotes.trim()) {
+            return `<div class="field-value-empty"><i class="fa-regular fa-folder-open"></i> Không có ghi chú</div>`;
+        }
+
+        let html = "";
+        if (parsed.general) {
+            html += `
+                <div class="note-comment-line">
+                    <i class="fa-solid fa-comment-dots text-primary"></i>
+                    <span>${escapeHtml(parsed.general)}</span>
+                </div>
+            `;
+        }
+
+        if (parsed.attributes && parsed.attributes.length > 0) {
+            html += `<div class="note-pills-wrap">`;
+            parsed.attributes.forEach(attr => {
+                let tagClass = "tag-slate";
+                let icon = "fa-circle-dot";
+                const kLower = attr.key.toLowerCase();
+
+                if (kLower.includes("chức danh") || kLower.includes("vị trí")) {
+                    tagClass = "tag-blue";
+                    icon = "fa-id-badge";
+                } else if (kLower.includes("quy mô") || kLower.includes("nhân sự")) {
+                    tagClass = "tag-purple";
+                    icon = "fa-users";
+                } else if (kLower.includes("ngân sách") || kLower.includes("chi phí")) {
+                    tagClass = "tag-amber";
+                    icon = "fa-sack-dollar";
+                } else if (kLower.includes("chiến dịch") || kLower.includes("nguồn") || kLower.includes("utm")) {
+                    tagClass = "tag-emerald";
+                    icon = "fa-bullhorn";
+                }
+
+                html += `
+                    <span class="note-pill ${tagClass}" title="${escapeHtml(attr.key)}: ${escapeHtml(attr.val)}">
+                        <i class="fa-solid ${icon}"></i>
+                        <b>${escapeHtml(attr.key)}:</b> ${escapeHtml(attr.val)}
+                    </span>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        return html || `<div class="note-comment-line"><span>${escapeHtml(rawNotes)}</span></div>`;
+    }
+
+    function generateStructuredMergedNotes(A, B, retainHistory, notesSelection) {
+        if (!retainHistory) {
+            return notesSelection === "B" ? (B.notes || "") : (A.notes || "");
+        }
+        const nowStr = new Date().toLocaleString("vi-VN");
+        const lines = [];
+        lines.push(`📌 [HỒ SƠ GỐC - MASTER LEAD #${A.id} | Nguồn: ${A.source || "Master"}]`);
+        if (A.notes && A.notes.trim()) {
+            lines.push(A.notes.trim());
+        } else {
+            lines.push("(Không có ghi chú ban đầu)");
+        }
+        lines.push("");
+        lines.push(`🔄 [LỊCH SỬ HỢP NHẤT TỪ LEAD #${B.id} | Nguồn: ${B.source || "Bản trùng"} | Gộp lúc: ${nowStr}]`);
+        if (B.notes && B.notes.trim()) {
+            lines.push(B.notes.trim());
+        } else {
+            lines.push("(Không có ghi chú bổ sung)");
+        }
+        return lines.join("\n");
+    }
+
     function openMergeModal(pair) {
+        if (!pair || !pair.recordA || !pair.recordB) return;
         currentPair = pair;
         
+        pair.recordA.title = sanitizeLeadText(pair.recordA.title);
+        pair.recordB.title = sanitizeLeadText(pair.recordB.title);
+
         // Default selected field values initialize to Master Record (A)
         selectedFieldValues = {
-            fullName: pair.recordA.fullName,
+            fullName: sanitizeLeadText(pair.recordA.fullName),
             phone: pair.recordA.phone,
             email: pair.recordA.email,
-            companyName: pair.recordA.companyName,
-            title: pair.recordA.title || pair.recordB.title || "",
+            companyName: sanitizeLeadText(pair.recordA.companyName),
+            title: sanitizeLeadText(pair.recordA.title || pair.recordB.title || ""),
             source: pair.recordA.source,
             notesSelection: "COMBINED" // COMBINED, A, B
         };
@@ -669,11 +777,11 @@
         const B = currentPair.recordB;
 
         const fieldsToCompare = [
-            { key: "fullName", label: "Họ và tên", valA: A.fullName, valB: B.fullName },
+            { key: "fullName", label: "Họ và tên", valA: sanitizeLeadText(A.fullName), valB: sanitizeLeadText(B.fullName) },
             { key: "phone", label: "Số điện thoại", valA: A.phone, valB: B.phone },
             { key: "email", label: "Địa chỉ Email", valA: A.email, valB: B.email },
-            { key: "companyName", label: "Tên Doanh nghiệp", valA: A.companyName, valB: B.companyName },
-            { key: "title", label: "Chức vụ / Vị trí", valA: A.title, valB: B.title },
+            { key: "companyName", label: "Tên Doanh nghiệp", valA: sanitizeLeadText(A.companyName), valB: sanitizeLeadText(B.companyName) },
+            { key: "title", label: "Chức vụ / Vị trí", valA: sanitizeLeadText(A.title), valB: sanitizeLeadText(B.title) },
             { key: "source", label: "Nguồn tiếp nhận", valA: A.source, valB: B.source }
         ];
 
@@ -699,18 +807,31 @@
             `;
         });
 
-        // Add Notes Picker Row
+        // Add Rich Notes Picker Rows with tag parsing
+        const parsedA = parseNotes(A.notes);
+        const parsedB = parseNotes(B.notes);
+
         htmlA += `
-            <div class="field-row-picker ${selectedFieldValues.notesSelection === "A" ? "selected" : ""}" data-notes-choice="A">
-                <div class="field-label-small">Ghi chú & Nhu cầu (Bản A)</div>
-                <div class="field-value-text" style="font-size:12px;">${escapeHtml(A.notes || "Không có")}</div>
+            <div class="field-row-picker rich-notes-picker ${selectedFieldValues.notesSelection === "A" ? "selected" : ""}" data-notes-choice="A">
+                <div class="field-label-small" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="fa-solid fa-note-sticky text-amber"></i> Ghi chú & Nhu cầu (Bản A)</span>
+                    ${selectedFieldValues.notesSelection === "A" ? '<span class="picker-check"><i class="fa-solid fa-circle-check"></i> Chọn riêng A</span>' : ''}
+                </div>
+                <div class="notes-display-box">
+                    ${renderNotesContentHtml(parsedA, A.notes)}
+                </div>
             </div>
         `;
 
         htmlB += `
-            <div class="field-row-picker ${selectedFieldValues.notesSelection === "B" ? "selected" : ""}" data-notes-choice="B">
-                <div class="field-label-small">Ghi chú & Nhu cầu (Bản B)</div>
-                <div class="field-value-text" style="font-size:12px;">${escapeHtml(B.notes || "Không có")}</div>
+            <div class="field-row-picker rich-notes-picker ${selectedFieldValues.notesSelection === "B" ? "selected" : ""}" data-notes-choice="B">
+                <div class="field-label-small" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="fa-solid fa-note-sticky text-primary"></i> Ghi chú & Nhu cầu (Bản B)</span>
+                    ${selectedFieldValues.notesSelection === "B" ? '<span class="picker-check"><i class="fa-solid fa-circle-check"></i> Chọn riêng B</span>' : ''}
+                </div>
+                <div class="notes-display-box">
+                    ${renderNotesContentHtml(parsedB, B.notes)}
+                </div>
             </div>
         `;
 
@@ -739,7 +860,7 @@
     }
 
     /**
-     * Cập nhật bản xem trước kết quả sau khi gộp (Merged Preview)
+     * Cập nhật bản xem trước kết quả sau khi gộp (Merged Preview) với dòng thời gian lịch sử trực quan
      */
     function updateMergedPreview() {
         if (!currentPair || !dom.previewSummaryList) return;
@@ -747,11 +868,112 @@
         const B = currentPair.recordB;
         const retainHistory = dom.chkRetainHistory ? dom.chkRetainHistory.checked : true;
 
-        let finalNotes = "";
+        const parsedA = parseNotes(A.notes);
+        const parsedB = parseNotes(B.notes);
+        const structuredText = generateStructuredMergedNotes(A, B, retainHistory, selectedFieldValues.notesSelection);
+
+        let historySectionHtml = "";
+
         if (retainHistory) {
-            finalNotes = `[Gốc - ${A.source || "Master"}]: ${A.notes || "Không có"}\n--- Lịch sử bổ sung từ ${B.source || "Bản B"} (${B.id}): ${B.notes || "Không có"}`;
+            historySectionHtml = `
+                <div class="preview-field-item history-section-item">
+                    <div class="history-section-header">
+                        <span class="history-section-label">
+                            <i class="fa-solid fa-clock-rotate-left text-success"></i> NỘI DUNG LỊCH SỬ & GHI CHÚ BẢO TOÀN
+                        </span>
+                        <span class="history-mode-pill">
+                            <i class="fa-solid fa-shield-halved"></i> Đã gộp 2 mốc
+                        </span>
+                    </div>
+
+                    <div class="merge-history-timeline-box">
+                        <!-- Milestone 1: Master A -->
+                        <div class="timeline-step step-master">
+                            <div class="timeline-dot master-dot" title="Bản ghi chính Master">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div class="timeline-card">
+                                <div class="timeline-card-head">
+                                    <div class="timeline-card-title">
+                                        <strong>Hồ sơ gốc (Master #${escapeHtml(A.id)})</strong>
+                                    </div>
+                                    <span class="timeline-source-badge src-master">
+                                        <i class="fa-solid fa-tag"></i> ${escapeHtml(A.source || "Gốc")}
+                                    </span>
+                                </div>
+                                <div class="timeline-card-content">
+                                    ${renderNotesContentHtml(parsedA, A.notes)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connector indicator -->
+                        <div class="timeline-connector-label">
+                            <i class="fa-solid fa-arrow-down-short-wide"></i> Kế thừa & hợp nhất toàn vẹn lịch sử
+                        </div>
+
+                        <!-- Milestone 2: Duplicate B -->
+                        <div class="timeline-step step-merged">
+                            <div class="timeline-dot merged-dot" title="Bản ghi phụ gộp vào">
+                                <i class="fa-solid fa-code-merge"></i>
+                            </div>
+                            <div class="timeline-card">
+                                <div class="timeline-card-head">
+                                    <div class="timeline-card-title">
+                                        <strong>Lịch sử bổ sung từ Lead #${escapeHtml(B.id)}</strong>
+                                    </div>
+                                    <span class="timeline-source-badge src-dup">
+                                        <i class="fa-solid fa-share-nodes"></i> ${escapeHtml(B.source || "Bản trùng")}
+                                    </span>
+                                </div>
+                                <div class="timeline-card-content">
+                                    ${renderNotesContentHtml(parsedB, B.notes)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Toggle & Custom Text Preview -->
+                    <div class="history-text-preview-wrap">
+                        <button type="button" class="btn-toggle-plain-note" id="btnTogglePlainNote">
+                            <span><i class="fa-solid fa-file-lines text-primary"></i> <span id="lblTogglePlainNote">Xem văn bản tổng hợp ghi vào DB</span></span>
+                            <i class="fa-solid fa-chevron-down" id="iconTogglePlainNote"></i>
+                        </button>
+                        <div class="plain-note-collapse" id="plainNoteCollapse" style="display: none;">
+                            <textarea id="txtMergedNotesCustom" class="crm-input plain-note-textarea" rows="5">${escapeHtml(structuredText)}</textarea>
+                            <div class="plain-note-tip">
+                                <i class="fa-solid fa-circle-info text-primary"></i> Bạn có thể sửa trực tiếp nội dung trên nếu muốn hiệu đính trước khi xác nhận gộp.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         } else {
-            finalNotes = selectedFieldValues.notesSelection === "B" ? (B.notes || "") : (A.notes || "");
+            const chosenLabel = selectedFieldValues.notesSelection === "B" ? `Chỉ giữ ghi chú Bản B (#${B.id})` : `Chỉ giữ ghi chú Bản A (#${A.id})`;
+            const chosenParsed = selectedFieldValues.notesSelection === "B" ? parsedB : parsedA;
+            const chosenRaw = selectedFieldValues.notesSelection === "B" ? B.notes : A.notes;
+
+            historySectionHtml = `
+                <div class="preview-field-item history-section-item">
+                    <div class="history-section-header">
+                        <span class="history-section-label">
+                            <i class="fa-solid fa-note-sticky text-amber"></i> NỘI DUNG GHI CHÚ ĐƯỢC CHỌN
+                        </span>
+                        <span class="history-mode-pill single">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Không gộp lịch sử
+                        </span>
+                    </div>
+
+                    <div class="timeline-card" style="border-left: 3px solid var(--crm-primary); margin-top: 4px;">
+                        <div class="timeline-card-head">
+                            <span class="timeline-card-title">${chosenLabel}</span>
+                        </div>
+                        <div class="timeline-card-content" style="margin-top: 6px;">
+                            ${renderNotesContentHtml(chosenParsed, chosenRaw)}
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         dom.previewSummaryList.innerHTML = `
@@ -776,16 +998,29 @@
                 <div class="val">${escapeHtml(selectedFieldValues.companyName || "Chưa cung cấp")}</div>
             </div>
             <div class="preview-field-item">
+                <div class="lbl">Chức vụ / Vị trí</div>
+                <div class="val">${escapeHtml(selectedFieldValues.title || "—")}</div>
+            </div>
+            <div class="preview-field-item">
                 <div class="lbl">Nguồn ghi nhận</div>
                 <div class="val">${escapeHtml(selectedFieldValues.source || A.source)}</div>
             </div>
-            <div class="preview-field-item">
-                <div class="lbl">Nội dung Ghi chú & Lịch sử</div>
-                <div style="font-size: 11.5px; color: var(--crm-text-2); white-space: pre-wrap; margin-top: 4px; max-height: 120px; overflow-y: auto; background: var(--crm-surface); padding: 8px; border-radius: 6px; border: 1px solid var(--crm-border);">
-                    ${escapeHtml(finalNotes)}
-                </div>
-            </div>
+            ${historySectionHtml}
         `;
+
+        // Wire toggle button
+        const btnToggle = dom.previewSummaryList.querySelector("#btnTogglePlainNote");
+        const collapseWrap = dom.previewSummaryList.querySelector("#plainNoteCollapse");
+        const iconToggle = dom.previewSummaryList.querySelector("#iconTogglePlainNote");
+        if (btnToggle && collapseWrap) {
+            btnToggle.addEventListener("click", () => {
+                const isHidden = collapseWrap.style.display === "none";
+                collapseWrap.style.display = isHidden ? "flex" : "none";
+                if (iconToggle) {
+                    iconToggle.className = isHidden ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down";
+                }
+            });
+        }
     }
 
     /**
@@ -801,9 +1036,10 @@
         const B = currentPair.recordB;
         const retainHistory = dom.chkRetainHistory ? dom.chkRetainHistory.checked : true;
 
-        const mergedNotes = retainHistory 
-            ? `[Gốc - ${A.source || "Bản A"}]: ${A.notes || "Không có"}\n--- Lịch sử bổ sung từ ${B.source || "Bản B"} (${B.id}): ${B.notes || "Không có"}`
-            : (selectedFieldValues.notesSelection === "B" ? B.notes : A.notes);
+        const customTextarea = document.getElementById("txtMergedNotesCustom");
+        const mergedNotes = customTextarea && customTextarea.value.trim()
+            ? customTextarea.value.trim()
+            : generateStructuredMergedNotes(A, B, retainHistory, selectedFieldValues.notesSelection);
 
         const mergedPayload = {
             masterId: A.id,

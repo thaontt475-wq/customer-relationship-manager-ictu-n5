@@ -213,17 +213,35 @@
         try {
             if (window.CrmApi) {
                 const data = await window.LeadSlaService.getMyAssignedLeads();
-                if (data && Array.isArray(data)) {
+                if (data && Array.isArray(data) && data.length > 0) {
                     myAssignedLeads = data;
+                } else {
+                    const raw = localStorage.getItem(STORAGE_KEY_ASSIGNED_LEADS);
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            myAssignedLeads = (parsed && parsed.length > 0) ? parsed : [...DEFAULT_ASSIGNED_LEADS];
+                        } catch (_) {
+                            myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                        }
+                    } else {
+                        myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                    }
+                    saveLeads();
                 }
             } else {
                 const raw = localStorage.getItem(STORAGE_KEY_ASSIGNED_LEADS);
                 if (raw) {
-                    myAssignedLeads = JSON.parse(raw);
+                    try {
+                        const parsed = JSON.parse(raw);
+                        myAssignedLeads = (parsed && parsed.length > 0) ? parsed : [...DEFAULT_ASSIGNED_LEADS];
+                    } catch (_) {
+                        myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                    }
                 } else {
                     myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
-                    saveLeads();
                 }
+                saveLeads();
             }
         } catch (_) {
             myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
@@ -246,7 +264,7 @@
             try {
                 if (window.CrmApi) {
                     const data = await window.CrmApi.request("/api/leads/my-assigned");
-                    if (data && Array.isArray(data)) {
+                    if (data && Array.isArray(data) && data.length > 0) {
                         myAssignedLeads = data;
                         saveLeads();
                         return data;
@@ -890,6 +908,11 @@
         if (dom.btnRefreshLeads) {
             dom.btnRefreshLeads.addEventListener("click", async () => {
                 await loadData();
+                if (!myAssignedLeads || myAssignedLeads.length === 0) {
+                    myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                    saveLeads();
+                    updateKpis();
+                }
                 renderPendingTable();
                 renderContactingTable();
                 renderRejectedTable();

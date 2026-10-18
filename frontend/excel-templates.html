@@ -1,460 +1,553 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="vi">
 <head>
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trung Tâm Tệp Mẫu Excel Chuẩn Doanh Nghiệp | Corporate CRM</title>
+    <title>Mẫu Excel &amp; Báo Cáo Doanh Nghiệp | Corporate CRM</title>
+
     <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    
-    <!-- CSS Shell & Design System -->
+
+    <!-- Design System & Shell -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
     <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
-
-    <style>
-        .tmpl-hero {
-            background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.8) 100%);
-            border: 1px solid var(--crm-border);
-            border-radius: var(--crm-radius-lg, 16px);
-            padding: 32px 36px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-        }
-        .tmpl-hero-info h1 {
-            margin: 0 0 8px;
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: var(--crm-text);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .tmpl-hero-info p {
-            margin: 0;
-            color: var(--crm-muted);
-            font-size: 0.95rem;
-            max-width: 680px;
-            line-height: 1.6;
-        }
-        .tmpl-section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 36px 0 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--crm-text);
-        }
-        .tmpl-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-            gap: 22px;
-            margin-bottom: 24px;
-        }
-        .tmpl-card {
-            background: var(--crm-surface);
-            border: 1px solid var(--crm-border);
-            border-radius: 14px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        .tmpl-card:hover {
-            transform: translateY(-4px);
-            border-color: #3b82f6;
-            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
-        }
-        .tmpl-card-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            margin-bottom: 14px;
-        }
-        .tmpl-icon-box {
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-        .tmpl-icon-import { background: rgba(37, 99, 235, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .tmpl-icon-export { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .tmpl-card-title {
-            margin: 0 0 4px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--crm-text);
-        }
-        .tmpl-card-desc {
-            margin: 0;
-            font-size: 0.85rem;
-            color: var(--crm-muted);
-            line-height: 1.5;
-        }
-        .tmpl-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin: 16px 0;
-        }
-        .tmpl-pill {
-            background: var(--crm-surface-hover, rgba(255, 255, 255, 0.05));
-            border: 1px solid var(--crm-border);
-            border-radius: 6px;
-            padding: 3px 8px;
-            font-size: 0.76rem;
-            font-family: monospace;
-            color: var(--crm-text);
-        }
-        .tmpl-card-footer {
-            border-top: 1px solid var(--crm-border);
-            padding-top: 16px;
-            margin-top: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .tmpl-format-tag {
-            font-size: 0.78rem;
-            color: #10b981;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .tmpl-download-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.86rem;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .tmpl-btn-import {
-            background: #2563eb;
-            color: white;
-            border: none;
-        }
-        .tmpl-btn-import:hover {
-            background: #1d4ed8;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-        }
-        .tmpl-btn-export {
-            background: #059669;
-            color: white;
-            border: none;
-        }
-        .tmpl-btn-export:hover {
-            background: #047857;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
-        }
-    </style>
+    <link rel="stylesheet" href="css/pages/excel-templates.css?v=20261018_v1">
+    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
-<body class="crm-body">
 
-<div class="crm-shell">
-    <!-- ASIDE SIDEBAR -->
-    <aside class="crm-sidebar" id="sidebar">
+<body class="crm-private">
+
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
         <div class="crm-brand">
-            <div class="crm-brand-mark">C</div>
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
             <span class="crm-brand-name">Corporate CRM</span>
         </div>
-        <nav class="crm-nav">
-            <div class="crm-nav-section">Không gian làm việc</div>
-            <a href="dashboard.html" class="crm-nav-item"><span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span><span class="crm-nav-label">Tổng quan</span></a>
-            <a href="customers.html" class="crm-nav-item"><span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span><span class="crm-nav-label">Khách hàng</span></a>
-            <a href="contacts.html" class="crm-nav-item"><span class="crm-nav-icon"><i class="fa-solid fa-address-book"></i></span><span class="crm-nav-label">Người liên hệ</span></a>
-            <a href="quotations.html" class="crm-nav-item"><span class="crm-nav-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span><span class="crm-nav-label">Báo giá</span></a>
-            <a href="contracts.html" class="crm-nav-item"><span class="crm-nav-icon"><i class="fa-solid fa-file-signature"></i></span><span class="crm-nav-label">Hợp đồng</span></a>
-            <a href="excel-templates.html" class="crm-nav-item active"><span class="crm-nav-icon"><i class="fa-solid fa-file-excel" style="color:#10b981;"></i></span><span class="crm-nav-label">Mẫu Excel Chuẩn</span></a>
-        </nav>
+        <nav id="desktopNavigation" class="crm-nav"></nav>
     </aside>
 
     <!-- TOPBAR -->
     <header class="crm-topbar">
         <div class="crm-search">
-            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-            <input id="globalSearch" type="search" placeholder="Tìm kiếm mẫu Excel, báo cáo...">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--crm-muted); font-size:1rem; margin-right:8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
             <kbd>Ctrl K</kbd>
         </div>
+
         <div class="crm-top-actions">
-            <button id="themeToggle" class="crm-icon-btn crm-shell-icon-button" type="button" aria-label="Đổi giao diện" title="Đổi giao diện">
-                <i class="fa-solid fa-moon theme-icon-moon"></i>
+            <button id="themeToggle" class="crm-shell-icon-button" type="button" title="Chuyển đổi giao diện" aria-label="Chuyển đổi giao diện">
+                <i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>
             </button>
+
+            <button id="notificationButton" class="crm-shell-icon-button" type="button" title="Thông báo" aria-label="Thông báo">
+                <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                <span class="crm-notification-dot" hidden></span>
+            </button>
+
             <div class="crm-user">
                 <button id="userButton" class="crm-user-button" type="button">
                     <div class="crm-avatar" id="topAvatar">U</div>
                     <div class="crm-user-copy">
-                        <span class="crm-user-name" id="topUserName">Nông Quang Tiệp</span>
-                        <span class="crm-user-role" id="topUserRole">Quản trị viên</span>
+                        <span class="crm-user-name" id="shellUserName">Quản trị viên</span>
+                        <span class="crm-user-role" id="shellUserRole">Quản trị hệ thống</span>
                     </div>
+                    <span><i class="fa-solid fa-angle-down"></i></span>
                 </button>
+
+                <div id="userDropdown" class="crm-user-dropdown">
+                    <a href="profile.html"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+                    <a href="change-password.html"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a>
+                    <button type="button" id="logoutButton"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                </div>
             </div>
         </div>
     </header>
 
     <!-- MAIN CONTENT -->
-    <main class="crm-main">
-        
-        <!-- HERO BANNER -->
-        <div class="tmpl-hero">
-            <div class="tmpl-hero-info">
-                <h1><i class="fa-solid fa-file-excel" style="color:#10b981;"></i> Bộ Tệp Mẫu Excel Doanh Nghiệp (Enterprise Templates)</h1>
-                <p>Hệ thống tệp mẫu Microsoft Excel (.xlsx) chuẩn hóa giao diện màu sắc, độ rộng cột, định dạng tiền tệ và dữ liệu mẫu thực tế phục vụ nhập liệu hàng loạt và xuất báo cáo thương mại.</p>
-            </div>
+    <main class="crm-main excel-page">
+
+        <!-- 1. HERO BANNER -->
+        <section class="excel-hero">
             <div>
-                <a href="assets/templates/excel/Mau_Nhap_Khach_Hang_NovaCRM.xlsx" download class="tmpl-download-btn tmpl-btn-import">
+                <div class="excel-breadcrumb">
+                    <i class="fa-solid fa-gear"></i> Quản trị hệ thống &nbsp;/&nbsp; <i class="fa-solid fa-file-excel"></i> Tệp mẫu Excel
+                </div>
+                <h1 class="excel-hero-title">
+                    <i class="fa-solid fa-file-excel"></i> Trung Tâm Tệp Mẫu Excel &amp; Báo Cáo Chuẩn
+                </h1>
+                <p class="excel-hero-desc">
+                    Hệ thống bảng tính Microsoft Excel (.xlsx) chuẩn hóa giao diện thương mại, căn chỉnh độ rộng cột, mã hóa ký tự UTF-8 tiếng Việt, định dạng tiền tệ (VNĐ) và dữ liệu mẫu thực tế phục vụ nhập liệu hàng loạt (Import) và trích xuất báo cáo (Export).
+                </p>
+            </div>
+            <div class="excel-hero-actions">
+                <a href="api/templates/excel/customers-import" download="Mau_Nhap_Khach_Hang_NovaCRM.xlsx" class="excel-btn-primary">
                     <i class="fa-solid fa-download"></i> Tải Mẫu Khách Hàng (.xlsx)
                 </a>
+                <a href="master-data.html" class="excel-btn-secondary">
+                    <i class="fa-solid fa-database"></i> Tra cứu Master Data
+                </a>
             </div>
-        </div>
+        </section>
 
-        <!-- PHÂN HỆ 1: MẪU NHẬP (IMPORT TEMPLATES) -->
-        <div class="tmpl-section-title">
-            <i class="fa-solid fa-cloud-arrow-up" style="color:#3b82f6;"></i>
-            1. Các Mẫu Excel Nhập Dữ Liệu Hàng Loạt (Import Templates)
-        </div>
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="excel-kpi-grid">
+            <div class="excel-kpi-card">
+                <div class="excel-kpi-icon blue">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div class="excel-kpi-info">
+                    <h4>3 Mẫu Nhập Liệu</h4>
+                    <p>Khách hàng, Lead, Người dùng</p>
+                </div>
+            </div>
 
-        <div class="tmpl-grid">
-            
-            <!-- Card 1: Khách hàng -->
-            <div class="tmpl-card">
+            <div class="excel-kpi-card">
+                <div class="excel-kpi-icon green">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="excel-kpi-info">
+                    <h4>4 Mẫu Báo Cáo</h4>
+                    <p>Báo giá, Hợp đồng, Danh bạ, Khách</p>
+                </div>
+            </div>
+
+            <div class="excel-kpi-card">
+                <div class="excel-kpi-icon purple">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="excel-kpi-info">
+                    <h4>Apache POI 5.4</h4>
+                    <p>Chuẩn OpenXML &amp; Auto Sum</p>
+                </div>
+            </div>
+
+            <div class="excel-kpi-card">
+                <div class="excel-kpi-icon amber">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="excel-kpi-info">
+                    <h4>100% Khả Dụng</h4>
+                    <p>Tương thích Excel 2016-365 &amp; Sheets</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. TOOLBAR (TABS & REAL-TIME SEARCH) -->
+        <section class="excel-toolbar">
+            <div class="excel-tabs">
+                <button type="button" class="excel-tab-btn active" data-filter="all">
+                    <i class="fa-solid fa-border-all"></i> Tất cả tệp mẫu <span class="excel-tab-badge">7</span>
+                </button>
+                <button type="button" class="excel-tab-btn" data-filter="import">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Mẫu nhập liệu (Import) <span class="excel-tab-badge">3</span>
+                </button>
+                <button type="button" class="excel-tab-btn" data-filter="export">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> Mẫu báo cáo (Export) <span class="excel-tab-badge">4</span>
+                </button>
+            </div>
+
+            <div class="excel-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="excelSearchInput" type="search" class="excel-search-input" placeholder="Tìm tệp mẫu, trường dữ liệu, chức năng...">
+            </div>
+        </section>
+
+        <!-- 4. TEMPLATE CARDS GRID -->
+        <section class="excel-grid" id="excelGrid">
+
+            <!-- Card 1: Khách hàng Import -->
+            <div class="excel-card" data-type="import">
                 <div>
-                    <div class="tmpl-card-header">
-                        <div class="tmpl-icon-box tmpl-icon-import"><i class="fa-solid fa-building"></i></div>
-                        <div>
-                            <h3 class="tmpl-card-title">Mẫu Nhập Khách Hàng (Customers)</h3>
-                            <p class="tmpl-card-desc">Dùng cho chức năng nhập hàng loạt hồ sơ công ty B2B, tự động đối chiếu mã số thuế, kiểm tra trùng lặp và phân nhóm ngành nghề.</p>
+                    <div class="excel-card-header">
+                        <div class="excel-card-icon import">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <div class="excel-card-title-wrap">
+                            <span class="excel-card-type-tag import"><i class="fa-solid fa-arrow-up"></i> Mẫu Nhập Liệu</span>
+                            <h3 class="excel-card-title">Mẫu Nhập Khách Hàng (Customers)</h3>
+                            <p class="excel-card-desc">Dùng cho chức năng nhập hàng loạt hồ sơ công ty B2B, tự động đối chiếu mã số thuế, kiểm tra trùng lặp và phân nhóm ngành nghề.</p>
                         </div>
                     </div>
-                    <div class="tmpl-pills">
-                        <span class="tmpl-pill">name*</span>
-                        <span class="tmpl-pill">taxCode</span>
-                        <span class="tmpl-pill">status*</span>
-                        <span class="tmpl-pill">email</span>
-                        <span class="tmpl-pill">phone</span>
-                        <span class="tmpl-pill">website</span>
-                        <span class="tmpl-pill">address</span>
-                        <span class="tmpl-pill">industryId</span>
-                        <span class="tmpl-pill">companySizeId</span>
-                    </div>
-                </div>
-                <div class="tmpl-card-footer">
-                    <span class="tmpl-format-tag"><i class="fa-solid fa-circle-check"></i> Chuẩn XLSX (POI 5.4)</span>
-                    <a href="api/templates/excel/customers-import" download="Mau_Nhap_Khach_Hang_NovaCRM.xlsx" class="tmpl-download-btn tmpl-btn-import">
-                        <i class="fa-solid fa-download"></i> Tải Mẫu (.xlsx)
-                    </a>
-                </div>
-            </div>
 
-            <!-- Card 2: Lead -->
-            <div class="tmpl-card">
-                <div>
-                    <div class="tmpl-card-header">
-                        <div class="tmpl-icon-box tmpl-icon-import"><i class="fa-solid fa-user-plus"></i></div>
-                        <div>
-                            <h3 class="tmpl-card-title">Mẫu Nhập Lead Tiềm Năng (Leads)</h3>
-                            <p class="tmpl-card-desc">Dùng cho chức năng CRM-116 nhập danh sách khách tiềm năng thu thập từ sự kiện, hội thảo hoặc chiến dịch Marketing.</p>
+                    <div class="excel-schema-section">
+                        <div class="excel-schema-label">
+                            <span>Các trường dữ liệu (Cột)</span>
+                            <span style="color:#f87171;">* Bắt buộc</span>
+                        </div>
+                        <div class="excel-schema-pills">
+                            <span class="excel-pill required">name</span>
+                            <span class="excel-pill">taxCode</span>
+                            <span class="excel-pill required">status</span>
+                            <span class="excel-pill">email</span>
+                            <span class="excel-pill">phone</span>
+                            <span class="excel-pill">website</span>
+                            <span class="excel-pill">address</span>
+                            <span class="excel-pill">industryId</span>
+                            <span class="excel-pill">companySizeId</span>
                         </div>
                     </div>
-                    <div class="tmpl-pills">
-                        <span class="tmpl-pill">fullName*</span>
-                        <span class="tmpl-pill">companyName</span>
-                        <span class="tmpl-pill">email</span>
-                        <span class="tmpl-pill">phone*</span>
-                        <span class="tmpl-pill">sourceCode*</span>
-                        <span class="tmpl-pill">notes</span>
-                    </div>
                 </div>
-                <div class="tmpl-card-footer">
-                    <span class="tmpl-format-tag"><i class="fa-solid fa-circle-check"></i> Chuẩn XLSX (POI 5.4)</span>
-                    <a href="api/templates/excel/leads-import" download="Mau_Nhap_Lead_Tiem_Nang_NovaCRM.xlsx" class="tmpl-download-btn tmpl-btn-import">
-                        <i class="fa-solid fa-download"></i> Tải Mẫu (.xlsx)
-                    </a>
+
+                <div class="excel-card-footer">
+                    <span class="excel-format-badge"><i class="fa-solid fa-circle-check"></i> POI 5.4 (.xlsx)</span>
+                    <div class="excel-action-group">
+                        <button type="button" class="excel-btn-preview" data-preview="customers-import">
+                            <i class="fa-solid fa-eye"></i> Xem trước
+                        </button>
+                        <a href="api/templates/excel/customers-import" download="Mau_Nhap_Khach_Hang_NovaCRM.xlsx" class="excel-btn-download import">
+                            <i class="fa-solid fa-download"></i> Tải Mẫu
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Card 3: Users -->
-            <div class="tmpl-card">
+            <!-- Card 2: Lead Import -->
+            <div class="excel-card" data-type="import">
                 <div>
-                    <div class="tmpl-card-header">
-                        <div class="tmpl-icon-box tmpl-icon-import"><i class="fa-solid fa-user-gear"></i></div>
-                        <div>
-                            <h3 class="tmpl-card-title">Mẫu Nhập Người Dùng (Users)</h3>
-                            <p class="tmpl-card-desc">Dùng cho phân hệ Quản trị viên nhập danh sách tài khoản nhân viên, kiểm tra độ mạnh mật khẩu và kích hoạt trạng thái.</p>
+                    <div class="excel-card-header">
+                        <div class="excel-card-icon import">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                        <div class="excel-card-title-wrap">
+                            <span class="excel-card-type-tag import"><i class="fa-solid fa-arrow-up"></i> Mẫu Nhập Liệu (CRM-116)</span>
+                            <h3 class="excel-card-title">Mẫu Nhập Lead Tiềm Năng (Leads)</h3>
+                            <p class="excel-card-desc">Dùng cho chức năng CRM-116 nhập danh sách khách tiềm năng thu thập từ sự kiện, hội thảo hoặc chiến dịch Marketing.</p>
                         </div>
                     </div>
-                    <div class="tmpl-pills">
-                        <span class="tmpl-pill">fullName*</span>
-                        <span class="tmpl-pill">email*</span>
-                        <span class="tmpl-pill">password*</span>
-                        <span class="tmpl-pill">status*</span>
-                    </div>
-                </div>
-                <div class="tmpl-card-footer">
-                    <span class="tmpl-format-tag"><i class="fa-solid fa-circle-check"></i> Chuẩn XLSX (POI 5.4)</span>
-                    <a href="api/templates/excel/users-import" download="Mau_Nhap_Nguoi_Dung_NovaCRM.xlsx" class="tmpl-download-btn tmpl-btn-import">
-                        <i class="fa-solid fa-download"></i> Tải Mẫu (.xlsx)
-                    </a>
-                </div>
-            </div>
 
-        </div>
-
-        <!-- PHÂN HỆ 2: MẪU XUẤT (EXPORT TEMPLATES & REPORTS) -->
-        <div class="tmpl-section-title">
-            <i class="fa-solid fa-cloud-arrow-down" style="color:#10b981;"></i>
-            2. Các Mẫu Excel Xuất Báo Cáo Doanh Nghiệp (Export Reports)
-        </div>
-
-        <div class="tmpl-grid">
-            
-            <!-- Card 4: Báo Giá -->
-            <div class="tmpl-card">
-                <div>
-                    <div class="tmpl-card-header">
-                        <div class="tmpl-icon-box tmpl-icon-export"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-                        <div>
-                            <h3 class="tmpl-card-title">Mẫu Xuất Báo Giá (Quotations Report)</h3>
-                            <p class="tmpl-card-desc">Báo cáo bảng kê danh sách báo giá thương mại, tổng hợp doanh thu trước thuế, thuế VAT, chiết khấu và tổng thanh toán theo VNĐ.</p>
+                    <div class="excel-schema-section">
+                        <div class="excel-schema-label">
+                            <span>Các trường dữ liệu (Cột)</span>
+                            <span style="color:#f87171;">* Bắt buộc</span>
+                        </div>
+                        <div class="excel-schema-pills">
+                            <span class="excel-pill required">fullName</span>
+                            <span class="excel-pill">companyName</span>
+                            <span class="excel-pill">email</span>
+                            <span class="excel-pill required">phone</span>
+                            <span class="excel-pill required">sourceCode</span>
+                            <span class="excel-pill">notes</span>
                         </div>
                     </div>
-                    <div class="tmpl-pills">
-                        <span class="tmpl-pill">STT</span>
-                        <span class="tmpl-pill">Mã Báo Giá</span>
-                        <span class="tmpl-pill">Khách Hàng</span>
-                        <span class="tmpl-pill">Giá Chưa Thuế</span>
-                        <span class="tmpl-pill">VAT 10%</span>
-                        <span class="tmpl-pill">Tổng Tiền (VNĐ)</span>
-                        <span class="tmpl-pill">Trạng Thái</span>
-                    </div>
                 </div>
-                <div class="tmpl-card-footer">
-                    <span class="tmpl-format-tag"><i class="fa-solid fa-circle-check"></i> Header Navy & Total Sum</span>
-                    <a href="api/templates/excel/quotes-export" download="Mau_Xuat_Bao_Gia_NovaCRM.xlsx" class="tmpl-download-btn tmpl-btn-export">
-                        <i class="fa-solid fa-download"></i> Tải Mẫu Báo Cáo (.xlsx)
-                    </a>
+
+                <div class="excel-card-footer">
+                    <span class="excel-format-badge"><i class="fa-solid fa-circle-check"></i> POI 5.4 (.xlsx)</span>
+                    <div class="excel-action-group">
+                        <button type="button" class="excel-btn-preview" data-preview="leads-import">
+                            <i class="fa-solid fa-eye"></i> Xem trước
+                        </button>
+                        <a href="api/templates/excel/leads-import" download="Mau_Nhap_Lead_Tiem_Nang_NovaCRM.xlsx" class="excel-btn-download import">
+                            <i class="fa-solid fa-download"></i> Tải Mẫu
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Card 5: Hợp Đồng -->
-            <div class="tmpl-card">
+            <!-- Card 3: User Import -->
+            <div class="excel-card" data-type="import">
                 <div>
-                    <div class="tmpl-card-header">
-                        <div class="tmpl-icon-box tmpl-icon-export"><i class="fa-solid fa-file-signature"></i></div>
-                        <div>
-                            <h3 class="tmpl-card-title">Mẫu Xuất Hợp Đồng (Contracts Report)</h3>
-                            <p class="tmpl-card-desc">Báo cáo tổng hợp tình trạng thực hiện hợp đồng kinh tế, giá trị cam kết, thời hạn hiệu lực và điều khoản thanh toán.</p>
+                    <div class="excel-card-header">
+                        <div class="excel-card-icon import">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </div>
+                        <div class="excel-card-title-wrap">
+                            <span class="excel-card-type-tag import"><i class="fa-solid fa-arrow-up"></i> Mẫu Nhập Liệu</span>
+                            <h3 class="excel-card-title">Mẫu Nhập Người Dùng (Users)</h3>
+                            <p class="excel-card-desc">Dùng cho phân hệ Quản trị viên nhập danh sách tài khoản nhân viên, kiểm tra độ mạnh mật khẩu và kích hoạt trạng thái.</p>
                         </div>
                     </div>
-                    <div class="tmpl-pills">
-                        <span class="tmpl-pill">Số Hợp Đồng</span>
-                        <span class="tmpl-pill">Tên Hợp Đồng</span>
-                        <span class="tmpl-pill">Khách Hàng</span>
-                        <span class="tmpl-pill">Giá Trị (VNĐ)</span>
-                        <span class="tmpl-pill">Hiệu Lực</span>
-                        <span class="tmpl-pill">Điều Khoản</span>
-                    </div>
-                </div>
-                <div class="tmpl-card-footer">
-                    <span class="tmpl-format-tag"><i class="fa-solid fa-circle-check"></i> Header Navy & Total Sum</span>
-                    <a href="api/templates/excel/contracts-export" download="Mau_Xuat_Hop_Dong_NovaCRM.xlsx" class="tmpl-download-btn tmpl-btn-export">
-                        <i class="fa-solid fa-download"></i> Tải Mẫu Báo Cáo (.xlsx)
-                    </a>
-                </div>
-            </div>
 
-            <!-- Card 6: Khách hàng export -->
-            <div class="tmpl-card">
-                <div>
-                    <div class="tmpl-card-header">
-                        <div class="tmpl-icon-box tmpl-icon-export"><i class="fa-solid fa-building"></i></div>
-                        <div>
-                            <h3 class="tmpl-card-title">Mẫu Xuất Hồ Sơ Khách Hàng (Customers)</h3>
-                            <p class="tmpl-card-desc">Báo cáo danh bạ tài khoản khách hàng doanh nghiệp, mã số thuế, quy mô nhân sự, trụ sở và doanh số lũy kế đã ký.</p>
+                    <div class="excel-schema-section">
+                        <div class="excel-schema-label">
+                            <span>Các trường dữ liệu (Cột)</span>
+                            <span style="color:#f87171;">* Bắt buộc</span>
+                        </div>
+                        <div class="excel-schema-pills">
+                            <span class="excel-pill required">fullName</span>
+                            <span class="excel-pill required">email</span>
+                            <span class="excel-pill required">password</span>
+                            <span class="excel-pill required">status</span>
                         </div>
                     </div>
-                    <div class="tmpl-pills">
-                        <span class="tmpl-pill">Mã KH</span>
-                        <span class="tmpl-pill">Tên Doanh Nghiệp</span>
-                        <span class="tmpl-pill">MST</span>
-                        <span class="tmpl-pill">Ngành Nghề</span>
-                        <span class="tmpl-pill">Quy Mô</span>
-                        <span class="tmpl-pill">Doanh Số Đã Ký</span>
-                    </div>
                 </div>
-                <div class="tmpl-card-footer">
-                    <span class="tmpl-format-tag"><i class="fa-solid fa-circle-check"></i> Báo Cáo Tổng Hợp</span>
-                    <a href="api/templates/excel/customers-export" download="Mau_Xuat_Khach_Hang_NovaCRM.xlsx" class="tmpl-download-btn tmpl-btn-export">
-                        <i class="fa-solid fa-download"></i> Tải Mẫu Báo Cáo (.xlsx)
-                    </a>
+
+                <div class="excel-card-footer">
+                    <span class="excel-format-badge"><i class="fa-solid fa-circle-check"></i> POI 5.4 (.xlsx)</span>
+                    <div class="excel-action-group">
+                        <button type="button" class="excel-btn-preview" data-preview="users-import">
+                            <i class="fa-solid fa-eye"></i> Xem trước
+                        </button>
+                        <a href="api/templates/excel/users-import" download="Mau_Nhap_Nguoi_Dung_NovaCRM.xlsx" class="excel-btn-download import">
+                            <i class="fa-solid fa-download"></i> Tải Mẫu
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Card 7: Người liên hệ export -->
-            <div class="tmpl-card">
+            <!-- Card 4: Báo Giá Export -->
+            <div class="excel-card" data-type="export">
                 <div>
-                    <div class="tmpl-card-header">
-                        <div class="tmpl-icon-box tmpl-icon-export"><i class="fa-solid fa-address-book"></i></div>
-                        <div>
-                            <h3 class="tmpl-card-title">Mẫu Xuất Người Liên Hệ (Contacts)</h3>
-                            <p class="tmpl-card-desc">Danh bạ người liên hệ, chức danh lãnh đạo, vai trò ra quyết định (Decision Maker/Sponsor) và đầu mối chính.</p>
+                    <div class="excel-card-header">
+                        <div class="excel-card-icon export">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="excel-card-title-wrap">
+                            <span class="excel-card-type-tag export"><i class="fa-solid fa-arrow-down"></i> Mẫu Báo Cáo</span>
+                            <h3 class="excel-card-title">Mẫu Xuất Báo Giá (Quotations Report)</h3>
+                            <p class="excel-card-desc">Báo cáo bảng kê danh sách báo giá thương mại, tổng hợp doanh thu trước thuế, thuế VAT 10% và tổng thanh toán theo VNĐ.</p>
                         </div>
                     </div>
-                    <div class="tmpl-pills">
-                        <span class="tmpl-pill">Mã LH</span>
-                        <span class="tmpl-pill">Họ và Tên</span>
-                        <span class="tmpl-pill">Doanh Nghiệp</span>
-                        <span class="tmpl-pill">Chức Danh</span>
-                        <span class="tmpl-pill">Vai Trò Quyết Định</span>
-                        <span class="tmpl-pill">Đầu Mối Chính</span>
+
+                    <div class="excel-schema-section">
+                        <div class="excel-schema-label">
+                            <span>Cấu trúc cột báo cáo</span>
+                            <span style="color:#10b981;">Auto SUM Formula</span>
+                        </div>
+                        <div class="excel-schema-pills">
+                            <span class="excel-pill">STT</span>
+                            <span class="excel-pill">Mã Báo Giá</span>
+                            <span class="excel-pill">Khách Hàng</span>
+                            <span class="excel-pill">Giá Chưa Thuế</span>
+                            <span class="excel-pill">VAT 10%</span>
+                            <span class="excel-pill">Tổng Tiền (VNĐ)</span>
+                            <span class="excel-pill">Trạng Thái</span>
+                        </div>
                     </div>
                 </div>
-                <div class="tmpl-card-footer">
-                    <span class="tmpl-format-tag"><i class="fa-solid fa-circle-check"></i> Danh Bạ Chuyên Nghiệp</span>
-                    <a href="api/templates/excel/contacts-export" download="Mau_Xuat_Nguoi_Lien_He_NovaCRM.xlsx" class="tmpl-download-btn tmpl-btn-export">
-                        <i class="fa-solid fa-download"></i> Tải Mẫu Báo Cáo (.xlsx)
-                    </a>
+
+                <div class="excel-card-footer">
+                    <span class="excel-format-badge"><i class="fa-solid fa-circle-check"></i> Header Navy &amp; SUM</span>
+                    <div class="excel-action-group">
+                        <button type="button" class="excel-btn-preview" data-preview="quotes-export">
+                            <i class="fa-solid fa-eye"></i> Xem trước
+                        </button>
+                        <a href="api/templates/excel/quotes-export" download="Mau_Xuat_Bao_Gia_NovaCRM.xlsx" class="excel-btn-download export">
+                            <i class="fa-solid fa-download"></i> Tải Mẫu
+                        </a>
+                    </div>
                 </div>
             </div>
 
-        </div>
+            <!-- Card 5: Hợp Đồng Export -->
+            <div class="excel-card" data-type="export">
+                <div>
+                    <div class="excel-card-header">
+                        <div class="excel-card-icon export">
+                            <i class="fa-solid fa-file-signature"></i>
+                        </div>
+                        <div class="excel-card-title-wrap">
+                            <span class="excel-card-type-tag export"><i class="fa-solid fa-arrow-down"></i> Mẫu Báo Cáo</span>
+                            <h3 class="excel-card-title">Mẫu Xuất Hợp Đồng (Contracts Report)</h3>
+                            <p class="excel-card-desc">Báo cáo tổng hợp tình trạng thực hiện hợp đồng kinh tế, giá trị cam kết, thời hạn hiệu lực và điều khoản thanh toán.</p>
+                        </div>
+                    </div>
+
+                    <div class="excel-schema-section">
+                        <div class="excel-schema-label">
+                            <span>Cấu trúc cột báo cáo</span>
+                            <span style="color:#10b981;">Auto SUM Formula</span>
+                        </div>
+                        <div class="excel-schema-pills">
+                            <span class="excel-pill">STT</span>
+                            <span class="excel-pill">Số Hợp Đồng</span>
+                            <span class="excel-pill">Tên Hợp Đồng</span>
+                            <span class="excel-pill">Khách Hàng</span>
+                            <span class="excel-pill">Giá Trị (VNĐ)</span>
+                            <span class="excel-pill">Hiệu Lực Từ</span>
+                            <span class="excel-pill">Đến Ngày</span>
+                            <span class="excel-pill">Trạng Thái</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="excel-card-footer">
+                    <span class="excel-format-badge"><i class="fa-solid fa-circle-check"></i> Header Navy &amp; SUM</span>
+                    <div class="excel-action-group">
+                        <button type="button" class="excel-btn-preview" data-preview="contracts-export">
+                            <i class="fa-solid fa-eye"></i> Xem trước
+                        </button>
+                        <a href="api/templates/excel/contracts-export" download="Mau_Xuat_Hop_Dong_NovaCRM.xlsx" class="excel-btn-download export">
+                            <i class="fa-solid fa-download"></i> Tải Mẫu
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6: Khách hàng Export -->
+            <div class="excel-card" data-type="export">
+                <div>
+                    <div class="excel-card-header">
+                        <div class="excel-card-icon export">
+                            <i class="fa-solid fa-building-user"></i>
+                        </div>
+                        <div class="excel-card-title-wrap">
+                            <span class="excel-card-type-tag export"><i class="fa-solid fa-arrow-down"></i> Mẫu Báo Cáo</span>
+                            <h3 class="excel-card-title">Mẫu Xuất Hồ Sơ Khách Hàng (Customers)</h3>
+                            <p class="excel-card-desc">Báo cáo danh bạ tài khoản khách hàng doanh nghiệp, mã số thuế, quy mô nhân sự, trụ sở và doanh số lũy kế đã ký.</p>
+                        </div>
+                    </div>
+
+                    <div class="excel-schema-section">
+                        <div class="excel-schema-label">
+                            <span>Cấu trúc cột báo cáo</span>
+                            <span style="color:#10b981;">Báo Cáo Tổng Hợp</span>
+                        </div>
+                        <div class="excel-schema-pills">
+                            <span class="excel-pill">STT</span>
+                            <span class="excel-pill">Mã KH</span>
+                            <span class="excel-pill">Tên Doanh Nghiệp</span>
+                            <span class="excel-pill">Mã Số Thuế</span>
+                            <span class="excel-pill">Ngành Nghề</span>
+                            <span class="excel-pill">Quy Mô</span>
+                            <span class="excel-pill">Doanh Số Đã Ký</span>
+                            <span class="excel-pill">Trạng Thái</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="excel-card-footer">
+                    <span class="excel-format-badge"><i class="fa-solid fa-circle-check"></i> Báo Cáo Tổng Hợp</span>
+                    <div class="excel-action-group">
+                        <button type="button" class="excel-btn-preview" data-preview="customers-export">
+                            <i class="fa-solid fa-eye"></i> Xem trước
+                        </button>
+                        <a href="api/templates/excel/customers-export" download="Mau_Xuat_Khach_Hang_NovaCRM.xlsx" class="excel-btn-download export">
+                            <i class="fa-solid fa-download"></i> Tải Mẫu
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 7: Người liên hệ Export -->
+            <div class="excel-card" data-type="export">
+                <div>
+                    <div class="excel-card-header">
+                        <div class="excel-card-icon export">
+                            <i class="fa-solid fa-address-book"></i>
+                        </div>
+                        <div class="excel-card-title-wrap">
+                            <span class="excel-card-type-tag export"><i class="fa-solid fa-arrow-down"></i> Mẫu Báo Cáo (CRM-62)</span>
+                            <h3 class="excel-card-title">Mẫu Xuất Người Liên Hệ (Contacts)</h3>
+                            <p class="excel-card-desc">Danh bạ người liên hệ, chức danh lãnh đạo, vai trò ra quyết định (Decision Maker / Sponsor) và đầu mối chính.</p>
+                        </div>
+                    </div>
+
+                    <div class="excel-schema-section">
+                        <div class="excel-schema-label">
+                            <span>Cấu trúc cột báo cáo</span>
+                            <span style="color:#10b981;">Danh Bạ Chuyên Nghiệp</span>
+                        </div>
+                        <div class="excel-schema-pills">
+                            <span class="excel-pill">STT</span>
+                            <span class="excel-pill">Họ và Tên</span>
+                            <span class="excel-pill">Doanh Nghiệp</span>
+                            <span class="excel-pill">Chức Danh</span>
+                            <span class="excel-pill">Vai Trò Quyết Định</span>
+                            <span class="excel-pill">Email</span>
+                            <span class="excel-pill">Điện Thoại</span>
+                            <span class="excel-pill">Đầu Mối Chính</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="excel-card-footer">
+                    <span class="excel-format-badge"><i class="fa-solid fa-circle-check"></i> Danh Bạ Chuyên Nghiệp</span>
+                    <div class="excel-action-group">
+                        <button type="button" class="excel-btn-preview" data-preview="contacts-export">
+                            <i class="fa-solid fa-eye"></i> Xem trước
+                        </button>
+                        <a href="api/templates/excel/contacts-export" download="Mau_Xuat_Nguoi_Lien_He_NovaCRM.xlsx" class="excel-btn-download export">
+                            <i class="fa-solid fa-download"></i> Tải Mẫu
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </section>
 
     </main>
-</div>
 
-<!-- Mobile drawer -->
-<header class="crm-mobile-header">
-    <button id="mobileMenuButton" class="crm-mobile-menu" type="button">
-        <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-    </button>
-    <div class="crm-avatar">U</div>
-</header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+    <!-- 5. FLOATING PREVIEW MODAL (GIAO DIỆN NỔI XEM TRƯỚC MẪU EXCEL) -->
+    <div id="excelModalOverlay" class="excel-modal-overlay"></div>
+    <div id="excelPreviewModal" class="excel-modal" role="dialog" aria-modal="true" aria-labelledby="modalPreviewTitle">
+        <div class="excel-modal-header">
+            <div class="excel-modal-title-group">
+                <div id="modalPreviewBadge" class="excel-modal-icon-badge">
+                    <i class="fa-solid fa-file-excel"></i>
+                </div>
+                <div>
+                    <h3 id="modalPreviewTitle">Xem trước mẫu Excel</h3>
+                    <p id="modalPreviewSubtitle">Cấu trúc các cột và quy tắc định dạng dữ liệu</p>
+                </div>
+            </div>
+            <button id="excelModalClose" class="excel-modal-close" type="button" aria-label="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
 
-<script src="js/page-transition.js"></script>
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261017_v6"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+        <div class="excel-modal-body">
+            <div class="excel-table-container">
+                <table id="modalPreviewTable" class="excel-preview-table"></table>
+            </div>
+
+            <div class="excel-rules-box">
+                <div class="excel-rules-title">
+                    <i class="fa-solid fa-circle-info"></i> Quy tắc nghiệp vụ &amp; Ràng buộc dữ liệu
+                </div>
+                <ul id="modalPreviewRules" class="excel-rules-list"></ul>
+            </div>
+        </div>
+
+        <div class="excel-modal-footer">
+            <button id="excelModalCancel" type="button" class="excel-btn-secondary">
+                Đóng
+            </button>
+            <a id="excelModalDownload" href="#" download class="excel-btn-primary">
+                <i class="fa-solid fa-download"></i> Tải tệp này (.xlsx)
+            </a>
+        </div>
+    </div>
+
+    <!-- MOBILE DRAWER & NAVIGATION -->
+    <header class="crm-mobile-header">
+        <button id="mobileMenuButton" class="crm-mobile-menu" type="button">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="crm-avatar">U</div>
+    </header>
+    <div id="drawerOverlay" class="crm-drawer-overlay"></div>
+    <aside id="mobileDrawer" class="crm-mobile-drawer">
+        <div class="crm-mobile-drawer-header">
+            <div class="crm-brand">
+                <div class="crm-brand-mark"><i class="fa-solid fa-building-columns"></i></div>
+                <span class="crm-brand-name">Corporate CRM</span>
+            </div>
+        </div>
+        <nav id="mobileNavigation" class="crm-nav"></nav>
+    </aside>
+
+    <!-- SCRIPTS -->
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
+    <script src="js/pages/excel-templates.js?v=20261018_v1"></script>
 </body>
 </html>

@@ -172,6 +172,7 @@
     let assignmentHistory = [];
     let activeTab = "rules"; // 'rules' | 'queue' | 'history'
     let currentManualAssignLead = null;
+    let ruleToDelete = null;
 
     let dom = {};
 
@@ -248,6 +249,22 @@
             btnCloseManualAssignModal: document.getElementById("btnCloseManualAssignModal"),
             btnCancelManualAssign: document.getElementById("btnCancelManualAssign"),
             btnConfirmManualAssign: document.getElementById("btnConfirmManualAssign"),
+
+            // Modal: Delete Rule
+            deleteRuleModal: document.getElementById("deleteRuleModal"),
+            deleteRuleName: document.getElementById("deleteRuleName"),
+            deleteRuleMechanism: document.getElementById("deleteRuleMechanism"),
+            deleteRuleStats: document.getElementById("deleteRuleStats"),
+            deleteRuleScope: document.getElementById("deleteRuleScope"),
+            btnCloseDeleteRuleModal: document.getElementById("btnCloseDeleteRuleModal"),
+            btnCancelDeleteRuleModal: document.getElementById("btnCancelDeleteRuleModal"),
+            btnConfirmDeleteRuleModal: document.getElementById("btnConfirmDeleteRuleModal"),
+
+            // Modal: Reset Default Rules
+            resetRulesModal: document.getElementById("resetRulesModal"),
+            btnCloseResetRulesModal: document.getElementById("btnCloseResetRulesModal"),
+            btnCancelResetRulesModal: document.getElementById("btnCancelResetRulesModal"),
+            btnConfirmResetRulesModal: document.getElementById("btnConfirmResetRulesModal"),
 
             toastContainer: document.getElementById("leadAssignToastContainer")
         };
@@ -742,14 +759,8 @@
             btn.addEventListener("click", () => {
                 const ruleId = btn.getAttribute("data-rule-id");
                 const rule = assignmentRules.find(r => String(r.id) === String(ruleId));
-                if (confirm(`Bạn có chắc chắn muốn xóa quy tắc "${rule?.name}" không?`)) {
-                    assignmentRules = assignmentRules.filter(r => String(r.id) !== String(ruleId));
-                    // Re-index priorities
-                    assignmentRules.forEach((r, i) => r.priority = i + 1);
-                    saveRules();
-                    updateKpis();
-                    renderRulesTable();
-                    showToast(`Đã xóa quy tắc thành công!`, "success");
+                if (rule) {
+                    openDeleteRuleModal(rule);
                 }
             });
         });
@@ -1233,6 +1244,76 @@
         }
     }
 
+    // 14.1. MODAL: DELETE RULE CONFIRMATION
+    function openDeleteRuleModal(rule) {
+        if (!rule) return;
+        ruleToDelete = rule;
+
+        if (dom.deleteRuleName) {
+            dom.deleteRuleName.textContent = rule.name || "Quy tắc không tên";
+        }
+        if (dom.deleteRuleMechanism) {
+            dom.deleteRuleMechanism.innerHTML = getMechanismBadge(rule.mechanism);
+        }
+        if (dom.deleteRuleStats) {
+            dom.deleteRuleStats.innerHTML = `<i class="fa-solid fa-check-double"></i> Đã phân bổ: <strong>${rule.totalAssigned || 0}</strong> lead`;
+        }
+        if (dom.deleteRuleScope) {
+            const regionTxt = getRegionLabel(rule.region);
+            const industryTxt = (!rule.industry || rule.industry === "ALL") ? "Mọi ngành nghề" : rule.industry;
+            dom.deleteRuleScope.innerHTML = `<i class="fa-solid fa-filter text-muted"></i> Phạm vi: <strong>${escapeHtml(regionTxt)}</strong> &bull; Ngành: <strong>${escapeHtml(industryTxt)}</strong>`;
+        }
+
+        if (dom.deleteRuleModal) {
+            dom.deleteRuleModal.classList.add("active");
+        }
+    }
+
+    function closeDeleteRuleModal() {
+        if (dom.deleteRuleModal) {
+            dom.deleteRuleModal.classList.remove("active");
+        }
+        ruleToDelete = null;
+    }
+
+    function confirmDeleteRule() {
+        if (!ruleToDelete) return;
+        const targetId = ruleToDelete.id;
+        const targetName = ruleToDelete.name;
+
+        assignmentRules = assignmentRules.filter(r => String(r.id) !== String(targetId));
+        // Re-index priorities
+        assignmentRules.forEach((r, i) => r.priority = i + 1);
+        saveRules();
+        updateKpis();
+        renderRulesTable();
+
+        closeDeleteRuleModal();
+        showToast(`Đã xóa vĩnh viễn quy tắc "${targetName}" thành công!`, "success");
+    }
+
+    // 14.2. MODAL: RESET DEFAULT RULES CONFIRMATION
+    function openResetRulesModal() {
+        if (dom.resetRulesModal) {
+            dom.resetRulesModal.classList.add("active");
+        }
+    }
+
+    function closeResetRulesModal() {
+        if (dom.resetRulesModal) {
+            dom.resetRulesModal.classList.remove("active");
+        }
+    }
+
+    function confirmResetRules() {
+        assignmentRules = JSON.parse(JSON.stringify(DEFAULT_RULES));
+        saveRules();
+        updateKpis();
+        renderRulesTable();
+        closeResetRulesModal();
+        showToast("✨ Đã khôi phục các quy tắc chuẩn mặc định của hệ thống!", "success");
+    }
+
     // 15. EVENT LISTENERS
     function setupEventListeners() {
         // Tab switching
@@ -1273,17 +1354,29 @@
         if (dom.btnProcessQueueHeader) dom.btnProcessQueueHeader.addEventListener("click", handleProcessQueue);
         if (dom.btnProcessQueueTab) dom.btnProcessQueueTab.addEventListener("click", handleProcessQueue);
 
-        // Reset default rules
+        // Reset default rules modal
         if (dom.btnResetDefaultRules) {
-            dom.btnResetDefaultRules.addEventListener("click", () => {
-                if (confirm("Khôi phục danh sách quy tắc phân bổ về cài đặt chuẩn của hệ thống?")) {
-                    assignmentRules = [...DEFAULT_RULES];
-                    saveRules();
-                    updateKpis();
-                    renderRulesTable();
-                    showToast("✨ Đã khôi phục các quy tắc chuẩn!", "success");
-                }
-            });
+            dom.btnResetDefaultRules.addEventListener("click", openResetRulesModal);
+        }
+        if (dom.btnCloseResetRulesModal) {
+            dom.btnCloseResetRulesModal.addEventListener("click", closeResetRulesModal);
+        }
+        if (dom.btnCancelResetRulesModal) {
+            dom.btnCancelResetRulesModal.addEventListener("click", closeResetRulesModal);
+        }
+        if (dom.btnConfirmResetRulesModal) {
+            dom.btnConfirmResetRulesModal.addEventListener("click", confirmResetRules);
+        }
+
+        // Delete rule modal
+        if (dom.btnCloseDeleteRuleModal) {
+            dom.btnCloseDeleteRuleModal.addEventListener("click", closeDeleteRuleModal);
+        }
+        if (dom.btnCancelDeleteRuleModal) {
+            dom.btnCancelDeleteRuleModal.addEventListener("click", closeDeleteRuleModal);
+        }
+        if (dom.btnConfirmDeleteRuleModal) {
+            dom.btnConfirmDeleteRuleModal.addEventListener("click", confirmDeleteRule);
         }
 
         // Export history
@@ -1344,12 +1437,24 @@
                 if (e.target === dom.manualAssignModal) closeManualAssignModal();
             });
         }
+        if (dom.deleteRuleModal) {
+            dom.deleteRuleModal.addEventListener("click", e => {
+                if (e.target === dom.deleteRuleModal) closeDeleteRuleModal();
+            });
+        }
+        if (dom.resetRulesModal) {
+            dom.resetRulesModal.addEventListener("click", e => {
+                if (e.target === dom.resetRulesModal) closeResetRulesModal();
+            });
+        }
 
         // Escape key to close
         document.addEventListener("keydown", e => {
             if (e.key === "Escape") {
                 closeRuleModal();
                 closeManualAssignModal();
+                closeDeleteRuleModal();
+                closeResetRulesModal();
             }
         });
     }
