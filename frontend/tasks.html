@@ -1,395 +1,336 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+    </script>
 
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công việc cần làm | Corporate CRM</title>
 
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
+    <!-- Google Fonts & Icon Libraries -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>Công việc</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Design System & Page Styles -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
     <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/tasks.css?v=20261014_dark2">
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/pages/tasks.css?v=20261018_theme_fix">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
-
-<aside class="crm-sidebar">
-
-    <div class="crm-brand">
-        <div class="crm-brand-mark">C</div>
-        <span class="crm-brand-name">Corporate CRM</span>
-    </div>
-
-    <nav class="crm-nav">
-
-        <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
-            <span class="crm-nav-label">Tổng quan</span>
-        </a>
-
-        <a href="customers.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Khách hàng</span>
-        </a>
-
-        <a href="pipeline.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-list-check"></i></span>
-            <span class="crm-nav-label">Công việc</span>
-        </a>
-
-        <a href="calendar.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
-            <span class="crm-nav-label">Lịch</span>
-        </a>
-
-    </nav>
-
-    
-
-</aside>
-
-
-<header class="crm-topbar">
-
-    <div class="crm-search">
-
-        <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="m20 20-4-4"/>
-        </svg>
-
-        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
-        <kbd>Ctrl K</kbd>
-
-    </div>
-
-    <div class="crm-top-actions">
-        <div class="crm-avatar">U</div>
-    </div>
-
-</header>
-
-
-<main class="crm-main tasks-page">
-
-    <section class="tasks-head">
-
-        <div>
-
-            <p>
-                CRM / Công việc
-            </p>
-
-            <h1>
-                Công việc cần làm
-            </h1>
-
-            <span>
-                Theo dõi task được tạo trong hệ thống.
-            </span>
-
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
+        <div class="crm-brand">
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="crm-brand-name">Corporate CRM</span>
         </div>
 
+        <nav id="desktopNavigation" class="crm-nav">
+            <!-- Populated dynamically by shared-shell.js -->
+        </nav>
+    </aside>
 
-        <button
-            id="newTask"
-            class="crm-btn crm-btn-primary"
-            type="button"
-        >
-            + Tạo công việc
-        </button>
-
-    </section>
-
-
-    <section class="crm-card tasks-filter">
-
-        <input
-            id="taskSearch"
-            class="crm-input"
-            type="search"
-            placeholder="Tìm công việc..."
-        >
-
-
-        <select
-            id="taskState"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả trạng thái
-            </option>
-
-            <option value="open">
-                Đang mở
-            </option>
-
-            <option value="done">
-                Hoàn thành
-            </option>
-
-            <option value="late">
-                Quá hạn
-            </option>
-        </select>
-
-
-        <select
-            id="taskPriorityFilter"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả ưu tiên
-            </option>
-
-            <option value="high">
-                Cao
-            </option>
-
-            <option value="medium">
-                Trung bình
-            </option>
-
-            <option value="low">
-                Thấp
-            </option>
-        </select>
-
-    </section>
-
-
-    <section class="crm-card tasks-card">
-
-        <div
-            id="tasksList"
-            class="tasks-list"
-        ></div>
-
-
-        <div
-            id="tasksEmpty"
-            class="tasks-empty"
-        >
-            Chưa có công việc.
+    <!-- TOPBAR -->
+    <header class="crm-topbar">
+        <div class="crm-search">
+            <i class="fa-solid fa-magnifying-glass" style="color: #64748b; margin-right: 8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm công việc, khách hàng... (Ctrl + K)">
+            <kbd>Ctrl K</kbd>
         </div>
 
-    </section>
+        <div class="crm-topbar-actions">
+            <button class="crm-icon-btn" type="button" title="Cài đặt">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button class="crm-icon-btn" type="button" title="Thông báo">
+                <i class="fa-solid fa-bell"></i>
+            </button>
 
-</main>
-
-<header class="crm-mobile-header"></header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
-
-
-<!-- TASK MODAL -->
-
-<div
-    id="taskOverlay"
-    class="task-overlay"
-></div>
-
-
-<section
-    id="taskModal"
-    class="task-modal crm-card"
->
-
-    <header>
-
-        <strong id="taskModalTitle">
-            Tạo công việc
-        </strong>
-
-        <button
-            id="closeTaskModal"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
-        </button>
-
+            <div class="crm-profile-pill">
+                <span class="crm-avatar" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">NT</span>
+                <div class="crm-profile-text">
+                    <strong>Nông Quang Tiệp</strong>
+                    <small>Quản trị viên, Quản lý, Bán hàng</small>
+                </div>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: #64748b;"></i>
+            </div>
+        </div>
     </header>
 
+    <!-- MAIN PAGE CONTENT -->
+    <main class="crm-main tasks-page">
 
-    <form id="taskForm">
+        <!-- 1. PAGE HEADER -->
+        <section class="tasks-head">
+            <div>
+                <p class="tasks-kicker">
+                    <i class="fa-solid fa-calendar-days"></i> Lịch trình &amp; Hoạt động &nbsp;/&nbsp; <i class="fa-solid fa-list-check"></i> Công việc
+                </p>
+                <h1>
+                    <i class="fa-solid fa-list-check" style="color: #38bdf8;"></i> Công Việc Cần Làm
+                    <span class="task-badge-live"><span class="task-pulse-dot"></span> Task Manager</span>
+                </h1>
+                <p class="tasks-desc">
+                    Theo dõi, phân công và kiểm soát tiến độ các đầu việc, deadline và nhiệm vụ trong toàn hệ thống CRM.
+                </p>
+            </div>
 
-        <input
-            id="editingTaskId"
-            type="hidden"
-        >
+            <div class="tasks-head-actions">
+                <button id="btnRefreshTasks" class="crm-btn crm-btn-secondary" type="button" title="Tải lại danh sách công việc">
+                    <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                </button>
+                <button id="newTask" class="crm-btn crm-btn-primary" type="button">
+                    <i class="fa-solid fa-plus"></i> Tạo công việc
+                </button>
+            </div>
+        </section>
 
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="tasks-kpi-grid">
+            <article class="kpi-card">
+                <div class="kpi-icon blue">
+                    <i class="fa-solid fa-bars-progress"></i>
+                </div>
+                <div class="kpi-info">
+                    <strong id="kpiTotalTasks">0</strong>
+                    <span>Tổng công việc</span>
+                </div>
+            </article>
 
-        <label>
-            Tiêu đề
-            <em>*</em>
+            <article class="kpi-card">
+                <div class="kpi-icon amber">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="kpi-info">
+                    <strong id="kpiOpenTasks">0</strong>
+                    <span>Đang thực hiện</span>
+                </div>
+            </article>
 
-            <input
-                id="taskTitle"
-                class="crm-input"
-                type="text"
-            >
-        </label>
+            <article class="kpi-card">
+                <div class="kpi-icon green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="kpi-info">
+                    <strong id="kpiDoneTasks">0</strong>
+                    <span>Đã hoàn thành</span>
+                </div>
+            </article>
 
+            <article class="kpi-card">
+                <div class="kpi-icon red">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="kpi-info">
+                    <strong id="kpiLateTasks">0</strong>
+                    <span>Đã quá hạn</span>
+                </div>
+            </article>
+        </section>
 
-        <label>
-            Khách hàng / Cơ hội
+        <!-- 3. TOOLBAR & QUICK FILTER TABS -->
+        <section class="tasks-toolbar-card">
+            <!-- Filter Row -->
+            <div class="tasks-filter-row">
+                <div class="search-input-wrap">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input id="taskSearch" type="search" placeholder="Tìm theo tiêu đề, khách hàng, người phụ trách...">
+                    <button id="clearSearchBtn" class="clear-search-btn" type="button" title="Xóa tìm kiếm">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
 
-            <input
-                id="taskRelation"
-                class="crm-input"
-                type="text"
-            >
-        </label>
+                <div class="filter-selects-group">
+                    <select id="taskState" class="filter-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="open">Đang mở (Chưa xong)</option>
+                        <option value="done">Đã hoàn thành</option>
+                        <option value="late">Đã quá hạn</option>
+                    </select>
 
+                    <select id="taskPriorityFilter" class="filter-select">
+                        <option value="">Tất cả mức ưu tiên</option>
+                        <option value="high">Ưu tiên Cao</option>
+                        <option value="medium">Ưu tiên Trung bình</option>
+                        <option value="low">Ưu tiên Thấp</option>
+                    </select>
+                </div>
+            </div>
 
-        <div class="task-two-cols">
+            <!-- Quick Filter Tabs -->
+            <div class="tasks-quick-tabs">
+                <button class="quick-tab-btn active" data-quick-filter="all" type="button">
+                    <i class="fa-solid fa-layer-group"></i> Tất cả
+                </button>
+                <button class="quick-tab-btn" data-quick-filter="open" type="button">
+                    <i class="fa-solid fa-clock"></i> Đang mở
+                </button>
+                <button class="quick-tab-btn" data-quick-filter="high" type="button">
+                    <i class="fa-solid fa-fire" style="color:#f87171;"></i> Ưu tiên cao
+                </button>
+                <button class="quick-tab-btn" data-quick-filter="late" type="button">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#f87171;"></i> Quá hạn
+                </button>
+                <button class="quick-tab-btn" data-quick-filter="done" type="button">
+                    <i class="fa-solid fa-circle-check" style="color:#34d399;"></i> Đã hoàn thành
+                </button>
+            </div>
+        </section>
 
-            <label>
-                Hạn hoàn thành
+        <!-- 4. TASKS LIST PANEL -->
+        <section class="tasks-card">
+            <div class="tasks-table-head">
+                <span>Xong</span>
+                <span>Tiêu đề &amp; Mô tả</span>
+                <span>Khách hàng / Liên kết</span>
+                <span>Hạn hoàn thành</span>
+                <span>Mức ưu tiên</span>
+                <span>Người phụ trách</span>
+                <span>Thao tác</span>
+            </div>
 
-                <input
-                    id="taskDate"
-                    class="crm-input"
-                    type="date"
-                >
-            </label>
+            <div id="tasksList" class="tasks-list"></div>
 
+            <div id="tasksEmpty" class="tasks-empty" style="display: none;">
+                <div class="tasks-empty-icon">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <p>Chưa có công việc nào cần làm</p>
+                <span>Nhấn nút "+ Tạo công việc" bên trên để tạo đầu việc đầu tiên.</span>
+            </div>
+        </section>
 
-            <label>
-                Ưu tiên
+    </main>
 
-                <select
-                    id="taskPriority"
-                    class="crm-input"
-                >
-                    <option value="medium">
-                        Trung bình
-                    </option>
+    <!-- 5. FLOATING MODAL DIALOG (CỬA SỔ NỔI) -->
+    <div id="taskOverlay" class="task-overlay"></div>
 
-                    <option value="high">
-                        Cao
-                    </option>
-
-                    <option value="low">
-                        Thấp
-                    </option>
-                </select>
-            </label>
-
-        </div>
-
-
-        <label>
-            Người phụ trách
-
-            <input
-                id="taskOwner"
-                class="crm-input"
-                type="text"
-            >
-        </label>
-
-
-        <label>
-            Mô tả
-
-            <textarea
-                id="taskDescription"
-                rows="4"
-            ></textarea>
-        </label>
-
-
-        <div
-            id="taskError"
-            class="task-error"
-        ></div>
-
-
-        <footer>
-
-            <button
-                id="cancelTask"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Hủy
+    <section id="taskModal" class="task-modal" role="dialog" aria-modal="true">
+        <header class="modal-header">
+            <div class="modal-header-info">
+                <div class="modal-badge-icon">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div>
+                    <h3 id="taskModalTitle">Tạo công việc</h3>
+                    <span class="modal-subtitle">Giao nhiệm vụ, đặt hạn hoàn thành và mức ưu tiên</span>
+                </div>
+            </div>
+            <button id="closeTaskModal" class="modal-close-btn" type="button" title="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </header>
 
-            <button
-                class="crm-btn crm-btn-primary"
-                type="submit"
-            >
-                Lưu
-            </button>
+        <form id="taskForm" class="modal-form" novalidate>
+            <input id="editingTaskId" type="hidden">
+            <input id="taskPriority" type="hidden" value="medium">
 
-        </footer>
+            <!-- PRIORITY TILES SELECTOR -->
+            <div class="form-group">
+                <label class="form-label">Mức độ ưu tiên <span class="req-star">*</span></label>
+                <div class="priority-tiles-grid">
+                    <div class="priority-tile high" data-priority="high">
+                        <i class="fa-solid fa-fire"></i>
+                        <span>Ưu tiên Cao</span>
+                    </div>
+                    <div class="priority-tile medium active" data-priority="medium">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Trung bình</span>
+                    </div>
+                    <div class="priority-tile low" data-priority="low">
+                        <i class="fa-solid fa-leaf"></i>
+                        <span>Ưu tiên Thấp</span>
+                    </div>
+                </div>
+            </div>
 
-    </form>
+            <!-- TITLE -->
+            <div class="form-group">
+                <label for="taskTitle" class="form-label">
+                    Tiêu đề công việc <span class="req-star">*</span>
+                </label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-heading"></i>
+                    <input id="taskTitle" class="crm-input" type="text" placeholder="VD: Gửi báo giá gói Pro cho Công ty CP Nam Á..." required autocomplete="off">
+                </div>
+            </div>
 
-</section>
+            <!-- RELATION -->
+            <div class="form-group">
+                <label for="taskRelation" class="form-label">
+                    Khách hàng / Cơ hội liên quan
+                </label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-building"></i>
+                    <input id="taskRelation" class="crm-input" type="text" placeholder="VD: Công ty TNHH Minh Phúc hoặc Cơ hội Deal-001..." autocomplete="off">
+                </div>
+            </div>
 
+            <!-- DATE & OWNER (2 COLUMNS) -->
+            <div class="form-row-2col">
+                <div class="form-group">
+                    <label for="taskDate" class="form-label">Hạn hoàn thành</label>
+                    <div class="input-with-icon">
+                        <i class="fa-regular fa-calendar"></i>
+                        <input id="taskDate" class="crm-input" type="date">
+                    </div>
+                </div>
 
+                <div class="form-group">
+                    <label for="taskOwner" class="form-label">Người phụ trách</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-user-tie"></i>
+                        <input id="taskOwner" class="crm-input" type="text" placeholder="VD: Nông Quang Tiệp (Tôi)">
+                    </div>
+                </div>
+            </div>
 
+            <!-- DESCRIPTION -->
+            <div class="form-group">
+                <label for="taskDescription" class="form-label">Mô tả chi tiết</label>
+                <textarea id="taskDescription" rows="4" placeholder="Nhập các yêu cầu cụ thể, tài liệu đính kèm hoặc kết quả cần đạt..."></textarea>
+            </div>
 
+            <div id="taskError" class="task-error"></div>
 
-<script src="js/pages/tasks.js"></script>
+            <footer class="modal-footer">
+                <button id="cancelTask" class="crm-btn crm-btn-secondary" type="button">
+                    Hủy bỏ
+                </button>
+                <button class="crm-btn crm-btn-primary" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu công việc
+                </button>
+            </footer>
+        </form>
+    </section>
 
-<script src="js/page-transition.js"></script>
+    <!-- FLOATING TOAST -->
+    <div id="taskToast" class="task-toast">
+        <i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i>
+        <span id="toastMessage">Thông báo</span>
+    </div>
 
-
-
-
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261017_v6"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/pages/tasks.js?v=20261018_v1"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
 </body>
 </html>

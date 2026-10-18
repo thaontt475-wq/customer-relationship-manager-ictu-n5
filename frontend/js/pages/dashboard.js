@@ -24,30 +24,30 @@ function renderDashboard() {
             "crm_ui_opportunities"
         );
 
-
     const quotes =
         loadArray(
             "crm_ui_quotes"
         );
-
 
     const activities =
         loadArray(
             "crm_ui_activities"
         );
 
-
     const users =
         loadArray(
             "crm_ui_users"
         );
-
 
     const products =
         loadArray(
             "crm_ui_products"
         );
 
+    const customers =
+        loadArray(
+            "crm_ui_customers"
+        );
 
     renderKpis(
         opportunities,
@@ -55,44 +55,53 @@ function renderDashboard() {
         activities
     );
 
-
     renderFunnel(
         opportunities
     );
-
 
     renderForecast(
         opportunities
     );
 
-
     renderRecentActivities(
         activities
     );
-
 
     renderTasks(
         activities
     );
 
+    const custCount =
+        localStorage.getItem("crm_metric_customers_count")
+        || (customers.length ? String(customers.length) : "0");
+
+    const userCount =
+        localStorage.getItem("crm_metric_users_count")
+        || (users.length ? String(users.length) : "0");
+
+    const prodCount =
+        localStorage.getItem("crm_metric_products_count")
+        || (products.length ? String(products.length) : "0");
+
+    text(
+        "systemCustomers",
+        custCount
+    );
 
     text(
         "systemUsers",
-        users.length
+        userCount
     );
-
 
     text(
         "systemProducts",
-        products.length
+        prodCount
     );
-
 
     text(
         "systemQuotes",
         quotes.length
     );
-
 
     text(
         "systemScheduled",
@@ -859,110 +868,136 @@ function renderForecast(opportunities) {
    ACTIVITY
 ========================================================= */
 
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return "Mới đây";
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) {
+            const parts = String(dateStr).split("T")[0];
+            return parts || "Mới đây";
+        }
+        const now = new Date();
+        const diffMs = now.getTime() - d.getTime();
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+        if (diffMinutes >= 0 && diffMinutes < 2) return "Vừa xong";
+        if (diffMinutes >= 2 && diffMinutes < 60) return `${diffMinutes} phút trước`;
+        if (diffHours >= 1 && diffHours < 24 && d.getDate() === now.getDate()) {
+            return `Hôm nay, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        }
+        if (diffHours < 48 && d.getDate() === now.getDate() - 1) {
+            return `Hôm qua, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        }
+        return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    } catch (_) {
+        return String(dateStr).split("T")[0] || "Mới đây";
+    }
+}
+
+function formatDueDate(dateStr) {
+    if (!dateStr) return "Không có hạn";
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) {
+            const parts = String(dateStr).split("-");
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return String(dateStr);
+        }
+        const now = new Date();
+        const isSameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+        const timePart = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        if (isSameDay) {
+            return `Hôm nay${timePart !== "00:00" ? " " + timePart : ""}`;
+        }
+        return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    } catch (_) {
+        return String(dateStr);
+    }
+}
+
 function renderRecentActivities(
     activities
 ) {
-
     const container =
         document.getElementById(
             "recentActivities"
         );
-
+    if (!container) return;
 
     container.innerHTML = "";
-
 
     const latest =
         [...activities]
             .sort(
-                (
-                    a,
-                    b
-                ) =>
-                    String(
-                        b.createdAt
-                        ||
-                        ""
-                    )
+                (a, b) =>
+                    String(b.createdAt || b.date || "")
                     .localeCompare(
-                        String(
-                            a.createdAt
-                            ||
-                            ""
-                        )
+                        String(a.createdAt || a.date || "")
                     )
             )
-            .slice(
-                0,
-                5
-            );
+            .slice(0, 5);
 
+    const emptyEl = document.getElementById("recentActivitiesEmpty");
+    if (emptyEl) {
+        emptyEl.style.display = latest.length ? "none" : "flex";
+    }
 
-    document
-        .getElementById(
-            "recentActivitiesEmpty"
-        )
-        .style
-        .display =
-            latest.length
-            ?
-            "none"
-            :
-            "flex";
+    const countBadge = document.getElementById("recentActivitiesCount");
+    if (countBadge) {
+        countBadge.textContent = latest.length ? `${latest.length} mới nhất` : "0 mới";
+    }
 
+    for (const item of latest) {
+        const row = document.createElement("div");
+        row.className = "recent-item";
 
-    for (
-        const item
-        of latest
-    ) {
-
-        const row =
-            document.createElement(
-                "div"
-            );
-
-
-        row.className =
-            "recent-item";
-
+        const type = (item.type || "note").toLowerCase();
+        const typeCls = ["call", "email", "meeting", "task", "note"].includes(type) ? type : "note";
+        const iconHtml = activityIcon(typeCls);
+        const label = typeLabel(typeCls);
+        const timeDisplay = formatDisplayDate(item.createdAt || item.date);
 
         row.innerHTML = `
-            <div class="recent-icon">
-                ${activityIcon(item.type)}
+            <div class="recent-icon icon-${typeCls}">
+                ${iconHtml}
             </div>
 
             <div class="recent-copy">
+                <div class="recent-item-title-row">
+                    <strong class="recent-title" title="${escapeHtml(item.title || "Hoạt động")}">
+                        ${escapeHtml(item.title || "Hoạt động")}
+                    </strong>
+                    <span class="act-type-pill pill-${typeCls}">${label}</span>
+                </div>
 
-                <strong>
-                    ${escapeHtml(item.title || "Hoạt động")}
-                </strong>
-
-                <span>
+                <div class="recent-meta-row">
                     ${
-                        escapeHtml(
-                            item.relation
-                            ||
-                            typeLabel(
-                                item.type
-                            )
-                        )
+                        item.relation
+                        ? `<span class="recent-meta-item" title="Khách hàng / Liên hệ"><i class="fa-regular fa-building"></i> ${escapeHtml(item.relation)}</span>`
+                        : ""
                     }
-                </span>
-
+                    ${
+                        item.owner
+                        ? `<span class="recent-meta-item" title="Người thực hiện"><i class="fa-regular fa-user"></i> ${escapeHtml(item.owner)}</span>`
+                        : ""
+                    }
+                    ${
+                        (!item.relation && !item.owner)
+                        ? `<span class="recent-meta-item"><i class="fa-regular fa-circle-dot"></i> Hoạt động hệ thống</span>`
+                        : ""
+                    }
+                </div>
             </div>
 
-            <small>
-                ${escapeHtml(item.date || "—")}
-            </small>
+            <div class="recent-item-time" title="${escapeHtml(item.createdAt || item.date || "")}">
+                <i class="fa-regular fa-clock"></i>
+                <span>${timeDisplay}</span>
+            </div>
         `;
 
-
-        container.appendChild(
-            row
-        );
-
+        container.appendChild(row);
     }
-
 }
 
 
@@ -973,133 +1008,110 @@ function renderRecentActivities(
 function renderTasks(
     activities
 ) {
-
     const container =
         document.getElementById(
             "dashboardTasks"
         );
-
+    if (!container) return;
 
     container.innerHTML = "";
-
 
     const tasks =
         activities
             .filter(
                 item =>
-                    item.type
-                    === "task"
-                    &&
-                    item.status
-                    !== "done"
+                    item.type === "task"
+                    && item.status !== "done"
             )
             .sort(
-                (
-                    a,
-                    b
-                ) =>
-                    String(
-                        a.date
-                        ||
-                        "9999-99-99"
-                    )
-                    .localeCompare(
-                        String(
-                            b.date
-                            ||
-                            "9999-99-99"
-                        )
-                    )
+                (a, b) =>
+                    String(a.date || "9999-99-99")
+                    .localeCompare(String(b.date || "9999-99-99"))
             )
-            .slice(
-                0,
-                5
-            );
+            .slice(0, 5);
 
+    const emptyEl = document.getElementById("dashboardTasksEmpty");
+    if (emptyEl) {
+        emptyEl.style.display = tasks.length ? "none" : "flex";
+    }
 
-    document
-        .getElementById(
-            "dashboardTasksEmpty"
-        )
-        .style
-        .display =
-            tasks.length
-            ?
-            "none"
-            :
-            "flex";
+    const countBadge = document.getElementById("dashboardTasksCount");
+    if (countBadge) {
+        countBadge.textContent = `${tasks.length} đang mở`;
+        countBadge.className = tasks.some(t => isLate(t))
+            ? "panel-badge-pill warning"
+            : "panel-badge-pill";
+    }
 
-
-    for (
-        const task
-        of tasks
-    ) {
-
-        const row =
-            document.createElement(
-                "div"
-            );
-
-
-        row.className =
-            "dashboard-task";
-
+    for (const task of tasks) {
+        const row = document.createElement("div");
+        const late = isLate(task);
+        row.className = `dashboard-task ${late ? "is-late" : ""}`;
 
         row.innerHTML = `
-            <div class="recent-icon">
-                ✓
+            <div class="task-checkbox-wrap">
+                <button class="task-check-circle" type="button" title="Đánh dấu hoàn thành" onclick="quickCompleteTask(${task.id})">
+                    <i class="fa-solid fa-check"></i>
+                </button>
             </div>
 
             <div class="dashboard-task-copy">
-
-                <strong>
-                    ${escapeHtml(task.title)}
-                </strong>
-
-                <span>
+                <div class="task-title-row">
+                    <strong class="task-title" title="${escapeHtml(task.title)}">
+                        ${escapeHtml(task.title)}
+                    </strong>
                     ${
-                        escapeHtml(
-                            task.date
-                            ||
-                            "Chưa có hạn"
-                        )
+                        late
+                        ? `<span class="task-badge-urgent"><i class="fa-solid fa-triangle-exclamation"></i> Quá hạn</span>`
+                        : `<span class="task-badge-open"><i class="fa-regular fa-hourglass-half"></i> Đang mở</span>`
                     }
+                </div>
+
+                <div class="task-meta-row">
+                    <span class="task-meta-item ${late ? "text-late" : ""}" title="Hạn hoàn thành">
+                        <i class="fa-regular fa-calendar-xmark"></i> ${formatDueDate(task.date)}
+                    </span>
                     ${
                         task.owner
-                        ?
-                        " · "
-                        +
-                        escapeHtml(
-                            task.owner
-                        )
-                        :
-                        ""
+                        ? `<span class="task-meta-item" title="Người phụ trách"><i class="fa-regular fa-user"></i> ${escapeHtml(task.owner)}</span>`
+                        : ""
                     }
-                </span>
-
+                    ${
+                        task.relation
+                        ? `<span class="task-meta-item" title="Khách hàng liên quan"><i class="fa-regular fa-building"></i> ${escapeHtml(task.relation)}</span>`
+                        : ""
+                    }
+                </div>
             </div>
 
-            ${
-                isLate(task)
-                ?
-                `
-                <span class="task-warning">
-                    Quá hạn
-                </span>
-                `
-                :
-                ""
-            }
+            <a href="tasks.html" class="task-action-btn" title="Xem chi tiết công việc">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
         `;
 
-
-        container.appendChild(
-            row
-        );
-
+        container.appendChild(row);
     }
-
 }
+
+window.quickCompleteTask = async function(id) {
+    if (!id) return;
+    try {
+        const acts = loadArray("crm_ui_activities");
+        const target = acts.find(a => Number(a.id) === Number(id));
+        if (target) {
+            target.status = "done";
+            localStorage.setItem("crm_ui_activities", JSON.stringify(acts));
+            renderDashboard();
+        }
+        const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+        await fetch(`${API_BASE}/api/activities/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ status: "COMPLETED" })
+        }).catch(() => {});
+    } catch (_) {}
+};
 
 
 /* =========================================================
@@ -1345,25 +1357,18 @@ function todayString() {
 
 
 function activityIcon(type) {
-
     switch (type) {
-
         case "call":
             return '<i class="fa-solid fa-phone"></i>';
-
         case "email":
             return '<i class="fa-solid fa-envelope"></i>';
-
         case "meeting":
             return '<i class="fa-solid fa-calendar-days"></i>';
-
         case "task":
-            return '<i class="fa-solid fa-circle-check"></i>';
-
+            return '<i class="fa-solid fa-list-check"></i>';
         default:
-            return '<i class="fa-solid fa-pen-to-square"></i>';
+            return '<i class="fa-solid fa-note-sticky"></i>';
     }
-
 }
 
 
@@ -1427,16 +1432,22 @@ renderDashboard();
 (async function syncBackendData() {
     try {
         const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
-        const [oppRes, quoteRes, actRes] = await Promise.all([
-            fetch(`${API_BASE}/api/opportunities`, { credentials: "include" }),
-            fetch(`${API_BASE}/api/quotes`, { credentials: "include" }),
-            fetch(`${API_BASE}/api/activities`, { credentials: "include" })
+        const [oppRes, quoteRes, actRes, custRes, userRes, prodRes] = await Promise.all([
+            fetch(`${API_BASE}/api/opportunities`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/quotes`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/activities`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/customers?size=100`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/users?size=100`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/products`, { credentials: "include" }).catch(() => null)
         ]);
 
-        const [oppJson, quoteJson, actJson] = await Promise.all([
-            oppRes.json().catch(() => null),
-            quoteRes.json().catch(() => null),
-            actRes.json().catch(() => null)
+        const [oppJson, quoteJson, actJson, custJson, userJson, prodJson] = await Promise.all([
+            oppRes ? oppRes.json().catch(() => null) : null,
+            quoteRes ? quoteRes.json().catch(() => null) : null,
+            actRes ? actRes.json().catch(() => null) : null,
+            custRes ? custRes.json().catch(() => null) : null,
+            userRes ? userRes.json().catch(() => null) : null,
+            prodRes ? prodRes.json().catch(() => null) : null
         ]);
 
         let changed = false;
@@ -1473,13 +1484,57 @@ renderDashboard();
         }
 
         if (actJson?.success && Array.isArray(actJson.data)) {
-            const acts = actJson.data.map(a => ({
-                id: a.id,
-                type: (a.type || "task").toLowerCase(),
-                title: a.subject || "Hoạt động",
-                status: (a.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open"
-            }));
+            const acts = actJson.data.map(a => {
+                const rawDate = a.dueDate || a.due_date || a.activityDate || a.createdAt || a.created_at || "";
+                return {
+                    id: a.id,
+                    type: (a.type || "note").toLowerCase(),
+                    title: a.subject || a.title || "Hoạt động",
+                    relation: a.customerName || a.opportunityName || a.relation || "",
+                    owner: a.ownerName || a.owner || "",
+                    date: rawDate ? String(rawDate).replace("T", " ").substring(0, 16) : "",
+                    createdAt: a.createdAt || a.created_at || rawDate || "",
+                    status: (a.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open",
+                    description: a.description || ""
+                };
+            });
             localStorage.setItem("crm_ui_activities", JSON.stringify(acts));
+            changed = true;
+        }
+
+        if (custJson?.success) {
+            const total = custJson.data?.totalItems ?? (Array.isArray(custJson.data?.items) ? custJson.data.items.length : (Array.isArray(custJson.data) ? custJson.data.length : null));
+            const custList = Array.isArray(custJson.data?.items) ? custJson.data.items : (Array.isArray(custJson.data) ? custJson.data : []);
+            if (custList.length > 0) {
+                localStorage.setItem("crm_ui_customers", JSON.stringify(custList));
+            }
+            if (total !== null && total !== undefined) {
+                localStorage.setItem("crm_metric_customers_count", String(total));
+            }
+            changed = true;
+        }
+
+        if (userJson?.success) {
+            const total = userJson.data?.totalItems ?? (Array.isArray(userJson.data?.items) ? userJson.data.items.length : (Array.isArray(userJson.data) ? userJson.data.length : null));
+            const userList = Array.isArray(userJson.data?.items) ? userJson.data.items : (Array.isArray(userJson.data) ? userJson.data : []);
+            if (userList.length > 0) {
+                localStorage.setItem("crm_ui_users", JSON.stringify(userList));
+            }
+            if (total !== null && total !== undefined) {
+                localStorage.setItem("crm_metric_users_count", String(total));
+            }
+            changed = true;
+        }
+
+        if (prodJson?.success) {
+            const prodList = Array.isArray(prodJson.data?.items) ? prodJson.data.items : (Array.isArray(prodJson.data) ? prodJson.data : []);
+            const total = prodJson.data?.totalItems ?? prodList.length;
+            if (prodList.length > 0) {
+                localStorage.setItem("crm_ui_products", JSON.stringify(prodList));
+            }
+            if (total !== null && total !== undefined) {
+                localStorage.setItem("crm_metric_products_count", String(total));
+            }
             changed = true;
         }
 

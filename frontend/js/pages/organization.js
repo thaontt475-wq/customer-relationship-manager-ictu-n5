@@ -164,23 +164,23 @@ function bindTabEvents() {
 function switchMode(mode) {
     currentMode = mode;
     if (mode === "TEAMS") {
-        tabTeamsMode.className = "crm-btn crm-btn-primary";
-        tabUnitsMode.className = "crm-btn crm-btn-secondary";
-        pageHeadingTitle.textContent = "Nhóm kinh doanh & Khu vực địa lý";
-        pageHeadingSub.textContent = "Quản lý cây nhóm kinh doanh, trưởng nhóm và gán khu vực địa lý cho nhóm.";
-        addMainActionBtn.textContent = "+ Thêm nhóm kinh doanh";
-        treeCardTitle.textContent = "Cây nhóm kinh doanh";
-        treeCardSubtitle.textContent = "Cấu trúc cây quyết định phạm vi dữ liệu mà Trưởng nhóm nhìn thấy.";
-        addChildBtn.textContent = "+ Thêm nhóm con";
+        if (tabTeamsMode) tabTeamsMode.className = "org-tab-btn active";
+        if (tabUnitsMode) tabUnitsMode.className = "org-tab-btn";
+        if (pageHeadingTitle) pageHeadingTitle.innerHTML = '<i class="fa-solid fa-users-rectangle text-primary"></i> Nhóm kinh doanh &amp; Khu vực địa lý';
+        if (pageHeadingSub) pageHeadingSub.textContent = "Quản lý cây nhóm kinh doanh, trưởng nhóm và gán khu vực địa lý cho nhóm.";
+        if (addMainActionBtn) addMainActionBtn.innerHTML = '<i class="fa-solid fa-plus"></i> + Thêm nhóm kinh doanh';
+        if (treeCardTitle) treeCardTitle.textContent = "Cây nhóm kinh doanh";
+        if (treeCardSubtitle) treeCardSubtitle.textContent = "Cấu trúc cây quyết định phạm vi dữ liệu mà Trưởng nhóm nhìn thấy.";
+        if (addChildBtn) addChildBtn.innerHTML = '<i class="fa-solid fa-plus"></i> + Thêm nhóm con';
     } else {
-        tabTeamsMode.className = "crm-btn crm-btn-secondary";
-        tabUnitsMode.className = "crm-btn crm-btn-primary";
-        pageHeadingTitle.textContent = "Phòng ban nội bộ";
-        pageHeadingSub.textContent = "Cấu hình phòng ban, đơn vị và phân cấp phòng ban nội bộ.";
-        addMainActionBtn.textContent = "+ Thêm đơn vị";
-        treeCardTitle.textContent = "Cây phòng ban";
-        treeCardSubtitle.textContent = "Bấm vào một đơn vị để xem hoặc chỉnh sửa.";
-        addChildBtn.textContent = "+ Thêm đơn vị con";
+        if (tabTeamsMode) tabTeamsMode.className = "org-tab-btn";
+        if (tabUnitsMode) tabUnitsMode.className = "org-tab-btn active";
+        if (pageHeadingTitle) pageHeadingTitle.innerHTML = '<i class="fa-solid fa-building-user text-primary"></i> Phòng ban nội bộ';
+        if (pageHeadingSub) pageHeadingSub.textContent = "Cấu hình phòng ban, đơn vị và phân cấp phòng ban nội bộ.";
+        if (addMainActionBtn) addMainActionBtn.innerHTML = '<i class="fa-solid fa-plus"></i> + Thêm đơn vị';
+        if (treeCardTitle) treeCardTitle.textContent = "Cây phòng ban";
+        if (treeCardSubtitle) treeCardSubtitle.textContent = "Bấm vào một đơn vị để xem hoặc chỉnh sửa.";
+        if (addChildBtn) addChildBtn.innerHTML = '<i class="fa-solid fa-plus"></i> + Thêm đơn vị con';
     }
 
     renderTree();
@@ -304,20 +304,20 @@ function createTeamNode(item) {
 
     const expandChar = children.length ? (item.expanded === false ? '<i class="fa-solid fa-angle-right"></i>' : '<i class="fa-solid fa-angle-down"></i>') : "";
     const regionTag = item.regionName
-        ? `<span class="team-badge-region">${escapeHtml(item.regionName)}</span>`
-        : `<span class="team-badge-members" style="color:var(--crm-muted);">Chưa gán KV</span>`;
+        ? `<span class="team-badge-region"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(item.regionName)}</span>`
+        : `<span class="team-badge-muted"><i class="fa-solid fa-location-dot"></i> Chưa gán KV</span>`;
     const leaderTag = item.leaderName
-        ? `<span class="team-badge-leader">${escapeHtml(item.leaderName)}</span>`
-        : `<span class="team-badge-members" style="color:var(--crm-muted);">Chưa có Trưởng nhóm</span>`;
-    const memberTag = `<span class="team-badge-members">${item.memberCount || 0} nhân sự</span>`;
-    const statusTag = item.active === false ? `<span class="team-badge-members" style="color:var(--crm-danger);">(Ngừng HĐ)</span>` : "";
+        ? `<span class="team-badge-leader"><i class="fa-solid fa-user-tie"></i> ${escapeHtml(item.leaderName)}</span>`
+        : `<span class="team-badge-no-leader"><i class="fa-solid fa-triangle-exclamation"></i> Chưa có Trưởng nhóm</span>`;
+    const memberTag = `<span class="team-badge-members"><i class="fa-solid fa-user-group"></i> ${item.memberCount || 0} nhân sự</span>`;
+    const statusTag = item.active === false ? `<span class="team-badge-inactive">(Ngừng HĐ)</span>` : "";
 
     row.innerHTML = `
         <button class="org-expand" type="button" data-expand-team="${item.id}" ${children.length ? "" : "disabled"}>
             ${expandChar}
         </button>
-        <div class="org-node-icon" style="background:#e0f2fe; color:#0284c7;">
-            <i class="fa-solid fa-users" style="font-size:14px;"></i>
+        <div class="org-node-icon">
+            <i class="fa-solid fa-users"></i>
         </div>
         <div class="org-node-copy">
             <strong>${escapeHtml(item.name)} ${statusTag}</strong>
@@ -358,8 +358,8 @@ function createOrgNode(item) {
         <button class="org-expand" type="button" data-expand-org="${item.id}" ${children.length ? "" : "disabled"}>
             ${children.length ? (item.expanded === false ? '<i class="fa-solid fa-angle-right"></i>' : '<i class="fa-solid fa-angle-down"></i>') : ""}
         </button>
-        <div class="org-node-icon" style="background:#f1f5f9; color:#475569;">
-            <i class="fa-solid fa-building" style="font-size:14px;"></i>
+        <div class="org-node-icon org-badge-purple">
+            <i class="fa-solid fa-building"></i>
         </div>
         <div class="org-node-copy">
             <strong>${escapeHtml(item.name)}</strong>
@@ -450,16 +450,17 @@ async function renderDetail() {
         detailBadgeType.textContent = "Nhóm kinh doanh đang chọn";
         detailName.textContent = team.name;
         detailType.textContent = team.active !== false ? "Đang hoạt động" : "Ngừng hoạt động";
-        detailType.style.background = team.active !== false ? "#ecfdf5" : "#fef2f2";
-        detailType.style.color = team.active !== false ? "#047857" : "#b91c1c";
+        detailType.style.background = team.active !== false ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)";
+        detailType.style.color = team.active !== false ? "#34d399" : "#f87171";
+        detailType.style.border = team.active !== false ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(239, 68, 68, 0.25)";
 
         rowDetailCode.style.display = "none";
         rowDetailDescription.style.display = "none";
 
         rowDetailRegion.style.display = "block";
         detailRegion.innerHTML = team.regionName
-            ? `<span class="team-badge-region">${escapeHtml(team.regionName)} (${escapeHtml(team.regionCode || "")})</span>`
-            : "<em>Chưa gán khu vực địa lý</em>";
+            ? `<span class="team-badge-region"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(team.regionName)} (${escapeHtml(team.regionCode || "")})</span>`
+            : "<em>Chưa gán khu vực</em>";
 
         labelDetailParent.textContent = "Nhóm cấp trên";
         const parent = teamsList.find(t => Number(t.id) === Number(team.parentId));
@@ -467,7 +468,7 @@ async function renderDetail() {
 
         labelDetailManager.textContent = "Trưởng nhóm kinh doanh";
         detailManager.innerHTML = team.leaderName
-            ? `<strong>${escapeHtml(team.leaderName)}</strong> ${team.leaderEmail ? `<span style="color:var(--crm-muted);">(${escapeHtml(team.leaderEmail)})</span>` : ""}`
+            ? `<strong>${escapeHtml(team.leaderName)}</strong> ${team.leaderEmail ? `<span style="color:var(--crm-muted); font-size:11.5px;">(${escapeHtml(team.leaderEmail)})</span>` : ""}`
             : "<em>Chưa có trưởng nhóm</em>";
 
         rowDetailMembersCount.style.display = "block";
@@ -493,8 +494,9 @@ async function renderDetail() {
         detailBadgeType.textContent = "Đơn vị đang chọn";
         detailName.textContent = org.name;
         detailType.textContent = org.type || "department";
-        detailType.style.background = "#eff6ff";
-        detailType.style.color = "#1d4ed8";
+        detailType.style.background = "rgba(59, 130, 246, 0.15)";
+        detailType.style.color = "#60a5fa";
+        detailType.style.border = "1px solid rgba(59, 130, 246, 0.25)";
 
         rowDetailCode.style.display = "block";
         detailCode.textContent = org.code || "—";
@@ -935,3 +937,11 @@ function closeOrgDrawer() {
     orgOverlay?.classList.remove("open");
     orgDrawer?.classList.remove("open");
 }
+
+// Close floating modals on Escape key
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+        closeTeamDrawer();
+        closeOrgDrawer();
+    }
+});
