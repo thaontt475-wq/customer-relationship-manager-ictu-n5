@@ -75,11 +75,12 @@ public class LeadAutoAssignmentService {
             SalesRepDTO targetRep = null;
             String mechanism = matchedRule.getMechanism() != null ? matchedRule.getMechanism().toUpperCase() : "ROUND_ROBIN";
             int nextIndex = matchedRule.getLastAssignedIndex();
+            int repIndex = 0;
 
             if ("ROUND_ROBIN".equals(mechanism)) {
                 // Round-Robin: pointer increments sequentially through reps list
                 int currentIndex = Math.max(0, matchedRule.getLastAssignedIndex());
-                int repIndex = currentIndex % repIds.size();
+                repIndex = currentIndex % repIds.size();
                 String targetId = repIds.get(repIndex);
                 targetRep = repLookup.get(targetId);
                 nextIndex = repIndex + 1;
@@ -101,6 +102,11 @@ public class LeadAutoAssignmentService {
                 // DEDICATED
                 String targetId = repIds.get(0);
                 targetRep = repLookup.get(targetId);
+            }
+
+            if (targetRep == null && !allReps.isEmpty()) {
+                int fallbackIndex = Math.max(0, repIndex) % allReps.size();
+                targetRep = allReps.get(fallbackIndex);
             }
 
             if (targetRep != null) {
@@ -166,16 +172,24 @@ public class LeadAutoAssignmentService {
         String leadRegion = lead.getRegion() != null ? lead.getRegion().trim() : "";
         String leadRegionCode = lead.getRegionCode() != null ? lead.getRegionCode().trim().toUpperCase() : "";
 
+        String ruleNameLower = rule.getName() != null ? rule.getName().toLowerCase() : "";
+        String leadAllRegion = (leadRegion + " " + leadRegionCode + " "
+                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
+                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
+
         boolean regionMatch = false;
-        if ("NATIONWIDE".equals(ruleRegion) || "ALL".equals(ruleRegion)) {
+        if ("NATIONWIDE".equals(ruleRegion) || "ALL".equals(ruleRegion) || ruleRegion.isEmpty()) {
             regionMatch = true;
-        } else if ("NORTH".equals(ruleRegion) && (leadRegion.toLowerCase().contains("bắc") || "NORTH".equals(leadRegionCode))) {
+        } else if (("NORTH".equals(ruleRegion) || "HANOI".equals(ruleRegion) || "HN".equals(ruleRegion) || ruleRegion.contains("HÀ NỘI") || ruleRegion.contains("BẮC") || ruleNameLower.contains("hà nội") || ruleNameLower.contains("miền bắc"))
+                && (leadAllRegion.contains("bắc") || leadAllRegion.contains("hà nội") || leadAllRegion.contains("hanoi") || leadAllRegion.contains("hn") || leadAllRegion.contains("hải phòng") || "NORTH".equals(leadRegionCode) || "HANOI".equals(leadRegionCode))) {
             regionMatch = true;
-        } else if ("CENTRAL".equals(ruleRegion) && (leadRegion.toLowerCase().contains("trung") || "CENTRAL".equals(leadRegionCode))) {
+        } else if (("CENTRAL".equals(ruleRegion) || ruleRegion.contains("TRUNG") || ruleNameLower.contains("miền trung") || ruleNameLower.contains("đà nẵng"))
+                && (leadAllRegion.contains("trung") || leadAllRegion.contains("đà nẵng") || leadAllRegion.contains("huế") || "CENTRAL".equals(leadRegionCode))) {
             regionMatch = true;
-        } else if ("SOUTH".equals(ruleRegion) && (leadRegion.toLowerCase().contains("nam") || "SOUTH".equals(leadRegionCode))) {
+        } else if (("SOUTH".equals(ruleRegion) || "HCM".equals(ruleRegion) || ruleRegion.contains("NAM") || ruleNameLower.contains("miền nam") || ruleNameLower.contains("hồ chí minh"))
+                && (leadAllRegion.contains("nam") || leadAllRegion.contains("hồ chí minh") || leadAllRegion.contains("hcm") || leadAllRegion.contains("sài gòn") || leadAllRegion.contains("cần thơ") || "SOUTH".equals(leadRegionCode))) {
             regionMatch = true;
-        } else if (ruleRegion.equalsIgnoreCase(leadRegionCode) || ruleRegion.equalsIgnoreCase(leadRegion)) {
+        } else if (ruleRegion.equalsIgnoreCase(leadRegionCode) || ruleRegion.equalsIgnoreCase(leadRegion) || leadAllRegion.contains(ruleRegion.toLowerCase())) {
             regionMatch = true;
         }
 
@@ -186,17 +200,28 @@ public class LeadAutoAssignmentService {
         // Check Industry criteria
         String ruleIndustry = rule.getIndustry() != null ? rule.getIndustry().trim() : "ALL";
         String leadIndustry = lead.getIndustry() != null ? lead.getIndustry().trim() : "";
+        String leadIndLower = leadIndustry.toLowerCase();
+        String ruleIndLower = ruleIndustry.toLowerCase();
+        String leadAllInd = (leadIndustry + " "
+                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
+                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
 
         boolean industryMatch = false;
         if ("ALL".equalsIgnoreCase(ruleIndustry) || ruleIndustry.isEmpty()) {
             industryMatch = true;
+        } else if (("CNTT".equalsIgnoreCase(ruleIndustry) || ruleIndLower.contains("cntt") || ruleIndLower.contains("công nghệ") || ruleIndLower.contains("it") || ruleNameLower.contains("cntt")) && (
+                leadAllInd.contains("cntt") ||
+                leadAllInd.contains("công nghệ thông tin") ||
+                leadAllInd.contains("it") ||
+                leadAllInd.contains("viễn thông") ||
+                leadAllInd.contains("phần mềm") ||
+                leadIndLower.contains("cntt"))) {
+            industryMatch = true;
         } else if (!leadIndustry.isEmpty() &&
-                (leadIndustry.toLowerCase().contains(ruleIndustry.toLowerCase()) ||
-                 ruleIndustry.toLowerCase().contains(leadIndustry.toLowerCase()))) {
+                (leadIndLower.contains(ruleIndLower) ||
+                 ruleIndLower.contains(leadIndLower))) {
             industryMatch = true;
-        } else if (lead.getNotes() != null && lead.getNotes().toLowerCase().contains(ruleIndustry.toLowerCase())) {
-            industryMatch = true;
-        } else if (lead.getCompanyName() != null && lead.getCompanyName().toLowerCase().contains(ruleIndustry.toLowerCase())) {
+        } else if (leadAllInd.contains(ruleIndLower)) {
             industryMatch = true;
         }
 

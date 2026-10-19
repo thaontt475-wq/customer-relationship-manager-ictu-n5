@@ -33,7 +33,7 @@ public class LeadAutoAssignmentScheduler {
         if (isRunning) return;
         isRunning = true;
 
-        // Schedule periodic queue processing every 60 seconds
+        // Schedule periodic queue processing every 15 seconds (well under 5 minutes SLA)
         scheduler.scheduleWithFixedDelay(() -> {
             try {
                 int assignedCount = assignmentService.processPendingQueue();
@@ -43,9 +43,9 @@ public class LeadAutoAssignmentScheduler {
             } catch (Exception e) {
                 System.err.println("[LeadAutoAssignmentWorker] Error during background lead auto assignment: " + e.getMessage());
             }
-        }, 15, 60, TimeUnit.SECONDS);
+        }, 5, 15, TimeUnit.SECONDS);
 
-        System.out.println("[LeadAutoAssignmentScheduler] Background worker started (runs every 60s).");
+        System.out.println("[LeadAutoAssignmentScheduler] Background worker started (runs every 15s).");
     }
 
     public synchronized void stop() {
