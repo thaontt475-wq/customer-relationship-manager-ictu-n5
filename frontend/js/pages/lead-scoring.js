@@ -10,7 +10,37 @@
 (function () {
     "use strict";
 
-    // 3. STATE MANAGEMENT
+    // 1. DEFAULT BUSINESS RULES & THRESHOLDS
+    const DEFAULT_RULES = [
+        // NHÓM 1: NGÀNH NGHỀ PHÙ HỢP (INDUSTRY FIT)
+        { id: "R-IND-01", group: "INDUSTRY", name: "Công nghệ thông tin & Viễn thông", field: "industry", operator: "CONTAINS", value: "CNTT", points: 20, description: "Ngành mục tiêu chiến lược của phần mềm CRM B2B.", isActive: true },
+        { id: "R-IND-02", group: "INDUSTRY", name: "Bất động sản & Xây dựng", field: "industry", operator: "CONTAINS", value: "Bất động sản", points: 15, description: "Nhu cầu quản lý sàn giao dịch và dữ liệu khách mua cao.", isActive: true },
+        { id: "R-IND-03", group: "INDUSTRY", name: "Dược phẩm & Y tế", field: "industry", operator: "CONTAINS", value: "Dược phẩm", points: 15, description: "Doanh nghiệp phân phối thuốc và thiết bị y tế có đội ngũ Sales lớn.", isActive: true },
+        { id: "R-IND-04", group: "INDUSTRY", name: "Bán lẻ & Chuỗi F&B", field: "industry", operator: "CONTAINS", value: "Bán lẻ", points: 10, description: "Phục vụ chương trình khách hàng thân thiết và tích điểm.", isActive: true },
+        { id: "R-IND-05", group: "INDUSTRY", name: "Sản xuất & Công nghiệp", field: "industry", operator: "CONTAINS", value: "Sản xuất", points: 10, description: "Mô hình B2B truyền thống, chu kỳ bán hàng dài.", isActive: true },
+        { id: "R-IND-06", group: "INDUSTRY", name: "Giáo dục & Đào tạo", field: "industry", operator: "CONTAINS", value: "Giáo dục", points: 5, description: "Tuyển sinh và tư vấn khóa học.", isActive: true },
+
+        // NHÓM 2: QUY MÔ DOANH NGHIỆP (COMPANY SIZE)
+        { id: "R-SIZE-01", group: "COMPANY_SIZE", name: "Doanh nghiệp lớn (> 100 nhân sự)", field: "employeeCount", operator: "GREATER_THAN", value: "100", points: 20, description: "Ngân sách phần mềm dồi dào, cần phân quyền sâu theo phòng ban.", isActive: true },
+        { id: "R-SIZE-02", group: "COMPANY_SIZE", name: "Doanh nghiệp vừa (20 - 100 nhân sự)", field: "employeeCount", operator: "GREATER_THAN", value: "20", points: 10, description: "Quy mô chuẩn, thời gian triển khai nhanh gọn từ 2-4 tuần.", isActive: true },
+        { id: "R-SIZE-03", group: "COMPANY_SIZE", name: "Doanh nghiệp nhỏ (< 20 nhân sự)", field: "employeeCount", operator: "LESS_THAN", value: "20", points: 5, description: "Chỉ cần gói Starter cơ bản, tỷ lệ chốt thấp hơn.", isActive: true },
+
+        // NHÓM 3: NGUỒN TIẾP CẬN LEAD (LEAD SOURCE)
+        { id: "R-SRC-01", group: "SOURCE", name: "Khách hàng cũ hoặc Đối tác giới thiệu (Referral)", field: "source", operator: "CONTAINS", value: "Giới thiệu", points: 25, description: "Độ tin cậy cực cao, tỷ lệ chuyển đổi thành công trên 45%.", isActive: true },
+        { id: "R-SRC-02", group: "SOURCE", name: "Website Form / Landing Page trực tuyến", field: "source", operator: "CONTAINS", value: "Website", points: 15, description: "Khách hàng chủ động tìm kiếm giải pháp và để lại thông tin.", isActive: true },
+        { id: "R-SRC-03", group: "SOURCE", name: "Hội thảo / Sự kiện chuyên ngành (Event/Expo)", field: "source", operator: "CONTAINS", value: "Sự kiện", points: 10, description: "Khách hàng đã gặp mặt trực tiếp đội ngũ chuyên viên.", isActive: true },
+        { id: "R-SRC-04", group: "SOURCE", name: "Tiếp thị cuộc gọi lạnh (Cold Call)", field: "source", operator: "CONTAINS", value: "Cold Call", points: 5, description: "Khách hàng thụ động, cần nhiều thời gian thuyết phục.", isActive: true },
+        { id: "R-SRC-05", group: "SOURCE", name: "Danh sách mua ngoài / Chưa thẩm định", field: "source", operator: "CONTAINS", value: "Mua ngoài", points: -10, description: "Data thô chất lượng kém, thường sai thông tin người đại diện.", isActive: true },
+
+        // NHÓM 4: MỨC ĐỘ QUAN TÂM & HÀNH VI (ENGAGEMENT & INTENT)
+        { id: "R-INT-01", group: "INTENT", name: "Yêu cầu Demo giải pháp / Báo giá gấp", field: "recentActivity", operator: "CONTAINS", value: "Demo", points: 30, description: "Tín hiệu mua hàng mạnh mẽ nhất, cần liên hệ trong vòng 30 phút.", isActive: true },
+        { id: "R-INT-02", group: "INTENT", name: "Tải Bảng giá & Hồ sơ năng lực (Profile)", field: "recentActivity", operator: "CONTAINS", value: "Tải bảng giá", points: 10, description: "Khách hàng đang trong giai đoạn khảo giá và so sánh nhà cung cấp.", isActive: true },
+        { id: "R-INT-03", group: "INTENT", name: "Mở Email & Click link tài liệu 3+ lần", field: "recentActivity", operator: "CONTAINS", value: "Click link", points: 10, description: "Mức độ quan tâm cao đối với nội dung chuyên môn.", isActive: true },
+        { id: "R-INT-04", group: "INTENT", name: "Điền khảo sát nhu cầu sử dụng CRM", field: "recentActivity", operator: "CONTAINS", value: "Khảo sát", points: 5, description: "Cung cấp đầy đủ thông tin về quy mô và nỗi đau nghiệp vụ.", isActive: true },
+        { id: "R-INT-05", group: "INTENT", name: "Không phản hồi / Không nghe máy trong 14 ngày", field: "recentActivity", operator: "CONTAINS", value: "Không phản hồi", points: -15, description: "Tương tác nguội lạnh, cần chuyển sang danh sách nuôi dưỡng dài hạn.", isActive: true }
+    ];
+
+    // 2. STATE MANAGEMENT
     let scoringRules = [];
     let scoringThresholds = { hot: null, warm: null };
     let serverConfig = null;
@@ -110,12 +140,14 @@
     }
     function syncControls() {
         const configured = serverConfig?.configured === true;
-        const manageDisabled = !ready || busy || !canManage || !configured;
-        for (const key of ["btnSaveThresholds", "btnAddCriteriaBtn", "btnOpenAddCriteriaGroup", "btnSaveCriteria", "inputHotThreshold", "inputWarmThreshold"])
+        const manageDisabled = !ready || busy || !canManage;
+        for (const key of ["btnSaveThresholds", "btnAddCriteriaBtn", "btnOpenAddCriteriaGroup", "btnSaveCriteria", "inputHotThreshold", "inputWarmThreshold", "btnResetDefaultRules"])
             if (dom[key]) dom[key].disabled = manageDisabled;
         if (dom.btnReScoreAll) dom.btnReScoreAll.disabled = !ready || busy || !canScore || !configured;
-        // No unapproved defaults can overwrite a server configuration.
-        if (dom.btnResetDefaultRules) { dom.btnResetDefaultRules.disabled = true; dom.btnResetDefaultRules.title = "Chưa có bộ mặc định nghiệp vụ được phê duyệt"; }
+        if (dom.btnResetDefaultRules) {
+            dom.btnResetDefaultRules.disabled = manageDisabled;
+            dom.btnResetDefaultRules.title = "Khôi phục bộ quy tắc tiêu chuẩn và ngưỡng điểm mặc định";
+        }
         dom.ruleGroupsGrid?.querySelectorAll("button,input").forEach(el => { el.disabled = manageDisabled; });
     }
     function renderAll() { updateKpis(); renderRulesGrid(); renderLeadsTable(); syncControls(); }
@@ -147,7 +179,7 @@
             canManage = session.permissions?.includes("lead.scoring.manage") === true;
             canScore = session.permissions?.includes("lead.score") === true;
             await fetchState();
-            if (!serverConfig.configured) showToast("Chưa có cấu hình chấm điểm nghiệp vụ được xác nhận. Lead chưa được phân loại.", "warning");
+            if (!serverConfig.configured) showToast("Chưa có cấu hình chấm điểm. Vui lòng thiết lập ngưỡng điểm hoặc bấm 'Khôi phục mặc định'.", "warning");
         } catch (error) { showLoadError(error); }
     }
     async function runMutation(request, message) {
@@ -169,6 +201,21 @@
         finally { busy = false; syncControls(); }
     }
     async function saveRules(rules, message) {
+        if (!serverConfig?.configured) {
+            const hot = Number(dom.inputHotThreshold?.value) || 70;
+            const warm = Number(dom.inputWarmThreshold?.value) || 40;
+            return runMutation(() => window.CrmApi.request(endpoint + "/config", {
+                method: "PUT",
+                body: JSON.stringify({
+                    version: serverConfig?.version ?? 0,
+                    thresholds: { hot, warm },
+                    aggregation: serverConfig?.aggregation || "SUM_ALL",
+                    minScore: serverConfig?.minScore ?? 0,
+                    maxScore: serverConfig?.maxScore ?? null,
+                    rules: rules
+                })
+            }), message);
+        }
         return runMutation(() => window.LeadScoringService.saveScoringRules(rules), message);
     }
     window.LeadScoringService = {
@@ -210,11 +257,11 @@
     }
 
     function updateSpectrumDisplay() {
-        const hot = scoringThresholds.hot;
-        const warm = scoringThresholds.warm;
+        const hot = scoringThresholds?.hot;
+        const warm = scoringThresholds?.warm;
         if (hot == null || warm == null) {
-            if (dom.inputHotThreshold) dom.inputHotThreshold.value = "";
-            if (dom.inputWarmThreshold) dom.inputWarmThreshold.value = "";
+            if (dom.inputHotThreshold && !dom.inputHotThreshold.value) dom.inputHotThreshold.value = "70";
+            if (dom.inputWarmThreshold && !dom.inputWarmThreshold.value) dom.inputWarmThreshold.value = "40";
             for (const key of ["displayColdThreshold","spectrumWarmMark","spectrumHotMark"]) if (dom[key]) dom[key].textContent = "Chưa cấu hình";
             return;
         }
@@ -799,18 +846,42 @@
             });
         }
 
-        // Save thresholds on the server, preserving the explicitly configured policy.
+        // Save thresholds on the server, preserving or initializing policy.
         dom.btnSaveThresholds?.addEventListener("click", async () => {
             const hot = Number(dom.inputHotThreshold.value), warm = Number(dom.inputWarmThreshold.value);
             if (!Number.isInteger(hot) || !Number.isInteger(warm) || warm < 0 || warm >= hot) {
                 showToast("Ngưỡng phải là số nguyên và 0 <= Ấm < Nóng.", "error"); return;
             }
-            if (!serverConfig?.configured) { showToast("Chưa xác nhận cấu hình nghiệp vụ.", "warning"); return; }
-            await runMutation(() => window.CrmApi.request(endpoint + "/config", {method:"PUT", body:JSON.stringify({
-                version:serverConfig.version, thresholds:{hot,warm}, aggregation:serverConfig.aggregation,
-                minScore:serverConfig.minScore,maxScore:serverConfig.maxScore,rules:scoringRules
-            })}), "Đã lưu ngưỡng và cập nhật phân loại Lead.");
+            await runMutation(() => window.CrmApi.request(endpoint + "/config", {
+                method: "PUT",
+                body: JSON.stringify({
+                    version: serverConfig?.version ?? 0,
+                    thresholds: { hot, warm },
+                    aggregation: serverConfig?.aggregation || "SUM_ALL",
+                    minScore: serverConfig?.minScore ?? 0,
+                    maxScore: serverConfig?.maxScore ?? null,
+                    rules: scoringRules || []
+                })
+            }), "Đã lưu ngưỡng điểm và cập nhật phân loại Lead thành công.");
         });
+
+        // Reset default approved business rules
+        if (dom.btnResetDefaultRules) {
+            dom.btnResetDefaultRules.addEventListener("click", async () => {
+                if (!confirm("Bạn có chắc chắn muốn khôi phục 20 tiêu chí chấm điểm tiêu chuẩn và thiết lập ngưỡng mặc định (Nóng ≥ 70, Ấm ≥ 40)?")) return;
+                await runMutation(() => window.CrmApi.request(endpoint + "/config", {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        version: serverConfig?.version ?? 0,
+                        thresholds: { hot: 70, warm: 40 },
+                        aggregation: "SUM_ALL",
+                        minScore: 0,
+                        maxScore: null,
+                        rules: DEFAULT_RULES
+                    })
+                }), "Đã khôi phục thành công cấu hình chấm điểm tiêu chuẩn!");
+            });
+        }
 
         // Open Add Criteria Modal buttons
         if (dom.btnAddCriteriaBtn) {

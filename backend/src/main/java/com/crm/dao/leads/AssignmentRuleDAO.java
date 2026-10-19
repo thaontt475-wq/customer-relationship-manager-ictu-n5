@@ -208,16 +208,27 @@ public class AssignmentRuleDAO {
     public void batchSaveOrUpdate(List<AssignmentRule> rules) {
         if (rules == null || rules.isEmpty()) return;
 
+        List<Long> keptIds = new ArrayList<>();
         for (AssignmentRule rule : rules) {
             if (rule.getId() != null && rule.getId() > 0) {
                 AssignmentRule existing = findById(rule.getId());
                 if (existing != null) {
                     update(rule);
+                    keptIds.add(rule.getId());
                 } else {
-                    insert(rule);
+                    long newId = insert(rule);
+                    if (newId > 0) keptIds.add(newId);
                 }
             } else {
-                insert(rule);
+                long newId = insert(rule);
+                if (newId > 0) keptIds.add(newId);
+            }
+        }
+
+        List<AssignmentRule> allInDb = findAllOrderedByPriority();
+        for (AssignmentRule r : allInDb) {
+            if (r.getId() != null && !keptIds.contains(r.getId())) {
+                delete(r.getId());
             }
         }
     }

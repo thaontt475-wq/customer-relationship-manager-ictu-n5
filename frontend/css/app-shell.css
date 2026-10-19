@@ -2677,4 +2677,135 @@ html[data-theme="dark"] .custom-field-row strong {
     color: #f8fafc !important;
 }
 
+/* ===================================================================
+   GLOBAL TOAST NOTIFICATION SYSTEM (TOP-RIGHT)
+   =================================================================== */
+#leadDupToastContainer,
+#leadToastContainer,
+#leadManualToastContainer,
+#leadScoringToastContainer,
+.lead-dup-toast-container,
+.lead-toast-container,
+.scoring-toast-container {
+    position: fixed !important;
+    top: 76px !important;
+    bottom: auto !important;
+    right: 24px !important;
+    left: auto !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    max-width: 460px !important;
+    width: calc(100vw - 48px) !important;
+    pointer-events: none !important;
+}
+
+.crm-lead-toast,
+.lead-toast,
+.scoring-toast {
+    pointer-events: auto !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 14px 18px !important;
+    border-radius: 12px !important;
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
+    box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    animation: crmToastSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    border-left: 4px solid #3b82f6 !important;
+}
+
+html[data-theme="light"] .crm-lead-toast,
+html[data-theme="light"] .lead-toast {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+}
+
+.crm-lead-toast i,
+.lead-toast i {
+    font-size: 18px !important;
+    margin-top: 1px !important;
+    flex-shrink: 0 !important;
+}
+
+.crm-lead-toast.success,
+.lead-toast.success {
+    border-left-color: #10b981 !important;
+}
+.crm-lead-toast.success i,
+.lead-toast.success i {
+    color: #10b981 !important;
+}
+
+.crm-lead-toast.danger,
+.crm-lead-toast.error,
+.lead-toast.danger,
+.lead-toast.error {
+    border-left-color: #ef4444 !important;
+}
+.crm-lead-toast.danger i,
+.crm-lead-toast.error i,
+.lead-toast.danger i,
+.lead-toast.error i {
+    color: #ef4444 !important;
+}
+
+.crm-lead-toast.warning,
+.lead-toast.warning {
+    border-left-color: #f59e0b !important;
+}
+.crm-lead-toast.warning i,
+.lead-toast.warning i {
+    color: #f59e0b !important;
+}
+
+.crm-lead-toast.info,
+.lead-toast.info {
+    border-left-color: #3b82f6 !important;
+}
+.crm-lead-toast.info i,
+.lead-toast.info i {
+    color: #3b82f6 !important;
+}
+
+@keyframes crmToastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+}
+
+
 
