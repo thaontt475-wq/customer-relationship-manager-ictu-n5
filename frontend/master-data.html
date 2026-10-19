@@ -1,370 +1,361 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+    </script>
 
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh mục dùng chung | Corporate CRM</title>
 
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
+    <!-- Google Fonts & Icon Libraries -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>Danh mục dùng chung</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Design System & Page Styles -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/master-data.css?v=20261014_dark2">
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
+    <link rel="stylesheet" href="css/pages/master-data.css?v=20261018_v1">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
-
-<aside class="crm-sidebar">
-
-    <div class="crm-brand">
-        <div class="crm-brand-mark">C</div>
-        <span class="crm-brand-name">Corporate CRM</span>
-    </div>
-
-    <nav class="crm-nav">
-
-        <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Cơ cấu tổ chức</span>
-        </a>
-
-        <a href="master-data.html" class="crm-nav-item active">
-            <span class="crm-nav-icon"><i class="fa-solid fa-list-check"></i></span>
-            <span class="crm-nav-label">Danh mục dùng chung</span>
-        </a>
-
-        <a href="custom-fields.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-sliders"></i></span>
-            <span class="crm-nav-label">Trường tùy chỉnh</span>
-        </a>
-
-        <a href="win-loss-settings.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-trophy"></i></span>
-            <span class="crm-nav-label">Win / Loss</span>
-        </a>
-
-    </nav>
-
-    
-
-</aside>
-
-
-<header class="crm-topbar">
-
-    <div class="crm-search">
-
-        <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="m20 20-4-4"/>
-        </svg>
-
-        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
-        <kbd>Ctrl K</kbd>
-
-    </div>
-
-</header>
-
-
-<main class="crm-main master-page">
-
-    <section class="master-head">
-
-        <div>
-
-            <p>
-                Cấu hình / Danh mục
-            </p>
-
-            <h1>
-                Danh mục dùng chung
-            </h1>
-
-            <span>
-                Quản lý các lựa chọn dùng lại trong toàn bộ CRM.
-            </span>
-
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
+        <div class="crm-brand">
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="crm-brand-name">Corporate CRM</span>
         </div>
 
+        <nav id="desktopNavigation" class="crm-nav">
+            <!-- Populated dynamically by shared-shell.js -->
+        </nav>
+    </aside>
 
-        <button
-            id="addMasterItem"
-            class="crm-btn crm-btn-primary"
-            type="button"
-        >
-            + Thêm giá trị
-        </button>
+    <!-- TOPBAR -->
+    <header class="crm-topbar">
+        <div class="crm-search">
+            <i class="fa-solid fa-magnifying-glass" style="color: #64748b; margin-right: 8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
+            <kbd>Ctrl K</kbd>
+        </div>
 
-    </section>
-
-
-    <section class="master-layout">
-
-        <aside class="crm-card master-categories">
-
-            <button
-                class="category-button active"
-                data-category="industry"
-                type="button"
-            >
-                Ngành nghề
+        <div class="crm-topbar-actions">
+            <button class="crm-icon-btn" type="button" title="Cài đặt">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button class="crm-icon-btn" type="button" title="Thông báo">
+                <i class="fa-solid fa-bell"></i>
             </button>
 
-            <button
-                class="category-button"
-                data-category="lead-source"
-                type="button"
-            >
-                Nguồn Lead
-            </button>
+            <div class="crm-profile-pill">
+                <span class="crm-avatar" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">NT</span>
+                <div class="crm-profile-text">
+                    <strong>Nông Quang Tiệp</strong>
+                    <small>Quản trị viên, Quản lý, Bán hàng</small>
+                </div>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: #64748b;"></i>
+            </div>
+        </div>
+    </header>
 
-            <button
-                class="category-button"
-                data-category="activity-type"
-                type="button"
-            >
-                Loại hoạt động
-            </button>
+    <!-- MAIN PAGE CONTENT -->
+    <main class="crm-main master-page">
 
-            <button
-                class="category-button"
-                data-category="company-size"
-                type="button"
-            >
-                Quy mô doanh nghiệp
-            </button>
+        <!-- 1. PAGE HEADER -->
+        <section class="master-head">
+            <div>
+                <p class="master-kicker">
+                    <i class="fa-solid fa-gear"></i> Cấu hình hệ thống &nbsp;/&nbsp; <i class="fa-solid fa-layer-group"></i> Danh mục phân loại
+                </p>
+                <h1>
+                    <i class="fa-solid fa-list-check" style="color: #38bdf8;"></i> Danh Mục Dùng Chung
+                    <span class="master-badge-live"><span class="master-pulse-dot"></span> Master Data</span>
+                </h1>
+                <p class="master-desc">
+                    Quản lý và chuẩn hóa các giá trị dùng chung trong toàn bộ hệ thống CRM (Ngành nghề, Nguồn Lead, Hoạt động, Quy mô, Khu vực).
+                </p>
+            </div>
 
-            <button
-                class="category-button"
-                data-category="region"
-                type="button"
-            >
-                Khu vực địa lý
-            </button>
+            <div class="master-head-actions">
+                <button id="btnRefreshMaster" class="crm-btn crm-btn-secondary" type="button" title="Tải lại dữ liệu danh mục">
+                    <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                </button>
+                <button id="addMasterItem" class="crm-btn crm-btn-primary" type="button">
+                    <i class="fa-solid fa-plus"></i> Thêm giá trị
+                </button>
+            </div>
+        </section>
 
-        </aside>
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="master-kpi-grid">
+            <div class="master-kpi-card">
+                <div class="master-kpi-icon blue">
+                    <i class="fa-solid fa-folder-tree"></i>
+                </div>
+                <div class="master-kpi-info">
+                    <span id="kpiTotalCategories" class="master-kpi-val">5</span>
+                    <span class="master-kpi-label">Phân loại hệ thống</span>
+                </div>
+            </div>
 
+            <div class="master-kpi-card">
+                <div class="master-kpi-icon indigo">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </div>
+                <div class="master-kpi-info">
+                    <span id="kpiCategoryTotal" class="master-kpi-val">0</span>
+                    <span id="kpiCategoryLabel" class="master-kpi-label">Giá trị danh mục</span>
+                </div>
+            </div>
 
-        <section class="crm-card master-values">
+            <div class="master-kpi-card">
+                <div class="master-kpi-icon green">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="master-kpi-info">
+                    <span id="kpiActiveTotal" class="master-kpi-val">0</span>
+                    <span class="master-kpi-label">Đang sử dụng</span>
+                </div>
+            </div>
 
-            <header>
+            <div class="master-kpi-card">
+                <div class="master-kpi-icon amber">
+                    <i class="fa-solid fa-circle-pause"></i>
+                </div>
+                <div class="master-kpi-info">
+                    <span id="kpiInactiveTotal" class="master-kpi-val">0</span>
+                    <span class="master-kpi-label">Ngừng sử dụng</span>
+                </div>
+            </div>
+        </section>
 
-                <div>
-                    <h2 id="categoryTitle">
-                        Ngành nghề
-                    </h2>
+        <!-- 3. MAIN WORKSPACE (2 COLUMNS) -->
+        <section class="master-layout">
 
-                    <p>
-                        Có thể thêm, sửa, ngừng sử dụng hoặc thay đổi thứ tự.
-                    </p>
+            <!-- LEFT ASIDE: CATEGORIES -->
+            <aside class="master-categories-card">
+                <div class="categories-header">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>DANH MỤC PHÂN LOẠI</span>
                 </div>
 
-                <button
-                    id="addMasterItem"
-                    class="crm-btn crm-btn-primary"
-                    type="button"
-                >
-                    + Thêm giá trị
-                </button>
+                <div class="categories-list">
+                    <button class="category-button active" data-category="industry" type="button">
+                        <div class="cat-btn-left">
+                            <span class="cat-btn-icon"><i class="fa-solid fa-industry"></i></span>
+                            <span>Ngành nghề</span>
+                        </div>
+                        <span class="cat-count-badge" id="count-industry">0</span>
+                    </button>
 
-            </header>
+                    <button class="category-button" data-category="lead-source" type="button">
+                        <div class="cat-btn-left">
+                            <span class="cat-btn-icon"><i class="fa-solid fa-bullseye"></i></span>
+                            <span>Nguồn Lead</span>
+                        </div>
+                        <span class="cat-count-badge" id="count-lead-source">0</span>
+                    </button>
 
+                    <button class="category-button" data-category="activity-type" type="button">
+                        <div class="cat-btn-left">
+                            <span class="cat-btn-icon"><i class="fa-solid fa-calendar-check"></i></span>
+                            <span>Loại hoạt động</span>
+                        </div>
+                        <span class="cat-count-badge" id="count-activity-type">0</span>
+                    </button>
 
-            <div
-                id="masterList"
-                class="master-list"
-            ></div>
+                    <button class="category-button" data-category="company-size" type="button">
+                        <div class="cat-btn-left">
+                            <span class="cat-btn-icon"><i class="fa-solid fa-users"></i></span>
+                            <span>Quy mô doanh nghiệp</span>
+                        </div>
+                        <span class="cat-count-badge" id="count-company-size">0</span>
+                    </button>
 
+                    <button class="category-button" data-category="region" type="button">
+                        <div class="cat-btn-left">
+                            <span class="cat-btn-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+                            <span>Khu vực địa lý</span>
+                        </div>
+                        <span class="cat-count-badge" id="count-region">0</span>
+                    </button>
+                </div>
+            </aside>
 
-            <div
-                id="masterEmpty"
-                class="master-empty"
-            >
-                Chưa có giá trị trong danh mục này.
-            </div>
+            <!-- RIGHT MAIN: VALUES CARD -->
+            <section class="master-values">
+
+                <!-- CARD HEADER -->
+                <header class="values-card-header">
+                    <div class="values-header-info">
+                        <div id="categoryIconBadge" class="values-badge-icon">
+                            <i class="fa-solid fa-industry"></i>
+                        </div>
+                        <div>
+                            <h2 id="categoryTitle">Ngành nghề</h2>
+                            <p id="categoryDesc">Quản lý các giá trị phân loại ngành nghề phục vụ quản lý hồ sơ khách hàng và cơ hội bán hàng.</p>
+                        </div>
+                    </div>
+
+                    <button id="addMasterItemTable" class="crm-btn crm-btn-primary" type="button">
+                        <i class="fa-solid fa-plus"></i> Thêm giá trị
+                    </button>
+                </header>
+
+                <!-- TOOLBAR (SEARCH & FILTER) -->
+                <div class="values-toolbar">
+                    <div class="toolbar-filters">
+                        <div class="search-input-wrap">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input id="masterSearchInput" type="text" placeholder="Tìm theo mã hoặc tên giá trị...">
+                            <button id="clearSearchBtn" class="clear-search-btn" type="button" title="Xóa tìm kiếm">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+
+                        <select id="masterStatusFilter" class="filter-select">
+                            <option value="ALL">Tất cả trạng thái</option>
+                            <option value="active">Đang sử dụng</option>
+                            <option value="inactive">Ngừng sử dụng</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- TABLE HEADER -->
+                <div class="master-table-head">
+                    <span>Thứ tự</span>
+                    <span>Mã danh mục</span>
+                    <span>Tên hiển thị</span>
+                    <span>Trạng thái</span>
+                    <span>Thao tác</span>
+                </div>
+
+                <!-- LIST ITEMS CONTAINER -->
+                <div id="masterList" class="master-list"></div>
+
+                <!-- EMPTY STATE -->
+                <div id="masterEmpty" class="master-empty" style="display: none;">
+                    <div class="master-empty-icon">
+                        <i class="fa-solid fa-inbox"></i>
+                    </div>
+                    <p>Chưa có giá trị nào trong danh mục này</p>
+                    <span>Nhấn nút "+ Thêm giá trị" bên trên để tạo mục đầu tiên.</span>
+                </div>
+
+            </section>
 
         </section>
 
-    </section>
+    </main>
 
-</main>
+    <!-- FLOATING MODAL DIALOG (CỬA SỔ NỔI) -->
+    <div id="masterOverlay" class="master-overlay"></div>
 
-<header class="crm-mobile-header"></header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
-
-
-<!-- MASTER DRAWER -->
-
-<div
-    id="masterOverlay"
-    class="master-overlay"
-></div>
-
-
-<aside
-    id="masterDrawer"
-    class="master-drawer"
->
-
-    <header>
-
-        <div>
-            <strong id="masterDrawerTitle">
-                Thêm giá trị
-            </strong>
-
-            <span id="masterDrawerCategory">
-                —
-            </span>
-        </div>
-
-        <button
-            id="closeMasterDrawer"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
-        </button>
-
-    </header>
-
-
-    <form id="masterForm">
-
-        <input
-            id="editingMasterId"
-            type="hidden"
-        >
-
-
-        <label>
-            Mã
-            <em>*</em>
-
-            <input
-                id="masterCode"
-                class="crm-input"
-                type="text"
-            >
-        </label>
-
-
-        <label>
-            Tên hiển thị
-            <em>*</em>
-
-            <input
-                id="masterName"
-                class="crm-input"
-                type="text"
-            >
-        </label>
-
-
-        <label>
-            Trạng thái
-
-            <select
-                id="masterStatus"
-                class="crm-input"
-            >
-                <option value="active">
-                    Đang sử dụng
-                </option>
-
-                <option value="inactive">
-                    Ngừng sử dụng
-                </option>
-            </select>
-        </label>
-
-
-        <div
-            id="masterError"
-            class="master-error"
-        ></div>
-
-
-        <footer>
-
-            <button
-                id="cancelMaster"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Hủy
+    <aside id="masterDrawer" class="master-modal" role="dialog" aria-modal="true">
+        <header class="modal-header">
+            <div class="modal-header-info">
+                <div class="modal-badge-icon">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h3 id="masterDrawerTitle">Thêm giá trị</h3>
+                    <span id="masterDrawerCategory" class="modal-subtitle">—</span>
+                </div>
+            </div>
+            <button id="closeMasterDrawer" class="modal-close-btn" type="button" title="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </header>
 
-            <button
-                class="crm-btn crm-btn-primary"
-                type="submit"
-            >
-                Lưu
-            </button>
+        <form id="masterForm" class="modal-form">
+            <input id="editingMasterId" type="hidden">
 
-        </footer>
+            <div class="category-badge-chip">
+                <i class="fa-solid fa-folder-open"></i>
+                <span>Phân loại: <strong id="modalCategoryBadge">Ngành nghề</strong></span>
+            </div>
 
-    </form>
+            <!-- CODE -->
+            <div class="form-group">
+                <label for="masterCode" class="form-label">
+                    Mã danh mục (Code) <span class="req-star">*</span>
+                </label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-code"></i>
+                    <input id="masterCode" class="crm-input" type="text" placeholder="VD: CNTT, RETAIL, FNB..." required autocomplete="off">
+                </div>
+                <small class="field-hint">Mã định danh duy nhất (chữ in hoa, số, dấu gạch dưới). Không thể trùng lặp trong cùng phân loại.</small>
+            </div>
 
-</aside>
+            <!-- NAME -->
+            <div class="form-group">
+                <label for="masterName" class="form-label">
+                    Tên hiển thị <span class="req-star">*</span>
+                </label>
+                <div class="input-with-icon">
+                    <i class="fa-solid fa-tag"></i>
+                    <input id="masterName" class="crm-input" type="text" placeholder="VD: Công nghệ thông tin..." required autocomplete="off">
+                </div>
+                <small class="field-hint">Tên hiển thị cho người dùng trên các biểu mẫu và bộ lọc hệ thống.</small>
+            </div>
 
+            <!-- STATUS TOGGLE SWITCH -->
+            <div class="form-group">
+                <label class="form-label">Trạng thái sử dụng</label>
+                <label class="switch-toggle-card">
+                    <input id="masterStatusSwitch" type="checkbox" checked>
+                    <span class="switch-slider"></span>
+                    <div class="switch-info">
+                        <strong>Kích hoạt sử dụng</strong>
+                        <small>Cho phép chọn giá trị này khi tạo hoặc cập nhật bản ghi dữ liệu.</small>
+                    </div>
+                </label>
+                <!-- Hidden input for backward compatibility -->
+                <select id="masterStatus" style="display: none;">
+                    <option value="active">Đang sử dụng</option>
+                    <option value="inactive">Ngừng sử dụng</option>
+                </select>
+            </div>
 
+            <div id="masterError" class="master-error"></div>
 
+            <footer class="modal-footer">
+                <button id="cancelMaster" class="crm-btn crm-btn-secondary" type="button">
+                    Hủy bỏ
+                </button>
+                <button class="crm-btn crm-btn-primary" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu giá trị
+                </button>
+            </footer>
+        </form>
+    </aside>
 
+    <!-- FLOATING TOAST -->
+    <div id="masterToast" class="master-toast">
+        <i class="fa-solid fa-circle-check" style="color: #38bdf8;"></i>
+        <span id="toastMessage">Thông báo</span>
+    </div>
 
-<script src="js/pages/master-data.js"></script>
-
-<script src="js/page-transition.js"></script>
-
-
-
-
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/pages/master-data.js?v=20261018_v1"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
 </body>
 </html>

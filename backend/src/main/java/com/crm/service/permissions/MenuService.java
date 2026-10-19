@@ -115,6 +115,20 @@ public class MenuService {
         }
 
 
+        if (permissions.contains("contract.read")) {
+
+            menu.add(
+                    item(
+                            "CONTRACTS",
+                            "Hợp đồng",
+                            "contracts.html",
+                            "workspace",
+                            "contract"
+                    )
+            );
+        }
+
+
         if (permissions.contains("product.read")) {
 
             menu.add(
@@ -159,6 +173,20 @@ public class MenuService {
                     )
             );
         }
+
+        if (permissions.contains("user.import") || permissions.contains("user.read")) {
+
+            menu.add(
+                    item(
+                            "EXCEL_TEMPLATES",
+                            "Mẫu Excel & Báo cáo",
+                            "excel-templates.html",
+                            "admin",
+                            "import"
+                    )
+            );
+        }
+
 
 
         if (permissions.contains("audit.read")) {

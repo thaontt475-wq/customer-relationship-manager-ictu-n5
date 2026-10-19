@@ -209,13 +209,38 @@
     }
 
     // 4. DATA LOAD & PERSISTENCE
-    function loadData() {
+    async function loadData() {
         try {
-            const raw = localStorage.getItem(STORAGE_KEY_ASSIGNED_LEADS);
-            if (raw) {
-                myAssignedLeads = JSON.parse(raw);
+            if (window.CrmApi) {
+                const data = await window.LeadSlaService.getMyAssignedLeads();
+                if (data && Array.isArray(data) && data.length > 0) {
+                    myAssignedLeads = data;
+                } else {
+                    const raw = localStorage.getItem(STORAGE_KEY_ASSIGNED_LEADS);
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            myAssignedLeads = (parsed && parsed.length > 0) ? parsed : [...DEFAULT_ASSIGNED_LEADS];
+                        } catch (_) {
+                            myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                        }
+                    } else {
+                        myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                    }
+                    saveLeads();
+                }
             } else {
-                myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                const raw = localStorage.getItem(STORAGE_KEY_ASSIGNED_LEADS);
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(raw);
+                        myAssignedLeads = (parsed && parsed.length > 0) ? parsed : [...DEFAULT_ASSIGNED_LEADS];
+                    } catch (_) {
+                        myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                    }
+                } else {
+                    myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                }
                 saveLeads();
             }
         } catch (_) {
@@ -239,7 +264,7 @@
             try {
                 if (window.CrmApi) {
                     const data = await window.CrmApi.request("/api/leads/my-assigned");
-                    if (data && Array.isArray(data)) {
+                    if (data && Array.isArray(data) && data.length > 0) {
                         myAssignedLeads = data;
                         saveLeads();
                         return data;
@@ -625,7 +650,7 @@
         const reasonFilter = dom.filterRejectReason ? dom.filterRejectReason.value : "ALL";
 
         const filtered = myAssignedLeads.filter(l => {
-            if (l.status !== "REJECTED") return false;
+            if (l.status !== "REJECTED" && !l.rejectedAt) return false;
             if (reasonFilter !== "ALL" && l.rejectReason !== reasonFilter) return false;
 
             if (query) {
@@ -695,7 +720,7 @@
 
     // 10. ACCEPT LEAD LOGIC
     async function handleAcceptLead(leadId) {
-        const lead = myAssignedLeads.find(l => l.id === leadId);
+        const lead = myAssignedLeads.find(l => String(l.id) === String(leadId));
         if (!lead) return;
 
         const sla = getSlaState(lead);
@@ -755,7 +780,7 @@
 
     // 11. REJECT LEAD MODAL & RETURN TO QUEUE
     function openRejectModal(leadId) {
-        const lead = myAssignedLeads.find(l => l.id === leadId);
+        const lead = myAssignedLeads.find(l => String(l.id) === String(leadId));
         if (!lead || !dom.rejectModal) return;
 
         currentRejectLead = lead;
@@ -802,6 +827,7 @@
 
         const reasonSelect = dom.rejectReasonSelect;
         const reasonLabel = reasonSelect.options[reasonSelect.selectedIndex]?.text || reasonCode;
+        const rejectedLeadName = currentRejectLead ? (currentRejectLead.fullName || "Khách hàng") : "Khách hàng";
 
         // Call API
         await window.LeadSlaService.rejectLead(currentRejectLead.id, reasonCode, details);
@@ -813,38 +839,13 @@
         currentRejectLead.rejectReasonLabel = reasonLabel;
         currentRejectLead.rejectDetails = details;
 
-        // Push back to Unassigned Queue in localStorage
-        try {
-            const rawQueue = localStorage.getItem(STORAGE_KEY_QUEUE);
-            const queue = rawQueue ? JSON.parse(rawQueue) : [];
-            const queueItem = {
-                id: `LD-REJ-${Date.now().toString().slice(-4)}`,
-                fullName: currentRejectLead.fullName,
-                phone: currentRejectLead.phone,
-                email: currentRejectLead.email,
-                title: currentRejectLead.title,
-                companyName: currentRejectLead.companyName,
-                region: currentRejectLead.region,
-                regionCode: "NORTH",
-                industry: currentRejectLead.industry,
-                employeeCount: currentRejectLead.employeeCount,
-                reason: `Bị từ chối bởi Nông Quang Tiệp (${reasonLabel})`,
-                createdAt: new Date().toISOString(),
-                timeAgo: "Vừa từ chối"
-            };
-            queue.unshift(queueItem);
-            localStorage.setItem(STORAGE_KEY_QUEUE, JSON.stringify(queue));
-        } catch (e) {
-            console.error("Failed to return rejected lead to queue", e);
-        }
-
         saveLeads();
         closeRejectModal();
-        updateKpis();
+        await loadData();
         renderPendingTable();
         renderRejectedTable();
 
-        showToast(`⚠️ Đã từ chối Lead "${currentRejectLead.fullName}". Khách hàng đã được hoàn trả về Hàng chờ phân bổ.`, "warning");
+        showToast(`⚠️ Đã từ chối Lead "${rejectedLeadName}". Khách hàng đã được hoàn trả về Hàng chờ phân bổ.`, "warning");
     }
 
     function formatDateTime(isoString) {
@@ -905,8 +906,13 @@
 
         // Header actions
         if (dom.btnRefreshLeads) {
-            dom.btnRefreshLeads.addEventListener("click", () => {
-                loadData();
+            dom.btnRefreshLeads.addEventListener("click", async () => {
+                await loadData();
+                if (!myAssignedLeads || myAssignedLeads.length === 0) {
+                    myAssignedLeads = [...DEFAULT_ASSIGNED_LEADS];
+                    saveLeads();
+                    updateKpis();
+                }
                 renderPendingTable();
                 renderContactingTable();
                 renderRejectedTable();
@@ -988,9 +994,9 @@
     }
 
     // 14. BOOTSTRAP INITIALIZATION
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
         initDom();
-        loadData();
+        await loadData();
         renderPendingTable();
         renderContactingTable();
         renderRejectedTable();

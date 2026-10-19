@@ -179,27 +179,25 @@ function updateModeBanner(offline, errorMsg = "") {
     if (!banner) return;
 
     if (offline) {
+        banner.style.display = "block";
         banner.className = "campaign-mode-banner mock-mode";
         banner.innerHTML = `
-            <div>
-                <strong>💡 Chế độ Xem trước Giao diện (Mock Data - Story S4-03-FE)</strong>
-                <div style="font-size: 0.8rem; margin-top: 2px;">
-                    ${errorMsg ? `(Không kết nối được API: ${escapeHtml(errorMsg)} — Sử dụng dữ liệu mô phỏng)` : 'Hệ thống đang hoạt động với dữ liệu mẫu đầy đủ để thử nghiệm Form, Bảng, Lọc và Quản lý Lead.'}
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                <div>
+                    <strong>💡 Chế độ Xem trước Giao diện (Dữ liệu thử nghiệm)</strong>
+                    <div style="font-size: 0.82rem; margin-top: 2px; opacity: 0.85;">
+                        ${errorMsg ? `(Chưa kết nối API: ${escapeHtml(errorMsg)} — Đang dùng dữ liệu mô phỏng)` : 'Hệ thống hoạt động ở chế độ độc lập để thử nghiệm biểu mẫu, bộ lọc và gán Lead.'}
+                    </div>
                 </div>
+                <button class="crm-btn crm-btn-secondary btn-sm" onclick="retryConnectApi()">
+                    <i class="fa-solid fa-arrows-rotate"></i> Kết nối lại
+                </button>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="retryConnectApi()">
-                <i class="fa-solid fa-arrows-rotate"></i> Thử kết nối API
-            </button>
         `;
     } else {
-        banner.className = "campaign-mode-banner online-mode";
-        banner.innerHTML = `
-            <div>
-                <strong>🟢 Kết nối API Backend thành công (Story S4-03-INT)</strong>
-                <div style="font-size: 0.8rem; margin-top: 2px;">Endpoint: ${escapeHtml(API_BASE)}/api/campaigns (Đã đồng bộ Cơ sở dữ liệu)</div>
-            </div>
-            <span class="badge" style="background:#dcfce7; color:#15803d; padding:4px 8px; border-radius:4px; font-weight:600;">LIVE API</span>
-        `;
+        // Hide the banner completely in normal connected mode for a clean, professional UI
+        banner.style.display = "none";
+        banner.innerHTML = "";
     }
 }
 
@@ -426,7 +424,7 @@ async function loadCampaigns() {
             currentCampaignsList = filteredItems;
 
             // Also fetch all campaigns for KPI metrics calculation if possible
-            const allRes = await apiFetch(`/campaigns?page=1&size=1000`).catch(() => null);
+            const allRes = await apiFetch(`/campaigns?page=1&size=100`).catch(() => null);
             if (allRes && allRes.data && allRes.data.items) {
                 updateKpiCards(allRes.data.items, null);
             } else {
@@ -496,16 +494,26 @@ function loadMockCampaigns() {
 function getTypeBadge(type) {
     switch (type) {
         case "EMAIL":
-            return `<span class="type-badge"><i class="fa-solid fa-envelope"></i> Email</span>`;
+            return `<span class="type-badge type-badge-email"><i class="fa-solid fa-envelope"></i> Email</span>`;
         case "EVENT":
-            return `<span class="type-badge"><i class="fa-solid fa-calendar-star"></i> Hội thảo</span>`;
+            return `<span class="type-badge type-badge-event"><i class="fa-solid fa-calendar-star"></i> Hội thảo</span>`;
         case "TELEMARKETING":
-            return `<span class="type-badge"><i class="fa-solid fa-phone-volume"></i> Telesales</span>`;
+            return `<span class="type-badge type-badge-tele"><i class="fa-solid fa-phone-volume"></i> Telesales</span>`;
         case "ADS":
-            return `<span class="type-badge"><i class="fa-solid fa-rectangle-ad"></i> Quảng cáo</span>`;
+            return `<span class="type-badge type-badge-ads"><i class="fa-solid fa-rectangle-ad"></i> Quảng cáo</span>`;
         default:
-            return `<span class="type-badge"><i class="fa-solid fa-tag"></i> Khác</span>`;
+            return `<span class="type-badge type-badge-other"><i class="fa-solid fa-tag"></i> Khác</span>`;
     }
+}
+
+
+function formatDateVN(d) {
+    if (!d) return "...";
+    const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+        return `${m[3]}/${m[2]}/${m[1]}`;
+    }
+    return String(d);
 }
 
 function renderCampaignTable(items, pagination) {
@@ -513,59 +521,109 @@ function renderCampaignTable(items, pagination) {
     if (!tableBody) return;
 
     if (!items || items.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 3rem; color: var(--text-secondary, #64748b);">
-            <div style="font-size: 2rem; margin-bottom: 0.5rem;"><i class="fa-regular fa-folder-open"></i></div>
-            Không tìm thấy chiến dịch nào phù hợp với bộ lọc tìm kiếm.
+        tableBody.innerHTML = `<tr><td colspan="8">
+            <div class="campaign-empty-state">
+                <div class="empty-icon-wrap"><i class="fa-regular fa-folder-open"></i></div>
+                <h4>Chưa có chiến dịch nào phù hợp</h4>
+                <p>Thử thay đổi bộ lọc tìm kiếm hoặc tạo một chiến dịch tiếp thị mới để bắt đầu.</p>
+                <button type="button" class="crm-btn crm-btn-primary btn-sm" onclick="openCreateModal()">
+                    <i class="fa-solid fa-plus"></i> Tạo chiến dịch mới
+                </button>
+            </div>
         </td></tr>`;
         renderPagination(pagination || { page: 1, totalPages: 1, totalItems: 0 });
         return;
     }
 
-    tableBody.innerHTML = items.map(c => `
+    tableBody.innerHTML = items.map(c => {
+        let statusBadge = "";
+        switch (c.status) {
+            case "ACTIVE":
+                statusBadge = `<span class="status-badge status-ACTIVE"><span class="pulse-live-dot"></span> Đang chạy</span>`;
+                break;
+            case "PLANNING":
+                statusBadge = `<span class="status-badge status-PLANNING"><span class="status-dot-blue"></span> Kế hoạch</span>`;
+                break;
+            case "PAUSED":
+                statusBadge = `<span class="status-badge status-PAUSED"><span class="status-dot-amber"></span> Tạm dừng</span>`;
+                break;
+            case "COMPLETED":
+                statusBadge = `<span class="status-badge status-COMPLETED"><span class="status-dot-purple"></span> Hoàn thành</span>`;
+                break;
+            case "CANCELLED":
+                statusBadge = `<span class="status-badge status-CANCELLED"><span class="status-dot-red"></span> Hủy bỏ</span>`;
+                break;
+            default:
+                statusBadge = `<span class="status-badge">${c.status || "Chưa rõ"}</span>`;
+        }
+
+        const dateRangeText = (c.startDate || c.endDate)
+            ? `<div class="campaign-date-pill">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span class="date-txt">${formatDateVN(c.startDate)}</span>
+                <span class="date-arrow">→</span>
+                <span class="date-txt">${formatDateVN(c.endDate)}</span>
+              </div>`
+            : `<div class="campaign-date-empty"><i class="fa-regular fa-calendar"></i> Chưa thiết lập ngày</div>`;
+
+        const oppText = `
+            <div class="campaign-opp-meta">
+                <span class="opp-count-badge" title="Tổng số cơ hội liên kết">
+                    <i class="fa-solid fa-bullseye"></i> <strong>${Number(c.opportunityCount) || 0}</strong> cơ hội
+                </span>
+                <span class="opp-revenue-badge" title="Doanh thu đã chốt (WON)">
+                    <i class="fa-solid fa-sack-dollar"></i> ${formatCurrency(c.wonRevenue || 0)}
+                </span>
+            </div>
+            <button type="button" class="btn-link-opp-pill" onclick="openOpportunityModal(${c.id})">
+                <i class="fa-solid fa-link"></i> Liên kết cơ hội
+            </button>
+        `;
+
+        return `
         <tr>
             <td class="td-code">
-                <span class="campaign-code-tag">${escapeHtml(c.code)}</span>
+                <div class="campaign-code-badge" title="Mã chiến dịch">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <span>${escapeHtml(c.code)}</span>
+                </div>
             </td>
             <td class="td-name">
                 <div class="campaign-name-title" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</div>
                 ${c.description ? `<div class="campaign-desc-subtitle" title="${escapeHtml(c.description)}">${escapeHtml(c.description)}</div>` : ''}
             </td>
-            <td class="td-status"><span class="status-badge status-${c.status}">${c.status}</span></td>
+            <td class="td-status">${statusBadge}</td>
             <td class="td-type">${getTypeBadge(c.type)}</td>
             <td class="td-budget">
                 <div class="budget-main">${formatCurrency(c.budget)}</div>
-                ${c.expectedRevenue ? `<div class="budget-sub">Kỳ vọng: ${formatCurrency(c.expectedRevenue)}</div>` : ''}
+                ${c.expectedRevenue ? `<div class="budget-sub" title="Doanh thu kỳ vọng"><i class="fa-solid fa-arrow-trend-up"></i> Kỳ vọng: ${formatCurrency(c.expectedRevenue)}</div>` : ''}
             </td>
             <td class="td-leads" style="text-align: center;">
-                <button type="button" class="lead-pill-btn" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Xem danh sách Lead (${c.leadCount || 0})">
+                <button type="button" class="lead-pill-btn-pro" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Quản lý danh sách Lead (${c.leadCount || 0})">
                     <i class="fa-solid fa-users"></i>
                     <strong>${c.leadCount || 0}</strong>
                 </button>
             </td>
             <td class="td-date">
-                <div class="campaign-outcomes">Cơ hội: <strong>${Number(c.opportunityCount)||0}</strong><br>Đã chốt: <strong>${formatCurrency(c.wonRevenue||0)}</strong></div>
-                <button type="button" class="crm-btn crm-btn-secondary" onclick="openOpportunityModal(${c.id})">Liên kết cơ hội</button>
-                <div class="date-range-wrap">
-                    <span>${c.startDate ? c.startDate : '...'}</span>
-                    <span class="date-sep">~</span>
-                    <span>${c.endDate ? c.endDate : '...'}</span>
-                </div>
+                ${dateRangeText}
+                ${oppText}
             </td>
             <td class="td-actions" style="text-align: right;">
-                <div class="action-btn-group">
-                    <button class="crm-btn crm-btn-secondary action-icon-btn" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Quản lý Leads">
-                        <i class="fa-solid fa-users"></i>
+                <div class="action-btn-group-pro">
+                    <button class="action-btn-icon action-leads-btn" onclick="openLeadModal(${c.id}, '${escapeHtml(c.name)}')" title="Quản lý Leads">
+                        <i class="fa-solid fa-user-plus"></i>
                     </button>
-                    <button class="crm-btn crm-btn-secondary action-icon-btn" onclick="openEditModal(${c.id})" title="Chỉnh sửa">
+                    <button class="action-btn-icon action-edit-btn" onclick="openEditModal(${c.id})" title="Chỉnh sửa">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    <button class="crm-btn crm-btn-secondary action-icon-btn btn-delete-action" onclick="handleDeleteCampaign(${c.id})" title="Xóa">
+                    <button class="action-btn-icon action-delete-btn" onclick="handleDeleteCampaign(${c.id})" title="Xóa chiến dịch">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
             </td>
         </tr>
-    `).join("");
+        `;
+    }).join("");
 
     renderPagination(pagination);
 }
@@ -1100,31 +1158,77 @@ function exportCampaignsToCSV() {
         return;
     }
 
-    const headers = ["Mã chiến dịch", "Tên chiến dịch", "Trạng thái", "Hình thức", "Ngày bắt đầu", "Ngày kết thúc", "Ngân sách", "Doanh thu kỳ vọng", "Mô tả"];
-    const rows = campaigns.map(c => [
-        `"${(c.code || '').replace(/"/g, '""')}"`,
-        `"${(c.name || '').replace(/"/g, '""')}"`,
-        `"${(c.status || '').replace(/"/g, '""')}"`,
-        `"${(c.type || '').replace(/"/g, '""')}"`,
-        `"${c.startDate || ''}"`,
-        `"${c.endDate || ''}"`,
-        c.budget || 0,
-        c.expectedRevenue || 0,
-        `"${(c.description || '').replace(/"/g, '""')}"`
-    ]);
+    const columns = [
+        { label: "Mã Chiến dịch", key: "code", width: 130, align: "center" },
+        { label: "Tên Chiến dịch", key: "name", width: 220, align: "left" },
+        { label: "Trạng thái", key: "status", width: 130, align: "center" },
+        { label: "Kênh triển khai", key: "type", width: 150, align: "left" },
+        { label: "Ngày bắt đầu", key: "startDate", width: 120, align: "center" },
+        { label: "Ngày kết thúc", key: "endDate", width: 120, align: "center" },
+        { label: "Ngân sách (VNĐ)", key: "budget", width: 160, isMoney: true },
+        { label: "Doanh thu kỳ vọng (VNĐ)", key: "expectedRevenue", width: 160, isMoney: true },
+        { label: "Mô tả mục tiêu", key: "description", width: 250, align: "left" }
+    ];
 
-    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `danh_sach_chien_dich_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    notify("Đã xuất danh sách chiến dịch ra file CSV!", "success");
+    let totalBudget = 0;
+    let totalRevenue = 0;
+    const formattedData = campaigns.map(c => {
+        const b = Number(c.budget) || 0;
+        const r = Number(c.expectedRevenue) || 0;
+        totalBudget += b;
+        totalRevenue += r;
+        return {
+            code: c.code || "",
+            name: c.name || "",
+            status: c.status || "",
+            type: c.type || "",
+            startDate: c.startDate || "",
+            endDate: c.endDate || "",
+            budget: b,
+            expectedRevenue: r,
+            description: c.description || ""
+        };
+    });
+
+    if (window.ExcelExportHelper) {
+        window.ExcelExportHelper.exportStyledExcel({
+            title: "BÁO CÁO KẾ HOẠCH & CHIẾN DỊCH MARKETING (CAMPAIGNS)",
+            filename: `Danh_Sach_Chien_Dich_${new Date().toISOString().slice(0, 10)}.xls`,
+            meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng số: ${campaigns.length} chiến dịch | NovaCRM Enterprise`,
+            columns: columns,
+            data: formattedData,
+            summary: {
+                label: "TỔNG NGÂN SÁCH & DOANH THU KỲ VỌNG:",
+                mergeCols: 6,
+                values: {
+                    budget: totalBudget,
+                    expectedRevenue: totalRevenue
+                }
+            }
+        });
+        notify("✓ Đã xuất danh sách chiến dịch ra file Excel định dạng đẹp!", "success");
+    } else {
+        const headers = ["Mã chiến dịch", "Tên chiến dịch", "Trạng thái", "Hình thức", "Ngày bắt đầu", "Ngày kết thúc", "Ngân sách", "Doanh thu kỳ vọng", "Mô tả"];
+        const rows = campaigns.map(c => [
+            `"${(c.code || '').replace(/"/g, '""')}"`, `"${(c.name || '').replace(/"/g, '""')}"`,
+            `"${(c.status || '').replace(/"/g, '""')}"`, `"${(c.type || '').replace(/"/g, '""')}"`,
+            `"${c.startDate || ''}"`, `"${c.endDate || ''}"`, c.budget || 0, c.expectedRevenue || 0,
+            `"${(c.description || '').replace(/"/g, '""')}"`
+        ]);
+        const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `danh_sach_chien_dich_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        notify("Đã xuất danh sách chiến dịch ra file CSV!", "success");
+    }
 }
+
 
 function escapeHtml(str) {
     if (!str) return "";
@@ -1150,6 +1254,7 @@ window.handleUpdateLeadStatus = handleUpdateLeadStatus;
 window.exportCampaignsToCSV = exportCampaignsToCSV;
 window.changePage = changePage;
 window.loadCampaigns = loadCampaigns;
+
 
 
 

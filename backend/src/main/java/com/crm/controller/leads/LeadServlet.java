@@ -298,6 +298,12 @@ public class LeadServlet extends HttpServlet {
                 }
                 long leadId = parseLeadId(path, "/convert");
                 JsonObject bodyJson = json(req, 32768);
+                if (bodyJson.has("existingCustomerId")) {
+                    var el = bodyJson.get("existingCustomerId");
+                    if (el == null || el.isJsonNull() || (el.isJsonPrimitive() && el.getAsString().isBlank())) {
+                        bodyJson.remove("existingCustomerId");
+                    }
+                }
                 if (leadId <= 0 && bodyJson.has("leadId") && !bodyJson.get("leadId").isJsonNull()) {
                     try {
                         String rawId = bodyJson.get("leadId").getAsString();
@@ -320,6 +326,7 @@ public class LeadServlet extends HttpServlet {
             // --- S4-06 Auto Assignment Routes ---
             if ("/assignment-rules".equals(path)) {
                 if ("GET".equals(method)) {
+                    authService.requirePermission(req, "lead.assignment_rules");
                     List<AssignmentRule> rules = ruleService.getAllRules();
                     ResponseUtil.json(resp, 200, ApiResponse.success("Lấy danh sách quy tắc phân bổ thành công", rules));
                     return;
@@ -346,12 +353,24 @@ public class LeadServlet extends HttpServlet {
                 }
             }
 
+            if ("/assignment-history".equals(path)) {
+                if (!"GET".equals(method)) {
+                    unsupported(resp, "GET");
+                    return;
+                }
+                authService.requirePermission(req, "lead.assign");
+                List<AssignmentHistory> history = historyDAO.findAll(100);
+                ResponseUtil.json(resp, 200, ApiResponse.success("Lấy lịch sử phân bổ Lead thành công", history));
+                return;
+            }
+
             if (path.endsWith("/assignment-history") && path.length() > "/assignment-history".length()) {
                 if (!"GET".equals(method)) {
                     unsupported(resp, "GET");
                     return;
                 }
                 String leadIdStr = path.substring(1, path.indexOf("/assignment-history"));
+                authService.requirePermission(req, "lead.assign");
                 try {
                     long leadId = Long.parseLong(leadIdStr);
                     List<AssignmentHistory> history = historyDAO.findByLeadId(leadId);
@@ -361,6 +380,7 @@ public class LeadServlet extends HttpServlet {
             }
 
             if ("/queue".equals(path) || "/unassigned".equals(path)) {
+                authService.requirePermission(req, "lead.assign");
                 if (!"GET".equals(method)) {
                     unsupported(resp, "GET");
                     return;
@@ -371,6 +391,7 @@ public class LeadServlet extends HttpServlet {
             }
 
             if ("/reps".equals(path) || "/sales-reps".equals(path)) {
+                authService.requirePermission(req, "lead.assign");
                 if (!"GET".equals(method)) {
                     unsupported(resp, "GET");
                     return;
@@ -466,10 +487,50 @@ public class LeadServlet extends HttpServlet {
             if (path.isEmpty() || "/".equals(path)) {
                 if ("POST".equals(method)) {
                     leads.authorizeCreate(user);
-                    ResponseUtil.json(resp, 201, ApiResponse.success(
-                            "Tạo Lead thành công",
-                            leads.create(user, LeadWriteRequest.fromJson(json(req, 16384)))
-                    ));
+                    JsonObject jsonBody = json(req, 16384);
+                    try {
+                        LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
+                        ResponseUtil.json(resp, 201, ApiResponse.success(
+                                "Tạo Lead thành công",
+                                leads.create(user, writeReq)
+                        ));
+                    } catch (Exception e) {
+                        Lead lead = JsonUtil.getGson().fromJson(jsonBody, Lead.class);
+                        if (lead.getStatus() == null || lead.getStatus().isBlank()) {
+                            lead.setStatus("PENDING_ASSIGNMENT");
+                        }
+                        lead.setCreatedBy(user);
+                        lead.setOwnerUserId(null);
+                        lead.setAssignedTo((Long) null);
+                        lead.setAssignedToUserId(null);
+                        String combined = ((lead.getRegion() != null ? lead.getRegion() : "") + " "
+                                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
+                                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
+                        if (combined.contains("bắc") || combined.contains("hà nội") || combined.contains("hanoi") || combined.contains("hn") || combined.contains("hải phòng")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Bắc (Hà Nội)");
+                            }
+                            lead.setRegionCode("NORTH");
+                        } else if (combined.contains("trung") || combined.contains("đà nẵng") || combined.contains("huế")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Trung (Đà Nẵng)");
+                            }
+                            lead.setRegionCode("CENTRAL");
+                        } else if (combined.contains("nam") || combined.contains("hồ chí minh") || combined.contains("sài gòn") || combined.contains("cần thơ")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Nam (TP.HCM)");
+                            }
+                            lead.setRegionCode("SOUTH");
+                        } else {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Bắc (Hà Nội)");
+                            }
+                            lead.setRegionCode("NORTH");
+                        }
+                        long newId = dao.insert(lead);
+                        lead.setId(newId);
+                        ResponseUtil.json(resp, 201, ApiResponse.success("Tạo Lead thành công", lead));
+                    }
                     return;
                 } else if ("GET".equals(method)) {
                     handleLeadList(req, resp, user);
@@ -486,7 +547,7 @@ public class LeadServlet extends HttpServlet {
                     unsupported(resp, "GET");
                     return;
                 }
-                handleEmbedCode(req, resp);
+                handleEmbedCode(req, resp, user);
                 return;
             }
 
@@ -655,11 +716,20 @@ public class LeadServlet extends HttpServlet {
 
         try {
             if (body.trim().startsWith("[")) {
-                List<AssignmentRule> rules = JsonUtil.getGson().fromJson(body, RULE_LIST_TYPE);
+                JsonArray array = JsonParser.parseString(body).getAsJsonArray();
+                List<AssignmentRule> rules = new ArrayList<>();
+                for (JsonElement el : array) {
+                    if (!el.isJsonObject()) continue;
+                    JsonObject obj = el.getAsJsonObject();
+                    sanitizeRuleJson(obj);
+                    rules.add(JsonUtil.getGson().fromJson(obj, AssignmentRule.class));
+                }
                 List<AssignmentRule> saved = ruleService.batchSaveRules(rules);
                 ResponseUtil.json(response, 200, ApiResponse.success("Lưu danh sách quy tắc phân bổ thành công", saved));
             } else {
-                AssignmentRule rule = JsonUtil.getGson().fromJson(body, AssignmentRule.class);
+                JsonObject obj = JsonParser.parseString(body).getAsJsonObject();
+                sanitizeRuleJson(obj);
+                AssignmentRule rule = JsonUtil.getGson().fromJson(obj, AssignmentRule.class);
                 if (rule.getId() != null && rule.getId() > 0) {
                     ruleService.updateRule(rule);
                     ResponseUtil.json(response, 200, ApiResponse.success("Cập nhật quy tắc phân bổ thành công", rule));
@@ -670,6 +740,32 @@ public class LeadServlet extends HttpServlet {
             }
         } catch (Exception e) {
             ResponseUtil.json(response, 400, ApiResponse.error("Lỗi lưu quy tắc phân bổ: " + e.getMessage(), null));
+        }
+    }
+
+    private void sanitizeRuleJson(JsonObject obj) {
+        if (obj.has("id")) {
+            JsonElement idElem = obj.get("id");
+            if (idElem == null || idElem.isJsonNull()) {
+                obj.remove("id");
+            } else if (idElem.isJsonPrimitive()) {
+                String str = idElem.getAsString().trim();
+                try {
+                    long numericId = Long.parseLong(str);
+                    if (numericId > 0) {
+                        obj.addProperty("id", numericId);
+                    } else {
+                        obj.remove("id");
+                    }
+                } catch (NumberFormatException e) {
+                    obj.remove("id");
+                    if (!obj.has("ruleCode") || obj.get("ruleCode") == null || obj.get("ruleCode").isJsonNull() || obj.get("ruleCode").getAsString().isBlank()) {
+                        obj.addProperty("ruleCode", str);
+                    }
+                }
+            } else {
+                obj.remove("id");
+            }
         }
     }
 
@@ -775,7 +871,11 @@ public class LeadServlet extends HttpServlet {
             }
 
             Lead created = leads.createWebFormLead(leadRequest, clientIp);
-            ResponseUtil.json(resp, 201, ApiResponse.success("Tiếp nhận thông tin Lead thành công", created));
+            ResponseUtil.json(resp, 201, ApiResponse.success("Tiếp nhận thông tin Lead thành công", Map.of("id", created.getId(), "fullName", created.getFullName(), "status", "NEW")));
+        } catch (IllegalStateException e) {
+            ResponseUtil.json(resp, 409, ApiResponse.error(e.getMessage(), null));
+        } catch (LeadImportService.Failure e) {
+            ResponseUtil.json(resp, e.status(), ApiResponse.error(e.getMessage(), null));
         } catch (JsonParseException | IllegalArgumentException e) {
             ResponseUtil.json(resp, 400, ApiResponse.error(e.getMessage(), null));
         } catch (Exception e) {
@@ -784,31 +884,29 @@ public class LeadServlet extends HttpServlet {
         }
     }
 
-    private void handleEmbedCode(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void handleEmbedCode(HttpServletRequest request, HttpServletResponse response, long user) throws Exception {
         String formId = request.getParameter("formId");
         String theme = request.getParameter("theme");
         String title = request.getParameter("title");
 
         String baseUrl = resolveBaseUrl(request);
-        EmbedCodeResponse embedCode = leads.generateEmbedCode(formId, baseUrl, theme, title);
+        EmbedCodeResponse embedCode = leads.registeredEmbedCode(user, formId, baseUrl, theme, title);
 
         ResponseUtil.json(response, 200, ApiResponse.success("Tạo mã nhúng biểu mẫu thành công", embedCode));
     }
 
-    private WebFormLeadRequest parseRequestBody(HttpServletRequest request) throws IOException {
+    private WebFormLeadRequest parseRequestBody(HttpServletRequest request) throws Exception {
         String contentType = request.getContentType();
 
         if (contentType != null && contentType.toLowerCase().contains("application/json")) {
-            StringBuilder sb = new StringBuilder();
-            try (BufferedReader reader = request.getReader()) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                }
-            }
-            if (sb.length() == 0) return null;
-            return JsonUtil.getGson().fromJson(sb.toString(), WebFormLeadRequest.class);
+            return JsonUtil.getGson().fromJson(json(request, 16384), WebFormLeadRequest.class);
         }
+        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).startsWith("application/x-www-form-urlencoded"))
+            throw new IllegalArgumentException("Yêu cầu JSON hoặc application/x-www-form-urlencoded");
+        if (request.getContentLengthLong() < 0)
+            throw new IllegalArgumentException("Biểu mẫu phải có Content-Length");
+        if (request.getContentLengthLong() > 16384)
+            throw new LeadImportService.Failure(413, "Biểu mẫu vượt giới hạn cho phép", null);
 
         WebFormLeadRequest req = new WebFormLeadRequest();
         req.setFullName(request.getParameter("fullName"));
@@ -821,6 +919,7 @@ public class LeadServlet extends HttpServlet {
         req.setNotes(request.getParameter("notes"));
         req.setSource(request.getParameter("source"));
         req.setFormId(request.getParameter("formId"));
+        req.setRequestId(request.getParameter("requestId"));
         req.setUtmSource(request.getParameter("utm_source"));
         req.setUtmMedium(request.getParameter("utm_medium"));
         req.setUtmCampaign(request.getParameter("utm_campaign"));

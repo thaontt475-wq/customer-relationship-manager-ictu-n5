@@ -1,379 +1,345 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "light" ? "light" : "dark");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+    </script>
 
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
+    <title>Lý Do Thắng / Thua &amp; Đối Thủ | Corporate CRM</title>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-<title>Win / Loss Settings</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Design System & Shell -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/win-loss-settings.css?v=20261014_dark2">
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
+    <link rel="stylesheet" href="css/pages/win-loss-settings.css?v=20261018_theme_fix">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
-
-<aside class="crm-sidebar">
-
-    <div class="crm-brand">
-        <div class="crm-brand-mark">C</div>
-        <span class="crm-brand-name">Corporate CRM</span>
-    </div>
-
-    <nav class="crm-nav">
-
-        <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Cơ cấu tổ chức</span>
-        </a>
-
-        <a href="master-data.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-list-check"></i></span>
-            <span class="crm-nav-label">Danh mục dùng chung</span>
-        </a>
-
-        <a href="custom-fields.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-sliders"></i></span>
-            <span class="crm-nav-label">Trường tùy chỉnh</span>
-        </a>
-
-        <a href="win-loss-settings.html" class="crm-nav-item active">
-            <span class="crm-nav-icon"><i class="fa-solid fa-trophy"></i></span>
-            <span class="crm-nav-label">Win / Loss</span>
-        </a>
-
-    </nav>
-
-    
-
-</aside>
-
-
-<header class="crm-topbar">
-
-    <div class="crm-search">
-
-        <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="m20 20-4-4"/>
-        </svg>
-
-        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
-        <kbd>Ctrl K</kbd>
-
-    </div>
-
-</header>
-
-
-<main class="crm-main winloss-page">
-
-    <section class="winloss-head">
-
-        <div>
-
-            <p>
-                Cấu hình / Win - Loss
-            </p>
-
-            <h1>
-                Lý do Thắng / Thua & Đối thủ
-            </h1>
-
-            <span>
-                Quản lý dữ liệu dùng khi đóng cơ hội.
-            </span>
-
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
+        <div class="crm-brand">
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="crm-brand-name">Corporate CRM</span>
         </div>
 
-    </section>
+        <nav id="desktopNavigation" class="crm-nav">
+            <!-- Sidebar will be populated dynamically or via standard shell -->
+        </nav>
+    </aside>
 
+    <!-- TOPBAR -->
+    <header class="crm-topbar">
+        <div class="crm-search">
+            <i class="fa-solid fa-magnifying-glass" style="color: #64748b; margin-right: 8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
+            <kbd>Ctrl K</kbd>
+        </div>
 
-    <section class="winloss-grid">
+        <div class="crm-topbar-actions">
+            <button class="crm-icon-btn" type="button" title="Cài đặt">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button class="crm-icon-btn" type="button" title="Thông báo">
+                <i class="fa-solid fa-bell"></i>
+            </button>
 
-        <article class="crm-card settings-card">
-
-            <header>
-
-                <div>
-                    <h2>
-                        Lý do Thắng
-                    </h2>
-
-                    <p>
-                        Sử dụng khi đóng thắng cơ hội.
-                    </p>
+            <div class="crm-profile-pill">
+                <span class="crm-avatar" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">NT</span>
+                <div class="crm-profile-text">
+                    <strong>Nông Quang Tiệp</strong>
+                    <small>Quản trị viên, Quản lý, Nhân viên bán hàng</small>
                 </div>
-
-                <button
-                    class="crm-btn crm-btn-secondary"
-                    type="button"
-                    data-add-list="win"
-                >
-                    + Thêm
-                </button>
-
-            </header>
-
-            <div
-                id="winReasonList"
-                class="settings-list"
-            ></div>
-
-            <div
-                id="winReasonEmpty"
-                class="settings-empty"
-            >
-                Chưa có lý do thắng.
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: #64748b;"></i>
             </div>
-
-        </article>
-
-
-        <article class="crm-card settings-card">
-
-            <header>
-
-                <div>
-                    <h2>
-                        Lý do Thua
-                    </h2>
-
-                    <p>
-                        Sử dụng khi đóng thua cơ hội.
-                    </p>
-                </div>
-
-                <button
-                    class="crm-btn crm-btn-secondary"
-                    type="button"
-                    data-add-list="loss"
-                >
-                    + Thêm
-                </button>
-
-            </header>
-
-            <div
-                id="lossReasonList"
-                class="settings-list"
-            ></div>
-
-            <div
-                id="lossReasonEmpty"
-                class="settings-empty"
-            >
-                Chưa có lý do thua.
-            </div>
-
-        </article>
-
-
-        <article class="crm-card settings-card competitor-card">
-
-            <header>
-
-                <div>
-                    <h2>
-                        Đối thủ cạnh tranh
-                    </h2>
-
-                    <p>
-                        Có thể chọn khi cơ hội bị thua.
-                    </p>
-                </div>
-
-                <button
-                    class="crm-btn crm-btn-secondary"
-                    type="button"
-                    data-add-list="competitor"
-                >
-                    + Thêm
-                </button>
-
-            </header>
-
-            <div
-                id="competitorList"
-                class="settings-list"
-            ></div>
-
-            <div
-                id="competitorEmpty"
-                class="settings-empty"
-            >
-                Chưa có đối thủ cạnh tranh.
-            </div>
-
-        </article>
-
-    </section>
-
-</main>
-
-<header class="crm-mobile-header"></header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
-
-
-<!-- SIMPLE MODAL -->
-
-<div
-    id="itemOverlay"
-    class="item-overlay"
-></div>
-
-
-<section
-    id="itemModal"
-    class="item-modal crm-card"
->
-
-    <header>
-
-        <strong id="itemModalTitle">
-            Thêm dữ liệu
-        </strong>
-
-        <button
-            id="closeItemModal"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
-        </button>
-
+        </div>
     </header>
 
+    <!-- MAIN CONTENT -->
+    <main class="crm-main winloss-page">
 
-    <form id="itemForm">
+        <!-- 1. HEAD & ACTIONS -->
+        <section class="winloss-head">
+            <div>
+                <p class="winloss-kicker">
+                    <i class="fa-solid fa-gear"></i> Cấu hình hệ thống &nbsp;/&nbsp; <i class="fa-solid fa-scale-balanced"></i> Pipeline Win-Loss
+                </p>
+                <h1>
+                    <i class="fa-solid fa-trophy"></i> Lý Do Thắng / Thua &amp; Đối Thủ Cạnh Tranh
+                    <span class="winloss-badge-live"><span class="winloss-pulse-dot"></span> Pipeline Ready</span>
+                </h1>
+                <p class="winloss-desc">
+                    Quản lý và chuẩn hóa các tiêu chí phân tích khi đóng cơ hội (Deal Won / Lost), giúp tối ưu tỷ lệ chốt và giám sát đối thủ trên thị trường.
+                </p>
+            </div>
 
-        <input
-            id="itemType"
-            type="hidden"
-        >
+            <div class="winloss-head-actions">
+                <button id="btnRefreshWinLoss" class="crm-btn crm-btn-secondary" type="button" title="Tải lại dữ liệu mới nhất">
+                    <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                </button>
+                <button id="btnSeedPresets" class="crm-btn crm-btn-secondary" type="button" title="Nạp nhanh các lý do và đối thủ mẫu chuẩn CRM">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color:#f59e0b;"></i> Nạp danh mục chuẩn
+                </button>
+            </div>
+        </section>
 
-        <input
-            id="editingItemId"
-            type="hidden"
-        >
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="winloss-kpi-grid">
+            <div class="winloss-kpi-card">
+                <div class="winloss-kpi-icon gold">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <div class="winloss-kpi-info">
+                    <h4 id="kpiWonCount">0</h4>
+                    <p>Lý do Thắng (Deal Won)</p>
+                </div>
+            </div>
 
+            <div class="winloss-kpi-card">
+                <div class="winloss-kpi-icon rose">
+                    <i class="fa-solid fa-flag"></i>
+                </div>
+                <div class="winloss-kpi-info">
+                    <h4 id="kpiLostCount">0</h4>
+                    <p>Lý do Thua (Deal Lost)</p>
+                </div>
+            </div>
 
-        <label>
-            Tên
-            <em>*</em>
+            <div class="winloss-kpi-card">
+                <div class="winloss-kpi-icon blue">
+                    <i class="fa-solid fa-chess-knight"></i>
+                </div>
+                <div class="winloss-kpi-info">
+                    <h4 id="kpiCompCount">0</h4>
+                    <p>Đối thủ trong Radar</p>
+                </div>
+            </div>
 
-            <input
-                id="itemName"
-                class="crm-input"
-                type="text"
-            >
-        </label>
+            <div class="winloss-kpi-card">
+                <div class="winloss-kpi-icon green">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div class="winloss-kpi-info">
+                    <h4 id="kpiReadyStatus">100%</h4>
+                    <p>Độ sẵn sàng Pipeline</p>
+                </div>
+            </div>
+        </section>
 
+        <!-- 3. MAIN SECTION GRID -->
+        <section class="winloss-grid">
 
-        <label>
-            Trạng thái
+            <!-- CARD 1: LÝ DO THẮNG -->
+            <article class="crm-card settings-card">
+                <header>
+                    <div class="settings-card-title-group">
+                        <span class="settings-card-icon win">
+                            <i class="fa-solid fa-trophy"></i>
+                        </span>
+                        <div>
+                            <h2>Lý do Thắng cơ hội</h2>
+                            <p>Sử dụng khi đóng thắng Deal (Deal Won)</p>
+                        </div>
+                    </div>
 
-            <select
-                id="itemStatus"
-                class="crm-input"
-            >
-                <option value="active">
-                    Đang sử dụng
-                </option>
+                    <button class="btn-add-item btn-win" type="button" data-add-list="win">
+                        <i class="fa-solid fa-plus"></i> Thêm lý do thắng
+                    </button>
+                </header>
 
-                <option value="inactive">
-                    Ngừng sử dụng
-                </option>
-            </select>
-        </label>
+                <div id="winReasonList" class="settings-list"></div>
 
+                <div id="winReasonEmpty" class="settings-empty">
+                    <div class="settings-empty-icon">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <h5>Chưa có lý do thắng nào</h5>
+                    <p>Thêm các yếu tố cốt lõi giúp đội ngũ kinh doanh chốt hợp đồng thành công để phân tích chiến lược.</p>
+                    <button class="btn-add-item btn-win" type="button" data-add-list="win" style="margin-top: 6px;">
+                        <i class="fa-solid fa-plus"></i> Thêm lý do đầu tiên
+                    </button>
+                </div>
+            </article>
 
-        <div
-            id="itemError"
-            class="item-error"
-        ></div>
+            <!-- CARD 2: LÝ DO THUA -->
+            <article class="crm-card settings-card">
+                <header>
+                    <div class="settings-card-title-group">
+                        <span class="settings-card-icon loss">
+                            <i class="fa-solid fa-flag"></i>
+                        </span>
+                        <div>
+                            <h2>Lý do Thua cơ hội</h2>
+                            <p>Sử dụng khi cơ hội bị thất bại hoặc hủy (Deal Lost)</p>
+                        </div>
+                    </div>
 
+                    <button class="btn-add-item btn-loss" type="button" data-add-list="loss">
+                        <i class="fa-solid fa-plus"></i> Thêm lý do thua
+                    </button>
+                </header>
 
-        <footer>
+                <div id="lossReasonList" class="settings-list"></div>
 
-            <button
-                id="cancelItem"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Hủy
+                <div id="lossReasonEmpty" class="settings-empty">
+                    <div class="settings-empty-icon">
+                        <i class="fa-solid fa-flag"></i>
+                    </div>
+                    <h5>Chưa có lý do thua nào</h5>
+                    <p>Nhận diện các nguyên nhân mất hợp đồng để giúp doanh nghiệp kịp thời điều chỉnh sản phẩm và giá.</p>
+                    <button class="btn-add-item btn-loss" type="button" data-add-list="loss" style="margin-top: 6px;">
+                        <i class="fa-solid fa-plus"></i> Thêm lý do đầu tiên
+                    </button>
+                </div>
+            </article>
+
+            <!-- CARD 3: ĐỐI THỦ CẠNH TRANH (FULL WIDTH) -->
+            <article class="crm-card settings-card competitor-card">
+                <header>
+                    <div class="settings-card-title-group">
+                        <span class="settings-card-icon comp">
+                            <i class="fa-solid fa-chess-knight"></i>
+                        </span>
+                        <div>
+                            <h2>Đối thủ cạnh tranh trên thị trường</h2>
+                            <p>Danh sách các đối thủ trực tiếp khi đóng thua Deal hoặc so sánh năng lực cạnh tranh</p>
+                        </div>
+                    </div>
+
+                    <button class="btn-add-item btn-comp" type="button" data-add-list="competitor">
+                        <i class="fa-solid fa-plus"></i> Thêm đối thủ mới
+                    </button>
+                </header>
+
+                <div class="competitor-toolbar">
+                    <div class="competitor-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input id="competitorSearchInput" class="competitor-search-input" type="search" placeholder="Lọc đối thủ theo tên hoặc đặc điểm...">
+                    </div>
+                    <span id="competitorCounterBadge" style="font-size: 0.82rem; color: #94a3b8; font-weight: 500;">
+                        Hiển thị đối thủ trong radar
+                    </span>
+                </div>
+
+                <div id="competitorList" class="competitors-grid-container"></div>
+
+                <div id="competitorEmpty" class="settings-empty">
+                    <div class="settings-empty-icon">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <h5>Chưa có đối thủ cạnh tranh nào</h5>
+                    <p>Khởi tạo danh sách các giải pháp đối thủ trên thị trường để nhân viên kinh doanh chọn khi đóng cơ hội.</p>
+                    <button class="btn-add-item btn-comp" type="button" data-add-list="competitor" style="margin-top: 6px;">
+                        <i class="fa-solid fa-plus"></i> Thêm đối thủ đầu tiên
+                    </button>
+                </div>
+            </article>
+
+        </section>
+
+    </main>
+
+    <!-- MOBILE DRAWERS -->
+    <header class="crm-mobile-header"></header>
+    <div id="drawerOverlay" class="crm-drawer-overlay"></div>
+    <aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+    <!-- =========================================================
+         4. FLOATING CENTERED MODAL: THÊM & SỬA DỮ LIỆU
+    ========================================================= -->
+    <div id="itemOverlay" class="item-overlay"></div>
+
+    <section id="itemModal" class="item-modal" role="dialog" aria-modal="true" aria-labelledby="itemModalTitle">
+        <header>
+            <div class="item-modal-header-info">
+                <span id="itemModalBadge" class="item-modal-badge">
+                    <i class="fa-solid fa-plus"></i>
+                </span>
+                <div>
+                    <strong id="itemModalTitle">Thêm dữ liệu</strong>
+                    <p id="itemModalSubtitle">Nhập thông tin chi tiết vào biểu mẫu bên dưới</p>
+                </div>
+            </div>
+
+            <button id="closeItemModal" class="item-modal-close" type="button" aria-label="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </header>
 
-            <button
-                class="crm-btn crm-btn-primary"
-                type="submit"
-            >
-                Lưu
-            </button>
+        <form id="itemForm">
+            <input id="itemType" type="hidden">
+            <input id="editingItemId" type="hidden">
 
-        </footer>
+            <div class="item-form-group">
+                <label for="itemName">
+                    Tên tiêu chí / Đối thủ <em>*</em>
+                </label>
+                <div class="item-input-wrap">
+                    <i class="fa-solid fa-tag"></i>
+                    <input id="itemName" class="crm-input" type="text" placeholder="Ví dụ: Giá cả cạnh tranh, Tính năng vượt trội..." required autofocus>
+                </div>
+            </div>
 
-    </form>
+            <div id="competitorNoteGroup" class="item-form-group" style="display: none;">
+                <label for="itemNote">
+                    Điểm yếu / Đặc điểm đối thủ
+                </label>
+                <div class="item-input-wrap">
+                    <i class="fa-solid fa-circle-info" style="top: 20px;"></i>
+                    <textarea id="itemNote" class="crm-input" placeholder="Ví dụ: Chi phí đắt đỏ, triển khai phức tạp, hỗ trợ khách hàng chậm..."></textarea>
+                </div>
+            </div>
 
-</section>
+            <div class="item-form-group">
+                <label for="itemStatus">
+                    Trạng thái áp dụng
+                </label>
+                <div class="item-input-wrap">
+                    <i class="fa-solid fa-toggle-on"></i>
+                    <select id="itemStatus" class="crm-input">
+                        <option value="active">Đang áp dụng (Sẵn sàng trong Pipeline)</option>
+                        <option value="inactive">Tạm ngưng sử dụng</option>
+                    </select>
+                </div>
+            </div>
 
+            <div id="itemError" class="item-error"></div>
 
+            <footer>
+                <button id="cancelItem" class="crm-btn crm-btn-secondary" type="button">
+                    Hủy bỏ
+                </button>
+                <button id="submitItemBtn" class="crm-btn crm-btn-primary" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu dữ liệu
+                </button>
+            </footer>
+        </form>
+    </section>
 
-
-
-<script src="js/pages/win-loss-settings.js"></script>
-
-<script src="js/page-transition.js"></script>
-
-
-
-
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/pages/win-loss-settings.js?v=20261018_v3"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
 </body>
 </html>

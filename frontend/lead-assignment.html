@@ -22,9 +22,9 @@
     
     <!-- Design System & App Shell CSS -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/pages/lead-assignment.css?v=20261014_s406">
+    <link rel="stylesheet" href="css/pages/lead-assignment.css?v=20261018_del1">
 </head>
 
 <body class="crm-private">
@@ -427,7 +427,8 @@
                 <div class="form-row">
                     <label for="ruleRegion" class="form-label required">Khu vực địa lý</label>
                     <select id="ruleRegion" class="crm-input" required>
-                        <option value="NORTH">Khu vực Miền Bắc (Hà Nội, Hải Phòng...)</option>
+                        <option value="HANOI">Khu vực Hà Nội (Thủ đô Hà Nội)</option>
+                        <option value="NORTH" selected>Khu vực Miền Bắc (Hà Nội, Hải Phòng...)</option>
                         <option value="CENTRAL">Khu vực Miền Trung (Đà Nẵng, Huế...)</option>
                         <option value="SOUTH">Khu vực Miền Nam (TP.HCM, Cần Thơ...)</option>
                         <option value="NATIONWIDE">Toàn quốc (Không phân biệt khu vực)</option>
@@ -540,12 +541,105 @@
     </div>
 </div>
 
+<!-- ================= 8.1. MODAL XÁC NHẬN XÓA QUY TẮC ================= -->
+<div class="assign-modal-backdrop" id="deleteRuleModal" role="dialog" aria-modal="true" aria-labelledby="deleteRuleModalTitle">
+    <div class="assign-modal-box delete-rule-modal-box" style="max-width: 520px;">
+        <div class="assign-modal-header delete-modal-header">
+            <div class="delete-icon-wrapper">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div style="flex: 1;">
+                <div class="assign-modal-title" id="deleteRuleModalTitle" style="color: #ef4444;">
+                    Xác nhận xóa Quy tắc Phân bổ
+                </div>
+                <div class="delete-modal-subtitle">Hành động này không thể hoàn tác sau khi thực hiện.</div>
+            </div>
+            <button type="button" class="crm-icon-btn delete-modal-close" id="btnCloseDeleteRuleModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="assign-modal-body delete-modal-body">
+            <!-- Target Rule Info Card -->
+            <div class="delete-target-rule-card">
+                <div class="delete-rule-icon">
+                    <i class="fa-solid fa-diagram-project"></i>
+                </div>
+                <div class="delete-rule-info">
+                    <div class="delete-rule-name" id="deleteRuleName">Tên quy tắc phân bổ</div>
+                    <div class="delete-rule-meta">
+                        <span id="deleteRuleMechanism" class="delete-badge-mechanism"><i class="fa-solid fa-rotate"></i> Round-Robin</span>
+                        <span class="delete-bullet">&bull;</span>
+                        <span id="deleteRuleStats" class="delete-rule-stats"><i class="fa-solid fa-check-double"></i> Đã phân bổ: 0 lead</span>
+                    </div>
+                    <div class="delete-rule-scope" id="deleteRuleScope">
+                        <i class="fa-solid fa-filter text-muted"></i> Tiêu chí: Toàn quốc
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger warning banner -->
+            <div class="delete-warning-banner">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <div class="delete-warning-text">
+                    <strong>Cảnh báo điều phối:</strong> Khi xóa quy tắc này, các Lead mới đến thuộc tiêu chí trên sẽ không còn được tự động gán cho Sales mà chuyển vào <strong>Hàng chờ chưa phân bổ</strong> để xử lý thủ công.
+                </div>
+            </div>
+        </div>
+
+        <div class="assign-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelDeleteRuleModal">Hủy bỏ</button>
+            <button type="button" class="crm-btn crm-btn-danger" id="btnConfirmDeleteRuleModal">
+                <i class="fa-solid fa-trash-can"></i> Xóa vĩnh viễn quy tắc
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 8.2. MODAL XÁC NHẬN KHÔI PHỤC MẶC ĐỊNH ================= -->
+<div class="assign-modal-backdrop" id="resetRulesModal" role="dialog" aria-modal="true" aria-labelledby="resetRulesModalTitle">
+    <div class="assign-modal-box" style="max-width: 500px;">
+        <div class="assign-modal-header">
+            <div class="reset-icon-wrapper">
+                <i class="fa-solid fa-rotate-left"></i>
+            </div>
+            <div style="flex: 1;">
+                <div class="assign-modal-title" id="resetRulesModalTitle">
+                    Khôi phục Quy tắc Mặc định
+                </div>
+                <div class="delete-modal-subtitle">Đặt lại danh sách quy tắc về trạng thái ban đầu của hệ thống.</div>
+            </div>
+            <button type="button" class="crm-icon-btn" id="btnCloseResetRulesModal" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="assign-modal-body">
+            <div class="reset-warning-banner">
+                <i class="fa-solid fa-circle-info"></i>
+                <div class="delete-warning-text">
+                    Toàn bộ các quy tắc hiện tại sẽ được thay thế bằng <strong>5 quy tắc chuẩn mặc định</strong> của hệ thống. Mọi điều chỉnh ưu tiên hoặc người nhận sẽ được làm mới.
+                </div>
+            </div>
+        </div>
+
+        <div class="assign-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnCancelResetRulesModal">Hủy bỏ</button>
+            <button type="button" class="crm-btn crm-btn-warning" id="btnConfirmResetRulesModal">
+                <i class="fa-solid fa-rotate-left"></i> Xác nhận khôi phục
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ================= 9. TOAST CONTAINER ================= -->
 <div id="leadAssignToastContainer" class="assign-toast-container"></div>
 
 <!-- Scripts -->
 <script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/pages/lead-assignment.js?v=20261015_fix1"></script>
+<script src="js/shared-shell.js?v=20261017_v6"></script>
+<script src="js/excel-export-helper.js"></script>
+<script src="js/pages/lead-assignment.js?v=20261018_del1"></script>
 </body>
 </html>
+

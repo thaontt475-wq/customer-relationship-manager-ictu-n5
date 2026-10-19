@@ -22,9 +22,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
 <link rel="stylesheet" href="css/pages/customers.css?v=20261014_dark2">
-<link rel="stylesheet" href="css/pages/campaigns.css?v=20261014_dark3">
+<link rel="stylesheet" href="css/pages/campaigns.css?v=20261018_theme_adaptive">
 <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
@@ -89,192 +89,194 @@
     </nav>
 </aside>
 
-<!-- MAIN APP CONTENT -->
-<div class="crm-main-content">
-    <!-- TOPBAR -->
-    <header class="crm-topbar">
-        <div class="crm-search">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input id="globalSearch" type="search" placeholder="Tìm kiếm nhanh chiến dịch, Lead...">
-            <kbd>Ctrl K</kbd>
-        </div>
+<!-- TOPBAR -->
+<header class="crm-topbar">
+    <div class="crm-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm nhanh chiến dịch, Lead... (Ctrl K)">
+        <kbd>Ctrl K</kbd>
+    </div>
 
-        <div class="crm-top-actions">
-            <button class="crm-icon-btn" type="button" aria-label="Thông báo">
-                <i class="fa-solid fa-bell"></i>
-                <span class="crm-notification-dot"></span>
+    <div class="crm-top-actions">
+        <button id="themeToggleBtn" class="crm-icon-btn" type="button" aria-label="Đổi giao diện">
+            <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <button class="crm-icon-btn" type="button" aria-label="Thông báo">
+            <i class="fa-solid fa-bell"></i>
+            <span class="crm-notification-dot"></span>
+        </button>
+
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar" id="topAvatar">QT</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name" id="shellUserName">Nông Quang Tiệp</span>
+                    <span class="crm-user-role" id="shellUserRole">Quản trị viên</span>
+                </div>
+                <span><i class="fa-solid fa-angle-down"></i></span>
             </button>
 
-            <button id="themeToggleBtn" class="crm-icon-btn" type="button" aria-label="Đổi giao diện">
-                <i class="fa-solid fa-moon"></i>
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html"><i class="fa-solid fa-user"></i> Hồ sơ cá nhân</a>
+                <a href="change-password.html"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a>
+                <button type="button" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="crm-main customer-page campaigns-page-pro">
+    <!-- 1. HEADER & ACTIONS -->
+    <section class="customer-page-head">
+        <div>
+            <p class="customer-kicker"><i class="fa-solid fa-bullhorn"></i> Marketing & Bán hàng • Sprint 4 (Story S4-03)</p>
+            <h1>Chiến dịch Tiếp thị & Quản lý Lead</h1>
+            <p>Hoạch định chiến dịch đa kênh, tối ưu ngân sách phân bổ, gắn kết danh sách khách hàng tiềm năng và đo lường doanh thu chốt cơ hội thực tế.</p>
+        </div>
+
+        <div class="customer-head-actions">
+            <button id="btnRefreshCampaigns" class="crm-btn crm-btn-secondary" type="button" title="Làm mới dữ liệu">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                Làm mới
             </button>
-
-            <div class="crm-user">
-                <button id="userButton" class="crm-user-button" type="button">
-                    <div class="crm-avatar" id="topAvatar">U</div>
-                    <div class="crm-user-copy">
-                        <span class="crm-user-name" id="topUserName">Đang tải...</span>
-                        <span class="crm-user-role" id="topUserRole">Người dùng</span>
-                    </div>
-                    <span><i class="fa-solid fa-angle-down"></i></span>
-                </button>
-
-                <div id="userDropdown" class="crm-user-dropdown">
-                    <a href="profile.html">Hồ sơ cá nhân</a>
-                    <a href="change-password.html">Đổi mật khẩu</a>
-                    <button type="button" id="btnLogout">Đăng xuất</button>
-                </div>
-            </div>
+            <button id="btnExportCampaigns" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu CSV">
+                <i class="fa-solid fa-file-export"></i>
+                Xuất CSV
+            </button>
+            <button id="btnOpenCreateModal" class="crm-btn crm-btn-primary btn-create-campaign-pro" type="button">
+                <i class="fa-solid fa-plus"></i>
+                Tạo mới Chiến dịch
+            </button>
         </div>
-    </header>
+    </section>
 
-    <main class="crm-main customer-page">
-        <!-- 1. HEADER & ACTIONS -->
-        <section class="customer-page-head">
-            <div>
-                <p class="customer-kicker">Marketing & Sales / Sprint 4 (Story S4-03)</p>
-                <h1>Chiến dịch Tiếp thị & Quản lý Lead</h1>
-                <p>Quản lý các chương trình Marketing, phân bổ ngân sách, gán danh sách Lead và theo dõi trạng thái tương tác chuyển đổi.</p>
+    <!-- Mode Banner (Hidden in normal mode) -->
+    <div id="campaignModeBanner" style="display: none;"></div>
+
+    <!-- 2. KPI METRICS CARDS -->
+    <section class="customer-kpi-bar campaigns-kpi-bar-pro">
+        <div class="customer-kpi-card kpi-card-pro" data-filter-status="" style="cursor: pointer;" title="Xem tất cả chiến dịch">
+            <div class="kpi-icon-wrap kpi-icon-total">
+                <i class="fa-solid fa-bullhorn"></i>
             </div>
-
-            <div class="customer-head-actions">
-                <button id="btnRefreshCampaigns" class="crm-btn crm-btn-secondary" type="button" title="Làm mới dữ liệu">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    Làm mới
-                </button>
-                <button id="btnExportCampaigns" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu CSV">
-                    <i class="fa-solid fa-file-export"></i>
-                    Xuất CSV
-                </button>
-                <button id="btnOpenCreateModal" class="crm-btn crm-btn-primary" type="button">
-                    <i class="fa-solid fa-bullhorn"></i>
-                    Tạo mới Chiến dịch
-                </button>
-            </div>
-        </section>
-
-        <!-- Mode Banner (Online / Standalone Preview) -->
-        <div id="campaignModeBanner"></div>
-
-        <!-- 2. KPI METRICS CARDS -->
-        <section class="customer-kpi-bar">
-            <div class="customer-kpi-card" data-filter-status="" style="cursor: pointer;" title="Xem tất cả chiến dịch">
-                <div class="kpi-icon-wrap kpi-icon-total">
-                    <i class="fa-solid fa-bullhorn"></i>
-                </div>
-                <div class="kpi-info">
-                    <span class="kpi-label">Tổng chiến dịch</span>
-                    <span class="kpi-val" id="kpiTotalCampaigns">0</span>
-                </div>
-            </div>
-
-            <div class="customer-kpi-card" data-filter-status="ACTIVE" style="cursor: pointer;" title="Lọc chiến dịch đang triển khai">
-                <div class="kpi-icon-wrap kpi-icon-dealing">
-                    <i class="fa-solid fa-circle-play"></i>
-                </div>
-                <div class="kpi-info">
-                    <span class="kpi-label">Đang triển khai</span>
-                    <span class="kpi-val" id="kpiActiveCampaigns">0</span>
-                </div>
-            </div>
-
-            <div class="customer-kpi-card" data-filter-status="PLANNING" style="cursor: pointer;" title="Lọc chiến dịch lên kế hoạch">
-                <div class="kpi-icon-wrap kpi-icon-prospect">
-                    <i class="fa-solid fa-calendar-check"></i>
-                </div>
-                <div class="kpi-info">
-                    <span class="kpi-label">Lên kế hoạch</span>
-                    <span class="kpi-val" id="kpiPlanningCampaigns">0</span>
-                </div>
-            </div>
-
-            <div class="customer-kpi-card">
-                <div class="kpi-icon-wrap kpi-icon-won">
-                    <i class="fa-solid fa-sack-dollar"></i>
-                </div>
-                <div class="kpi-info">
-                    <span class="kpi-label">Tổng ngân sách</span>
-                    <span class="kpi-val" id="kpiTotalBudget">0 đ</span>
-                </div>
-            </div>
-
-            <div class="customer-kpi-card">
-                <div class="kpi-icon-wrap" style="background: rgba(147, 51, 234, 0.1); color: #9333ea;">
-                    <i class="fa-solid fa-user-tag"></i>
-                </div>
-                <div class="kpi-info">
-                    <span class="kpi-label">Tổng Lead tiếp cận</span>
-                    <span class="kpi-val" id="kpiTotalLeads">0</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. SINGLE-ROW FILTER TOOLBAR (PR #136 STANDARD) -->
-        <section class="customer-toolbar-wrapper" style="margin-bottom: 1.25rem;">
-            <div class="campaign-single-row-filter">
-                <div class="campaign-search-input-wrap">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchCampaignInput" placeholder="Tìm theo tên hoặc mã chiến dịch (Enter để tìm)...">
-                </div>
-
-                <div class="campaign-select-wrap">
-                    <select id="statusFilterSelect">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="PLANNING">PLANNING (Lên kế hoạch)</option>
-                        <option value="ACTIVE">ACTIVE (Đang triển khai)</option>
-                        <option value="PAUSED">PAUSED (Tạm dừng)</option>
-                        <option value="COMPLETED">COMPLETED (Hoàn thành)</option>
-                        <option value="CANCELLED">CANCELLED (Hủy bỏ)</option>
-                    </select>
-                </div>
-
-                <div class="campaign-select-wrap">
-                    <select id="typeFilterSelect">
-                        <option value="">Tất cả hình thức</option>
-                        <option value="EMAIL">Email Marketing</option>
-                        <option value="EVENT">Hội thảo / Sự kiện</option>
-                        <option value="TELEMARKETING">Telesales</option>
-                        <option value="ADS">Quảng cáo số (Ads)</option>
-                        <option value="OTHER">Khác</option>
-                    </select>
-                </div>
-
-                <button id="btnSearchCampaign" class="crm-btn crm-btn-secondary" type="button">
-                    <i class="fa-solid fa-filter"></i> Lọc
-                </button>
-                <button id="btnResetFilter" class="crm-btn crm-btn-secondary" type="button" title="Đặt lại bộ lọc">
-                    <i class="fa-solid fa-rotate-left"></i> Đặt lại
-                </button>
-            </div>
-        </section>
-
-        <!-- 4. CAMPAIGN TABLE CONTAINER (CARD WITH SCROLL) -->
-        <div class="campaign-table-card campaign-table-container">
-            <div class="campaign-table-scroll">
-                <table class="campaign-table">
-                    <thead>
-                        <tr>
-                            <th class="th-code">Mã chiến dịch</th>
-                            <th class="th-name">Tên chiến dịch & Mục tiêu</th>
-                            <th class="th-status">Trạng thái</th>
-                            <th class="th-type">Hình thức</th>
-                            <th class="th-budget">Ngân sách</th>
-                            <th class="th-leads" style="text-align: center;">Lead</th>
-                            <th class="th-date">Thời gian</th>
-                            <th class="th-actions" style="text-align: right;">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="campaignTableBody">
-                        <!-- Dynamic rendering by campaigns.js -->
-                    </tbody>
-                </table>
+            <div class="kpi-info">
+                <span class="kpi-label">Tổng chiến dịch</span>
+                <span class="kpi-val" id="kpiTotalCampaigns">0</span>
+                <span class="kpi-subtext">Toàn bộ chiến dịch</span>
             </div>
         </div>
 
-        <!-- 5. PAGINATION -->
-        <div id="campaignPagination" class="campaign-pagination-wrap"></div>
-    </main>
-</div>
+        <div class="customer-kpi-card kpi-card-pro" data-filter-status="ACTIVE" style="cursor: pointer;" title="Lọc chiến dịch đang triển khai">
+            <div class="kpi-icon-wrap kpi-icon-dealing">
+                <i class="fa-solid fa-circle-play"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Đang triển khai</span>
+                <span class="kpi-val" id="kpiActiveCampaigns">0</span>
+                <span class="kpi-subtext"><span class="pulse-indicator"></span> Đang hoạt động</span>
+            </div>
+        </div>
+
+        <div class="customer-kpi-card kpi-card-pro" data-filter-status="PLANNING" style="cursor: pointer;" title="Lọc chiến dịch lên kế hoạch">
+            <div class="kpi-icon-wrap kpi-icon-prospect">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Lên kế hoạch</span>
+                <span class="kpi-val" id="kpiPlanningCampaigns">0</span>
+                <span class="kpi-subtext">Sắp khởi chạy</span>
+            </div>
+        </div>
+
+        <div class="customer-kpi-card kpi-card-pro">
+            <div class="kpi-icon-wrap kpi-icon-won">
+                <i class="fa-solid fa-sack-dollar"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Tổng ngân sách</span>
+                <span class="kpi-val" id="kpiTotalBudget">0 ₫</span>
+                <span class="kpi-subtext">Dự toán tiếp thị</span>
+            </div>
+        </div>
+
+        <div class="customer-kpi-card kpi-card-pro">
+            <div class="kpi-icon-wrap kpi-icon-purple">
+                <i class="fa-solid fa-user-tag"></i>
+            </div>
+            <div class="kpi-info">
+                <span class="kpi-label">Tổng Lead tiếp cận</span>
+                <span class="kpi-val" id="kpiTotalLeads">0</span>
+                <span class="kpi-subtext">Đầu mối thu hút</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. SINGLE-ROW FILTER TOOLBAR -->
+    <section class="customer-toolbar-wrapper" style="margin-bottom: 1.25rem;">
+        <div class="campaign-single-row-filter filter-bar-pro">
+            <div class="campaign-search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchCampaignInput" placeholder="Tìm kiếm theo tên chiến dịch, mã code (CAMP-...)...">
+            </div>
+
+            <div class="campaign-select-wrap">
+                <select id="statusFilterSelect">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="PLANNING">PLANNING (Lên kế hoạch)</option>
+                    <option value="ACTIVE">ACTIVE (Đang triển khai)</option>
+                    <option value="PAUSED">PAUSED (Tạm dừng)</option>
+                    <option value="COMPLETED">COMPLETED (Hoàn thành)</option>
+                    <option value="CANCELLED">CANCELLED (Hủy bỏ)</option>
+                </select>
+            </div>
+
+            <div class="campaign-select-wrap">
+                <select id="typeFilterSelect">
+                    <option value="">Tất cả hình thức</option>
+                    <option value="EMAIL">Email Marketing</option>
+                    <option value="EVENT">Hội thảo / Sự kiện</option>
+                    <option value="TELEMARKETING">Telesales</option>
+                    <option value="ADS">Quảng cáo số (Ads)</option>
+                    <option value="OTHER">Hình thức khác</option>
+                </select>
+            </div>
+
+            <button id="btnSearchCampaign" class="crm-btn crm-btn-secondary btn-filter-search" type="button">
+                <i class="fa-solid fa-filter"></i> Lọc
+            </button>
+            <button id="btnResetFilter" class="crm-btn crm-btn-secondary btn-filter-reset" type="button" title="Đặt lại bộ lọc">
+                <i class="fa-solid fa-rotate-left"></i> Đặt lại
+            </button>
+        </div>
+    </section>
+
+    <!-- 4. CAMPAIGN TABLE CONTAINER (CARD WITH SCROLL) -->
+    <div class="campaign-table-card campaign-table-container">
+        <div class="campaign-table-scroll">
+            <table class="campaign-table">
+                <thead>
+                    <tr>
+                        <th class="th-code">Mã chiến dịch</th>
+                        <th class="th-name">Tên chiến dịch & Mục tiêu</th>
+                        <th class="th-status">Trạng thái</th>
+                        <th class="th-type">Hình thức</th>
+                        <th class="th-budget">Ngân sách</th>
+                        <th class="th-leads" style="text-align: center;">Leads</th>
+                        <th class="th-date">Thời gian & Cơ hội</th>
+                        <th class="th-actions" style="text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="campaignTableBody">
+                    <!-- Populated dynamically via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. PAGINATION -->
+    <div id="campaignPagination" class="campaign-pagination-wrap"></div>
+</main>
 
 <!-- ================= MODAL TẠO / SỬA CHIẾN DỊCH ================= -->
 <div id="campaignModal" class="modal-overlay">
@@ -461,14 +463,6 @@
     </div>
 </div>
 
-<!-- ================= SCRIPTS ================= -->
-<script src="js/crm-api.js"></script>
-<script src="js/pages/campaigns.js"></script>
-<script src="js/page-transition.js"></script>
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
 <dialog id="campaignOpportunityDialog" style="max-width:900px;width:90%;padding:24px;border-radius:12px">
 <h2>Cơ hội của chiến dịch</h2><p>Số liệu được tính từ cơ hội thực; chỉ trạng thái WON được cộng vào giá trị đã chốt.</p>
 <p id="campaignOpportunityError" role="alert"></p>
@@ -476,5 +470,14 @@
 <button type="button" id="campaignOpportunitySave" onclick="linkCampaignOpportunities()">Liên kết cơ hội đã chọn</button>
 <button type="button" onclick="document.getElementById('campaignOpportunityDialog').close()">Đóng</button>
 </dialog>
+
+<!-- ================= SCRIPTS ================= -->
+<script src="js/crm-api.js"></script>
+<script src="js/theme.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261017_v6"></script>
+<script src="js/excel-export-helper.js"></script>
+<script src="js/pages/campaigns.js?v=20261017_pro"></script>
+<script src="js/page-transition.js"></script>
 </body>
+
 </html>

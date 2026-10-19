@@ -1,669 +1,399 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
+    <script>
+    (function () {
+        try {
+            var theme = localStorage.getItem("crm_ui_theme");
+            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+            document.documentElement.removeAttribute("data-crm-theme");
+        } catch (e) {
+            document.documentElement.setAttribute("data-theme", "light");
+        }
+    })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
+    <title>Quản lý Người Dùng &amp; Phân Quyền RBAC | Corporate CRM</title>
 
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-<title>Quản lý người dùng</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Design System & Shell -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/users.css?v=20261014_dark2">
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
+    <link rel="stylesheet" href="css/pages/users.css?v=20261018_singleline">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
+        <div class="crm-brand">
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="crm-brand-name">Corporate CRM</span>
+        </div>
+        <nav id="desktopNavigation" class="crm-nav"></nav>
+    </aside>
 
-<!-- SIDEBAR -->
-
-<aside class="crm-sidebar">
-
-    <div class="crm-brand">
-        <div class="crm-brand-mark">C</div>
-        <span class="crm-brand-name">Corporate CRM</span>
-    </div>
-
-    <nav class="crm-nav">
-
-        <div class="crm-nav-section">
-            Không gian làm việc
+    <!-- TOPBAR -->
+    <header class="crm-topbar">
+        <div class="crm-search">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--crm-muted); font-size:1rem; margin-right:8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
+            <kbd>Ctrl K</kbd>
         </div>
 
-        <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
-            <span class="crm-nav-label">Tổng quan</span>
-        </a>
-
-        <a href="customers.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Khách hàng</span>
-        </a>
-
-        <a href="pipeline.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Người dùng</span>
-        </a>
-
-        <a href="pipeline-settings.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Cấu hình Pipeline</span>
-        </a>
-
-    </nav>
-
-    
-
-</aside>
-
-
-<!-- TOPBAR -->
-
-<header class="crm-topbar">
-
-    <div class="crm-search">
-
-        <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="m20 20-4-4"/>
-        </svg>
-
-        <input
-            id="globalSearch"
-            type="search"
-            placeholder="Tìm kiếm..."
-        >
-
-        <kbd>Ctrl K</kbd>
-
-    </div>
-
-
-    <div class="crm-top-actions">
-
-        <button
-            class="crm-icon-btn"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-            <span class="crm-notification-dot"></span>
-        </button>
-
-
-        <div class="crm-user">
-
-            <button
-                id="userButton"
-                class="crm-user-button"
-                type="button"
-            >
-
-                <div class="crm-avatar">
-                    A
-                </div>
-
-                <div class="crm-user-copy">
-
-                    <span class="crm-user-name">
-                        Administrator
-                    </span>
-
-                    <span class="crm-user-role">
-                        Quản trị
-                    </span>
-
-                </div>
-
-                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
-
+        <div class="crm-top-actions">
+            <button id="themeToggle" class="crm-shell-icon-button" type="button" title="Chuyển đổi giao diện" aria-label="Chuyển đổi giao diện">
+                <i class="fa-solid fa-moon theme-icon-moon" aria-hidden="true"></i>
             </button>
 
+            <button id="notificationButton" class="crm-shell-icon-button" type="button" title="Thông báo" aria-label="Thông báo">
+                <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                <span class="crm-notification-dot" hidden></span>
+            </button>
 
-            <div
-                id="userDropdown"
-                class="crm-user-dropdown"
-            >
-                <a href="#">Hồ sơ cá nhân</a>
-                <a href="#">Đổi mật khẩu</a>
-                <button type="button">Đăng xuất</button>
-            </div>
-
-        </div>
-
-    </div>
-
-</header>
-
-
-<!-- MAIN -->
-
-<main class="crm-main users-page">
-
-    <section class="users-head">
-
-        <div>
-
-            <p class="users-kicker">
-                Quản trị / Người dùng
-            </p>
-
-            <h1>
-                Quản lý Người dùng
-            </h1>
-
-            <p>
-                Quản lý tài khoản, vai trò, nhóm và trạng thái nhân viên.
-            </p>
-
-        </div>
-
-
-        <button
-            id="createUserButton"
-            class="crm-btn crm-btn-primary"
-            type="button"
-        >
-            + Tạo người dùng
-        </button>
-
-    </section>
-
-
-    <!-- FILTER -->
-
-    <section class="users-filter crm-card">
-
-        <input
-            id="userSearch"
-            class="crm-input"
-            type="search"
-            placeholder="Tìm theo tên, email hoặc nhóm..."
-        >
-
-
-        <select
-            id="roleFilter"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả vai trò
-            </option>
-
-            <option value="Quản trị">
-                Quản trị
-            </option>
-
-            <option value="Giám đốc kinh doanh">
-                Giám đốc kinh doanh
-            </option>
-
-            <option value="Trưởng nhóm">
-                Trưởng nhóm
-            </option>
-
-            <option value="Nhân viên kinh doanh">
-                Nhân viên kinh doanh
-            </option>
-
-            <option value="Marketing">
-                Marketing
-            </option>
-
-            <option value="Kế toán">
-                Kế toán
-            </option>
-
-            <option value="CSKH">
-                CSKH
-            </option>
-        </select>
-
-
-        <select
-            id="statusFilter"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả trạng thái
-            </option>
-
-            <option value="active">
-                Đang hoạt động
-            </option>
-
-            <option value="locked">
-                Đã khóa
-            </option>
-        </select>
-
-    </section>
-
-
-    <!-- TABLE -->
-
-    <section class="crm-card users-table-card">
-
-        <div class="table-scroll">
-
-            <table class="users-table">
-
-                <thead>
-
-                <tr>
-                    <th>Người dùng</th>
-                    <th>Email</th>
-                    <th>Vai trò</th>
-                    <th>Nhóm</th>
-                    <th>Trạng thái</th>
-                    <th></th>
-                </tr>
-
-                </thead>
-
-
-                <tbody id="usersTableBody"></tbody>
-
-            </table>
-
-        </div>
-
-
-        <div
-            id="usersEmpty"
-            class="users-empty"
-        >
-
-            <div class="empty-user-icon">
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            </div>
-
-            <strong>
-                Chưa có tài khoản
-            </strong>
-
-            <span>
-                Bấm “Tạo người dùng” để bắt đầu.
-            </span>
-
-        </div>
-
-
-        <footer class="users-pagination">
-
-            <span id="paginationInfo">
-                0 bản ghi
-            </span>
-
-            <div>
-
-                <button
-                    id="prevPage"
-                    type="button"
-                    disabled
-                >
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg>
+            <div class="crm-user">
+                <button id="userButton" class="crm-user-button" type="button">
+                    <div class="crm-avatar" id="topAvatar">U</div>
+                    <div class="crm-user-copy">
+                        <span class="crm-user-name" id="shellUserName">Quản trị viên</span>
+                        <span class="crm-user-role" id="shellUserRole">Quản trị hệ thống</span>
+                    </div>
+                    <span><i class="fa-solid fa-angle-down"></i></span>
                 </button>
 
-                <span id="pageNumber">
-                    1
-                </span>
-
-                <button
-                    id="nextPage"
-                    type="button"
-                    disabled
-                >
-                    <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
-                </button>
-
+                <div id="userDropdown" class="crm-user-dropdown">
+                    <a href="profile.html"><i class="fa-solid fa-id-badge"></i> Hồ sơ cá nhân</a>
+                    <a href="change-password.html"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a>
+                    <button type="button" id="logoutButton"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                </div>
             </div>
-
-        </footer>
-
-    </section>
-
-</main>
-
-<header class="crm-mobile-header"></header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
-
-
-<!-- =========================================================
-     USER DRAWER
-========================================================= -->
-
-<div
-    id="userDrawerOverlay"
-    class="users-overlay"
-></div>
-
-
-<aside
-    id="userDrawer"
-    class="user-drawer"
->
-
-    <header class="drawer-head">
-
-        <div>
-
-            <strong id="userDrawerTitle">
-                Tạo người dùng
-            </strong>
-
-            <span>
-                Thông tin tài khoản và phân quyền
-            </span>
-
         </div>
-
-
-        <button
-            id="closeUserDrawer"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
-        </button>
-
     </header>
 
-    <form
-        id="userForm"
-        class="user-form"
-        novalidate
-    >
+    <!-- MAIN CONTENT -->
+    <main class="crm-main users-page">
 
-        <input
-            id="editingUserIndex"
-            type="hidden"
-        >
-
-        <label>
-            Họ và tên
-            <em>*</em>
-
-            <input
-                id="fullName"
-                class="crm-input"
-                type="text"
-                placeholder="VD: Nguyễn Văn A"
-            >
-            <small id="nameError"></small>
-        </label>
-
-        <label>
-            Email công ty
-            <em>*</em>
-
-            <input
-                id="userEmail"
-                class="crm-input"
-                type="email"
-                placeholder="VD: nguyen.vana@company.com"
-            >
-
-            <small id="emailError"></small>
-        </label>
-
-        <label id="userPasswordLabel">
-            Mật khẩu ban đầu
-            <em>*</em>
-
-            <input
-                id="userPassword"
-                class="crm-input"
-                type="password"
-                autocomplete="new-password"
-                placeholder="Tối thiểu 8 ký tự, gồm cả chữ và số"
-            >
-
-            <small id="passwordUserError"></small>
-        </label>
-
-        <label>
-            Nhóm kinh doanh
-
-            <select
-                id="userTeam"
-                class="crm-input"
-            >
-                <option value="">
-                    Chưa gán nhóm
-                </option>
-            </select>
-
-            <small id="teamError"></small>
-        </label>
-
-        <fieldset class="roles-fieldset">
-            <legend>
-                Vai trò <em>*</em>
-            </legend>
-            <div id="rolesList"></div>
-            <small id="rolesError"></small>
-        </fieldset>
-
-        <label id="userDataScopeLabel">
-            Phạm vi dữ liệu
-            <em>*</em>
-
-            <select
-                id="userDataScope"
-                class="crm-input"
-            >
-                <option value="SELF">
-                    Chỉ dữ liệu của bản thân
-                </option>
-                <option value="TEAM">
-                    Dữ liệu của nhóm
-                </option>
-                <option value="ALL">
-                    Toàn bộ dữ liệu
-                </option>
-            </select>
-            <small id="dataScopeError"></small>
-        </label>
-
-        <div
-            id="userFormError"
-            class="user-form-error"
-        ></div>
-
-        <footer class="drawer-footer">
-            <button
-                id="cancelUserForm"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Hủy
-            </button>
-
-            <button
-                class="crm-btn crm-btn-primary"
-                type="submit"
-            >
-                Lưu
-            </button>
-        </footer>
-
-    </form>
-
-</aside>
-
-
-<!-- =========================================================
-     LOCK + TRANSFER MODAL
-========================================================= -->
-
-<div
-    id="lockOverlay"
-    class="lock-overlay"
-></div>
-
-
-<section
-    id="lockModal"
-    class="lock-modal crm-card"
->
-
-    <header>
-
-        <div>
-            <span class="danger-symbol">
-                !
-            </span>
-
+        <!-- 1. HEAD & ACTIONS -->
+        <section class="users-head">
             <div>
-                <strong>
-                    Khóa tài khoản
-                </strong>
-
+                <p class="users-kicker">
+                    <i class="fa-solid fa-gear"></i> Quản trị hệ thống &nbsp;/&nbsp; <i class="fa-solid fa-user-gear"></i> Tài khoản &amp; Phân quyền
+                </p>
+                <h1>
+                    <i class="fa-solid fa-users"></i> Quản lý Người dùng
+                    <span class="users-badge-rbac">RBAC System</span>
+                </h1>
                 <p>
-                    Chọn người nhận bàn giao trước khi khóa.
+                    Quản lý tập trung tài khoản nhân viên, phân quyền đa vai trò, gán nhóm kinh doanh và kiểm soát phạm vi dữ liệu.
                 </p>
             </div>
-        </div>
 
+            <div class="users-head-actions">
+                <a href="import-users.html" class="crm-btn crm-btn-secondary" title="Nhập danh sách người dùng từ tệp Excel">
+                    <i class="fa-solid fa-file-excel" style="color:#10b981;"></i> Nhập từ Excel
+                </a>
+                <a href="excel-templates.html" class="crm-btn crm-btn-secondary" title="Tải mẫu Excel chuẩn">
+                    <i class="fa-solid fa-download"></i> Tệp Mẫu Excel
+                </a>
+                <button id="createUserButton" class="crm-btn crm-btn-primary" type="button">
+                    <i class="fa-solid fa-user-plus"></i> + Tạo người dùng
+                </button>
+            </div>
+        </section>
 
-        <button
-            id="closeLockModal"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
-        </button>
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="users-kpi-grid">
+            <div class="users-kpi-card">
+                <div class="users-kpi-icon blue">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="users-kpi-info">
+                    <h4 id="kpiTotalUsers">0</h4>
+                    <p>Tổng tài khoản nhân sự</p>
+                </div>
+            </div>
 
-    </header>
+            <div class="users-kpi-card">
+                <div class="users-kpi-icon green">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div class="users-kpi-info">
+                    <h4 id="kpiActiveUsers">0</h4>
+                    <p>Đang hoạt động</p>
+                </div>
+            </div>
 
+            <div class="users-kpi-card">
+                <div class="users-kpi-icon red">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <div class="users-kpi-info">
+                    <h4 id="kpiLockedUsers">0</h4>
+                    <p>Tạm khóa truy cập</p>
+                </div>
+            </div>
 
-    <form id="lockForm">
+            <div class="users-kpi-card">
+                <div class="users-kpi-icon purple">
+                    <i class="fa-solid fa-sitemap"></i>
+                </div>
+                <div class="users-kpi-info">
+                    <h4 id="kpiTeamsCount">0</h4>
+                    <p>Nhóm kinh doanh trực thuộc</p>
+                </div>
+            </div>
+        </section>
 
-        <input
-            id="lockUserIndex"
-            type="hidden"
-        >
+        <!-- 3. SEARCH & FILTERS -->
+        <section class="users-filter">
+            <div class="users-search-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                    id="userSearch"
+                    type="search"
+                    placeholder="Tìm theo tên, email, vai trò hoặc nhóm kinh doanh..."
+                >
+            </div>
 
-
-        <div class="lock-user-box">
-
-            <span>
-                Tài khoản sẽ bị khóa
-            </span>
-
-            <strong id="lockUserName">
-                —
-            </strong>
-
-        </div>
-
-
-        <label>
-            Người nhận bàn giao
-            <em>*</em>
-
-            <select
-                id="transferUser"
-                class="crm-input"
-            >
-                <option value="">
-                    Chọn người nhận
-                </option>
+            <select id="roleFilter">
+                <option value="">Tất cả vai trò</option>
             </select>
-        </label>
 
+            <select id="statusFilter">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="locked">Đã khóa</option>
+            </select>
+        </section>
 
-        <label>
-            Lý do bàn giao
+        <!-- 4. TABLE SECTION -->
+        <section class="crm-card users-table-card">
+            <div class="table-scroll">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Người dùng</th>
+                            <th>Email liên hệ</th>
+                            <th>Vai trò (Roles)</th>
+                            <th>Nhóm kinh doanh</th>
+                            <th>Trạng thái</th>
+                            <th style="text-align: right; padding-right: 24px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
 
-            <textarea
-                id="transferReason"
-                rows="3"
-            ></textarea>
-        </label>
+            <div id="usersEmpty" class="users-empty" hidden>
+                <div class="empty-user-icon">
+                    <i class="fa-solid fa-users-slash"></i>
+                </div>
+                <strong>Chưa có tài khoản phù hợp</strong>
+                <span>Nhấn nút "+ Tạo người dùng" hoặc điều chỉnh lại bộ lọc tìm kiếm.</span>
+            </div>
 
+            <footer class="users-pagination">
+                <span id="paginationInfo">0 bản ghi</span>
+                <div>
+                    <button id="prevPage" type="button" disabled aria-label="Trang trước">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <span id="pageNumber">1</span>
+                    <button id="nextPage" type="button" disabled aria-label="Trang sau">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </footer>
+        </section>
 
-        <div
-            id="lockError"
-            class="lock-error"
-        ></div>
+    </main>
 
+    <!-- MOBILE DRAWER & NAVIGATION -->
+    <header class="crm-mobile-header">
+        <button id="mobileMenuButton" class="crm-mobile-menu" type="button">
+            <svg class="crm-inline-icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="crm-avatar">U</div>
+    </header>
+    <div id="drawerOverlay" class="crm-drawer-overlay"></div>
+    <aside id="mobileDrawer" class="crm-mobile-drawer">
+        <div class="crm-mobile-drawer-header">
+            <div class="crm-brand">
+                <div class="crm-brand-mark"><i class="fa-solid fa-building-columns"></i></div>
+                <span class="crm-brand-name">Corporate CRM</span>
+            </div>
+        </div>
+        <nav id="mobileNavigation" class="crm-nav"></nav>
+    </aside>
 
-        <footer>
+    <!-- =========================================================
+         5. FLOATING CENTERED MODAL: TẠO / SỬA NGƯỜI DÙNG
+    ========================================================= -->
+    <div id="userDrawerOverlay" class="users-overlay"></div>
 
-            <button
-                id="cancelLock"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Hủy
+    <aside id="userDrawer" class="user-drawer" role="dialog" aria-modal="true" aria-labelledby="userDrawerTitle">
+        <header class="drawer-head">
+            <div class="drawer-head-info">
+                <div class="drawer-head-badge">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <div>
+                    <strong id="userDrawerTitle">Tạo người dùng</strong>
+                    <span>Thông tin tài khoản, nhóm và phân quyền RBAC</span>
+                </div>
+            </div>
+
+            <button id="closeUserDrawer" type="button" aria-label="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </header>
 
-            <button
-                class="crm-btn danger-button"
-                type="submit"
-            >
-                Bàn giao & Khóa
+        <form id="userForm" class="user-form" novalidate>
+            <input id="editingUserIndex" type="hidden">
+
+            <label>
+                Họ và tên <em>*</em>
+                <input
+                    id="fullName"
+                    class="crm-input"
+                    type="text"
+                    placeholder="VD: Nguyễn Văn An"
+                >
+                <small id="nameError"></small>
+            </label>
+
+            <label>
+                Email công ty <em>*</em>
+                <input
+                    id="userEmail"
+                    class="crm-input"
+                    type="email"
+                    placeholder="VD: an.nv@company.com"
+                >
+                <small id="emailError"></small>
+            </label>
+
+            <label id="userPasswordLabel">
+                Mật khẩu ban đầu <em>*</em>
+                <input
+                    id="userPassword"
+                    class="crm-input"
+                    type="password"
+                    autocomplete="new-password"
+                    placeholder="Tối thiểu 8 ký tự, gồm cả chữ và số"
+                >
+                <small id="passwordUserError"></small>
+            </label>
+
+            <label>
+                Nhóm kinh doanh
+                <select id="userTeam" class="crm-input">
+                    <option value="">Chưa gán nhóm</option>
+                </select>
+                <small id="teamError"></small>
+            </label>
+
+            <fieldset class="roles-fieldset">
+                <legend>
+                    <i class="fa-solid fa-shield-halved" style="color:#38bdf8; margin-right:4px;"></i> Vai trò hệ thống <em>*</em>
+                </legend>
+                <div id="rolesList"></div>
+                <small id="rolesError"></small>
+            </fieldset>
+
+            <label id="userDataScopeLabel">
+                Phạm vi sở hữu dữ liệu <em>*</em>
+                <select id="userDataScope" class="crm-input">
+                    <option value="SELF">Chỉ dữ liệu của bản thân (SELF)</option>
+                    <option value="TEAM">Dữ liệu của toàn nhóm (TEAM)</option>
+                    <option value="ALL">Toàn bộ dữ liệu doanh nghiệp (ALL)</option>
+                </select>
+                <small id="dataScopeError"></small>
+            </label>
+
+            <div id="userFormError" class="user-form-error"></div>
+
+            <footer class="drawer-footer">
+                <button id="cancelUserForm" class="crm-btn crm-btn-secondary" type="button">
+                    Hủy
+                </button>
+                <button class="crm-btn crm-btn-primary" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu người dùng
+                </button>
+            </footer>
+        </form>
+    </aside>
+
+    <!-- =========================================================
+         6. FLOATING MODAL: KHÓA & BÀN GIAO TÀI KHOẢN
+    ========================================================= -->
+    <div id="lockOverlay" class="lock-overlay"></div>
+
+    <section id="lockModal" class="lock-modal" role="dialog" aria-modal="true" aria-labelledby="lockModalTitle">
+        <header>
+            <div>
+                <span class="danger-symbol">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </span>
+                <div>
+                    <strong id="lockModalTitle">Khóa tài khoản</strong>
+                    <p>Chọn nhân sự nhận bàn giao dữ liệu trước khi khóa.</p>
+                </div>
+            </div>
+
+            <button id="closeLockModal" type="button" aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </header>
 
-        </footer>
+        <form id="lockForm">
+            <input id="lockUserIndex" type="hidden">
 
-    </form>
+            <div class="lock-user-box">
+                <span>Tài khoản sẽ bị khóa truy cập:</span>
+                <strong id="lockUserName">—</strong>
+            </div>
 
-</section>
+            <label>
+                Người nhận bàn giao <em>*</em>
+                <select id="transferUser" class="crm-input">
+                    <option value="">Chọn nhân sự nhận bàn giao</option>
+                </select>
+            </label>
 
+            <label>
+                Lý do bàn giao &amp; ghi chú
+                <textarea id="transferReason" rows="3" placeholder="Ghi chú bàn giao khách hàng, hợp đồng và cơ hội..."></textarea>
+            </label>
 
+            <div id="lockError" class="lock-error"></div>
 
+            <footer>
+                <button id="cancelLock" class="crm-btn crm-btn-secondary" type="button">
+                    Hủy
+                </button>
+                <button class="crm-btn danger-button" type="submit">
+                    <i class="fa-solid fa-lock"></i> Bàn giao &amp; Khóa
+                </button>
+            </footer>
+        </form>
+    </section>
 
-
-<script src="js/pages/users.js"></script>
-
-<script src="js/page-transition.js"></script>
-
-
-
-
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/pages/users.js?v=20261018_v3"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
 </body>
 </html>

@@ -1,0 +1,96 @@
+{
+  "pass": false,
+  "ids": {
+    "main": 782,
+    "duplicate": 783,
+    "rr1": 784,
+    "rr2": 785,
+    "unmatched": 786,
+    "rules": [
+      6,
+      7,
+      8
+    ]
+  },
+  "rows": [
+    {
+      "path": "/api/lead-scoring/leads/782",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Xử lý chấm điểm Lead thành công",
+        "data": {
+          "id": 782,
+          "fullName": "QA4FOLLOW1792210174284 main",
+          "companyName": "QA4FOLLOW1792210174284 Company main",
+          "email": "qa4follow1792210174284main@example.invalid",
+          "phone": "0907810000",
+          "status": "CONVERTED",
+          "ownerUserId": 4270,
+          "sourceId": 421,
+          "createdAt": "2026-10-17T11:09:34",
+          "source": "Website",
+          "sourceCode": "WEBSITE",
+          "industry": "QA4FOLLOW1792210174284",
+          "employeeCount": 250,
+          "title": "CEO",
+          "recentActivity": "Request demo",
+          "rawScore": 60,
+          "score": 60,
+          "classification": "HOT",
+          "configVersion": 1,
+          "scoredAt": "2026-10-17T11:09:35.210300",
+          "breakdown": [
+            {
+              "ruleId": "qa_size",
+              "ruleName": "QA employee fixture",
+              "group": "COMPANY_SIZE",
+              "points": 40,
+              "actualValue": 250,
+              "description": "QA fixture only"
+            },
+            {
+              "ruleId": "qa_title",
+              "ruleName": "QA title fixture",
+              "group": "CUSTOM",
+              "points": 20,
+              "actualValue": "CEO",
+              "description": "QA fixture only"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "path": "/api/leads?keyword=QA4FOLLOW1792210174284&tier=HOT&size=100",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Lấy danh sách Lead thành công",
+        "data": {
+          "items": [],
+          "leads": [],
+          "page": 1,
+          "size": 100,
+          "totalRecords": 0,
+          "totalItems": 0,
+          "totalPages": 1,
+          "scope": "ALL",
+          "stats": {
+            "total": 34,
+            "hotCount": 4,
+            "warmCount": 29,
+            "coldCount": 1,
+            "overdueCount": 7,
+            "unassignedCount": 19,
+            "newCount": 2,
+            "inProgressCount": 2,
+            "qualifiedCount": 1,
+            "convertedCount": 2,
+            "totalEstimatedValue": 1980000000
+          }
+        }
+      }
+    }
+  ]
+}

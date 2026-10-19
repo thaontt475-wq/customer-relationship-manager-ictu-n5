@@ -1,443 +1,424 @@
-﻿<!DOCTYPE html>
-<html lang="vi">
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
 <head>
-<script>
-(function () {
-    try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trường tùy chỉnh (Custom Fields) | Corporate CRM</title>
 
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
+    <!-- Theme Initialization -->
+    <script>
+        (function () {
+            try {
+                const theme = localStorage.getItem("crm_ui_theme") || "dark";
+                document.documentElement.setAttribute("data-theme", theme);
+            } catch (e) {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
 
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
-    } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
-    }
-})();
-</script>
+    <!-- Google Fonts & Icon Libraries -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>Trường tùy chỉnh</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <!-- Design System & Page Styles -->
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/custom-fields.css?v=20261014_dark2">
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
+    <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
+    <link rel="stylesheet" href="css/pages/custom-fields.css?v=20261018_theme_fix">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
-
-<aside class="crm-sidebar">
-
-    <div class="crm-brand">
-        <div class="crm-brand-mark">C</div>
-        <span class="crm-brand-name">Corporate CRM</span>
-    </div>
-
-    <nav class="crm-nav">
-
-        <a href="dashboard.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
-            <span class="crm-nav-label">Cơ cấu tổ chức</span>
-        </a>
-
-        <a href="master-data.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-list-check"></i></span>
-            <span class="crm-nav-label">Danh mục dùng chung</span>
-        </a>
-
-        <a href="custom-fields.html" class="crm-nav-item active">
-            <span class="crm-nav-icon"><i class="fa-solid fa-sliders"></i></span>
-            <span class="crm-nav-label">Trường tùy chỉnh</span>
-        </a>
-
-        <a href="win-loss-settings.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-trophy"></i></span>
-            <span class="crm-nav-label">Win / Loss</span>
-        </a>
-
-    </nav>
-
-    
-
-</aside>
-
-
-<header class="crm-topbar">
-
-    <div class="crm-search">
-
-        <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"/>
-            <path d="m20 20-4-4"/>
-        </svg>
-
-        <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
-        <kbd>Ctrl K</kbd>
-
-    </div>
-
-</header>
-
-
-<main class="crm-main custom-page">
-
-    <section class="custom-head">
-
-        <div>
-
-            <p>
-                Cấu hình / Trường tùy chỉnh
-            </p>
-
-            <h1>
-                Trường tùy chỉnh
-            </h1>
-
-            <span>
-                Tạo thêm field cho Khách hàng, Cơ hội hoặc Báo giá.
-            </span>
-
+    <!-- SIDEBAR -->
+    <aside class="crm-sidebar">
+        <div class="crm-brand">
+            <div class="crm-brand-mark">
+                <i class="fa-solid fa-building-columns"></i>
+            </div>
+            <span class="crm-brand-name">Corporate CRM</span>
         </div>
 
+        <nav id="desktopNavigation" class="crm-nav">
+            <!-- Populated dynamically by shared-shell.js -->
+        </nav>
+    </aside>
 
-        <button
-            id="addCustomField"
-            class="crm-btn crm-btn-primary"
-            type="button"
-        >
-            + Tạo trường
-        </button>
-
-    </section>
-
-
-    <section class="crm-card custom-filter">
-
-        <select
-            id="moduleFilter"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả module
-            </option>
-
-            <option value="customer">
-                Khách hàng
-            </option>
-
-            <option value="opportunity">
-                Cơ hội
-            </option>
-
-            <option value="quotation">
-                Báo giá
-            </option>
-        </select>
-
-
-        <select
-            id="fieldStatusFilter"
-            class="crm-input"
-        >
-            <option value="">
-                Tất cả trạng thái
-            </option>
-
-            <option value="active">
-                Đang bật
-            </option>
-
-            <option value="inactive">
-                Đang tắt
-            </option>
-        </select>
-
-    </section>
-
-
-    <section class="crm-card custom-table-card">
-
-        <div class="custom-table-scroll">
-
-            <table>
-
-                <thead>
-                <tr>
-                    <th>Module</th>
-                    <th>Nhãn trường</th>
-                    <th>Mã trường</th>
-                    <th>Kiểu dữ liệu</th>
-                    <th>Bắt buộc</th>
-                    <th>Trạng thái</th>
-                    <th></th>
-                </tr>
-                </thead>
-
-                <tbody id="customFieldBody"></tbody>
-
-            </table>
-
+    <!-- TOPBAR -->
+    <header class="crm-topbar">
+        <div class="crm-search">
+            <i class="fa-solid fa-magnifying-glass" style="color: #64748b; margin-right: 8px;"></i>
+            <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
+            <kbd>Ctrl K</kbd>
         </div>
 
+        <div class="crm-topbar-actions">
+            <button class="crm-icon-btn" type="button" title="Cài đặt">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+            <button class="crm-icon-btn" type="button" title="Thông báo">
+                <i class="fa-solid fa-bell"></i>
+            </button>
 
-        <div
-            id="customFieldEmpty"
-            class="custom-empty"
-        >
-            Chưa có trường tùy chỉnh.
+            <div class="crm-profile-pill">
+                <span class="crm-avatar" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">NT</span>
+                <div class="crm-profile-text">
+                    <strong>Nông Quang Tiệp</strong>
+                    <small>Quản trị viên, Quản lý, Bán hàng</small>
+                </div>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: #64748b;"></i>
+            </div>
         </div>
-
-    </section>
-
-</main>
-
-<header class="crm-mobile-header"></header>
-<div id="drawerOverlay" class="crm-drawer-overlay"></div>
-<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
-
-
-<!-- CUSTOM FIELD DRAWER -->
-
-<div
-    id="customOverlay"
-    class="custom-overlay"
-></div>
-
-
-<aside
-    id="customDrawer"
-    class="custom-drawer"
->
-
-    <header>
-
-        <div>
-            <strong id="customDrawerTitle">
-                Tạo trường tùy chỉnh
-            </strong>
-
-            <span>
-                Thiết lập metadata cho field
-            </span>
-        </div>
-
-        <button
-            id="closeCustomDrawer"
-            type="button"
-        >
-            <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
-        </button>
-
     </header>
 
+    <!-- MAIN PAGE CONTAINER -->
+    <main class="crm-main custom-page">
 
-    <form id="customFieldForm">
+        <!-- 1. HEAD & ACTION BAR -->
+        <section class="custom-head">
+            <div>
+                <p class="custom-kicker">
+                    <i class="fa-solid fa-gear"></i> Cấu hình hệ thống &nbsp;/&nbsp; <i class="fa-solid fa-sliders"></i> Trường tùy chỉnh
+                </p>
+                <h1>
+                    <i class="fa-solid fa-sliders" style="color: #38bdf8;"></i> Trường Tùy Chỉnh (Custom Fields)
+                    <span class="custom-badge-live"><span class="custom-pulse-dot"></span> Dynamic Schema</span>
+                </h1>
+                <p class="custom-desc">
+                    Tùy biến các trường dữ liệu động cho Khách hàng &amp; Cơ hội bán hàng mà không cần can thiệp mã nguồn cơ sở dữ liệu.
+                </p>
+            </div>
 
-        <input
-            id="editingFieldId"
-            type="hidden"
-        >
+            <div class="custom-head-actions">
+                <button id="btnRefresh" class="crm-btn crm-btn-secondary" type="button" title="Làm mới danh sách trường">
+                    <i class="fa-solid fa-arrows-rotate"></i> Làm mới
+                </button>
+                <button id="btnSeedB2B" class="crm-btn crm-btn-secondary" type="button" title="Nạp nhanh các trường chuẩn cho B2B">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color:#f59e0b;"></i> Nạp mẫu B2B
+                </button>
+                <button id="addCustomField" class="crm-btn crm-btn-primary" type="button">
+                    <i class="fa-solid fa-plus"></i> Tạo trường mới
+                </button>
+            </div>
+        </section>
 
+        <!-- 2. KPI SUMMARY METRICS -->
+        <section class="custom-kpi-grid">
+            <div class="custom-kpi-card">
+                <div class="custom-kpi-icon blue">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="custom-kpi-info">
+                    <h4 id="kpiTotal">0</h4>
+                    <p>Tổng số trường tùy chỉnh</p>
+                </div>
+            </div>
 
-        <label>
-            Module
-            <em>*</em>
+            <div class="custom-kpi-card">
+                <div class="custom-kpi-icon cyan">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="custom-kpi-info">
+                    <h4 id="kpiCustomer">0</h4>
+                    <p>Trường cho Khách hàng</p>
+                </div>
+            </div>
 
-            <select
-                id="fieldModule"
-                class="crm-input"
-            >
-                <option value="customer">
-                    Khách hàng
-                </option>
+            <div class="custom-kpi-card">
+                <div class="custom-kpi-icon emerald">
+                    <i class="fa-solid fa-briefcase"></i>
+                </div>
+                <div class="custom-kpi-info">
+                    <h4 id="kpiOpportunity">0</h4>
+                    <p>Trường cho Cơ hội bán</p>
+                </div>
+            </div>
 
-                <option value="opportunity">
-                    Cơ hội
-                </option>
+            <div class="custom-kpi-card">
+                <div class="custom-kpi-icon amber">
+                    <i class="fa-solid fa-asterisk"></i>
+                </div>
+                <div class="custom-kpi-info">
+                    <h4 id="kpiRequired">0</h4>
+                    <p>Trường bắt buộc nhập</p>
+                </div>
+            </div>
+        </section>
 
-                <option value="quotation">
-                    Báo giá
-                </option>
-            </select>
-        </label>
+        <!-- 3. MAIN CUSTOM FIELDS PANEL -->
+        <section class="crm-card custom-main-card">
+            <header class="custom-panel-header">
+                    <div>
+                        <h2>
+                            <i class="fa-solid fa-table-list" style="color:#38bdf8;"></i>
+                            Danh Sách Thuộc Tính Dữ Liệu Tùy Biến
+                        </h2>
+                        <p>
+                            Quản lý nhãn hiển thị, mã trường API, kiểu dữ liệu và ràng buộc validation trên các form nhập liệu.
+                        </p>
+                    </div>
 
+                    <span class="custom-panel-meta">
+                        <i class="fa-solid fa-shield-halved"></i> Bảo toàn toàn vẹn dữ liệu
+                    </span>
+                </header>
 
-        <label>
-            Nhãn hiển thị
-            <em>*</em>
+                <!-- FILTER & TOOLBAR SECTION -->
+                <div class="custom-filter-toolbar">
+                    <div class="module-tab-group">
+                        <button class="module-tab active" type="button" data-module="ALL">
+                            <i class="fa-solid fa-border-all"></i> Tất cả (<span id="tabCountAll">0</span>)
+                        </button>
+                        <button class="module-tab" type="button" data-module="CUSTOMER">
+                            <i class="fa-solid fa-user-tie"></i> Khách hàng (<span id="tabCountCustomer">0</span>)
+                        </button>
+                        <button class="module-tab" type="button" data-module="OPPORTUNITY">
+                            <i class="fa-solid fa-briefcase"></i> Cơ hội (<span id="tabCountOpportunity">0</span>)
+                        </button>
+                    </div>
 
-            <input
-                id="fieldLabel"
-                class="crm-input"
-                type="text"
-                placeholder="VD: Mã khu vực"
-            >
-        </label>
+                    <div class="filter-controls-group">
+                        <div class="filter-search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input id="searchInput" type="text" placeholder="Tìm kiếm nhãn, mã trường...">
+                        </div>
 
+                        <select id="fieldStatusFilter" class="crm-input filter-select">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="active">Đang bật (Active)</option>
+                            <option value="inactive">Đang tắt (Inactive)</option>
+                        </select>
 
-        <label>
-            Mã trường
-            <em>*</em>
+                        <select id="fieldTypeFilter" class="crm-input filter-select">
+                            <option value="">Tất cả kiểu dữ liệu</option>
+                            <option value="TEXT">Văn bản (Text)</option>
+                            <option value="NUMBER">Số (Number)</option>
+                            <option value="DATE">Ngày tháng (Date)</option>
+                            <option value="SELECT">Lựa chọn (Select)</option>
+                        </select>
+                    </div>
+                </div>
 
-            <input
-                id="fieldKey"
-                class="crm-input"
-                type="text"
-                placeholder="VD: region_code"
-            >
-        </label>
+                <!-- DATA TABLE CONTAINER -->
+                <div class="custom-table-container">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px; text-align: center;">STT</th>
+                                <th style="width: 140px;">Đối tượng</th>
+                                <th style="min-width: 200px;">Nhãn trường</th>
+                                <th style="width: 170px;">Mã trường (API Key)</th>
+                                <th style="width: 170px;">Kiểu dữ liệu</th>
+                                <th style="width: 120px; text-align: center;">Bắt buộc</th>
+                                <th style="width: 130px; text-align: center;">Trạng thái</th>
+                                <th style="width: 140px; text-align: right;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customFieldBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
 
+                    <!-- EMPTY STATE -->
+                    <div id="customFieldEmpty" class="custom-empty-card" style="display: none;">
+                        <div class="empty-icon-wrap">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <h3>Chưa có trường tùy chỉnh nào</h3>
+                        <p>
+                            Hệ thống cho phép cấu hình các trường dữ liệu động chuyên biệt cho từng quy trình bán hàng B2B. Bạn có thể tạo mới thủ công hoặc nạp sẵn bộ trường mẫu thông dụng chỉ với 1 cú click.
+                        </p>
+                        <div class="empty-actions">
+                            <button class="crm-btn crm-btn-primary" type="button" onclick="openDrawer()">
+                                <i class="fa-solid fa-plus"></i> Tạo trường đầu tiên
+                            </button>
+                            <button class="crm-btn crm-btn-secondary" type="button" onclick="seedB2BPresets()">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="color:#f59e0b;"></i> Nạp bộ trường mẫu B2B
+                            </button>
+                    </div>
+                </div>
+            </section>
+    </main>
 
-        <label>
-            Kiểu dữ liệu
+    <!-- MOBILE DRAWER & OVERLAY -->
+    <header class="crm-mobile-header"></header>
+    <div id="drawerOverlay" class="crm-drawer-overlay"></div>
+    <aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
 
-            <select
-                id="fieldType"
-                class="crm-input"
-            >
-                <option value="text">
-                    Text
-                </option>
+    <!-- CUSTOM FIELD FLOATING MODAL WINDOW -->
+    <div id="customOverlay" class="custom-overlay"></div>
 
-                <option value="number">
-                    Number
-                </option>
-
-                <option value="date">
-                    Date
-                </option>
-
-                <option value="select">
-                    Select
-                </option>
-
-                <option value="textarea">
-                    Textarea
-                </option>
-
-                <option value="checkbox">
-                    Checkbox
-                </option>
-            </select>
-        </label>
-
-
-        <label
-            id="fieldOptionsWrap"
-            hidden
-        >
-            Các lựa chọn
-
-            <textarea
-                id="fieldOptions"
-                rows="5"
-                placeholder="Mỗi lựa chọn một dòng"
-            ></textarea>
-        </label>
-
-
-        <label class="check-line">
-
-            <input
-                id="fieldRequired"
-                type="checkbox"
-            >
-
-            Bắt buộc nhập
-        </label>
-
-
-        <label>
-            Trạng thái
-
-            <select
-                id="fieldStatus"
-                class="crm-input"
-            >
-                <option value="active">
-                    Đang bật
-                </option>
-
-                <option value="inactive">
-                    Đang tắt
-                </option>
-            </select>
-        </label>
-
-
-        <div
-            id="customFieldError"
-            class="custom-error"
-        ></div>
-
-
-        <footer>
-
-            <button
-                id="cancelCustomField"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Hủy
+    <aside id="customDrawer" class="custom-drawer" role="dialog" aria-modal="true">
+        <header class="drawer-header">
+            <div class="modal-header-info">
+                <div class="modal-badge-icon">
+                    <i class="fa-solid fa-sliders"></i>
+                </div>
+                <div>
+                    <h3 id="customDrawerTitle">Tạo trường tùy chỉnh</h3>
+                    <span class="drawer-subtitle">Thiết lập cấu hình metadata cho trường dữ liệu động</span>
+                </div>
+            </div>
+            <button id="closeCustomDrawer" class="drawer-close-btn" type="button" title="Đóng cửa sổ">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </header>
 
-            <button
-                class="crm-btn crm-btn-primary"
-                type="submit"
-            >
-                Lưu
-            </button>
+        <form id="customFieldForm" class="drawer-form">
+            <input id="editingFieldId" type="hidden">
 
-        </footer>
+            <!-- Entity Module -->
+            <div class="form-group">
+                <label class="form-label">
+                    Đối tượng áp dụng <span class="req-star">*</span>
+                </label>
+                <div class="entity-radio-grid">
+                    <label class="entity-radio-tile">
+                        <input type="radio" name="entityTypeRadio" value="CUSTOMER" checked>
+                        <div class="tile-content">
+                            <i class="fa-solid fa-user-tie"></i>
+                            <div>
+                                <strong>Khách hàng</strong>
+                                <small>Hồ sơ doanh nghiệp &amp; đối tác</small>
+                            </div>
+                        </div>
+                    </label>
 
-    </form>
+                    <label class="entity-radio-tile">
+                        <input type="radio" name="entityTypeRadio" value="OPPORTUNITY">
+                        <div class="tile-content">
+                            <i class="fa-solid fa-briefcase"></i>
+                            <div>
+                                <strong>Cơ hội bán hàng</strong>
+                                <small>Giao dịch &amp; phễu kinh doanh</small>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                <input id="fieldModule" type="hidden" value="CUSTOMER">
+            </div>
 
-</aside>
+            <!-- Field Label & Key Row -->
+            <div class="form-row-2col">
+                <!-- Field Label -->
+                <div class="form-group">
+                    <label for="fieldLabel" class="form-label">
+                        Nhãn hiển thị (Label) <span class="req-star">*</span>
+                    </label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-tag"></i>
+                        <input id="fieldLabel" class="crm-input" type="text" placeholder="VD: Mã số thuế..." required autocomplete="off">
+                    </div>
+                    <small class="field-hint">Tên nhãn hiển thị trên form.</small>
+                </div>
 
+                <!-- Field Key -->
+                <div class="form-group">
+                    <label for="fieldKey" class="form-label">
+                        Mã trường API (Key) <span class="req-star">*</span>
+                    </label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-code"></i>
+                        <input id="fieldKey" class="crm-input" type="text" placeholder="VD: tax_code..." required autocomplete="off">
+                    </div>
+                    <small class="field-hint">Tự động tạo theo nhãn.</small>
+                </div>
+            </div>
 
+            <!-- Field Type Visual Cards -->
+            <div class="form-group">
+                <label class="form-label">
+                    Kiểu dữ liệu (Data Type) <span class="req-star">*</span>
+                </label>
+                <div class="field-type-grid">
+                    <button type="button" class="type-tile active" data-type="TEXT">
+                        <i class="fa-solid fa-font"></i>
+                        <strong>Văn bản</strong>
+                        <small>Text ngắn, mã...</small>
+                    </button>
+                    <button type="button" class="type-tile" data-type="NUMBER">
+                        <i class="fa-solid fa-arrow-down-1-9"></i>
+                        <strong>Số</strong>
+                        <small>Doanh thu, số lượng...</small>
+                    </button>
+                    <button type="button" class="type-tile" data-type="DATE">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <strong>Ngày tháng</strong>
+                        <small>Thời gian, kỷ niệm...</small>
+                    </button>
+                    <button type="button" class="type-tile" data-type="SELECT">
+                        <i class="fa-solid fa-list-ul"></i>
+                        <strong>Lựa chọn</strong>
+                        <small>Menu dropdown...</small>
+                    </button>
+                </div>
+                <input id="fieldType" type="hidden" value="TEXT">
+            </div>
 
+            <!-- Field Options (for SELECT type) -->
+            <div id="fieldOptionsWrap" class="form-group" style="display: none;">
+                <div class="options-header">
+                    <label for="fieldOptions" class="form-label">
+                        Danh sách các lựa chọn <span class="req-star">*</span>
+                    </label>
+                    <small style="color: #64748b;">Mỗi lựa chọn trên một dòng</small>
+                </div>
+                <textarea id="fieldOptions" class="crm-input options-textarea" rows="4" placeholder="Nhập từng lựa chọn trên một dòng&#10;VD:&#10;Dưới 20 nhân sự&#10;20 - 50 nhân sự&#10;Trên 50 nhân sự"></textarea>
+                
+                <div class="preset-options-bar">
+                    <span class="preset-label">Mẫu gợi ý:</span>
+                    <button type="button" class="preset-chip" data-preset="size">Quy mô công ty</button>
+                    <button type="button" class="preset-chip" data-preset="budget">Trạng thái ngân sách</button>
+                    <button type="button" class="preset-chip" data-preset="priority">Mức độ ưu tiên</button>
+                </div>
+            </div>
 
+            <!-- Settings Toggles -->
+            <div class="form-group-toggles">
+                <label class="switch-toggle-card">
+                    <input id="fieldRequired" type="checkbox">
+                    <span class="switch-slider"></span>
+                    <div class="switch-text">
+                        <strong>Bắt buộc nhập dữ liệu</strong>
+                        <small>Người dùng không được để trống khi tạo/cập nhật bản ghi</small>
+                    </div>
+                </label>
 
-<script src="js/pages/custom-fields.js"></script>
+                <label class="switch-toggle-card">
+                    <input id="fieldStatus" type="checkbox" checked>
+                    <span class="switch-slider"></span>
+                    <div class="switch-text">
+                        <strong>Kích hoạt sử dụng</strong>
+                        <small>Hiển thị trên giao diện và sẵn sàng tiếp nhận dữ liệu</small>
+                    </div>
+                </label>
+            </div>
 
-<script src="js/page-transition.js"></script>
+            <!-- Error Banner -->
+            <div id="customFieldError" class="custom-error-banner" style="display: none;"></div>
 
+            <!-- Drawer Footer -->
+            <footer class="drawer-footer">
+                <button id="cancelCustomField" class="crm-btn crm-btn-secondary" type="button">
+                    Hủy bỏ
+                </button>
+                <button id="saveCustomFieldBtn" class="crm-btn crm-btn-primary" type="submit">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu trường tùy chỉnh
+                </button>
+            </footer>
+        </form>
+    </aside>
 
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="customToast" class="custom-toast"></div>
 
-
-<script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
-<script src="js/ui-core.js"></script>
-<script src="js/ui-effects.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/pages/custom-fields.js?v=20261018_v3"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/theme.js?v=20261014_v3"></script>
+    <script src="js/shared-shell.js?v=20261017_v6"></script>
+    <script src="js/ui-core.js"></script>
+    <script src="js/ui-effects.js"></script>
 </body>
 </html>

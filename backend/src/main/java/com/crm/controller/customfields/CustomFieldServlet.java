@@ -206,6 +206,102 @@ public class CustomFieldServlet extends HttpServlet {
     }
 
 
+    @Override
+    protected void doDelete(
+            HttpServletRequest req,
+            HttpServletResponse res
+    ) throws IOException {
+
+        Long id;
+
+        try {
+
+            String path =
+                    req.getPathInfo();
+
+            if (
+                    path == null
+                    ||
+                    path.length() <= 1
+            ) {
+
+                throw new Exception();
+            }
+
+            id =
+                    Long.parseLong(
+                            path.substring(1)
+                    );
+
+        } catch (Exception e) {
+
+            bad(
+                    res,
+                    "ID không hợp lệ"
+            );
+
+            return;
+        }
+
+        try {
+
+            require(
+                    req,
+                    "customfield.manage"
+            );
+
+            try (
+                    Connection connection =
+                            DatabaseConfig.getConnection();
+
+                    PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "DELETE FROM custom_fields WHERE id = ?"
+                            )
+            ) {
+
+                statement.setLong(1, id);
+
+                int rows = statement.executeUpdate();
+
+                if (rows > 0) {
+
+                    ResponseUtil.json(
+                            res,
+                            200,
+                            ApiResponse.success(
+                                    "Xóa trường tùy chỉnh thành công",
+                                    null
+                            )
+                    );
+
+                } else {
+
+                    ResponseUtil.json(
+                            res,
+                            404,
+                            ApiResponse.error(
+                                    "Không tìm thấy trường tùy chỉnh",
+                                    null
+                            )
+                    );
+                }
+            }
+
+        } catch (SecurityException e) {
+
+            forbidden(res);
+
+        } catch (Exception e) {
+
+            error(
+                    res,
+                    e
+            );
+        }
+    }
+
+
     private void save(
             HttpServletRequest req,
             HttpServletResponse res,

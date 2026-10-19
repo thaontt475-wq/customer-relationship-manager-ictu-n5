@@ -471,6 +471,19 @@
             document.querySelector("nav.crm-bottom-nav") ||
             Array.from(document.body.children).find(el => el.tagName === "SCRIPT");
 
+        // Đảm bảo thanh topbar luôn luôn hiện diện trong DOM
+        if (!document.querySelector("header.crm-topbar")) {
+            const incomingTopbar = newDoc.querySelector("header.crm-topbar");
+            if (incomingTopbar) {
+                const sidebar = document.querySelector("aside.crm-sidebar");
+                if (sidebar && sidebar.nextSibling) {
+                    document.body.insertBefore(document.importNode(incomingTopbar, true), sidebar.nextSibling);
+                } else {
+                    document.body.prepend(document.importNode(incomingTopbar, true));
+                }
+            }
+        }
+
         newPageElements.forEach(el => {
             if (el.tagName === "MAIN") {
                 el.classList.add("spa-swapping");

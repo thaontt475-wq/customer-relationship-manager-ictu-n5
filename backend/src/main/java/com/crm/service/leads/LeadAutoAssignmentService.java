@@ -52,6 +52,11 @@ public class LeadAutoAssignmentService {
         Map<String, SalesRepDTO> repLookup = new HashMap<>();
         for (SalesRepDTO r : allReps) {
             repLookup.put(r.getId(), r);
+            Long userId = parseLongSafe(r.getId());
+            if (userId != null) {
+                repLookup.put(String.valueOf(userId), r);
+                repLookup.put("USR-" + userId, r);
+            }
         }
 
         AssignmentRule matchedRule = null;
@@ -70,11 +75,12 @@ public class LeadAutoAssignmentService {
             SalesRepDTO targetRep = null;
             String mechanism = matchedRule.getMechanism() != null ? matchedRule.getMechanism().toUpperCase() : "ROUND_ROBIN";
             int nextIndex = matchedRule.getLastAssignedIndex();
+            int repIndex = 0;
 
             if ("ROUND_ROBIN".equals(mechanism)) {
                 // Round-Robin: pointer increments sequentially through reps list
                 int currentIndex = Math.max(0, matchedRule.getLastAssignedIndex());
-                int repIndex = currentIndex % repIds.size();
+                repIndex = currentIndex % repIds.size();
                 String targetId = repIds.get(repIndex);
                 targetRep = repLookup.get(targetId);
                 nextIndex = repIndex + 1;
@@ -98,9 +104,9 @@ public class LeadAutoAssignmentService {
                 targetRep = repLookup.get(targetId);
             }
 
-            // Fallback rep if lookup failed
             if (targetRep == null && !allReps.isEmpty()) {
-                targetRep = allReps.get(0);
+                int fallbackIndex = Math.max(0, repIndex) % allReps.size();
+                targetRep = allReps.get(fallbackIndex);
             }
 
             if (targetRep != null) {
@@ -123,14 +129,19 @@ public class LeadAutoAssignmentService {
                 try (Connection conn = open()) {
                     conn.setAutoCommit(false);
                     try {
-                        ruleDAO.updatePointerAndStats(conn, matchedRule.getId(), nextIndex, repUserId);
-                        leadDAO.updateAssignment(conn, lead.getId(), repUserId, "ASSIGNED", null);
+                        if (!leadDAO.updateAssignment(conn, lead.getId(), repUserId, "PENDING_RESPONSE", null)) {
+                            conn.rollback();
+                            return false;
+                        }
+                        if (!ruleDAO.updatePointerAndStats(conn, matchedRule.getId(), nextIndex, repUserId))
+                            throw new SQLException("Assignment rule no longer exists");
                         historyDAO.insert(conn, history);
                         conn.commit();
 
                         lead.setAssignedTo(repUserId);
                         lead.setAssignedToRepId(targetRep.getId());
-                        lead.setStatus("ASSIGNED");
+                        lead.setAssignedToUserId(repUserId);
+                        lead.setStatus("PENDING_RESPONSE");
                         return true;
                     } catch (Exception e) {
                         conn.rollback();
@@ -161,16 +172,24 @@ public class LeadAutoAssignmentService {
         String leadRegion = lead.getRegion() != null ? lead.getRegion().trim() : "";
         String leadRegionCode = lead.getRegionCode() != null ? lead.getRegionCode().trim().toUpperCase() : "";
 
+        String ruleNameLower = rule.getName() != null ? rule.getName().toLowerCase() : "";
+        String leadAllRegion = (leadRegion + " " + leadRegionCode + " "
+                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
+                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
+
         boolean regionMatch = false;
-        if ("NATIONWIDE".equals(ruleRegion) || "ALL".equals(ruleRegion)) {
+        if ("NATIONWIDE".equals(ruleRegion) || "ALL".equals(ruleRegion) || ruleRegion.isEmpty()) {
             regionMatch = true;
-        } else if ("NORTH".equals(ruleRegion) && (leadRegion.toLowerCase().contains("bắc") || "NORTH".equals(leadRegionCode))) {
+        } else if (("NORTH".equals(ruleRegion) || "HANOI".equals(ruleRegion) || "HN".equals(ruleRegion) || ruleRegion.contains("HÀ NỘI") || ruleRegion.contains("BẮC") || ruleNameLower.contains("hà nội") || ruleNameLower.contains("miền bắc"))
+                && (leadAllRegion.contains("bắc") || leadAllRegion.contains("hà nội") || leadAllRegion.contains("hanoi") || leadAllRegion.contains("hn") || leadAllRegion.contains("hải phòng") || "NORTH".equals(leadRegionCode) || "HANOI".equals(leadRegionCode))) {
             regionMatch = true;
-        } else if ("CENTRAL".equals(ruleRegion) && (leadRegion.toLowerCase().contains("trung") || "CENTRAL".equals(leadRegionCode))) {
+        } else if (("CENTRAL".equals(ruleRegion) || ruleRegion.contains("TRUNG") || ruleNameLower.contains("miền trung") || ruleNameLower.contains("đà nẵng"))
+                && (leadAllRegion.contains("trung") || leadAllRegion.contains("đà nẵng") || leadAllRegion.contains("huế") || "CENTRAL".equals(leadRegionCode))) {
             regionMatch = true;
-        } else if ("SOUTH".equals(ruleRegion) && (leadRegion.toLowerCase().contains("nam") || "SOUTH".equals(leadRegionCode))) {
+        } else if (("SOUTH".equals(ruleRegion) || "HCM".equals(ruleRegion) || ruleRegion.contains("NAM") || ruleNameLower.contains("miền nam") || ruleNameLower.contains("hồ chí minh"))
+                && (leadAllRegion.contains("nam") || leadAllRegion.contains("hồ chí minh") || leadAllRegion.contains("hcm") || leadAllRegion.contains("sài gòn") || leadAllRegion.contains("cần thơ") || "SOUTH".equals(leadRegionCode))) {
             regionMatch = true;
-        } else if (ruleRegion.equalsIgnoreCase(leadRegionCode) || ruleRegion.equalsIgnoreCase(leadRegion)) {
+        } else if (ruleRegion.equalsIgnoreCase(leadRegionCode) || ruleRegion.equalsIgnoreCase(leadRegion) || leadAllRegion.contains(ruleRegion.toLowerCase())) {
             regionMatch = true;
         }
 
@@ -181,17 +200,28 @@ public class LeadAutoAssignmentService {
         // Check Industry criteria
         String ruleIndustry = rule.getIndustry() != null ? rule.getIndustry().trim() : "ALL";
         String leadIndustry = lead.getIndustry() != null ? lead.getIndustry().trim() : "";
+        String leadIndLower = leadIndustry.toLowerCase();
+        String ruleIndLower = ruleIndustry.toLowerCase();
+        String leadAllInd = (leadIndustry + " "
+                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
+                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
 
         boolean industryMatch = false;
         if ("ALL".equalsIgnoreCase(ruleIndustry) || ruleIndustry.isEmpty()) {
             industryMatch = true;
+        } else if (("CNTT".equalsIgnoreCase(ruleIndustry) || ruleIndLower.contains("cntt") || ruleIndLower.contains("công nghệ") || ruleIndLower.contains("it") || ruleNameLower.contains("cntt")) && (
+                leadAllInd.contains("cntt") ||
+                leadAllInd.contains("công nghệ thông tin") ||
+                leadAllInd.contains("it") ||
+                leadAllInd.contains("viễn thông") ||
+                leadAllInd.contains("phần mềm") ||
+                leadIndLower.contains("cntt"))) {
+            industryMatch = true;
         } else if (!leadIndustry.isEmpty() &&
-                (leadIndustry.toLowerCase().contains(ruleIndustry.toLowerCase()) ||
-                 ruleIndustry.toLowerCase().contains(leadIndustry.toLowerCase()))) {
+                (leadIndLower.contains(ruleIndLower) ||
+                 ruleIndLower.contains(leadIndLower))) {
             industryMatch = true;
-        } else if (lead.getNotes() != null && lead.getNotes().toLowerCase().contains(ruleIndustry.toLowerCase())) {
-            industryMatch = true;
-        } else if (lead.getCompanyName() != null && lead.getCompanyName().toLowerCase().contains(ruleIndustry.toLowerCase())) {
+        } else if (leadAllInd.contains(ruleIndLower)) {
             industryMatch = true;
         }
 
@@ -231,11 +261,13 @@ public class LeadAutoAssignmentService {
         List<SalesRepDTO> allReps = leadDAO.getSalesRepsWithWorkload();
         SalesRepDTO targetRep = null;
         for (SalesRepDTO r : allReps) {
-            if (r.getId().equalsIgnoreCase(repId)) {
+            if (Objects.equals(parseLongSafe(r.getId()), parseLongSafe(repId)) && parseLongSafe(repId) != null) {
                 targetRep = r;
                 break;
             }
         }
+
+        if (targetRep == null) throw new IllegalArgumentException("Nhân viên phân bổ không tồn tại hoặc không có quyền Sales");
 
         String repName = targetRep != null ? targetRep.getName() : "Chuyên viên " + repId;
         String repDept = targetRep != null ? targetRep.getDept() : "Phòng Kinh doanh";
@@ -256,7 +288,7 @@ public class LeadAutoAssignmentService {
         try (Connection conn = open()) {
             conn.setAutoCommit(false);
             try {
-                boolean updated = leadDAO.updateAssignment(conn, leadId, repUserId, "ASSIGNED", null);
+                boolean updated = leadDAO.updateAssignment(conn, leadId, repUserId, "PENDING_RESPONSE", null);
                 if (!updated) {
                     conn.rollback();
                     return false;
@@ -276,8 +308,8 @@ public class LeadAutoAssignmentService {
     private Long parseLongSafe(String str) {
         if (str == null || str.isBlank()) return null;
         try {
-            String digits = str.replaceAll("[^0-9]", "");
-            return digits.isEmpty() ? null : Long.parseLong(digits);
+            if (!str.matches("(?:USR-)?[1-9][0-9]*")) return null;
+            return Long.parseLong(str.startsWith("USR-") ? str.substring(4) : str);
         } catch (NumberFormatException e) {
             return null;
         }

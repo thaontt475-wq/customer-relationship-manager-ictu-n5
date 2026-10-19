@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import url('https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css');
 
 body.crm-private {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     padding-left: var(--crm-sidebar);
     padding-top: var(--crm-header);
 
@@ -204,6 +206,155 @@ body.crm-private {
     display: none;
 }
 
+/* =========================================================
+   COLLAPSIBLE NAVIGATION GROUPS (ACCORDION)
+   ========================================================= */
+
+.crm-nav-group {
+    margin-bottom: 4px;
+}
+
+.crm-nav-group-header {
+    position: relative;
+    width: 100%;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px 0 12px;
+    border-radius: var(--crm-radius-sm);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--crm-text-2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    transition: all 160ms ease;
+    user-select: none;
+}
+
+.crm-nav-group-header:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--crm-primary-dark);
+}
+
+.crm-nav-group.has-active .crm-nav-group-header {
+    color: var(--crm-primary);
+    font-weight: 700;
+}
+
+.crm-nav-group-header .crm-nav-icon {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    color: inherit;
+}
+
+.crm-nav-group-header .crm-nav-label {
+    min-width: 0;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.crm-group-active-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--crm-primary);
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.7);
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: 4px;
+}
+
+.crm-group-count {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 1px 6.5px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--crm-muted);
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+
+.crm-nav-group.has-active .crm-group-count {
+    background: var(--crm-primary-soft);
+    color: var(--crm-primary);
+}
+
+.crm-group-arrow {
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    color: var(--crm-muted-2);
+    transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    flex-shrink: 0;
+}
+
+.crm-nav-group.is-expanded .crm-group-arrow {
+    transform: rotate(90deg);
+    color: var(--crm-primary);
+}
+
+/* Group Sub-Items Container (Hierarchical Tree) */
+.crm-nav-group-items {
+    position: relative;
+    margin-left: 20px;
+    padding-left: 8px;
+    border-left: 1.5px solid rgba(0, 0, 0, 0.08);
+    margin-top: 2px;
+    margin-bottom: 6px;
+}
+
+.crm-nav-subitem {
+    min-height: 36px !important;
+    font-size: 12.5px !important;
+    padding: 0 8px 0 8px !important;
+    margin-bottom: 2px !important;
+    gap: 8px !important;
+    border-radius: 6px !important;
+}
+
+.crm-subitem-bullet {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--crm-muted-2);
+    opacity: 0.6;
+    flex-shrink: 0;
+    transition: all 150ms ease;
+}
+
+.crm-nav-subitem:hover .crm-subitem-bullet {
+    background-color: var(--crm-primary);
+    opacity: 1;
+    transform: scale(1.4);
+}
+
+.crm-nav-subitem.active .crm-subitem-bullet {
+    background-color: var(--crm-primary);
+    opacity: 1;
+    transform: scale(1.6);
+    box-shadow: 0 0 6px rgba(37, 99, 235, 0.8);
+}
+
+.crm-subitem-icon {
+    font-size: 13px !important;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+}
+
 /* =========================
    TOPBAR
 ========================= */
@@ -242,7 +393,8 @@ body.crm-private {
         min(400px, 48%);
 }
 
-.crm-search svg {
+.crm-search svg,
+.crm-search i {
     position: absolute;
 
     left: 12px;
@@ -254,12 +406,18 @@ body.crm-private {
     transform:
         translateY(-50%);
 
+    display: grid;
+    place-items: center;
+
+    color:
+        var(--crm-muted-2);
     stroke:
         var(--crm-muted-2);
 
     fill: none;
 
     pointer-events: none;
+    font-size: 15px;
 }
 
 .crm-search input {
@@ -474,20 +632,49 @@ html[data-theme="dark"] #themeToggle.crm-icon-btn:hover,
     min-height: 44px;
 
     padding:
-        4px 8px;
+        4px 10px 4px 6px;
 
-    border: 0;
+    border: 1px solid transparent;
 
     border-radius:
-        10px;
+        12px;
 
     background:
         transparent;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        color 0.2s ease;
 }
 
 .crm-user-button:hover {
     background:
-        #f8fafc;
+        var(--crm-surface-soft, #f1f5f9);
+
+    border-color:
+        var(--crm-border, #e2e8f0);
+
+    box-shadow:
+        0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.crm-user-arrow i,
+.crm-user-arrow svg,
+.crm-user-button > span > i,
+.crm-user-button > span > svg {
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.crm-user-button:hover .crm-user-arrow i,
+.crm-user-button:hover .crm-user-arrow svg,
+.crm-user-button:hover > span > i,
+.crm-user-button:hover > span > svg {
+    color: var(--crm-primary, #2563eb) !important;
+    transform: translateY(1px);
 }
 
 .crm-avatar {
@@ -1397,13 +1584,10 @@ html[data-theme="dark"] #themeToggle.crm-icon-btn:hover,
 
 .crm-search-panel {
     position: fixed;
+    z-index: 99999;
 
-    top: 56px;
-    left: 18px;
-
-    z-index: 5000;
-
-    width: min(400px, calc(100vw - 36px));
+    max-height: 380px;
+    overflow-y: auto;
 
     display: none;
 
@@ -1452,6 +1636,10 @@ html[data-theme="dark"] #themeToggle.crm-icon-btn:hover,
     text-align: left;
 
     cursor: pointer;
+
+    font-size: 13.5px;
+
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
 
@@ -1500,8 +1688,7 @@ html[data-theme="dark"] .crm-search-panel {
 
 @media (max-width: 768px) {
 
-    .crm-notification-panel,
-    .crm-search-panel {
+    .crm-notification-panel {
 
         top: 62px;
 
@@ -1509,6 +1696,17 @@ html[data-theme="dark"] .crm-search-panel {
         right: 12px;
 
         width: auto;
+    }
+
+    .crm-search-panel {
+
+        top: calc(100% + 8px);
+
+        left: 0;
+        right: 0;
+
+        width: 100%;
+        min-width: 0;
     }
 }
 
@@ -1800,66 +1998,45 @@ tbody tr:hover td {
 
 
     .crm-mobile-shortcuts {
-
         position: sticky;
-
-        top: 52px;
-
+        top: var(--crm-mobile-header, 56px);
         z-index: 2900;
-
         display: grid !important;
-
-        grid-template-columns:
-            repeat(4, minmax(0, 1fr));
-
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         width: 100%;
-
         background: var(--crm-surface);
-
-        border-bottom:
-            1px solid var(--crm-border);
-
-        box-shadow:
-            0 3px 10px rgba(15, 23, 42, .05);
+        border-bottom: 1px solid var(--crm-border);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
-
 
     .crm-mobile-shortcut {
-
         min-width: 0;
-
-        min-height: 54px;
-
+        min-height: 50px;
         display: flex;
-
         flex-direction: column;
-
         align-items: center;
-
         justify-content: center;
-
         gap: 3px;
-
         text-decoration: none;
-
         color: var(--crm-muted);
-
-        font-size: 10px;
-
+        font-size: 11px;
+        font-weight: 500;
         cursor: pointer;
-
         pointer-events: auto !important;
-
         touch-action: manipulation;
+        transition: all 0.18s ease;
+        position: relative;
+        border-bottom: 2px solid transparent;
     }
-
 
     .crm-mobile-shortcut:hover,
     .crm-mobile-shortcut.active {
-
         color: var(--crm-primary);
-
-        background: var(--crm-primary-soft);
+        font-weight: 650;
+        border-bottom-color: var(--crm-primary);
+        background: var(--crm-primary-soft, rgba(37, 99, 235, 0.08));
     }
 
 
@@ -1994,6 +2171,17 @@ html[data-theme="dark"] .crm-mobile-shortcuts {
 
     border-color:
         #334155 !important;
+}
+
+html[data-theme="dark"] .crm-mobile-shortcut {
+    color: #94a3b8;
+}
+
+html[data-theme="dark"] .crm-mobile-shortcut:hover,
+html[data-theme="dark"] .crm-mobile-shortcut.active {
+    color: #60a5fa !important;
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-bottom-color: #60a5fa !important;
 }
 
 
@@ -2232,6 +2420,69 @@ html[data-theme="dark"] .crm-nav-item.active {
     color: #60a5fa !important;
 }
 
+/* Dark Mode Collapsible Navigation Groups */
+html[data-theme="dark"] .crm-nav-group-header {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .crm-nav-group-header:hover {
+    background: #1e293b !important;
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .crm-nav-group.has-active .crm-nav-group-header {
+    color: #60a5fa !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+html[data-theme="dark"] .crm-group-active-dot {
+    background-color: #3b82f6 !important;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.9) !important;
+}
+
+html[data-theme="dark"] .crm-group-count {
+    background: #1e293b !important;
+    color: #94a3b8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="dark"] .crm-nav-group.has-active .crm-group-count {
+    background: rgba(59, 130, 246, 0.18) !important;
+    color: #93c5fd !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+html[data-theme="dark"] .crm-group-arrow {
+    color: #64748b !important;
+}
+
+html[data-theme="dark"] .crm-nav-group.is-expanded .crm-group-arrow {
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .crm-nav-group-items {
+    border-left: 1.5px solid #334155 !important;
+}
+
+html[data-theme="dark"] .crm-nav-subitem {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .crm-nav-subitem:hover {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .crm-nav-subitem.active {
+    background-color: rgba(59, 130, 246, 0.16) !important;
+    color: #60a5fa !important;
+}
+
+html[data-theme="dark"] .crm-nav-subitem.active .crm-subitem-bullet {
+    background-color: #3b82f6 !important;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.9) !important;
+}
+
 html[data-theme="dark"] .crm-search input,
 html[data-theme="dark"] .crm-shell-search input {
     background-color: #111827 !important;
@@ -2315,6 +2566,45 @@ html[data-theme="dark"] .crm-shell-icon-button:hover {
     color: #f8fafc !important;
 }
 
+/* User profile button in dark theme */
+html[data-theme="dark"] .crm-user-button {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .crm-user-button:hover,
+html[data-theme="dark"] .crm-user-button:focus-visible {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+    color: #f8fafc !important;
+}
+
+html[data-theme="dark"] .crm-user-button:hover .crm-user-name {
+    color: #ffffff !important;
+}
+
+html[data-theme="dark"] .crm-user-button:hover .crm-user-role {
+    color: #94a3b8 !important;
+}
+
+html[data-theme="dark"] .crm-user-button:hover .crm-user-arrow i,
+html[data-theme="dark"] .crm-user-button:hover .crm-user-arrow svg,
+html[data-theme="dark"] .crm-user-button:hover > span > i,
+html[data-theme="dark"] .crm-user-button:hover > span > svg {
+    color: #60a5fa !important;
+    transform: translateY(1px);
+}
+
+html[data-theme="dark"] .crm-user-button .crm-avatar {
+    border-color: #334155 !important;
+}
+
+html[data-theme="dark"] .crm-user-button:hover .crm-avatar {
+    border-color: #60a5fa !important;
+}
+
 /* Tables */
 html[data-theme="dark"] table thead th,
 html[data-theme="dark"] .crm-table thead th {
@@ -2386,5 +2676,136 @@ html[data-theme="dark"] .stage-item strong,
 html[data-theme="dark"] .custom-field-row strong {
     color: #f8fafc !important;
 }
+
+/* ===================================================================
+   GLOBAL TOAST NOTIFICATION SYSTEM (TOP-RIGHT)
+   =================================================================== */
+#leadDupToastContainer,
+#leadToastContainer,
+#leadManualToastContainer,
+#leadScoringToastContainer,
+.lead-dup-toast-container,
+.lead-toast-container,
+.scoring-toast-container {
+    position: fixed !important;
+    top: 76px !important;
+    bottom: auto !important;
+    right: 24px !important;
+    left: auto !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    max-width: 460px !important;
+    width: calc(100vw - 48px) !important;
+    pointer-events: none !important;
+}
+
+.crm-lead-toast,
+.lead-toast,
+.scoring-toast {
+    pointer-events: auto !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 14px 18px !important;
+    border-radius: 12px !important;
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.5 !important;
+    box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    animation: crmToastSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    border-left: 4px solid #3b82f6 !important;
+}
+
+html[data-theme="light"] .crm-lead-toast,
+html[data-theme="light"] .lead-toast {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: 0 16px 36px -6px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.08) !important;
+}
+
+.crm-lead-toast i,
+.lead-toast i {
+    font-size: 18px !important;
+    margin-top: 1px !important;
+    flex-shrink: 0 !important;
+}
+
+.crm-lead-toast.success,
+.lead-toast.success {
+    border-left-color: #10b981 !important;
+}
+.crm-lead-toast.success i,
+.lead-toast.success i {
+    color: #10b981 !important;
+}
+
+.crm-lead-toast.danger,
+.crm-lead-toast.error,
+.lead-toast.danger,
+.lead-toast.error {
+    border-left-color: #ef4444 !important;
+}
+.crm-lead-toast.danger i,
+.crm-lead-toast.error i,
+.lead-toast.danger i,
+.lead-toast.error i {
+    color: #ef4444 !important;
+}
+
+.crm-lead-toast.warning,
+.lead-toast.warning {
+    border-left-color: #f59e0b !important;
+}
+.crm-lead-toast.warning i,
+.lead-toast.warning i {
+    color: #f59e0b !important;
+}
+
+.crm-lead-toast.info,
+.lead-toast.info {
+    border-left-color: #3b82f6 !important;
+}
+.crm-lead-toast.info i,
+.lead-toast.info i {
+    color: #3b82f6 !important;
+}
+
+@keyframes crmToastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+}
+
 
 

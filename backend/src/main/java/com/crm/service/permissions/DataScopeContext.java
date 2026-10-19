@@ -23,6 +23,17 @@ public record DataScopeContext(
         if (!column.matches("[A-Za-z_][A-Za-z0-9_.]*")) {
             throw new IllegalArgumentException("Tên cột sở hữu không hợp lệ");
         }
+        appendValidatedOwnerPredicate(column, sql, parameters);
+    }
+
+    /** Use the form owner while a captured Lead is waiting for sales assignment. */
+    public void appendCoalescedOwnerPredicate(String primary, String fallback, StringBuilder sql, List<Object> parameters) {
+        if (!primary.matches("[A-Za-z_][A-Za-z0-9_.]*") || !fallback.matches("[A-Za-z_][A-Za-z0-9_.]*"))
+            throw new IllegalArgumentException("Invalid owner columns");
+        appendValidatedOwnerPredicate("COALESCE(" + primary + "," + fallback + ")", sql, parameters);
+    }
+
+    private void appendValidatedOwnerPredicate(String column, StringBuilder sql, List<Object> parameters) {
         if (scopeType == ScopeType.ALL) return;
         if (allowedOwnerIds.isEmpty()) {
             sql.append(" AND 1 = 0");
