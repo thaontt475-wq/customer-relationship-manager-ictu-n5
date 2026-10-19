@@ -149,6 +149,60 @@ public class LeadDuplicateMergeService {
                 // Lock both records ordered by id ascending to prevent deadlocks
                 List<Map<String, Object>> locked = dao.lockLeadsForUpdate(c, request.masterId, request.duplicateId);
                 if (locked.size() < 2) {
+                    // Check if one record is a customer and the other is a lead
+                    Map<String, Object> lead = null;
+                    Map<String, Object> customer = null;
+                    Long leadId = null;
+                    Long customerId = null;
+
+                    Map<String, Object> c1 = dao.findCustomerById(c, request.masterId);
+                    Map<String, Object> l2 = dao.findLeadById(c, request.duplicateId);
+                    if (c1 != null && l2 != null) {
+                        customer = c1;
+                        lead = l2;
+                        customerId = request.masterId;
+                        leadId = request.duplicateId;
+                    } else {
+                        Map<String, Object> l1 = dao.findLeadById(c, request.masterId);
+                        Map<String, Object> c2 = dao.findCustomerById(c, request.duplicateId);
+                        if (l1 != null && c2 != null) {
+                            customer = c2;
+                            lead = l1;
+                            customerId = request.duplicateId;
+                            leadId = request.masterId;
+                        }
+                    }
+
+                    if (customer != null && lead != null) {
+                        Long leadOwner = lead.get("ownerUserId") instanceof Number n ? n.longValue() : null;
+                        if (leadOwner != null && leadOwner > 0 && !mergeScope.canAccessOwner(leadOwner)) {
+                            throw new SecurityException("Lead nằm ngoài phạm vi phân quyền của người dùng");
+                        }
+                        String notes = request.mergedData != null && request.mergedData.containsKey("notes")
+                                ? (String) request.mergedData.get("notes") : null;
+                        dao.linkLeadToCustomer(c, leadId, customerId, userId, notes);
+                        dao.insertAuditLog(
+                                c,
+                                userId,
+                                "LEAD",
+                                String.valueOf(leadId),
+                                "LINK_CUSTOMER",
+                                "Gộp Lead #" + leadId + " vào Khách hàng #" + customerId,
+                                null,
+                                null);
+                        c.commit();
+
+                        Map<String, Object> result = new LinkedHashMap<>();
+                        result.put("success", true);
+                        result.put("masterId", request.masterId);
+                        result.put("duplicateId", request.duplicateId);
+                        result.put("leadId", leadId);
+                        result.put("customerId", customerId);
+                        result.put("merged", true);
+                        result.put("linked", true);
+                        return result;
+                    }
+
                     throw new NoSuchElementException("Một trong hai Lead không tồn tại");
                 }
 
@@ -168,10 +222,12 @@ public class LeadDuplicateMergeService {
                 }
 
                 // Scope checks
-                if (!mergeScope.canAccessOwner(((Number) master.get("ownerUserId")).longValue())) {
+                Long masterOwner = master.get("ownerUserId") instanceof Number n ? n.longValue() : null;
+                if (masterOwner != null && masterOwner > 0 && !mergeScope.canAccessOwner(masterOwner)) {
                     throw new SecurityException("Lead chính nằm ngoài phạm vi phân quyền của người dùng");
                 }
-                if (!mergeScope.canAccessOwner(((Number) duplicate.get("ownerUserId")).longValue())) {
+                Long dupOwner = duplicate.get("ownerUserId") instanceof Number n ? n.longValue() : null;
+                if (dupOwner != null && dupOwner > 0 && !mergeScope.canAccessOwner(dupOwner)) {
                     throw new SecurityException("Lead phụ nằm ngoài phạm vi phân quyền của người dùng");
                 }
 
@@ -308,7 +364,8 @@ public class LeadDuplicateMergeService {
                 if (lead == null) {
                     throw new NoSuchElementException("Lead không tồn tại");
                 }
-                if (!leadScope.canAccessOwner(((Number) lead.get("ownerUserId")).longValue())) {
+                Long leadOwner = lead.get("ownerUserId") instanceof Number n ? n.longValue() : null;
+                if (leadOwner != null && leadOwner > 0 && !leadScope.canAccessOwner(leadOwner)) {
                     throw new SecurityException("Lead nằm ngoài phạm vi phân quyền của người dùng");
                 }
                 if ("MERGED".equals(lead.get("status"))) {

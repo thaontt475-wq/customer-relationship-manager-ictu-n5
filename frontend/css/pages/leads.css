@@ -1054,6 +1054,85 @@
     text-align: right;
 }
 
+/* Modal Form Grid & Styling */
+.modal-create-lead {
+    max-width: 680px;
+    width: 95%;
+    border-radius: 14px;
+    background: var(--crm-card-bg, #1e293b);
+}
+
+.modal-create-lead .crm-modal-body {
+    padding: 20px 24px;
+}
+
+.modal-create-lead .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.modal-create-lead .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+    width: 100%;
+}
+
+.modal-create-lead .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--crm-text, #f1f5f9);
+    margin-bottom: 2px;
+}
+
+.modal-create-lead .crm-input,
+.modal-create-lead .crm-select,
+.modal-create-lead .crm-textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    height: 42px;
+    padding: 8px 12px;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--crm-text, #f8fafc);
+    background-color: var(--crm-input-bg, #0f172a);
+    border: 1px solid var(--crm-border, #334155);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-create-lead .crm-select {
+    cursor: pointer;
+    padding-right: 32px;
+    appearance: auto;
+}
+
+.modal-create-lead .crm-select option {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 8px;
+}
+
+.modal-create-lead .crm-textarea {
+    height: 72px;
+    min-height: 72px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.modal-create-lead .crm-input:focus,
+.modal-create-lead .crm-select:focus,
+.modal-create-lead .crm-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .leads-kpis {

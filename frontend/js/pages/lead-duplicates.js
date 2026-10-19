@@ -1041,6 +1041,64 @@
             ? customTextarea.value.trim()
             : generateStructuredMergedNotes(A, B, retainHistory, selectedFieldValues.notesSelection);
 
+        // If this is a Customer Match pair, dispatch to attach-customer API to merge lead into customer
+        if (currentPair.isCustomerMatch) {
+            let customerRecord = (String(A.id).startsWith("CUST-") || A.customerId) ? A : ((String(B.id).startsWith("CUST-") || B.customerId) ? B : null);
+            let leadRecord = customerRecord === A ? B : A;
+            if (customerRecord && leadRecord) {
+                const cId = customerRecord.customerId || customerRecord.id;
+                const parsedCustId = typeof cId === "string" ? parseInt(cId.replace(/\D/g, ""), 10) : cId;
+                const lId = leadRecord.id;
+                const parsedLeadId = typeof lId === "string" ? parseInt(lId.replace(/\D/g, ""), 10) : lId;
+
+                try {
+                    const resp = await fetch(API_ATTACH, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            leadId: parsedLeadId,
+                            customerId: parsedCustId,
+                            notes: mergedNotes || leadRecord.notes || ""
+                        })
+                    });
+
+                    const resJson = await resp.json().catch(() => null);
+                    if (!resp.ok) {
+                        const errMsg = (resJson && resJson.message) || `Lỗi liên kết khách hàng (HTTP ${resp.status})`;
+                        showToast(errMsg, "danger");
+                        dom.btnConfirmMerge.disabled = false;
+                        dom.btnConfirmMergeText.textContent = "Xác nhận gộp Lead";
+                        return;
+                    }
+
+                    allLeads = allLeads.filter(l => l.id !== leadRecord.id && l.id !== parsedLeadId);
+                    try {
+                        localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(allLeads));
+                    } catch (_) {}
+
+                    duplicatePairs = duplicatePairs.filter(p => p.id !== currentPair.id);
+                    saveDuplicatesLocally();
+
+                    dom.btnConfirmMerge.disabled = false;
+                    dom.btnConfirmMergeText.textContent = "Xác nhận gộp Lead";
+                    closeMergeModal();
+
+                    showToast(`✓ Đã liên kết và gộp thành công Lead "${leadRecord.fullName}" vào Khách hàng "${customerRecord.companyName || customerRecord.fullName}"!`, "success");
+                    await fetchDuplicatesFromBackend();
+                    return;
+                } catch (err) {
+                    showToast("Lỗi kết nối khi gộp Lead vào Khách hàng: " + err.message, "danger");
+                    dom.btnConfirmMerge.disabled = false;
+                    dom.btnConfirmMergeText.textContent = "Xác nhận gộp Lead";
+                    return;
+                }
+            }
+        }
+
         const mergedPayload = {
             masterId: A.id,
             duplicateId: B.id,

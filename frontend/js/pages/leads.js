@@ -1367,6 +1367,7 @@
             phone,
             email,
             companyName,
+            region: document.getElementById("newRegion") ? document.getElementById("newRegion").value : "Miền Bắc (Hà Nội)",
             industry: document.getElementById("newIndustry").value,
             source: document.getElementById("newSource").value,
             tier: document.getElementById("newTier").value,
