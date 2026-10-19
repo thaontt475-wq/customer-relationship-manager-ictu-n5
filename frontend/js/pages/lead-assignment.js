@@ -93,7 +93,8 @@
     // 3. MOCK ASSIGNMENT RULES (PRIORITY 1, 2, 3...)
     const DEFAULT_RULES = [
         {
-            id: "RULE-01",
+            id: 1,
+            ruleCode: "RULE-01",
             priority: 1,
             name: "Phân bổ Khách hàng Bất động sản & Xây dựng (Miền Bắc)",
             region: "NORTH",
@@ -106,7 +107,8 @@
             lastAssignedIndex: 0
         },
         {
-            id: "RULE-02",
+            id: 2,
+            ruleCode: "RULE-02",
             priority: 2,
             name: "Phân bổ Lead Công nghệ thông tin & Viễn thông",
             region: "NATIONWIDE",
@@ -119,7 +121,8 @@
             lastAssignedIndex: 1
         },
         {
-            id: "RULE-03",
+            id: 3,
+            ruleCode: "RULE-03",
             priority: 3,
             name: "Điều phối Thị trường Miền Nam (Round-Robin)",
             region: "SOUTH",
@@ -132,7 +135,8 @@
             lastAssignedIndex: 0
         },
         {
-            id: "RULE-04",
+            id: 4,
+            ruleCode: "RULE-04",
             priority: 4,
             name: "Điều phối Thị trường Miền Trung (Đà Nẵng & lân cận)",
             region: "CENTRAL",
@@ -145,7 +149,8 @@
             lastAssignedIndex: 0
         },
         {
-            id: "RULE-05",
+            id: 5,
+            ruleCode: "RULE-05",
             priority: 5,
             name: "Khách hàng Doanh nghiệp Toàn quốc - Cân bằng tải",
             region: "NATIONWIDE",
@@ -1101,8 +1106,10 @@
                 rule.isActive = isActive;
             }
         } else {
+            const tempCode = `RULE-${Date.now().toString().slice(-4)}`;
             const newRule = {
-                id: `RULE-${Date.now().toString().slice(-4)}`,
+                id: window.CrmApi ? null : tempCode,
+                ruleCode: tempCode,
                 name,
                 region,
                 industry,

@@ -53,9 +53,10 @@
     ];
 
     const DEFAULT_LEADS = [
-        // Lead 1: Qualified - Việt Tech (CNTT)
+        // Lead 1: Qualified - Việt Tech (CNTT - DB ID 203)
         {
-            id: "LD-CONV-01",
+            id: 203,
+            dbId: 203,
             code: "LEAD-2026-081",
             fullName: "Nguyễn Hoàng Nam",
             title: "Tổng Giám đốc (CEO)",
@@ -80,9 +81,10 @@
             convertedBy: null,
             convertedTo: null
         },
-        // Lead 2: Qualified - Mediphar (Potential Duplicate with existing customer!)
+        // Lead 2: Qualified - Mediphar (DB ID 204)
         {
-            id: "LD-CONV-02",
+            id: 204,
+            dbId: 204,
             code: "LEAD-2026-082",
             fullName: "Vũ Thị Bích Ngọc",
             title: "Giám đốc Mua sắm & Cung ứng",
@@ -107,9 +109,10 @@
             convertedBy: null,
             convertedTo: null
         },
-        // Lead 3: Qualified - Chuỗi Thời trang An Phước (Bán lẻ)
+        // Lead 3: Qualified - Chuỗi Thời trang An Phước (DB ID 206)
         {
-            id: "LD-CONV-03",
+            id: 206,
+            dbId: 206,
             code: "LEAD-2026-083",
             fullName: "Đinh Tuấn Anh",
             title: "Giám đốc Chuyển đổi số (CDO)",
@@ -134,9 +137,10 @@
             convertedBy: null,
             convertedTo: null
         },
-        // Lead 4: Qualified - Địa ốc Đất Việt (Bất động sản)
+        // Lead 4: Qualified - Địa ốc Đất Việt (DB ID 205)
         {
-            id: "LD-CONV-04",
+            id: 205,
+            dbId: 205,
             code: "LEAD-2026-084",
             fullName: "Phạm Quốc Dũng",
             title: "Phó Tổng Giám đốc Kinh doanh",
@@ -228,7 +232,8 @@
     // 3. SERVICE LAYER (REST API & LOCALSTORAGE ABSTRACTION)
     const LeadConversionService = {
         init() {
-            if (!localStorage.getItem(STORAGE_KEY_LEADS)) {
+            const raw = localStorage.getItem(STORAGE_KEY_LEADS);
+            if (!raw || raw.includes('"LD-CONV-01"')) {
                 localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(DEFAULT_LEADS));
             }
             if (!localStorage.getItem(STORAGE_KEY_CUSTOMERS)) {
@@ -323,10 +328,17 @@
             const lead = this.getLeadById(leadId);
             if (!lead) return { hasDuplicate: false };
 
-            if (window.CrmApi && typeof window.CrmApi.request === "function") {
-                const res = await window.CrmApi.request(`/api/leads/${leadId}/check-convert-duplicates`);
-                if (res) {
-                    return (res && res.data) ? res.data : res;
+            if (window.CrmApi && typeof window.CrmApi.request === "function" && String(leadId).match(/^\d+$/)) {
+                try {
+                    const res = await window.CrmApi.request(`/api/leads/${leadId}/check-convert-duplicates`);
+                    if (res) {
+                        const data = (res && res.data) ? res.data : res;
+                        if (data && data.hasDuplicate) {
+                            return data;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("API check-convert-duplicates error, using local fallback:", e);
                 }
             }
 
@@ -364,14 +376,148 @@
             }
 
             let serverResult = null;
-            if (window.CrmApi && typeof window.CrmApi.request === "function") {
-                const apiRes = await window.CrmApi.request(`/api/leads/${leadId}/convert`, {
-                    method: "POST",
-                    body: JSON.stringify(payload)
-                });
-                serverResult = (apiRes && apiRes.data) ? apiRes.data : apiRes;
-                if (apiRes && apiRes.success === false) {
-                    throw new Error(apiRes.message || "Chuyển đổi Lead thất bại từ máy chủ.");
+            let numericId = null;
+            if (typeof leadId === "number" || (typeof leadId === "string" && String(leadId).match(/^\d+$/))) {
+                numericId = Number(leadId);
+            } else if (lead && lead.dbId) {
+                numericId = Number(lead.dbId);
+            } else if (leadId === "LD-CONV-01" || leadId === "LEAD-2026-081") {
+                numericId = 203;
+            } else if (leadId === "LD-CONV-02" || leadId === "LEAD-2026-082") {
+                numericId = 204;
+            } else if (leadId === "LD-CONV-03" || leadId === "LEAD-2026-083") {
+                numericId = 206;
+            } else if (leadId === "LD-CONV-04" || leadId === "LEAD-2026-084") {
+                numericId = 205;
+            }
+
+            // 1. First attempt: Official Lead Conversion Backend API
+            if (window.CrmApi && typeof window.CrmApi.request === "function" && numericId) {
+                try {
+                    const apiRes = await window.CrmApi.request(`/api/leads/${numericId}/convert`, {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    });
+                    const resData = (apiRes && apiRes.data) ? apiRes.data : apiRes;
+                    if (resData && (resData.customerId || resData.customerName)) {
+                        serverResult = resData;
+                    }
+                } catch (err) {
+                    console.warn("Official /api/leads/convert error, attempting direct REST endpoints:", err);
+                }
+            }
+
+            // 2. Second attempt: Direct CRM REST APIs for Customer, Contact, Deal
+            if (!serverResult && window.CrmApi && typeof window.CrmApi.request === "function") {
+                let dbCustomerId = null;
+                let dbCustomerName = payload.customer?.name || lead.companyName;
+                let dbCustomerInfo = "";
+                let dbContactId = null;
+                let dbContactName = payload.contact?.fullName || lead.fullName;
+                let dbContactInfo = "";
+                let dbDealId = null;
+                let dbDealName = "";
+                let dbDealInfo = "Không tạo cơ hội";
+
+                // A. Customer creation
+                if (payload.customerMode === "MERGE_EXISTING" && payload.existingCustomerId) {
+                    dbCustomerId = Number(payload.existingCustomerId);
+                    const existing = this.getExistingCustomers().find(c => String(c.id) === String(payload.existingCustomerId));
+                    dbCustomerName = existing ? existing.name : dbCustomerName;
+                    dbCustomerInfo = `Gộp vào khách hàng có sẵn (MST: ${existing?.taxCode || "N/A"})`;
+                } else if (payload.customer && payload.customer.name) {
+                    try {
+                        const custRes = await window.CrmApi.request("/api/customers", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                name: payload.customer.name.trim(),
+                                taxCode: payload.customer.taxCode ? payload.customer.taxCode.trim() : null,
+                                phone: payload.customer.phone ? payload.customer.phone.trim() : null,
+                                website: payload.customer.website ? payload.customer.website.trim() : null,
+                                address: payload.customer.address ? payload.customer.address.trim() : null,
+                                status: "TIEM_NANG"
+                            })
+                        });
+                        const cData = custRes?.data || custRes;
+                        if (cData && cData.id) {
+                            dbCustomerId = Number(cData.id);
+                            dbCustomerName = cData.name || payload.customer.name;
+                            dbCustomerInfo = `MST: ${cData.taxCode || payload.customer.taxCode || "N/A"} - ${payload.customer.industry || "B2B"}`;
+                        }
+                    } catch (cErr) {
+                        console.warn("Direct POST /api/customers error:", cErr);
+                    }
+                }
+
+                // B. Contact creation
+                if (dbCustomerId && typeof dbCustomerId === "number" && payload.contact) {
+                    try {
+                        const contactPayload = {
+                            customerId: dbCustomerId,
+                            fullName: payload.contact.fullName.trim(),
+                            title: payload.contact.title ? payload.contact.title.trim() : "Người đại diện",
+                            phone: payload.contact.phone ? payload.contact.phone.trim() : null,
+                            email: payload.contact.email ? payload.contact.email.trim() : null,
+                            buyingRole: payload.contact.buyingRole || "DECISION_MAKER",
+                            isPrimary: true
+                        };
+                        const ctRes = await window.CrmApi.request("/api/contacts", {
+                            method: "POST",
+                            body: JSON.stringify(contactPayload)
+                        });
+                        const ctData = ctRes?.data || ctRes;
+                        if (ctData && ctData.id) {
+                            dbContactId = ctData.id;
+                            dbContactName = ctData.fullName || contactPayload.fullName;
+                            dbContactInfo = `${ctData.title || contactPayload.title} - ${ctData.phone || contactPayload.phone}`;
+                        }
+                    } catch (ctErr) {
+                        console.warn("Direct POST /api/contacts error:", ctErr);
+                    }
+                }
+
+                // C. Opportunity creation
+                if (dbCustomerId && typeof dbCustomerId === "number" && payload.deal && payload.deal.createDeal) {
+                    try {
+                        const dealPayload = {
+                            name: payload.deal.name.trim(),
+                            customerId: dbCustomerId,
+                            contactName: dbContactName,
+                            amount: payload.deal.amount,
+                            stageId: Number(payload.deal.stageId) || 2,
+                            probability: Number(payload.deal.probability) || 40,
+                            expectedCloseDate: payload.deal.closeDate
+                        };
+                        const dRes = await window.CrmApi.request("/api/opportunities", {
+                            method: "POST",
+                            body: JSON.stringify(dealPayload)
+                        });
+                        const dData = dRes?.data || dRes;
+                        if (dData && dData.id) {
+                            dbDealId = dData.id;
+                            dbDealName = dData.name || dealPayload.name;
+                            dbDealInfo = `${formatCurrency(payload.deal.amount)} ₫ - Dự kiến chốt: ${payload.deal.closeDate}`;
+                        }
+                    } catch (dErr) {
+                        console.warn("Direct POST /api/opportunities error:", dErr);
+                    }
+                }
+
+                if (dbCustomerId) {
+                    serverResult = {
+                        success: true,
+                        customerId: dbCustomerId,
+                        customerName: dbCustomerName,
+                        customerInfo: dbCustomerInfo,
+                        contactId: dbContactId || `CT-${dbCustomerId}`,
+                        contactName: dbContactName,
+                        contactInfo: dbContactInfo,
+                        dealId: dbDealId,
+                        dealName: dbDealName,
+                        dealInfo: dbDealInfo,
+                        leadCode: lead.code,
+                        convertedAt: new Date().toISOString()
+                    };
                 }
             }
 
@@ -585,6 +731,16 @@
     function parseCurrency(str) {
         if (!str) return 0;
         return Number(String(str).replace(/[^\d]/g, "")) || 0;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     function formatDateVi(dateStr) {
@@ -841,21 +997,6 @@
 
         tbody.innerHTML = html;
 
-        // Attach action handlers
-        tbody.querySelectorAll(".btn-open-convert").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const leadId = btn.getAttribute("data-lead-id");
-                openConversionModal(leadId);
-            });
-        });
-
-        tbody.querySelectorAll(".btn-view-converted-action").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const leadId = btn.getAttribute("data-lead-id");
-                openConvertedDetailsModal(leadId);
-            });
-        });
-
         updatePagination(startIndex + 1, endIndex, totalRecords, totalPages);
     }
 
@@ -921,88 +1062,139 @@
 
     // 7. MODAL 1: OPEN & PRE-FILL 3-IN-1 CONVERSION MODAL
     async function openConversionModal(leadId) {
-        const lead = await LeadConversionService.getLeadByIdAsync(leadId);
-        if (!lead) {
-            showToast("Không tìm thấy Lead!", "error");
-            return;
+        try {
+            const lead = await LeadConversionService.getLeadByIdAsync(leadId);
+            if (!lead) {
+                showToast("Không tìm thấy Lead để chuyển đổi!", "error");
+                return;
+            }
+            if (lead.isLocked) {
+                showToast("Lead này đã hoàn thành chuyển đổi và được khóa an toàn!", "warning");
+                return;
+            }
+
+            activeLeadForConversion = lead;
+
+            // Context Ribbon
+            const elLeadCode = document.getElementById("modalLeadCode");
+            const elLeadName = document.getElementById("modalLeadName");
+            const elLeadScore = document.getElementById("modalLeadScore");
+            const elLeadOwner = document.getElementById("modalLeadOwner");
+            if (elLeadCode) elLeadCode.textContent = lead.code || "LEAD-2026-000";
+            if (elLeadName) elLeadName.textContent = lead.fullName || "--";
+            if (elLeadScore) elLeadScore.textContent = `${lead.score || 0}đ`;
+            if (elLeadOwner) elLeadOwner.textContent = lead.assignedSales || "Nông Quang Tiệp";
+
+            // Pre-fill CARD 1: Customer (Account)
+            const radioNew = document.getElementById("radioCreateNew");
+            const radioMerge = document.getElementById("radioMergeExisting");
+            const existingRow = document.getElementById("existingCustomerSelectorRow");
+            const customerFields = document.getElementById("customerFieldsContainer");
+            if (radioNew) radioNew.checked = true;
+            if (radioMerge) radioMerge.checked = false;
+            if (existingRow) existingRow.style.display = "none";
+            if (customerFields) {
+                customerFields.style.display = "flex";
+                customerFields.style.opacity = "1";
+                customerFields.querySelectorAll("input, select").forEach(el => el.disabled = false);
+            }
+
+            const custName = document.getElementById("custName");
+            const custTaxCode = document.getElementById("custTaxCode");
+            const custIndustry = document.getElementById("custIndustry");
+            const custPhone = document.getElementById("custPhone");
+            const custWebsite = document.getElementById("custWebsite");
+            const custAddress = document.getElementById("custAddress");
+            if (custName) custName.value = lead.companyName || "";
+            if (custTaxCode) custTaxCode.value = lead.taxCode || "";
+            if (custIndustry) custIndustry.value = lead.industry || "CNTT & Viễn thông";
+            if (custPhone) custPhone.value = lead.companyPhone || lead.phone || "";
+            if (custWebsite) custWebsite.value = lead.website || "";
+            if (custAddress) custAddress.value = lead.address || "";
+
+            // Populate Existing Customers Dropdown
+            const existingSelect = document.getElementById("selectExistingCustomer");
+            if (existingSelect) {
+                const existingCustomers = LeadConversionService.getExistingCustomers();
+                existingSelect.innerHTML = `<option value="">-- Chọn khách hàng trong hệ thống --</option>` +
+                    existingCustomers.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (MST: ${escapeHtml(c.taxCode || "N/A")})</option>`).join("");
+            }
+
+            // Pre-fill CARD 2: Contact
+            const contactFullName = document.getElementById("contactFullName");
+            const contactTitle = document.getElementById("contactTitle");
+            const contactRole = document.getElementById("contactBuyingRole");
+            const contactPhone = document.getElementById("contactPhone");
+            const contactEmail = document.getElementById("contactEmail");
+            const contactNotes = document.getElementById("contactNotes");
+            if (contactFullName) contactFullName.value = lead.fullName || "";
+            if (contactTitle) contactTitle.value = lead.title || "Người đại diện";
+            if (contactRole) contactRole.value = lead.buyingRole || "DECISION_MAKER";
+            if (contactPhone) contactPhone.value = lead.phone || "";
+            if (contactEmail) contactEmail.value = lead.email || "";
+            if (contactNotes) contactNotes.value = lead.notes || "";
+
+            // Pre-fill CARD 3: Deal / Opportunity
+            const checkDeal = document.getElementById("checkCreateDeal");
+            const dealContainer = document.getElementById("dealFieldsContainer");
+            const dealName = document.getElementById("dealName");
+            const dealAmount = document.getElementById("dealAmount");
+            const dealCloseDate = document.getElementById("dealCloseDate");
+            const dealPipeline = document.getElementById("dealPipeline");
+            const dealStage = document.getElementById("dealStage");
+
+            if (checkDeal) checkDeal.checked = true;
+            if (dealContainer) dealContainer.style.display = "flex";
+            if (dealName) dealName.value = `${lead.companyName || "Lead"} - Dự án Giải pháp CRM`;
+            if (dealAmount) dealAmount.value = formatCurrency(lead.estimatedValue || 150000000);
+
+            // Date preset (+30 days)
+            const d = new Date();
+            d.setDate(d.getDate() + 30);
+            if (dealCloseDate) dealCloseDate.value = d.toISOString().split("T")[0];
+            if (dealPipeline) dealPipeline.value = "B2B_STANDARD";
+            if (dealStage) dealStage.value = "2"; // Demo
+
+            // Reset Duplicate Banner
+            const duplicateBanner = document.getElementById("duplicateAlertBanner");
+            const duplicateText = document.getElementById("duplicateAlertText");
+            const btnMergeSuggestion = document.getElementById("btnApplyMergeSuggestion");
+            if (duplicateBanner) duplicateBanner.style.display = "none";
+
+            // Open Modal Immediately so user sees responsiveness without lag
+            const modal = document.getElementById("conversionModal");
+            if (modal) {
+                modal.style.display = "flex";
+                modal.setAttribute("aria-hidden", "false");
+            }
+
+            // Asynchronously check duplicates and show warning banner if detected
+            try {
+                const dupResult = await LeadConversionService.checkConvertDuplicates(lead.id);
+                if (dupResult && dupResult.hasDuplicate && duplicateBanner && duplicateText) {
+                    duplicateBanner.style.display = "flex";
+                    const dupName = escapeHtml(dupResult.duplicateCustomer?.name || lead.companyName || "Khách hàng");
+                    const dupReason = escapeHtml(dupResult.reason || "Trùng lặp thông tin");
+                    duplicateText.innerHTML = `Hệ thống phát hiện công ty trùng lặp: <strong>${dupName}</strong> (${dupReason}). Bạn có muốn gộp Lead này vào hồ sơ khách hàng đã có?`;
+
+                    if (btnMergeSuggestion) {
+                        btnMergeSuggestion.onclick = () => {
+                            if (radioMerge) radioMerge.checked = true;
+                            handleCustomerModeChange("MERGE_EXISTING");
+                            if (existingSelect && dupResult.duplicateCustomer && dupResult.duplicateCustomer.id) {
+                                existingSelect.value = dupResult.duplicateCustomer.id;
+                            }
+                            showToast("Đã chọn gộp vào Khách hàng có sẵn!", "success");
+                        };
+                    }
+                }
+            } catch (dupErr) {
+                console.warn("Lỗi kiểm tra trùng lặp (không chặn mở modal):", dupErr);
+            }
+        } catch (err) {
+            console.error("Lỗi khi mở modal chuyển đổi:", err);
+            showToast("Có lỗi xảy ra khi chuẩn bị dữ liệu chuyển đổi!", "error");
         }
-        if (lead.isLocked) {
-            showToast("Lead này đã chuyển đổi và bị khóa!", "warning");
-            return;
-        }
-
-        activeLeadForConversion = lead;
-
-        // Context Ribbon
-        document.getElementById("modalLeadCode").textContent = lead.code;
-        document.getElementById("modalLeadName").textContent = lead.fullName;
-        document.getElementById("modalLeadScore").textContent = `${lead.score}đ`;
-        document.getElementById("modalLeadOwner").textContent = lead.assignedSales || "Nông Quang Tiệp";
-
-        // Pre-fill CARD 1: Customer (Account)
-        document.getElementById("radioCreateNew").checked = true;
-        document.getElementById("radioMergeExisting").checked = false;
-        document.getElementById("existingCustomerSelectorRow").style.display = "none";
-        document.getElementById("customerFieldsContainer").style.display = "flex";
-
-        document.getElementById("custName").value = lead.companyName || "";
-        document.getElementById("custTaxCode").value = lead.taxCode || "";
-        document.getElementById("custIndustry").value = lead.industry || "CNTT & Viễn thông";
-        document.getElementById("custPhone").value = lead.companyPhone || lead.phone || "";
-        document.getElementById("custWebsite").value = lead.website || "";
-        document.getElementById("custAddress").value = lead.address || "";
-
-        // Populate Existing Customers Dropdown
-        const existingSelect = document.getElementById("selectExistingCustomer");
-        const existingCustomers = LeadConversionService.getExistingCustomers();
-        existingSelect.innerHTML = `<option value="">-- Chọn khách hàng trong hệ thống --</option>` +
-            existingCustomers.map(c => `<option value="${c.id}">${c.name} (MST: ${c.taxCode || "N/A"})</option>`).join("");
-
-        // Pre-fill CARD 2: Contact
-        document.getElementById("contactFullName").value = lead.fullName || "";
-        document.getElementById("contactTitle").value = lead.title || "Người đại diện";
-        document.getElementById("contactBuyingRole").value = lead.buyingRole || "DECISION_MAKER";
-        document.getElementById("contactPhone").value = lead.phone || "";
-        document.getElementById("contactEmail").value = lead.email || "";
-        document.getElementById("contactNotes").value = lead.notes || "";
-
-        // Pre-fill CARD 3: Deal / Opportunity
-        document.getElementById("checkCreateDeal").checked = true;
-        document.getElementById("dealFieldsContainer").style.display = "flex";
-        document.getElementById("dealName").value = `${lead.companyName} - Dự án Giải pháp CRM`;
-        document.getElementById("dealAmount").value = formatCurrency(lead.estimatedValue || 150000000);
-
-        // Date preset (+30 days)
-        const d = new Date();
-        d.setDate(d.getDate() + 30);
-        document.getElementById("dealCloseDate").value = d.toISOString().split("T")[0];
-
-        document.getElementById("dealPipeline").value = "B2B_STANDARD";
-        document.getElementById("dealStage").value = "2"; // Demo
-
-        // Check Duplicates Asynchronously
-        const duplicateBanner = document.getElementById("duplicateAlertBanner");
-        const duplicateText = document.getElementById("duplicateAlertText");
-        const btnMergeSuggestion = document.getElementById("btnApplyMergeSuggestion");
-        duplicateBanner.style.display = "none";
-
-        const dupResult = await LeadConversionService.checkConvertDuplicates(lead.id);
-        if (dupResult && dupResult.hasDuplicate) {
-            duplicateBanner.style.display = "flex";
-            duplicateText.innerHTML = `Hệ thống phát hiện công ty trùng lặp: <strong>${dupResult.duplicateCustomer.name}</strong> (${dupResult.reason}). Bạn có muốn gộp Lead này vào hồ sơ khách hàng đã có?`;
-
-            btnMergeSuggestion.onclick = () => {
-                document.getElementById("radioMergeExisting").checked = true;
-                handleCustomerModeChange("MERGE_EXISTING");
-                existingSelect.value = dupResult.duplicateCustomer.id;
-                showToast("Đã chọn gộp vào Khách hàng có sẵn!", "success");
-            };
-        }
-
-        // Show Modal
-        const modal = document.getElementById("conversionModal");
-        modal.style.display = "flex";
-        modal.setAttribute("aria-hidden", "false");
     }
 
     function closeConversionModal() {
@@ -1443,6 +1635,29 @@
             });
         });
 
+        // Global Table Actions Event Delegation (Resilient & Immediate)
+        document.addEventListener("click", (e) => {
+            const convertBtn = e.target.closest(".btn-open-convert");
+            if (convertBtn) {
+                e.preventDefault();
+                const leadId = convertBtn.getAttribute("data-lead-id");
+                if (leadId) openConversionModal(leadId);
+                return;
+            }
+
+            const viewBtn = e.target.closest(".btn-view-converted-action");
+            if (viewBtn) {
+                e.preventDefault();
+                const leadId = viewBtn.getAttribute("data-lead-id");
+                if (leadId) openConvertedDetailsModal(leadId);
+                return;
+            }
+        });
+
+        // Expose functions globally for direct onclick support if needed
+        window.openConversionModal = openConversionModal;
+        window.openConvertedDetailsModal = openConvertedDetailsModal;
+
         // Modal 1 controls
         document.getElementById("btnCloseConversionModal").addEventListener("click", closeConversionModal);
         document.getElementById("btnCancelConversion").addEventListener("click", closeConversionModal);
@@ -1477,7 +1692,7 @@
     }
 
     // 13. DOM READY BOOTSTRAP
-    document.addEventListener("DOMContentLoaded", async () => {
+    async function bootLeadConversion() {
         LeadConversionService.init();
         initEventHandlers();
         refreshData();
@@ -1488,6 +1703,12 @@
         if (leadIdParam) {
             await openConversionModal(leadIdParam);
         }
-    });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bootLeadConversion);
+    } else {
+        bootLeadConversion();
+    }
 
 })();

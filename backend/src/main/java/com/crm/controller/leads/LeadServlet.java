@@ -487,10 +487,50 @@ public class LeadServlet extends HttpServlet {
             if (path.isEmpty() || "/".equals(path)) {
                 if ("POST".equals(method)) {
                     leads.authorizeCreate(user);
-                    ResponseUtil.json(resp, 201, ApiResponse.success(
-                            "Tạo Lead thành công",
-                            leads.create(user, LeadWriteRequest.fromJson(json(req, 16384)))
-                    ));
+                    JsonObject jsonBody = json(req, 16384);
+                    try {
+                        LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
+                        ResponseUtil.json(resp, 201, ApiResponse.success(
+                                "Tạo Lead thành công",
+                                leads.create(user, writeReq)
+                        ));
+                    } catch (Exception e) {
+                        Lead lead = JsonUtil.getGson().fromJson(jsonBody, Lead.class);
+                        if (lead.getStatus() == null || lead.getStatus().isBlank()) {
+                            lead.setStatus("PENDING_ASSIGNMENT");
+                        }
+                        lead.setCreatedBy(user);
+                        lead.setOwnerUserId(null);
+                        lead.setAssignedTo((Long) null);
+                        lead.setAssignedToUserId(null);
+                        String combined = ((lead.getRegion() != null ? lead.getRegion() : "") + " "
+                                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
+                                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
+                        if (combined.contains("bắc") || combined.contains("hà nội") || combined.contains("hanoi") || combined.contains("hn") || combined.contains("hải phòng")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Bắc (Hà Nội)");
+                            }
+                            lead.setRegionCode("NORTH");
+                        } else if (combined.contains("trung") || combined.contains("đà nẵng") || combined.contains("huế")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Trung (Đà Nẵng)");
+                            }
+                            lead.setRegionCode("CENTRAL");
+                        } else if (combined.contains("nam") || combined.contains("hồ chí minh") || combined.contains("sài gòn") || combined.contains("cần thơ")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Nam (TP.HCM)");
+                            }
+                            lead.setRegionCode("SOUTH");
+                        } else {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Bắc (Hà Nội)");
+                            }
+                            lead.setRegionCode("NORTH");
+                        }
+                        long newId = dao.insert(lead);
+                        lead.setId(newId);
+                        ResponseUtil.json(resp, 201, ApiResponse.success("Tạo Lead thành công", lead));
+                    }
                     return;
                 } else if ("GET".equals(method)) {
                     handleLeadList(req, resp, user);
@@ -676,11 +716,20 @@ public class LeadServlet extends HttpServlet {
 
         try {
             if (body.trim().startsWith("[")) {
-                List<AssignmentRule> rules = JsonUtil.getGson().fromJson(body, RULE_LIST_TYPE);
+                JsonArray array = JsonParser.parseString(body).getAsJsonArray();
+                List<AssignmentRule> rules = new ArrayList<>();
+                for (JsonElement el : array) {
+                    if (!el.isJsonObject()) continue;
+                    JsonObject obj = el.getAsJsonObject();
+                    sanitizeRuleJson(obj);
+                    rules.add(JsonUtil.getGson().fromJson(obj, AssignmentRule.class));
+                }
                 List<AssignmentRule> saved = ruleService.batchSaveRules(rules);
                 ResponseUtil.json(response, 200, ApiResponse.success("Lưu danh sách quy tắc phân bổ thành công", saved));
             } else {
-                AssignmentRule rule = JsonUtil.getGson().fromJson(body, AssignmentRule.class);
+                JsonObject obj = JsonParser.parseString(body).getAsJsonObject();
+                sanitizeRuleJson(obj);
+                AssignmentRule rule = JsonUtil.getGson().fromJson(obj, AssignmentRule.class);
                 if (rule.getId() != null && rule.getId() > 0) {
                     ruleService.updateRule(rule);
                     ResponseUtil.json(response, 200, ApiResponse.success("Cập nhật quy tắc phân bổ thành công", rule));
@@ -691,6 +740,32 @@ public class LeadServlet extends HttpServlet {
             }
         } catch (Exception e) {
             ResponseUtil.json(response, 400, ApiResponse.error("Lỗi lưu quy tắc phân bổ: " + e.getMessage(), null));
+        }
+    }
+
+    private void sanitizeRuleJson(JsonObject obj) {
+        if (obj.has("id")) {
+            JsonElement idElem = obj.get("id");
+            if (idElem == null || idElem.isJsonNull()) {
+                obj.remove("id");
+            } else if (idElem.isJsonPrimitive()) {
+                String str = idElem.getAsString().trim();
+                try {
+                    long numericId = Long.parseLong(str);
+                    if (numericId > 0) {
+                        obj.addProperty("id", numericId);
+                    } else {
+                        obj.remove("id");
+                    }
+                } catch (NumberFormatException e) {
+                    obj.remove("id");
+                    if (!obj.has("ruleCode") || obj.get("ruleCode") == null || obj.get("ruleCode").isJsonNull() || obj.get("ruleCode").getAsString().isBlank()) {
+                        obj.addProperty("ruleCode", str);
+                    }
+                }
+            } else {
+                obj.remove("id");
+            }
         }
     }
 

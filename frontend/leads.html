@@ -24,7 +24,87 @@
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
     <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/pages/leads.css?v=20261014_flex_wrap_tabs">
+    <link rel="stylesheet" href="css/pages/leads.css?v=20261019_modal_css">
+
+    <style>
+    /* ================= CREATE LEAD MODAL STYLING ================= */
+    .modal-create-lead {
+        max-width: 680px !important;
+        width: 95% !important;
+        border-radius: 14px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        background: var(--crm-card-bg, #1e293b) !important;
+    }
+    .modal-create-lead .crm-modal-body {
+        padding: 20px 24px !important;
+    }
+    .modal-create-lead .form-row-2 {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 16px !important;
+        margin-bottom: 14px !important;
+    }
+    .modal-create-lead .form-group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        margin-bottom: 14px !important;
+        width: 100% !important;
+    }
+    .modal-create-lead .form-group label {
+        display: block !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: var(--crm-text, #f1f5f9) !important;
+        margin-bottom: 2px !important;
+    }
+    .modal-create-lead .crm-input,
+    .modal-create-lead .crm-select,
+    .modal-create-lead .crm-textarea {
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        height: 42px !important;
+        padding: 8px 12px !important;
+        font-size: 13.5px !important;
+        font-family: inherit !important;
+        color: var(--crm-text, #f8fafc) !important;
+        background-color: var(--crm-input-bg, #0f172a) !important;
+        border: 1px solid var(--crm-border, #334155) !important;
+        border-radius: 8px !important;
+        outline: none !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    .modal-create-lead .crm-select {
+        cursor: pointer !important;
+        padding-right: 32px !important;
+        appearance: auto !important;
+    }
+    .modal-create-lead .crm-select option {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+        padding: 8px !important;
+    }
+    .modal-create-lead .crm-textarea {
+        height: 72px !important;
+        min-height: 72px !important;
+        resize: vertical !important;
+        line-height: 1.5 !important;
+    }
+    .modal-create-lead .crm-input:focus,
+    .modal-create-lead .crm-select:focus,
+    .modal-create-lead .crm-textarea:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+    }
+    @media (max-width: 640px) {
+        .modal-create-lead .form-row-2 {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+    }
+    </style>
 </head>
 
 <body class="crm-private">
@@ -560,6 +640,18 @@
                         <input type="text" id="newCompanyName" class="crm-input" required placeholder="Tên doanh nghiệp">
                     </div>
                     <div class="form-group">
+                        <label for="newRegion">Khu vực địa lý</label>
+                        <select id="newRegion" class="crm-select">
+                            <option value="Miền Bắc (Hà Nội)">Khu vực Miền Bắc (Hà Nội)</option>
+                            <option value="Miền Trung (Đà Nẵng)">Khu vực Miền Trung (Đà Nẵng)</option>
+                            <option value="Miền Nam (TP.HCM)">Khu vực Miền Nam (TP.HCM)</option>
+                            <option value="Toàn quốc">Toàn quốc (Nationwide)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
                         <label for="newIndustry">Ngành nghề</label>
                         <select id="newIndustry" class="crm-select">
                             <option value="CNTT & Viễn thông">CNTT & Viễn thông</option>
@@ -569,9 +661,6 @@
                             <option value="Bán lẻ & Chuỗi F&B">Bán lẻ & Chuỗi F&B</option>
                         </select>
                     </div>
-                </div>
-
-                <div class="form-row-2">
                     <div class="form-group">
                         <label for="newSource">Nguồn Lead</label>
                         <select id="newSource" class="crm-select">
@@ -582,14 +671,15 @@
                             <option value="CAMPAIGN">Chiến dịch Marketing</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="newTier">Nhiệt độ dự kiến</label>
-                        <select id="newTier" class="crm-select">
-                            <option value="HOT">🔥 Nóng (Hot)</option>
-                            <option value="WARM" selected>🌤️ Ấm (Warm)</option>
-                            <option value="COLD">❄️ Lạnh (Cold)</option>
-                        </select>
-                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="newTier">Nhiệt độ dự kiến</label>
+                    <select id="newTier" class="crm-select">
+                        <option value="HOT">🔥 Nóng (Hot)</option>
+                        <option value="WARM" selected>🌤️ Ấm (Warm)</option>
+                        <option value="COLD">❄️ Lạnh (Cold)</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
