@@ -19,20 +19,103 @@ public class CustomerExcelReader {
     }
 
     public void writeTemplate(OutputStream output) throws IOException {
+        writeTemplate(output, false);
+    }
+
+    public void writeTemplate(OutputStream output, boolean withSampleData) throws IOException {
         try(XSSFWorkbook book=new XSSFWorkbook()) {
             Sheet sheet=book.createSheet("Customers");
-            CellStyle text=book.createCellStyle();text.setDataFormat(book.createDataFormat().getFormat("@"));
+            sheet.setDisplayGridlines(true);
+
+            CellStyle textStyle=book.createCellStyle();
+            textStyle.setDataFormat(book.createDataFormat().getFormat("@"));
+            Font fontData=book.createFont();
+            fontData.setFontName("Segoe UI");
+            textStyle.setFont(fontData);
+            textStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            setBorders(textStyle, IndexedColors.GREY_25_PERCENT.getIndex());
+
             CellStyle headerStyle=book.createCellStyle();
-            Font font=book.createFont();font.setBold(true);headerStyle.setFont(font);
+            Font font=book.createFont();
+            font.setFontName("Segoe UI");
+            font.setBold(true);
+            font.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(font);
+            headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            setBorders(headerStyle, IndexedColors.GREY_40_PERCENT.getIndex());
+
+            CellStyle centerStyle=book.createCellStyle();
+            centerStyle.cloneStyleFrom(textStyle);
+            centerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            CellStyle zebraTextStyle=book.createCellStyle();
+            zebraTextStyle.cloneStyleFrom(textStyle);
+            zebraTextStyle.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.getIndex());
+            zebraTextStyle.setFillPattern(FillPatternType.FINE_DOTS);
+
+            CellStyle zebraCenterStyle=book.createCellStyle();
+            zebraCenterStyle.cloneStyleFrom(centerStyle);
+            zebraCenterStyle.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.getIndex());
+            zebraCenterStyle.setFillPattern(FillPatternType.FINE_DOTS);
+
             Row header=sheet.createRow(0);
+            header.setHeightInPoints(28);
             for(int i=0;i<COLUMNS.size();i++) {
-                sheet.setDefaultColumnStyle(i,text);sheet.setColumnWidth(i,6000);
-                Cell cell=header.createCell(i);cell.setCellValue(COLUMNS.get(i));cell.setCellStyle(headerStyle);
+                sheet.setDefaultColumnStyle(i,textStyle);
+                Cell cell=header.createCell(i);
+                cell.setCellValue(COLUMNS.get(i));
+                cell.setCellStyle(headerStyle);
             }
+
+
+            if (withSampleData) {
+                String[][] sampleRows = {
+                    {"Công ty Cổ phần Công nghệ NovaTech", "0108923456", "CHINH_THUC", "contact@novatech.vn", "02438889999", "https://novatech.vn", "Tầng 8, Tòa Keangnam, Mễ Trì, Hà Nội", "1", "3"},
+                    {"Tập đoàn Bán lẻ Sao Việt", "0312456789", "DANG_GIAO_DICH", "info@saovietretail.com", "02839998888", "https://saoviet.com.vn", "123 Nguyễn Thị Minh Khai, Quận 1, TP.HCM", "2", "4"},
+                    {"Công ty TNHH Giải pháp Số Nam Á", "0401889922", "TIEM_NANG", "admin@nama-solutions.vn", "0988776655", "https://nama-solutions.vn", "45 Lê Duẩn, Quận Hải Châu, Đà Nẵng", "1", "2"},
+                    {"Tổng Công ty Cơ Khí Chế Tạo Miền Bắc", "0200112233", "NGUNG_HOP_TAC", "vanphong@cokhimienbac.vn", "02253778899", "https://cokhimienbac.vn", "Lô 5 KCN Đình Vũ, Hải Phòng", "3", "5"}
+                };
+
+                for (int r = 0; r < sampleRows.length; r++) {
+                    Row row = sheet.createRow(r + 1);
+                    row.setHeightInPoints(22);
+                    boolean isZebra = (r % 2 == 1);
+                    for (int c = 0; c < sampleRows[r].length; c++) {
+                        Cell cell = row.createCell(c);
+                        cell.setCellValue(sampleRows[r][c]);
+                        if (c == 1 || c == 2 || c == 4 || c == 7 || c == 8) {
+                            cell.setCellStyle(isZebra ? zebraCenterStyle : centerStyle);
+                        } else {
+                            cell.setCellStyle(isZebra ? zebraTextStyle : textStyle);
+                        }
+                    }
+                }
+            }
+
+            int[] widths = {10000, 4800, 4800, 7500, 5200, 7000, 11000, 3800, 4000};
+            for (int i = 0; i < widths.length; i++) {
+                sheet.setColumnWidth(i, widths[i]);
+            }
+
             sheet.createFreezePane(0,1);
             book.write(output);
         }
     }
+
+    private static void setBorders(CellStyle style, short color) {
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setTopBorderColor(color);
+        style.setBottomBorderColor(color);
+        style.setLeftBorderColor(color);
+        style.setRightBorderColor(color);
+    }
+
 
     public List<ImportRow> read(InputStream input) throws IOException {
         byte[] bytes=BoundedXlsx.read(input);

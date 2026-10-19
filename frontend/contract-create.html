@@ -1,29 +1,33 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <script src="js/crm-api.js"></script>
-    <script>
-    (function () {
-        try {
-            var theme = localStorage.getItem("crm_ui_theme");
-            document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
-            document.documentElement.removeAttribute("data-crm-theme");
-        } catch (e) {
-            document.documentElement.setAttribute("data-theme", "light");
-        }
-    })();
-    </script>
+<script>
+(function () {
+    try {
+        var theme = localStorage.getItem("crm_ui_theme");
+        document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+        document.documentElement.removeAttribute("data-crm-theme");
+    } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+    }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Tạo Hợp đồng - NovaCRM</title>
+<title>Tạo Hợp đồng Mới | Corporate CRM</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/pages/contract-create.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/design-system.css?v=20261017_v7">
+<link rel="stylesheet" href="css/app-shell.css?v=20261017_v7">
+<link rel="stylesheet" href="css/pages/contract-create.css?v=20261017_v7">
+<link rel="stylesheet" href="css/pages/quotations.css?v=20261017_v7">
+<link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
@@ -35,13 +39,15 @@
     </div>
 
     <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
+
         <a href="dashboard.html" class="crm-nav-item">
             <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
             <span class="crm-nav-label">Tổng quan</span>
         </a>
 
         <a href="customers.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-users"></i></span>
             <span class="crm-nav-label">Khách hàng</span>
         </a>
 
@@ -51,13 +57,18 @@
         </a>
 
         <a href="quotations.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-file-signature"></i></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
             <span class="crm-nav-label">Báo giá</span>
         </a>
 
         <a href="contracts.html" class="crm-nav-item active">
             <span class="crm-nav-icon"><i class="fa-solid fa-file-signature"></i></span>
             <span class="crm-nav-label">Hợp đồng</span>
+        </a>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
+            <span class="crm-nav-label">Sản phẩm & Bảng giá</span>
         </a>
     </nav>
 </aside>
@@ -68,165 +79,256 @@
         <input id="globalSearch" type="search" placeholder="Tìm kiếm...">
         <kbd>Ctrl K</kbd>
     </div>
+
+    <div class="crm-top-actions">
+        <div class="crm-user">
+            <button id="userButton" class="crm-user-button" type="button">
+                <div class="crm-avatar">U</div>
+                <div class="crm-user-copy">
+                    <span class="crm-user-name">Đang tải...</span>
+                    <span class="crm-user-role">Người dùng</span>
+                </div>
+                <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+            </button>
+            <div id="userDropdown" class="crm-user-dropdown">
+                <a href="profile.html">Hồ sơ cá nhân</a>
+                <a href="change-password.html">Đổi mật khẩu</a>
+                <button type="button" id="btnLogoutTop">Đăng xuất</button>
+            </div>
+        </div>
+    </div>
 </header>
 
 <main class="crm-main contract-page">
+    <!-- Header -->
     <section class="contract-head">
         <div>
-            <a href="contracts.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Danh sách Hợp đồng</a>
-            <h1 id="pageHeading"><i class="fa-solid fa-file-signature" style="color:var(--crm-primary); margin-right:8px;"></i> Tạo Hợp đồng</h1>
-            <p id="pageSubHeading">Nhập thông tin hợp đồng để lưu trực tiếp vào cơ sở dữ liệu hệ thống.</p>
+            <a href="contracts.html" class="back-link">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách Hợp đồng
+            </a>
+            <h1 id="pageHeading">
+                <i class="fa-solid fa-file-signature" style="color:#10b981;"></i>
+                Tạo Hợp đồng Mới
+            </h1>
+            <p id="pageSubHeading">Nhập thông tin hợp đồng kinh tế và lưu trực tiếp vào cơ sở dữ liệu MySQL hệ thống.</p>
         </div>
     </section>
 
-    <section id="contractBlocked" class="crm-card contract-blocked" hidden>
-        Báo giá này chưa ở trạng thái <strong>Đã duyệt</strong>, nên chưa thể tạo hợp đồng.
-    </section>
+    <!-- Stepper -->
+    <div class="contract-stepper-bar">
+        <div class="contract-step completed">
+            <span class="contract-step-num"><i class="fa-solid fa-check"></i></span>
+            <span>1. Khởi tạo & Báo giá</span>
+        </div>
+        <div class="contract-step-divider"></div>
+        <div class="contract-step active">
+            <span class="contract-step-num">2</span>
+            <span>2. Thông tin pháp lý</span>
+        </div>
+        <div class="contract-step-divider"></div>
+        <div class="contract-step">
+            <span class="contract-step-num">3</span>
+            <span>3. Điều khoản thanh toán</span>
+        </div>
+        <div class="contract-step-divider"></div>
+        <div class="contract-step">
+            <span class="contract-step-num">4</span>
+            <span>4. Lưu vào MySQL</span>
+        </div>
+    </div>
 
-    <form id="contractForm" class="contract-grid">
-        <section class="crm-card contract-main">
-            <h2>Thông tin Hợp đồng</h2>
+    <!-- Blocked Alert (if quote not approved) -->
+    <div id="contractBlocked" class="contract-blocked-banner" style="display:none;">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:1.2rem;"></i>
+        <span id="blockedMessage">Báo giá này chưa ở trạng thái <strong>Đã duyệt</strong>, nên chưa thể tạo hợp đồng.</span>
+    </div>
 
-            <div class="contract-form-grid">
-                <label class="full-field" style="grid-column: 1 / -1;">
-                    Tên hợp đồng <em>*</em>
-                    <input id="contractTitle" class="crm-input" type="text" required placeholder="Ví dụ: Hợp đồng cung cấp dịch vụ CRM năm 2026">
-                </label>
+    <!-- Form -->
+    <form id="contractForm" class="contract-grid-layout">
+        <div>
+            <!-- Section 1: Thông tin hợp đồng -->
+            <section class="contract-card-pro">
+                <h2><i class="fa-solid fa-circle-info" style="color:#10b981;"></i> Thông tin Hợp đồng Kinh tế</h2>
 
-                <label>
-                    Số hợp đồng <em>*</em>
-                    <input id="contractNumber" class="crm-input" type="text" required placeholder="HD-XXXX">
-                </label>
+                <div class="contract-form-grid-2">
+                    <div class="contract-form-full contract-form-group">
+                        <label for="contractTitle">
+                            <i class="fa-solid fa-pen-nib"></i> Tên hợp đồng <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input id="contractTitle" type="text" required placeholder="Ví dụ: Hợp đồng cung cấp dịch vụ CRM năm 2026">
+                    </div>
 
-                <div id="manualCustomerContainer">
-                    <label>
-                        Khách hàng <em>*</em>
-                        <select id="contractCustomerSelect" class="crm-select" style="width:100%;">
+                    <div class="contract-form-group">
+                        <label for="contractNumber">
+                            <i class="fa-solid fa-barcode"></i> Số / Mã hợp đồng <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input id="contractNumber" type="text" required placeholder="HD-2026-001">
+                    </div>
+
+                    <div class="contract-form-group" id="manualCustomerContainer">
+                        <label for="contractCustomerSelect">
+                            <i class="fa-solid fa-building"></i> Khách hàng ký kết <span style="color:#ef4444;">*</span>
+                        </label>
+                        <select id="contractCustomerSelect">
                             <option value="">-- Đang tải danh sách khách hàng --</option>
                         </select>
-                    </label>
-                </div>
-
-                <div id="manualTotalContainer">
-                    <label>
-                        Giá trị hợp đồng (VND) <em>*</em>
-                        <input id="manualTotalAmount" class="crm-input" type="number" min="0" step="1000" placeholder="0">
-                    </label>
-                </div>
-
-                <label>
-                    Trạng thái
-                    <select id="contractStatus" class="crm-select" style="width:100%;">
-                        <option value="DRAFT">Bản thảo (DRAFT)</option>
-                        <option value="ACTIVE" selected>Hiệu lực (ACTIVE)</option>
-                        <option value="COMPLETED">Hoàn tất (COMPLETED)</option>
-                    </select>
-                </label>
-
-                <label>
-                    Ngày ký <em>*</em>
-                    <input id="signedDate" class="crm-input" type="date">
-                </label>
-
-                <label>
-                    Ngày hiệu lực <em>*</em>
-                    <input id="effectiveDate" class="crm-input" type="date">
-                </label>
-
-                <label>
-                    Ngày hết hạn
-                    <input id="expiryDate" class="crm-input" type="date">
-                </label>
-            </div>
-
-            <label class="full-field" style="margin-top:16px;">
-                Điều khoản thanh toán
-                <textarea id="contractPaymentTerms" class="crm-input" rows="3" placeholder="Điều khoản thanh toán đợt 1, 2, ..."></textarea>
-            </label>
-
-            <label class="full-field" style="margin-top:16px;">
-                Ghi chú bổ sung
-                <textarea id="contractNotes" class="crm-input" rows="2" placeholder="Ghi chú nội bộ hợp đồng..."></textarea>
-            </label>
-
-            <!-- Kế thừa từ Báo giá -->
-            <div id="inheritSection">
-                <h2 class="inherit-title" style="margin-top:24px;">Dữ liệu kế thừa từ Báo giá</h2>
-
-                <div class="inherited-data">
-                    <div>
-                        <span>Mã báo giá</span>
-                        <strong id="contractQuoteCode">—</strong>
                     </div>
-                    <div>
-                        <span>Khách hàng</span>
-                        <strong id="contractCustomer">—</strong>
+
+                    <div class="contract-form-group" id="manualTotalContainer">
+                        <label for="manualTotalAmount">
+                            <i class="fa-solid fa-sack-dollar"></i> Giá trị hợp đồng (VNĐ) <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input id="manualTotalAmount" type="number" min="0" step="100000" placeholder="0">
                     </div>
-                    <div>
-                        <span>Cơ hội</span>
-                        <strong id="contractOpportunity">—</strong>
+
+                    <div class="contract-form-group">
+                        <label for="contractStatus">
+                            <i class="fa-solid fa-tag"></i> Trạng thái ban đầu
+                        </label>
+                        <select id="contractStatus">
+                            <option value="ACTIVE" selected>Hiệu lực (ACTIVE)</option>
+                            <option value="DRAFT">Bản thảo (DRAFT)</option>
+                            <option value="COMPLETED">Hoàn tất (COMPLETED)</option>
+                        </select>
                     </div>
-                    <div>
-                        <span>Giá trị báo giá</span>
-                        <strong id="contractTotal">0 ₫</strong>
+
+                    <div class="contract-form-group">
+                        <label for="signedDate">
+                            <i class="fa-solid fa-signature"></i> Ngày ký kết <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input id="signedDate" type="date" required>
+                    </div>
+
+                    <div class="contract-form-group">
+                        <label for="effectiveDate">
+                            <i class="fa-regular fa-calendar-check"></i> Ngày bắt đầu hiệu lực <span style="color:#ef4444;">*</span>
+                        </label>
+                        <input id="effectiveDate" type="date" required>
+                    </div>
+
+                    <div class="contract-form-group">
+                        <label for="expiryDate">
+                            <i class="fa-regular fa-calendar-xmark"></i> Ngày kết thúc / Hết hạn
+                        </label>
+                        <input id="expiryDate" type="date">
+                        <div class="preset-date-chips" style="margin-top:6px;">
+                            <span class="date-chip" data-contract-months="3">+3 tháng</span>
+                            <span class="date-chip" data-contract-months="6">+6 tháng</span>
+                            <span class="date-chip" data-contract-months="12">+1 năm</span>
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="inherited-lines" style="margin-top:16px;">
-                    <table>
+            <!-- Section 2: Điều khoản & Ghi chú -->
+            <section class="contract-card-pro">
+                <h2><i class="fa-solid fa-file-contract" style="color:#10b981;"></i> Điều khoản thanh toán & Ghi chú</h2>
+
+                <div class="contract-form-group">
+                    <label>Điều khoản thanh toán</label>
+                    <div class="terms-preset-bar" style="margin-bottom:6px;">
+                        <span class="terms-chip" data-term-fill="Thanh toán 100% ngay sau khi ký hợp đồng và kích hoạt tài khoản.">100% khi ký</span>
+                        <span class="terms-chip" data-term-fill="Tạm ứng 50% khi ký hợp đồng, 50% còn lại trong vòng 07 ngày sau khi hoàn thành nghiệm thu.">50% - 50%</span>
+                        <span class="terms-chip" data-term-fill="Thanh toán 3 đợt: Đợt 1 (40% ký kết), Đợt 2 (40% bàn giao), Đợt 3 (20% sau 30 ngày).">3 đợt (40-40-20)</span>
+                        <span class="terms-chip" data-term-fill="Áp dụng điều khoản tín dụng doanh nghiệp Net 30 ngày kể từ ngày xuất hóa đơn VAT.">Net 30 ngày</span>
+                    </div>
+                    <textarea id="contractPaymentTerms" rows="3" placeholder="Chi tiết các đợt thanh toán, phương thức chuyển khoản..."></textarea>
+                </div>
+
+                <div class="contract-form-group" style="margin-top:16px;">
+                    <label>Ghi chú thỏa thuận nội bộ</label>
+                    <textarea id="contractNotes" rows="2" placeholder="Ghi chú nội bộ dành cho phòng kế toán hoặc quản trị..."></textarea>
+                </div>
+            </section>
+
+            <!-- Section 3: Kế thừa từ Báo giá (Chỉ hiển thị khi có quoteId) -->
+            <section id="inheritSection" class="contract-card-pro" style="display:none;">
+                <h2><i class="fa-solid fa-link" style="color:var(--crm-primary);"></i> Dữ liệu kế thừa từ Báo giá</h2>
+                <div class="inherited-quote-box">
+                    <div class="inherited-meta-grid">
+                        <div class="inherited-meta-item">
+                            <span>Báo giá nguồn</span>
+                            <strong id="contractQuoteCode" style="color:var(--crm-primary); font-family:'JetBrains Mono', monospace;">—</strong>
+                        </div>
+                        <div class="inherited-meta-item">
+                            <span>Khách hàng mục tiêu</span>
+                            <strong id="contractCustomer">—</strong>
+                        </div>
+                        <div class="inherited-meta-item">
+                            <span>Cơ hội bán hàng</span>
+                            <strong id="contractOpportunity">—</strong>
+                        </div>
+                        <div class="inherited-meta-item">
+                            <span>Tổng giá trị báo giá</span>
+                            <strong id="contractTotal" style="color:#10b981; font-size:1.05rem;">0 ₫</strong>
+                        </div>
+                    </div>
+
+                    <table class="inherited-table">
                         <thead>
                             <tr>
-                                <th>Sản phẩm</th>
-                                <th>SL</th>
-                                <th>Đơn giá</th>
-                                <th>Giảm</th>
-                                <th>Thành tiền</th>
+                                <th>Sản phẩm / Dịch vụ</th>
+                                <th style="text-align:center; width:60px;">SL</th>
+                                <th style="text-align:right; width:120px;">Đơn giá</th>
+                                <th style="text-align:center; width:70px;">Giảm</th>
+                                <th style="text-align:right; width:130px;">Thành tiền</th>
                             </tr>
                         </thead>
                         <tbody id="contractLines"></tbody>
                     </table>
                 </div>
+            </section>
+        </div>
+
+        <!-- Sidebar Summary -->
+        <aside class="contract-summary-box">
+            <div class="contract-summary-card">
+                <h2><i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Xác thực & Lưu Hợp đồng</h2>
+                <p style="font-size:0.85rem; color:var(--crm-muted); line-height:1.5; margin: 0 0 16px;">
+                    Dữ liệu sẽ được ghi trực tiếp vào cơ sở dữ liệu MySQL và đồng bộ tức thời lên API Backend.
+                </p>
+
+                <div id="contractValidation" class="contract-validation-alert"></div>
+
+                <button id="createContractButton" class="crm-btn crm-btn-primary" type="submit" style="width:100%; justify-content:center; padding:12px; font-weight:700;">
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu Hợp đồng vào MySQL
+                </button>
+                <a href="contracts.html" class="crm-btn crm-btn-secondary" style="width:100%; justify-content:center; text-decoration:none; margin-top:8px; display:inline-flex;">
+                    <i class="fa-solid fa-xmark"></i> Hủy bỏ & Quay lại
+                </a>
             </div>
-        </section>
-
-        <aside class="crm-card contract-summary">
-            <h2><i class="fa-solid fa-circle-check" style="color:var(--crm-primary); margin-right:6px;"></i> Xác nhận Lưu</h2>
-            <p>Dữ liệu hợp đồng sẽ được kiểm tra và lưu trực tiếp vào cơ sở dữ liệu MySQL qua Backend REST API.</p>
-
-            <div id="contractValidation" class="contract-validation"></div>
-
-            <button id="createContractButton" class="crm-btn crm-btn-primary" type="submit" style="width:100%; justify-content:center; padding:12px;">
-                <i class="fa-solid fa-floppy-disk"></i> Lưu Hợp đồng vào Hệ thống
-            </button>
-            <a href="contracts.html" class="crm-btn crm-btn-secondary" style="width:100%; justify-content:center; text-decoration:none; margin-top:8px; display:inline-flex;">
-                <i class="fa-solid fa-xmark"></i> Hủy bỏ & Quay lại
-            </a>
         </aside>
     </form>
 </main>
 
-<!-- Success dialog -->
+<!-- Success Dialog Overlay -->
 <div id="contractSuccess" class="contract-success-overlay">
     <div class="contract-success-box">
-        <div class="success-check">
-            <i class="fa-solid fa-circle-check" style="font-size:3.5rem; color:#16a34a;"></i>
+        <div style="width:64px; height:64px; border-radius:50%; background:rgba(16, 185, 129, 0.15); color:#10b981; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;">
+            <i class="fa-solid fa-check"></i>
         </div>
-        <h2>Hợp đồng đã được tạo thành công!</h2>
+        <h2>Hợp đồng đã tạo thành công!</h2>
         <p id="successDetailText">Dữ liệu hợp đồng đã được lưu an toàn vào cơ sở dữ liệu MySQL.</p>
-        <div style="display:flex; gap:10px; justify-content:center; margin-top:20px;">
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
             <a href="contracts.html" class="crm-btn crm-btn-primary" style="text-decoration:none;">
-                <i class="fa-solid fa-list"></i> Xem danh sách Hợp đồng
+                <i class="fa-solid fa-file-contract"></i> Xem danh sách Hợp đồng
             </a>
             <a href="quotations.html" class="crm-btn crm-btn-secondary" style="text-decoration:none;">
-                <i class="fa-solid fa-arrow-left"></i> Quay lại Báo giá
+                <i class="fa-solid fa-file-invoice-dollar"></i> Về trang Báo giá
             </a>
         </div>
     </div>
 </div>
 
-<script src="js/pages/contract-create.js"></script>
+<header class="crm-mobile-header"></header>
+<div id="drawerOverlay" class="crm-drawer-overlay"></div>
+<aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
+
+<script src="js/pages/contract-create.js?v=20261017_v7"></script>
 <script src="js/page-transition.js"></script>
 <script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261017_v6"></script>
+<script src="js/ui-core.js"></script>
+<script src="js/ui-effects.js"></script>
 </body>
 </html>

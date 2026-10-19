@@ -349,6 +349,7 @@
             if (window.CrmApi && typeof window.CrmApi.request === "function") {
                 try {
                     const p = new URLSearchParams();
+                    if (!criteria || !criteria.size) p.append("size", "100");
                     if (criteria) {
                         if (criteria.keyword) p.append("search", criteria.keyword);
                         if (criteria.status && criteria.status !== "ALL") p.append("status", criteria.status);
@@ -714,7 +715,7 @@
     async function refreshData() {
         let allLeads = [];
         try {
-            allLeads = await LeadsService.getLeads();
+            allLeads = await LeadsService.getLeads(currentCriteria);
         } catch (e) {
             allLeads = JSON.parse(localStorage.getItem(STORAGE_KEY_LEADS)) || DEFAULT_LEADS;
         }
@@ -753,7 +754,9 @@
 
             // Status Filter
             if (currentCriteria.status === "ACTIVE") {
-                if (lead.status !== "NEW" && lead.status !== "IN_PROGRESS") return false;
+                if (lead.status !== "NEW" && lead.status !== "IN_PROGRESS" && lead.status !== "CONTACTING") return false;
+            } else if (currentCriteria.status === "IN_PROGRESS") {
+                if (lead.status !== "IN_PROGRESS" && lead.status !== "CONTACTING" && lead.status !== "CONTACTED") return false;
             } else if (currentCriteria.status !== "ALL") {
                 if (lead.status !== currentCriteria.status) return false;
             }
@@ -968,7 +971,7 @@
             tags.push({ label: `Tìm: "${currentCriteria.keyword}"`, key: "keyword" });
         }
         if (currentCriteria.status !== "ALL" && currentCriteria.status !== "ACTIVE") {
-            const statusMap = { NEW: "Mới", IN_PROGRESS: "Đang chăm sóc", QUALIFIED: "Đủ điều kiện", CONVERTED: "Đã chuyển đổi", LOST: "Đóng/Mất" };
+            const statusMap = { NEW: "Mới", IN_PROGRESS: "Đang chăm sóc", CONTACTING: "Đang chăm sóc", QUALIFIED: "Đủ điều kiện", CONVERTED: "Đã chuyển đổi", LOST: "Đóng/Mất" };
             tags.push({ label: `Trạng thái: ${statusMap[currentCriteria.status] || currentCriteria.status}`, key: "status" });
         }
         if (currentCriteria.tier !== "ALL") {
@@ -1080,7 +1083,7 @@
             let statusBadge = "";
             if (lead.status === "NEW") {
                 statusBadge = `<span class="badge-lead-status status-new"><i class="fa-solid fa-sparkles"></i> Mới</span>`;
-            } else if (lead.status === "IN_PROGRESS") {
+            } else if (lead.status === "IN_PROGRESS" || lead.status === "CONTACTING") {
                 statusBadge = `<span class="badge-lead-status status-progress"><i class="fa-solid fa-spinner"></i> Đang chăm sóc</span>`;
             } else if (lead.status === "QUALIFIED") {
                 statusBadge = `<span class="badge-lead-status status-qualified"><i class="fa-solid fa-circle-check"></i> Đủ điều kiện</span>`;
@@ -1364,6 +1367,7 @@
             phone,
             email,
             companyName,
+            region: document.getElementById("newRegion") ? document.getElementById("newRegion").value : "Miền Bắc (Hà Nội)",
             industry: document.getElementById("newIndustry").value,
             source: document.getElementById("newSource").value,
             tier: document.getElementById("newTier").value,
@@ -1376,7 +1380,7 @@
         showToast(`Đã thêm Lead mới (${newLead.code || newLead.id}) thành công!`, "success");
     }
 
-    // 10. EXPORT TO CSV / EXCEL
+    // 10. EXPORT TO EXCEL
     async function exportLeadsToExcel() {
         const allLeads = await LeadsService.getLeads();
         if (!allLeads.length) {
@@ -1384,35 +1388,68 @@
             return;
         }
 
-        const headers = ["Mã Lead", "Họ tên", "Chức danh", "Công ty", "Ngành nghề", "Mã số thuế", "Điện thoại", "Email", "Nhiệt độ", "Điểm", "Nguồn", "Trạng thái", "Người phụ trách", "Ngày tạo"];
-        const rows = allLeads.map(l => [
-            `"${l.code}"`,
-            `"${l.fullName}"`,
-            `"${l.title || ""}"`,
-            `"${l.companyName}"`,
-            `"${l.industry || ""}"`,
-            `"${l.taxCode || ""}"`,
-            `"${l.phone}"`,
-            `"${l.email}"`,
-            `"${l.tier}"`,
-            l.score,
-            `"${l.sourceName || l.source}"`,
-            `"${l.status}"`,
-            `"${l.owner || "Chưa phân bổ"}"`,
-            `"${formatDateTimeVi(l.createdAt)}"`
-        ]);
+        const columns = [
+            { label: "Mã Lead", key: "code", width: 130, align: "center" },
+            { label: "Họ và tên", key: "fullName", width: 180, align: "left" },
+            { label: "Chức danh", key: "title", width: 160, align: "left" },
+            { label: "Tên Doanh nghiệp", key: "companyName", width: 220, align: "left" },
+            { label: "Ngành nghề", key: "industry", width: 150, align: "left" },
+            { label: "Mã số thuế", key: "taxCode", width: 130, align: "center" },
+            { label: "Số điện thoại", key: "phone", width: 130, align: "center" },
+            { label: "Email liên hệ", key: "email", width: 200, align: "left" },
+            { label: "Nhiệt độ", key: "tier", width: 100, align: "center" },
+            { label: "Điểm", key: "score", width: 80, align: "center" },
+            { label: "Nguồn tiếp nhận", key: "sourceName", width: 160, align: "left" },
+            { label: "Trạng thái", key: "status", width: 130, align: "center" },
+            { label: "Người phụ trách", key: "owner", width: 170, align: "left" },
+            { label: "Ngày tạo", key: "createdAt", width: 150, align: "center" }
+        ];
 
-        const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", `Danh_Sach_Lead_${new Date().toISOString().split("T")[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const formattedData = allLeads.map(l => ({
+            code: l.code || "",
+            fullName: l.fullName || "",
+            title: l.title || "",
+            companyName: l.companyName || "",
+            industry: l.industry || "",
+            taxCode: l.taxCode || "",
+            phone: l.phone || "",
+            email: l.email || "",
+            tier: l.tier || "",
+            score: l.score || 0,
+            sourceName: l.sourceName || l.source || "",
+            status: l.status || "",
+            owner: l.owner || "Chưa phân bổ",
+            createdAt: formatDateTimeVi(l.createdAt)
+        }));
 
-        showToast("Đã xuất danh sách Lead thành công!", "success");
+        if (window.ExcelExportHelper) {
+            window.ExcelExportHelper.exportStyledExcel({
+                title: "DANH SÁCH KHÁCH HÀNG TIỀM NĂNG (LEADS)",
+                filename: `Danh_Sach_Lead_NovaCRM_${new Date().toISOString().split("T")[0]}.xls`,
+                meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng số: ${allLeads.length} Lead | NovaCRM Enterprise`,
+                columns: columns,
+                data: formattedData
+            });
+            showToast("✓ Đã xuất danh sách Lead ra tệp Excel định dạng đẹp!", "success");
+        } else {
+            const headers = ["Mã Lead", "Họ tên", "Chức danh", "Công ty", "Ngành nghề", "Mã số thuế", "Điện thoại", "Email", "Nhiệt độ", "Điểm", "Nguồn", "Trạng thái", "Người phụ trách", "Ngày tạo"];
+            const rows = allLeads.map(l => [
+                `"${l.code}"`, `"${l.fullName}"`, `"${l.title || ""}"`, `"${l.companyName}"`, `"${l.industry || ""}"`,
+                `"${l.taxCode || ""}"`, `"${l.phone}"`, `"${l.email}"`, `"${l.tier}"`, l.score,
+                `"${l.sourceName || l.source}"`, `"${l.status}"`, `"${l.owner || "Chưa phân bổ"}"`, `"${formatDateTimeVi(l.createdAt)}"`
+            ]);
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", `Danh_Sach_Lead_${new Date().toISOString().split("T")[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Đã xuất danh sách Lead thành công!", "success");
+        }
     }
+
 
     // 11. ATTACH EVENT LISTENERS
     function initEventHandlers() {

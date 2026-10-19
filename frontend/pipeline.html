@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <script>
@@ -38,8 +38,8 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
 <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
-<link rel="stylesheet" href="css/pages/pipeline.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
+<link rel="stylesheet" href="css/pages/pipeline.css?v=20261017_modal_v2">
 
 
 
@@ -327,7 +327,7 @@
 
 
 <!-- =========================================================
-     OPPORTUNITY DRAWER
+     OPPORTUNITY MODAL (CỬA SỔ NỔI THÊM / SỬA CƠ HỘI)
 ========================================================= -->
 
 <div
@@ -338,24 +338,34 @@
 
 <aside
     id="opportunityDrawer"
-    class="opportunity-drawer"
+    class="opportunity-drawer opportunity-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="opportunityDrawerTitle"
 >
 
-    <header class="drawer-head">
+    <header class="drawer-head modal-dialog-head">
 
-        <div>
-            <strong id="opportunityDrawerTitle">
-                Thêm cơ hội
-            </strong>
+        <div class="modal-title-wrap">
+            <div class="modal-icon-badge">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+            <div>
+                <strong id="opportunityDrawerTitle">
+                    Thêm cơ hội
+                </strong>
 
-            <span>
-                Thông tin cơ hội bán hàng
-            </span>
+                <span>
+                    Nhập thông tin cơ hội bán hàng vào hệ thống
+                </span>
+            </div>
         </div>
 
         <button
             id="closeOpportunityDrawer"
+            class="modal-close-btn"
             type="button"
+            title="Đóng cửa sổ"
         >
             <i class="fa-solid fa-xmark"></i>
         </button>
@@ -376,13 +386,13 @@
 
 
         <label>
-            Tên cơ hội
-            <em>*</em>
+            <span>Tên cơ hội <em>*</em></span>
 
             <input
                 id="opportunityName"
                 class="crm-input"
                 type="text"
+                placeholder="vd: Hợp đồng triển khai phần mềm CRM"
             >
 
             <small id="opportunityNameError"></small>
@@ -390,7 +400,7 @@
 
 
         <label>
-            Khách hàng <em>*</em>
+            <span>Khách hàng <em>*</em></span>
 
             <select
                 id="opportunityCustomer"
@@ -405,7 +415,7 @@
         <div class="form-grid">
 
             <label>
-                Giá trị dự kiến
+                <span>Giá trị dự kiến (₫)</span>
 
                 <input
                     id="opportunityValue"
@@ -413,12 +423,13 @@
                     type="number"
                     min="0"
                     step="1000"
+                    placeholder="0 ₫"
                 >
             </label>
 
 
             <label>
-                Ngày dự kiến chốt
+                <span>Ngày dự kiến chốt</span>
 
                 <input
                     id="opportunityCloseDate"
@@ -433,7 +444,7 @@
         <div class="form-grid">
 
             <label>
-                Giai đoạn <em>*</em>
+                <span>Giai đoạn <em>*</em></span>
 
                 <select
                     id="opportunityStage"
@@ -451,7 +462,7 @@
 
 
             <label>
-                Xác suất %
+                <span>Xác suất %</span>
 
                 <input
                     id="opportunityProbability"
@@ -460,6 +471,7 @@
                     min="0"
                     max="100"
                     value="10"
+                    placeholder="10"
                 >
             </label>
 
@@ -467,31 +479,32 @@
 
 
         <label>
-            Người sở hữu
+            <span>Người sở hữu</span>
 
             <input
                 id="opportunityOwner"
                 class="crm-input"
                 type="text"
+                placeholder="vd: Nguyễn Văn A (hoặc để trống)"
             >
         </label>
 
 
-        <footer class="drawer-footer">
+        <footer class="drawer-footer modal-dialog-footer">
 
             <button
                 id="cancelOpportunity"
                 class="crm-btn crm-btn-secondary"
                 type="button"
             >
-                Hủy
+                <i class="fa-solid fa-xmark"></i> Hủy
             </button>
 
             <button
                 class="crm-btn crm-btn-primary"
                 type="submit"
             >
-                Lưu cơ hội
+                <i class="fa-solid fa-check"></i> Lưu cơ hội
             </button>
 
         </footer>
@@ -844,7 +857,7 @@
 
 
 
-<script src="js/pages/pipeline.js"></script>
+<script src="js/pages/pipeline.js?v=20261017_modal_v1"></script>
 
 <script src="js/page-transition.js"></script>
 
@@ -852,7 +865,7 @@
 
 
 <script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261017_v6"></script>
 <script src="js/ui-core.js"></script>
 <script src="js/ui-effects.js"></script>
 </body>

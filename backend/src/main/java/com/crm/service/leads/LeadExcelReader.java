@@ -17,15 +17,107 @@ public class LeadExcelReader {
     public void template(OutputStream out) throws IOException {
         try(XSSFWorkbook book=new XSSFWorkbook()) {
             Sheet sheet=book.createSheet("Leads");
-            CellStyle text=book.createCellStyle();text.setDataFormat(book.createDataFormat().getFormat("@"));
-            Row header=sheet.createRow(0);
+            sheet.setDisplayGridlines(true);
+
+            // 1. Header Style (Navy Blue #1E3A8A)
+            CellStyle headerStyle=book.createCellStyle();
+            Font headerFont=book.createFont();
+            headerFont.setFontName("Segoe UI");
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            setBorders(headerStyle, IndexedColors.GREY_40_PERCENT.getIndex());
+
+            // 2. Data Styles
+            short textFormat=book.createDataFormat().getFormat("@");
+            
+            CellStyle textStyle=book.createCellStyle();
+            Font dataFont=book.createFont();
+            dataFont.setFontName("Segoe UI");
+            textStyle.setFont(dataFont);
+            textStyle.setDataFormat(textFormat);
+            textStyle.setAlignment(HorizontalAlignment.LEFT);
+            textStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            setBorders(textStyle, IndexedColors.GREY_25_PERCENT.getIndex());
+
+            CellStyle centerStyle=book.createCellStyle();
+            centerStyle.cloneStyleFrom(textStyle);
+            centerStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            CellStyle zebraTextStyle=book.createCellStyle();
+            zebraTextStyle.cloneStyleFrom(textStyle);
+            zebraTextStyle.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.getIndex());
+            zebraTextStyle.setFillPattern(FillPatternType.FINE_DOTS);
+
+            CellStyle zebraCenterStyle=book.createCellStyle();
+            zebraCenterStyle.cloneStyleFrom(centerStyle);
+            zebraCenterStyle.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.getIndex());
+            zebraCenterStyle.setFillPattern(FillPatternType.FINE_DOTS);
+
+            // Default column style as text
             for(int i=0;i<COLUMNS.size();i++) {
-                sheet.setDefaultColumnStyle(i,text);sheet.setColumnWidth(i,6000);
-                header.createCell(i).setCellValue(COLUMNS.get(i));
+                sheet.setDefaultColumnStyle(i, textStyle);
             }
-            sheet.createFreezePane(0,1);book.write(out);
+
+            // Row 0: Headers
+            Row header=sheet.createRow(0);
+            header.setHeightInPoints(28);
+            for(int i=0;i<COLUMNS.size();i++) {
+                Cell cell=header.createCell(i);
+                cell.setCellValue(COLUMNS.get(i));
+                cell.setCellStyle(headerStyle);
+            }
+
+            // 3. Real Sample Data Rows (5 valid sample leads)
+            String[][] sampleData = {
+                {"Nguyễn Văn An", "Công ty TNHH Thương mại Minh Phúc", "an.nguyen@minhphuc.vn", "0901234567", "WEBSITE", "Quan tâm phần mềm CRM gói 50 người dùng"},
+                {"Trần Thị Bích", "CP Bất động sản Địa Ốc Xanh", "bich.tran@diaocthanh.com", "0918765432", "EVENT", "Khách mời hội thảo TechExpo 2026, cần gọi lại sau 15h"},
+                {"Lê Hoàng Cường", "Tập đoàn Công nghệ Viễn thông Nam Á", "cuong.le@namatelecom.vn", "0988776655", "REFERRAL", "Được giới thiệu từ đối tác FPT, dự án quý 4"},
+                {"Phạm Thu Dung", "Chuỗi Thời trang An Phước", "dung.pham@anphuocfashion.com", "0933221100", "SOCIAL_MEDIA", "Đăng ký tư vấn qua Fanpage Facebook"},
+                {"Vũ Minh Đức", "Bệnh viện Quốc tế Mediphar", "duc.vu@mediphar.vn", "0977665544", "COLD_CALL", "Nhu cầu nâng cấp hệ thống quản lý chăm sóc bệnh nhân"}
+            };
+
+            for(int r=0; r<sampleData.length; r++) {
+                Row row=sheet.createRow(r + 1);
+                row.setHeightInPoints(22);
+                boolean isZebra = (r % 2 == 1);
+                for(int c=0; c<sampleData[r].length; c++) {
+                    Cell cell=row.createCell(c);
+                    cell.setCellValue(sampleData[r][c]);
+                    if(c == 3 || c == 4) { // phone, sourceCode centered
+                        cell.setCellStyle(isZebra ? zebraCenterStyle : centerStyle);
+                    } else {
+                        cell.setCellStyle(isZebra ? zebraTextStyle : textStyle);
+                    }
+                }
+            }
+
+            // Column Widths
+            int[] widths = {7500, 10500, 8500, 5200, 4800, 12000};
+            for(int i=0; i<widths.length; i++) {
+                sheet.setColumnWidth(i, widths[i]);
+            }
+
+            sheet.createFreezePane(0,1);
+            book.write(out);
         }
     }
+
+    private static void setBorders(CellStyle style, short color) {
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        style.setTopBorderColor(color);
+        style.setBottomBorderColor(color);
+        style.setLeftBorderColor(color);
+        style.setRightBorderColor(color);
+    }
+
     public List<ImportRow> read(InputStream input,List<Map<String,Object>> sources) throws IOException {
         byte[] bytes=BoundedXlsx.read(input);
         Map<String,Long> sourceIds=new HashMap<>();

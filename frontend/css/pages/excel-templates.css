@@ -1,0 +1,834 @@
+/* ===================================================================
+   EXCEL TEMPLATES & REPORTS HUB - THEME-ADAPTIVE (LIGHT & DARK)
+   Corporate CRM Design System
+=================================================================== */
+
+/* 1. THEME DESIGN TOKENS */
+:root,
+html[data-theme="light"],
+[data-theme="light"] {
+    --xl-page-bg: #f8fafc;
+    --xl-hero-bg: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
+    --xl-hero-border: #bae6fd;
+    --xl-hero-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+    --xl-card-bg: #ffffff;
+    --xl-card-header: #f8fafc;
+    --xl-card-border: #e2e8f0;
+    --xl-card-shadow: 0 4px 16px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.06);
+    --xl-text-primary: #0f172a;
+    --xl-text-secondary: #334155;
+    --xl-text-muted: #64748b;
+    --xl-input-bg: #ffffff;
+    --xl-input-border: #cbd5e1;
+    --xl-input-text: #0f172a;
+    --xl-table-head-bg: #f8fafc;
+    --xl-table-bg: #f8fafc;
+    --xl-row-bg: #ffffff;
+    --xl-row-border: #e2e8f0;
+    --xl-row-hover: #f0f7ff;
+    --xl-btn-sec-bg: #f1f5f9;
+    --xl-btn-sec-border: #cbd5e1;
+    --xl-btn-sec-text: #334155;
+    --xl-modal-bg: #ffffff;
+    --xl-modal-header: #f8fafc;
+    --xl-modal-border: #e2e8f0;
+    --xl-modal-shadow: 0 25px 60px -10px rgba(15, 23, 42, 0.22);
+    --xl-overlay-bg: rgba(15, 23, 42, 0.55);
+}
+
+html[data-theme="dark"],
+[data-theme="dark"] {
+    --xl-page-bg: #070d18;
+    --xl-hero-bg: linear-gradient(135deg, rgba(14, 34, 61, 0.9) 0%, rgba(10, 19, 36, 0.95) 100%);
+    --xl-hero-border: rgba(56, 189, 248, 0.2);
+    --xl-hero-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --xl-card-bg: #0b1528;
+    --xl-card-header: #080f1d;
+    --xl-card-border: rgba(255, 255, 255, 0.08);
+    --xl-card-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4);
+    --xl-text-primary: #ffffff;
+    --xl-text-secondary: #cbd5e1;
+    --xl-text-muted: #94a3b8;
+    --xl-input-bg: #080f1d;
+    --xl-input-border: rgba(255, 255, 255, 0.12);
+    --xl-input-text: #ffffff;
+    --xl-table-head-bg: #0f1e36;
+    --xl-table-bg: #060b14;
+    --xl-row-bg: rgba(255, 255, 255, 0.02);
+    --xl-row-border: rgba(255, 255, 255, 0.06);
+    --xl-row-hover: rgba(56, 189, 248, 0.04);
+    --xl-btn-sec-bg: rgba(255, 255, 255, 0.04);
+    --xl-btn-sec-border: rgba(255, 255, 255, 0.1);
+    --xl-btn-sec-text: #cbd5e1;
+    --xl-modal-bg: #0b1528;
+    --xl-modal-header: #080f1d;
+    --xl-modal-border: rgba(255, 255, 255, 0.14);
+    --xl-modal-shadow: 0 25px 70px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(56, 189, 248, 0.2);
+    --xl-overlay-bg: rgba(4, 9, 20, 0.78);
+}
+
+.excel-page {
+    padding: 24px 32px 60px;
+    max-width: 1440px;
+    margin: 0 auto;
+    color: var(--xl-text-primary);
+    transition: color 0.2s ease;
+}
+
+/* 1. HERO HEADER */
+.excel-hero {
+    position: relative;
+    background: var(--xl-hero-bg);
+    border: 1px solid var(--xl-hero-border);
+    border-radius: 18px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    box-shadow: var(--xl-hero-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    overflow: hidden;
+}
+
+.excel-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, transparent 70%);
+    pointer-events: none;
+    filter: blur(40px);
+}
+
+.excel-breadcrumb {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0284c7;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+html[data-theme="dark"] .excel-breadcrumb {
+    color: #38bdf8;
+}
+
+.excel-hero-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--xl-text-primary);
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    letter-spacing: -0.02em;
+}
+
+.excel-hero-title i {
+    color: #10b981;
+    filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.4));
+}
+
+.excel-hero-desc {
+    font-size: 0.94rem;
+    color: var(--xl-text-muted);
+    line-height: 1.6;
+    max-width: 760px;
+    margin: 0;
+}
+
+.excel-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.excel-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+}
+
+.excel-btn-primary:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.excel-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--xl-btn-sec-bg);
+    color: var(--xl-btn-sec-text) !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--xl-btn-sec-border);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.excel-btn-secondary:hover {
+    background: var(--xl-card-border);
+    color: var(--xl-text-primary) !important;
+}
+
+/* 2. KPI SUMMARY GRID */
+.excel-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.excel-kpi-card {
+    background: var(--xl-card-bg);
+    border: 1px solid var(--xl-card-border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--xl-card-shadow);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.excel-kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 8px 22px -6px rgba(0, 0, 0, 0.15);
+}
+
+.excel-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.excel-kpi-icon.blue { background: rgba(59, 130, 246, 0.15); color: #0284c7; border: 1px solid rgba(59, 130, 246, 0.25); }
+.excel-kpi-icon.green { background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25); }
+.excel-kpi-icon.purple { background: rgba(168, 85, 247, 0.15); color: #7c3aed; border: 1px solid rgba(168, 85, 247, 0.25); }
+.excel-kpi-icon.amber { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.25); }
+
+html[data-theme="dark"] .excel-kpi-icon.blue { color: #38bdf8; }
+html[data-theme="dark"] .excel-kpi-icon.green { color: #34d399; }
+html[data-theme="dark"] .excel-kpi-icon.purple { color: #c084fc; }
+html[data-theme="dark"] .excel-kpi-icon.amber { color: #fbbf24; }
+
+.excel-kpi-info h4 {
+    margin: 0 0 2px;
+    font-size: 1.3rem;
+    font-weight: 750;
+    color: var(--xl-text-primary);
+}
+
+.excel-kpi-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--xl-text-muted);
+    font-weight: 500;
+}
+
+/* 3. TOOLBAR CONTROLS (TABS & SEARCH) */
+.excel-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.excel-tabs {
+    display: flex;
+    background: var(--xl-card-bg);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--xl-card-border);
+    gap: 4px;
+    box-shadow: var(--xl-card-shadow);
+}
+
+.excel-tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--xl-text-muted);
+    padding: 8px 18px;
+    font-size: 0.86rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.excel-tab-btn:hover {
+    color: var(--xl-text-primary);
+}
+
+.excel-tab-btn.active {
+    background: rgba(56, 189, 248, 0.15);
+    color: #0284c7;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="dark"] .excel-tab-btn.active {
+    background: #1e293b;
+    color: #38bdf8;
+}
+
+.excel-tab-badge {
+    background: var(--xl-btn-sec-bg);
+    border: 1px solid var(--xl-btn-sec-border);
+    color: inherit;
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.excel-search-box {
+    position: relative;
+    min-width: 280px;
+}
+
+.excel-search-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--xl-text-muted);
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+.excel-search-input {
+    width: 100%;
+    background: var(--xl-input-bg);
+    border: 1px solid var(--xl-input-border);
+    border-radius: 10px;
+    padding: 9px 16px 9px 38px;
+    color: var(--xl-input-text);
+    font-size: 0.88rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.excel-search-input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+/* 4. TEMPLATE CARDS GRID */
+.excel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(390px, 1fr));
+    gap: 22px;
+}
+
+.excel-card {
+    background: var(--xl-card-bg);
+    border: 1px solid var(--xl-card-border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    box-shadow: var(--xl-card-shadow);
+}
+
+.excel-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.15), 0 0 20px rgba(56, 189, 248, 0.1);
+}
+
+.excel-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.excel-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+}
+
+.excel-card-icon.import {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(30, 58, 138, 0.25) 100%);
+    color: #0284c7;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.excel-card-icon.export {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 95, 70, 0.25) 100%);
+    color: #059669;
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+html[data-theme="dark"] .excel-card-icon.import { color: #60a5fa; }
+html[data-theme="dark"] .excel-card-icon.export { color: #34d399; }
+
+.excel-card-title-wrap {
+    flex: 1;
+}
+
+.excel-card-type-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.excel-card-type-tag.import {
+    background: rgba(37, 99, 235, 0.15);
+    color: #0284c7;
+    border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.excel-card-type-tag.export {
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(52, 211, 153, 0.25);
+}
+
+html[data-theme="dark"] .excel-card-type-tag.import { color: #60a5fa; }
+html[data-theme="dark"] .excel-card-type-tag.export { color: #34d399; }
+
+.excel-card-title {
+    margin: 0 0 6px;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--xl-text-primary);
+    line-height: 1.35;
+}
+
+.excel-card-desc {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--xl-text-muted);
+    line-height: 1.55;
+}
+
+.excel-schema-section {
+    margin: 16px 0 18px;
+}
+
+.excel-schema-label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--xl-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.excel-schema-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.excel-pill {
+    background: var(--xl-btn-sec-bg);
+    border: 1px solid var(--xl-btn-sec-border);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 0.76rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    color: var(--xl-text-secondary);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+}
+
+.excel-pill:hover {
+    background: var(--xl-card-border);
+    color: var(--xl-text-primary);
+}
+
+.excel-pill.required {
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+html[data-theme="dark"] .excel-pill.required {
+    color: #f87171;
+}
+
+.excel-pill.required::after {
+    content: '*';
+    color: #ef4444;
+    font-weight: 800;
+}
+
+.excel-card-footer {
+    border-top: 1px solid var(--xl-card-border);
+    padding-top: 16px;
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.excel-format-badge {
+    font-size: 0.78rem;
+    color: #059669;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+html[data-theme="dark"] .excel-format-badge {
+    color: #10b981;
+}
+
+.excel-action-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.excel-btn-preview {
+    background: var(--xl-btn-sec-bg);
+    border: 1px solid var(--xl-btn-sec-border);
+    color: var(--xl-btn-sec-text);
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.excel-btn-preview:hover {
+    background: rgba(56, 189, 248, 0.15);
+    color: #0284c7;
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+html[data-theme="dark"] .excel-btn-preview:hover {
+    color: #38bdf8;
+}
+
+.excel-btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.excel-btn-download.import {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+.excel-btn-download.import:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    transform: translateY(-1px);
+}
+
+.excel-btn-download.export {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.excel-btn-download.export:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 5. FLOATING MODAL PREVIEW (GIAO DIỆN NỔI) */
+.excel-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--xl-overlay-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.excel-modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.excel-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -46%) scale(0.97);
+    width: min(880px, calc(100vw - 32px));
+    max-height: calc(100vh - 64px);
+    background: var(--xl-modal-bg);
+    border: 1px solid var(--xl-modal-border);
+    border-radius: 18px;
+    box-shadow: var(--xl-modal-shadow);
+    z-index: 1110;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0.25s ease;
+    overflow: hidden;
+}
+
+.excel-modal.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.excel-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--xl-modal-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--xl-modal-header);
+}
+
+.excel-modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.excel-modal-icon-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme="dark"] .excel-modal-icon-badge {
+    color: #10b981;
+}
+
+.excel-modal-title-group h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 750;
+    color: var(--xl-text-primary);
+}
+
+.excel-modal-title-group p {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    color: var(--xl-text-muted);
+}
+
+.excel-modal-close {
+    background: var(--xl-btn-sec-bg);
+    border: 1px solid var(--xl-btn-sec-border);
+    color: var(--xl-text-muted);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.excel-modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #dc2626;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+html[data-theme="dark"] .excel-modal-close:hover {
+    color: #f87171;
+}
+
+.excel-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+.excel-table-container {
+    background: var(--xl-table-bg);
+    border: 1px solid var(--xl-card-border);
+    border-radius: 12px;
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.excel-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    white-space: nowrap;
+}
+
+.excel-preview-table th {
+    background: var(--xl-table-head-bg);
+    color: #0284c7;
+    font-weight: 700;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--xl-card-border);
+    border-right: 1px solid var(--xl-card-border);
+}
+
+html[data-theme="dark"] .excel-preview-table th {
+    color: #38bdf8;
+}
+
+.excel-preview-table td {
+    padding: 10px 16px;
+    color: var(--xl-text-secondary);
+    border-bottom: 1px solid var(--xl-card-border);
+    border-right: 1px solid var(--xl-card-border);
+    font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.excel-preview-table tr:hover td {
+    background: var(--xl-row-hover);
+}
+
+.excel-rules-box {
+    background: var(--xl-btn-sec-bg);
+    border: 1px solid var(--xl-btn-sec-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+
+.excel-rules-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0284c7;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+html[data-theme="dark"] .excel-rules-title {
+    color: #38bdf8;
+}
+
+.excel-rules-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 0.82rem;
+    color: var(--xl-text-muted);
+    line-height: 1.6;
+}
+
+.excel-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--xl-modal-border);
+    background: var(--xl-modal-header) !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* 6. RESPONSIVE BREAKPOINTS */
+@media (max-width: 1024px) {
+    .excel-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .excel-page {
+        padding: 16px 16px 40px;
+    }
+    .excel-hero {
+        padding: 20px;
+    }
+    .excel-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    .excel-grid {
+        grid-template-columns: 1fr;
+    }
+    .excel-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .excel-tabs {
+        overflow-x: auto;
+    }
+}

@@ -24,30 +24,30 @@ function renderDashboard() {
             "crm_ui_opportunities"
         );
 
-
     const quotes =
         loadArray(
             "crm_ui_quotes"
         );
-
 
     const activities =
         loadArray(
             "crm_ui_activities"
         );
 
-
     const users =
         loadArray(
             "crm_ui_users"
         );
-
 
     const products =
         loadArray(
             "crm_ui_products"
         );
 
+    const customers =
+        loadArray(
+            "crm_ui_customers"
+        );
 
     renderKpis(
         opportunities,
@@ -55,44 +55,53 @@ function renderDashboard() {
         activities
     );
 
-
     renderFunnel(
         opportunities
     );
-
 
     renderForecast(
         opportunities
     );
 
-
     renderRecentActivities(
         activities
     );
-
 
     renderTasks(
         activities
     );
 
+    const custCount =
+        localStorage.getItem("crm_metric_customers_count")
+        || (customers.length ? String(customers.length) : "0");
+
+    const userCount =
+        localStorage.getItem("crm_metric_users_count")
+        || (users.length ? String(users.length) : "0");
+
+    const prodCount =
+        localStorage.getItem("crm_metric_products_count")
+        || (products.length ? String(products.length) : "0");
+
+    text(
+        "systemCustomers",
+        custCount
+    );
 
     text(
         "systemUsers",
-        users.length
+        userCount
     );
-
 
     text(
         "systemProducts",
-        products.length
+        prodCount
     );
-
 
     text(
         "systemQuotes",
         quotes.length
     );
-
 
     text(
         "systemScheduled",
@@ -225,116 +234,124 @@ function renderKpis(
 
 
 /* =========================================================
+   MODERN ENTERPRISE CHARTS (APEXCHARTS)
+========================================================= */
+
+let funnelChartInstance = null;
+let forecastChartInstance = null;
+let currentFunnelView = "funnel";
+let lastOpportunitiesData = [];
+let chartListenersInitialized = false;
+
+function isDarkTheme() {
+    return document.documentElement.getAttribute("data-theme") === "dark";
+}
+
+function getStageSortOrder(key) {
+    const k = String(key || "").toLowerCase();
+    if (k === "1" || k === "approach") return 1;
+    if (k === "2") return 2;
+    if (k === "3" || k === "quote") return 3;
+    if (k === "4" || k === "negotiation") return 4;
+    if (k === "5" || k === "closing" || k === "won") return 5;
+    if (k === "6" || k === "lost") return 6;
+    return 99;
+}
+
+function getStageColor(key, index) {
+    const keyStr = String(key || "").toLowerCase();
+    if (keyStr === "1" || keyStr === "approach" || keyStr.includes("tiếp cận") || keyStr.includes("khảo sát")) return "#06b6d4";
+    if (keyStr === "2" || keyStr.includes("đánh giá")) return "#0ea5e9";
+    if (keyStr === "3" || keyStr === "quote" || keyStr.includes("báo giá") || keyStr.includes("đề xuất")) return "#3b82f6";
+    if (keyStr === "4" || keyStr === "negotiation" || keyStr.includes("đàm phán") || keyStr.includes("thương lượng")) return "#8b5cf6";
+    if (keyStr === "5" || keyStr === "closing" || keyStr === "won" || keyStr.includes("thành công") || keyStr.includes("chốt")) return "#10b981";
+    if (keyStr === "6" || keyStr === "lost" || keyStr.includes("thua")) return "#f43f5e";
+
+    const fallback = ["#06b6d4", "#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899"];
+    return fallback[(index || 0) % fallback.length];
+}
+
+function initChartFeatures() {
+    if (chartListenersInitialized) return;
+    chartListenersInitialized = true;
+
+    const toggle = document.getElementById("funnelViewToggle");
+    if (toggle) {
+        toggle.querySelectorAll(".view-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const view = btn.dataset.view;
+                if (!view || view === currentFunnelView) return;
+                currentFunnelView = view;
+                toggle.querySelectorAll(".view-btn").forEach(b => b.classList.toggle("active", b === btn));
+                if (lastOpportunitiesData) {
+                    renderFunnel(lastOpportunitiesData);
+                }
+            });
+        });
+    }
+
+    const observer = new MutationObserver(mutations => {
+        for (const m of mutations) {
+            if (m.type === "attributes" && m.attributeName === "data-theme") {
+                const dark = isDarkTheme();
+                if (funnelChartInstance && typeof funnelChartInstance.updateOptions === "function") {
+                    funnelChartInstance.updateOptions({
+                        theme: { mode: dark ? "dark" : "light" },
+                        chart: { foreColor: dark ? "#94a3b8" : "#64748b" },
+                        grid: { borderColor: dark ? "#334155" : "#e2e8f0" }
+                    }, false, false);
+                }
+                if (forecastChartInstance && typeof forecastChartInstance.updateOptions === "function") {
+                    forecastChartInstance.updateOptions({
+                        theme: { mode: dark ? "dark" : "light" },
+                        chart: { foreColor: dark ? "#94a3b8" : "#64748b" },
+                        grid: { borderColor: dark ? "#334155" : "#e2e8f0" }
+                    }, false, false);
+                }
+            }
+        }
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+}
+
+/* =========================================================
    FUNNEL
 ========================================================= */
 
-function renderFunnel(
-    opportunities
-) {
+function renderFunnel(opportunities) {
+    initChartFeatures();
+    lastOpportunitiesData = opportunities;
 
-    const container =
-        document.getElementById(
-            "funnelContainer"
-        );
+    const chartWrapper = document.getElementById("funnelChartContainer");
+    const container = document.getElementById("funnelContainer");
+    const empty = document.getElementById("funnelEmpty");
+    const footer = document.getElementById("funnelStatsFooter");
 
-
-    const empty =
-        document.getElementById(
-            "funnelEmpty"
-        );
-
-
-    container.innerHTML = "";
-
-
-    if (
-        !opportunities.length
-    ) {
-
-        container.style.display =
-            "none";
-
-        empty.style.display =
-            "flex";
-
+    if (!opportunities || !opportunities.length) {
+        if (funnelChartInstance) {
+            try { funnelChartInstance.destroy(); } catch (_) {}
+            funnelChartInstance = null;
+        }
+        if (chartWrapper) chartWrapper.style.display = "none";
+        if (container) {
+            container.innerHTML = "";
+            container.style.display = "none";
+        }
+        if (empty) empty.style.display = "flex";
+        if (footer) footer.innerHTML = "";
         return;
     }
 
-
-    container.style.display =
-        "flex";
-
-    empty.style.display =
-        "none";
-
-
-    const configuration =
-        loadArray(
-            "crm_ui_pipeline_stages"
-        );
-
-
-    let stages;
-
-
-    if (
-        configuration.length
-    ) {
-
-        stages =
-            configuration.map(
-                (
-                    stage,
-                    index
-                ) => ({
-                    key:
-                        normalizeStageKey(
-                            stage.name,
-                            index
-                        ),
-
-                    label:
-                        stage.name
-                })
-            );
-
-    } else {
-
-        stages = [
-            {
-                key: "approach",
-                label: "Tiếp cận"
-            },
-            {
-                key: "quote",
-                label: "Báo giá"
-            },
-            {
-                key: "negotiation",
-                label: "Đàm phán"
-            },
-            {
-                key: "closing",
-                label: "Chốt"
-            }
-        ];
+    const configuration = loadArray("crm_ui_pipeline_stages");
+    let stages = [];
+    if (configuration.length) {
+        stages = configuration.map((stage, index) => ({
+            key: normalizeStageKey(stage.name, index),
+            label: stage.name
+        }));
     }
 
-
-    /*
-     * Pipeline hiện dùng stage key cố định.
-     * Nếu có config custom nhưng không khớp,
-     * vẫn hiển thị stage mặc định bên dưới.
-     */
-    const existingKeys =
-        new Set(
-            opportunities.map(
-                item =>
-                    item.stage
-            )
-        );
-
-
+    const existingKeys = new Set(opportunities.map(item => String(item.stage)));
     const defaults = [
         { key: "1", label: "Khảo sát nhu cầu" },
         { key: "2", label: "Đánh giá nhu cầu" },
@@ -349,15 +366,11 @@ function renderFunnel(
     ];
 
     for (const stage of defaults) {
-        if (
-            existingKeys.has(stage.key) &&
-            !stages.some(item => String(item.key) === String(stage.key))
-        ) {
+        if (existingKeys.has(stage.key) && !stages.some(item => String(item.key) === String(stage.key))) {
             stages.push(stage);
         }
     }
 
-    // Nếu vẫn chưa có stage nào khớp với existingKeys, tự tạo từ existingKeys qua stageLabel
     for (const k of existingKeys) {
         if (!stages.some(item => String(item.key) === String(k))) {
             stages.push({
@@ -367,315 +380,487 @@ function renderFunnel(
         }
     }
 
-
-    const counts =
-        stages.map(
-            stage => ({
-
+    const counts = stages
+        .map((stage, idx) => {
+            const matched = opportunities.filter(item => String(item.stage) === String(stage.key));
+            return {
                 ...stage,
+                count: matched.length,
+                value: matched.reduce((sum, item) => sum + Number(item.value || 0), 0),
+                color: getStageColor(stage.key, idx)
+            };
+        })
+        .filter(item => item.count > 0);
 
-                count:
-                    opportunities.filter(
-                        item =>
-                            item.stage
-                            === stage.key
-                    ).length,
+    counts.sort((a, b) => getStageSortOrder(a.key) - getStageSortOrder(b.key));
 
-                value:
-                    opportunities
-                        .filter(
-                            item =>
-                                item.stage
-                                === stage.key
-                        )
-                        .reduce(
-                            (
-                                sum,
-                                item
-                            ) =>
-                                sum
-                                +
-                                Number(
-                                    item.value
-                                    ||
-                                    0
-                                ),
-                            0
-                        )
-
-            })
-        )
-        .filter(
-            item =>
-                item.count
-                >
-                0
-        );
-
-
-    if (
-        !counts.length
-    ) {
-
-        container.style.display =
-            "none";
-
-        empty.style.display =
-            "flex";
-
+    if (!counts.length) {
+        if (funnelChartInstance) {
+            try { funnelChartInstance.destroy(); } catch (_) {}
+            funnelChartInstance = null;
+        }
+        if (chartWrapper) chartWrapper.style.display = "none";
+        if (container) {
+            container.innerHTML = "";
+            container.style.display = "none";
+        }
+        if (empty) empty.style.display = "flex";
+        if (footer) footer.innerHTML = "";
         return;
     }
 
+    if (empty) empty.style.display = "none";
 
-    const max =
-        Math.max(
-            ...counts.map(
-                item =>
-                    item.count
-            ),
-            1
-        );
+    const totalDeals = counts.reduce((sum, item) => sum + item.count, 0);
+    const totalPipelineValue = counts.reduce((sum, item) => sum + item.value, 0);
+    const wonItem = counts.find(item => item.key === "5" || item.key === "closing" || item.key === "won");
+    const wonCount = wonItem ? wonItem.count : 0;
+    const winRate = totalDeals > 0 ? Math.round((wonCount / totalDeals) * 100) : 0;
+    const avgDeal = totalDeals > 0 ? Math.round(totalPipelineValue / totalDeals) : 0;
 
-
-    for (
-        const item
-        of counts
-    ) {
-
-        const width =
-            Math.max(
-                18,
-                item.count
-                /
-                max
-                *
-                100
-            );
-
-
-        const row =
-            document.createElement(
-                "div"
-            );
-
-
-        row.className =
-            "funnel-row";
-
-
-        row.innerHTML = `
-            <span class="funnel-stage">
-                ${escapeHtml(item.label)}
-            </span>
-
-            <div class="funnel-track">
-
-                <div
-                    class="funnel-bar"
-                    style="width:${width}%"
-                >
-                    ${item.count}
-                </div>
-
-            </div>
-
-            <span class="funnel-value">
-                ${shortMoney(item.value)}
-            </span>
+    if (footer) {
+        footer.innerHTML = `
+            <div class="stat-chip"><i class="fa-solid fa-briefcase"></i> <span>Tổng cơ hội:</span> <strong>${totalDeals}</strong></div>
+            <div class="stat-chip"><i class="fa-solid fa-coins"></i> <span>Tổng Pipeline:</span> <strong>${money(totalPipelineValue)}</strong></div>
+            <div class="stat-chip"><i class="fa-solid fa-trophy"></i> <span>Tỷ lệ thắng:</span> <strong>${winRate}%</strong></div>
+            <div class="stat-chip"><i class="fa-solid fa-chart-pie"></i> <span>TB/deal:</span> <strong>${money(avgDeal)}</strong></div>
         `;
-
-
-        container.appendChild(
-            row
-        );
-
     }
 
-}
+    if (typeof ApexCharts === "undefined" || !chartWrapper) {
+        if (chartWrapper) chartWrapper.style.display = "none";
+        if (container) {
+            container.style.display = "flex";
+            container.innerHTML = "";
+            const max = Math.max(...counts.map(item => item.count), 1);
+            for (const item of counts) {
+                const width = Math.max(18, item.count / max * 100);
+                const row = document.createElement("div");
+                row.className = "funnel-row";
+                row.innerHTML = `
+                    <span class="funnel-stage">${escapeHtml(item.label)}</span>
+                    <div class="funnel-track">
+                        <div class="funnel-bar" style="width:${width}%">${item.count}</div>
+                    </div>
+                    <span class="funnel-value">${shortMoney(item.value)}</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+        return;
+    }
 
+    if (container) container.style.display = "none";
+    chartWrapper.style.display = "block";
+
+    if (funnelChartInstance) {
+        try { funnelChartInstance.destroy(); } catch (_) {}
+        funnelChartInstance = null;
+    }
+    chartWrapper.innerHTML = "";
+
+    const dark = isDarkTheme();
+
+    if (currentFunnelView === "donut") {
+        const donutOptions = {
+            chart: {
+                type: "donut",
+                height: 290,
+                background: "transparent",
+                foreColor: dark ? "#94a3b8" : "#64748b",
+                animations: { enabled: true, easing: "easeinout", speed: 500 }
+            },
+            series: counts.map(c => c.value > 0 ? c.value : c.count),
+            labels: counts.map(c => c.label),
+            colors: counts.map(c => c.color),
+            stroke: {
+                show: true,
+                width: 2,
+                colors: [dark ? "#0f172a" : "#ffffff"]
+            },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: "70%",
+                        labels: {
+                            show: true,
+                            name: { show: true, fontSize: "12px", fontWeight: 600, color: dark ? "#94a3b8" : "#64748b" },
+                            value: {
+                                show: true,
+                                fontSize: "17px",
+                                fontWeight: 800,
+                                color: dark ? "#f8fafc" : "#0f172a",
+                                formatter: val => shortMoney(Number(val))
+                            },
+                            total: {
+                                show: true,
+                                label: "Tổng Pipeline",
+                                color: dark ? "#94a3b8" : "#64748b",
+                                fontSize: "11px",
+                                formatter: () => shortMoney(totalPipelineValue)
+                            }
+                        }
+                    }
+                }
+            },
+            legend: {
+                position: "bottom",
+                horizontalAlign: "center",
+                fontSize: "11.5px",
+                itemMargin: { horizontal: 6, vertical: 3 },
+                markers: { radius: 10 }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: (val) => `${Number(val).toFixed(0)}%`,
+                style: { fontSize: "11px", fontWeight: 700 }
+            },
+            tooltip: {
+                theme: dark ? "dark" : "light",
+                custom: function({ seriesIndex }) {
+                    const item = counts[seriesIndex];
+                    if (!item) return "";
+                    const pctVal = totalPipelineValue > 0 ? ((item.value / totalPipelineValue) * 100).toFixed(1) : 0;
+                    return `
+                        <div class="crm-chart-tooltip">
+                            <div class="tooltip-header" style="border-left: 4px solid ${item.color};">
+                                <strong>${escapeHtml(item.label)}</strong>
+                            </div>
+                            <div class="tooltip-body">
+                                <div class="tooltip-row">
+                                    <span>Số lượng:</span>
+                                    <strong>${item.count} cơ hội</strong>
+                                </div>
+                                <div class="tooltip-row">
+                                    <span>Giá trị giai đoạn:</span>
+                                    <strong style="color: ${item.color};">${money(item.value)} (${pctVal}%)</strong>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            theme: { mode: dark ? "dark" : "light" }
+        };
+        funnelChartInstance = new ApexCharts(chartWrapper, donutOptions);
+        funnelChartInstance.render();
+    } else {
+        const barOptions = {
+            chart: {
+                type: "bar",
+                height: Math.max(260, counts.length * 52),
+                toolbar: { show: false },
+                background: "transparent",
+                foreColor: dark ? "#94a3b8" : "#64748b",
+                animations: { enabled: true, easing: "easeinout", speed: 500 }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    distributed: true,
+                    barHeight: "58%",
+                    borderRadius: 6,
+                    borderRadiusApplication: "end",
+                    dataLabels: {
+                        position: "center"
+                    }
+                }
+            },
+            colors: counts.map(c => c.color),
+            series: [{
+                name: "Số lượng cơ hội",
+                data: counts.map(c => c.count)
+            }],
+            xaxis: {
+                categories: counts.map(c => c.label),
+                labels: {
+                    style: { fontSize: "11px", fontWeight: 500 }
+                },
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                labels: {
+                    style: { fontSize: "12px", fontWeight: 600 },
+                    maxWidth: 190
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                textAnchor: "middle",
+                formatter: function(val, opt) {
+                    const item = counts[opt.dataPointIndex];
+                    if (!item) return val;
+                    return `${val} cơ hội • ${shortMoney(item.value)}`;
+                },
+                style: {
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    colors: ["#ffffff"]
+                },
+                dropShadow: {
+                    enabled: true,
+                    top: 1,
+                    left: 1,
+                    blur: 1,
+                    color: "#000000",
+                    opacity: 0.5
+                }
+            },
+            grid: {
+                borderColor: dark ? "#334155" : "#e2e8f0",
+                strokeDashArray: 4,
+                xaxis: { lines: { show: true } },
+                yaxis: { lines: { show: false } },
+                padding: { top: 0, right: 15, bottom: 0, left: 10 }
+            },
+            legend: { show: false },
+            tooltip: {
+                theme: dark ? "dark" : "light",
+                custom: function({ dataPointIndex }) {
+                    const item = counts[dataPointIndex];
+                    if (!item) return "";
+                    const pctCount = ((item.count / totalDeals) * 100).toFixed(1);
+                    const pctValue = totalPipelineValue > 0 ? ((item.value / totalPipelineValue) * 100).toFixed(1) : 0;
+                    const avgPerDeal = item.count > 0 ? (item.value / item.count) : 0;
+                    return `
+                        <div class="crm-chart-tooltip">
+                            <div class="tooltip-header" style="border-left: 4px solid ${item.color};">
+                                <strong>${escapeHtml(item.label)}</strong>
+                            </div>
+                            <div class="tooltip-body">
+                                <div class="tooltip-row">
+                                    <span>Số lượng:</span>
+                                    <strong>${item.count} cơ hội (${pctCount}%)</strong>
+                                </div>
+                                <div class="tooltip-row">
+                                    <span>Giá trị giai đoạn:</span>
+                                    <strong style="color: ${item.color};">${money(item.value)} (${pctValue}%)</strong>
+                                </div>
+                                <div class="tooltip-row">
+                                    <span>Trung bình / deal:</span>
+                                    <strong>${money(avgPerDeal)}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            theme: { mode: dark ? "dark" : "light" }
+        };
+        funnelChartInstance = new ApexCharts(chartWrapper, barOptions);
+        funnelChartInstance.render();
+    }
+}
 
 /* =========================================================
    FORECAST
 ========================================================= */
 
-function renderForecast(
-    opportunities
-) {
+function renderForecast(opportunities) {
+    const chartWrapper = document.getElementById("forecastChartContainer");
+    const container = document.getElementById("forecastBars");
+    const empty = document.getElementById("forecastEmpty");
+    const totalEl = document.getElementById("forecastTotal");
+    const footer = document.getElementById("forecastStatsFooter");
 
-    const container =
-        document.getElementById(
-            "forecastBars"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "forecastEmpty"
-        );
-
-
-    container.innerHTML = "";
-
-
-    if (
-        !opportunities.length
-    ) {
-
-        container.style.display =
-            "none";
-
-        empty.style.display =
-            "flex";
-
-
-        text(
-            "forecastTotal",
-            money(0)
-        );
-
-
+    if (!opportunities || !opportunities.length) {
+        if (forecastChartInstance) {
+            try { forecastChartInstance.destroy(); } catch (_) {}
+            forecastChartInstance = null;
+        }
+        if (chartWrapper) chartWrapper.style.display = "none";
+        if (container) {
+            container.innerHTML = "";
+            container.style.display = "none";
+        }
+        if (empty) empty.style.display = "flex";
+        if (totalEl) totalEl.textContent = money(0);
+        if (footer) footer.innerHTML = "";
         return;
     }
 
-
-    container.style.display =
-        "grid";
-
-    empty.style.display =
-        "none";
-
-
-    const forecastTotal =
-        opportunities.reduce(
-            (
-                sum,
-                item
-            ) =>
-                sum
-                +
-                (
-                    Number(
-                        item.value
-                        ||
-                        0
-                    )
-                    *
-                    Number(
-                        item.probability
-                        ||
-                        0
-                    )
-                    /
-                    100
-                ),
-            0
-        );
-
-
-    text(
-        "forecastTotal",
-        money(
-            forecastTotal
-        )
-    );
-
-
-    const groups =
-        new Map();
-
-
-    for (
-        const item
-        of opportunities
-    ) {
-
-        const key =
-            item.stage
-            ||
-            "unknown";
-
-
-        const value =
-            Number(
-                item.value
-                ||
-                0
-            )
-            *
-            Number(
-                item.probability
-                ||
-                0
-            )
-            /
-            100;
-
-
-        groups.set(
-            key,
-            (
-                groups.get(key)
-                ||
-                0
-            )
-            +
-            value
-        );
-
+    const groups = new Map();
+    for (const item of opportunities) {
+        const key = String(item.stage || "unknown");
+        if (!groups.has(key)) {
+            groups.set(key, {
+                key,
+                label: stageLabel(key),
+                pipelineVal: 0,
+                expectedVal: 0,
+                count: 0
+            });
+        }
+        const g = groups.get(key);
+        const val = Number(item.value || 0);
+        const prob = Number(item.probability || 0);
+        g.pipelineVal += val;
+        g.expectedVal += (val * prob) / 100;
+        g.count += 1;
     }
 
+    const stageList = Array.from(groups.values());
+    stageList.sort((a, b) => getStageSortOrder(a.key) - getStageSortOrder(b.key));
 
-    const max =
-        Math.max(
-            ...groups.values(),
-            1
-        );
+    const totalPipelineVal = stageList.reduce((sum, s) => sum + s.pipelineVal, 0);
+    const totalExpectedVal = stageList.reduce((sum, s) => sum + s.expectedVal, 0);
+    const realizationRatio = totalPipelineVal > 0 ? ((totalExpectedVal / totalPipelineVal) * 100) : 0;
 
+    if (totalEl) {
+        totalEl.textContent = money(totalExpectedVal);
+    }
 
-    for (
-        const [
-            key,
-            value
-        ]
-        of groups
-    ) {
-
-        const row =
-            document.createElement(
-                "div"
-            );
-
-
-        row.className =
-            "forecast-row";
-
-
-        row.innerHTML = `
-            <span class="forecast-label">
-                ${stageLabel(key)}
-            </span>
-
-            <div class="forecast-track">
-
-                <div
-                    class="forecast-progress"
-                    style="width:${value / max * 100}%"
-                ></div>
-
-            </div>
-
-            <span class="forecast-value">
-                ${shortMoney(value)}
-            </span>
+    if (footer) {
+        footer.innerHTML = `
+            <div class="stat-chip"><i class="fa-solid fa-layer-group"></i> <span>Tổng phễu danh nghĩa:</span> <strong>${money(totalPipelineVal)}</strong></div>
+            <div class="stat-chip"><i class="fa-solid fa-bullseye"></i> <span>Kỳ vọng thực nhận:</span> <strong style="color: #10b981;">${money(totalExpectedVal)}</strong></div>
+            <div class="stat-chip"><i class="fa-solid fa-percent"></i> <span>Hệ số hiện thực:</span> <strong>${realizationRatio.toFixed(1)}%</strong></div>
         `;
-
-
-        container.appendChild(
-            row
-        );
-
     }
 
+    if (empty) empty.style.display = "none";
+
+    if (typeof ApexCharts === "undefined" || !chartWrapper) {
+        if (chartWrapper) chartWrapper.style.display = "none";
+        if (container) {
+            container.style.display = "grid";
+            container.innerHTML = "";
+            const max = Math.max(...stageList.map(s => s.expectedVal), 1);
+            for (const s of stageList) {
+                const row = document.createElement("div");
+                row.className = "forecast-row";
+                row.innerHTML = `
+                    <span class="forecast-label">${escapeHtml(s.label)}</span>
+                    <div class="forecast-track">
+                        <div class="forecast-progress" style="width:${(s.expectedVal / max) * 100}%"></div>
+                    </div>
+                    <span class="forecast-value">${shortMoney(s.expectedVal)}</span>
+                `;
+                container.appendChild(row);
+            }
+        }
+        return;
+    }
+
+    if (container) container.style.display = "none";
+    chartWrapper.style.display = "block";
+
+    if (forecastChartInstance) {
+        try { forecastChartInstance.destroy(); } catch (_) {}
+        forecastChartInstance = null;
+    }
+    chartWrapper.innerHTML = "";
+
+    const dark = isDarkTheme();
+
+    const options = {
+        chart: {
+            type: "bar",
+            height: Math.max(260, stageList.length * 56),
+            toolbar: { show: false },
+            background: "transparent",
+            foreColor: dark ? "#94a3b8" : "#64748b",
+            animations: { enabled: true, easing: "easeinout", speed: 500 }
+        },
+        plotOptions: {
+            bar: {
+                horizontal: true,
+                barHeight: "68%",
+                borderRadius: 4,
+                borderRadiusApplication: "end",
+                dataLabels: {
+                    position: "top"
+                }
+            }
+        },
+        colors: ["#3b82f6", "#10b981"],
+        series: [
+            {
+                name: "Giá trị danh nghĩa",
+                data: stageList.map(s => s.pipelineVal)
+            },
+            {
+                name: "Kỳ vọng (x Xác suất)",
+                data: stageList.map(s => Math.round(s.expectedVal))
+            }
+        ],
+        xaxis: {
+            categories: stageList.map(s => s.label),
+            labels: {
+                formatter: val => shortMoney(Number(val)),
+                style: { fontSize: "11px", fontWeight: 500 }
+            },
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        yaxis: {
+            labels: {
+                style: { fontSize: "12px", fontWeight: 600 },
+                maxWidth: 190
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            textAnchor: "start",
+            offsetX: 6,
+            formatter: val => shortMoney(Number(val)),
+            style: {
+                fontSize: "11px",
+                fontWeight: 700,
+                colors: [dark ? "#93c5fd" : "#2563eb", dark ? "#6ee7b7" : "#059669"]
+            }
+        },
+        grid: {
+            borderColor: dark ? "#334155" : "#e2e8f0",
+            strokeDashArray: 4,
+            xaxis: { lines: { show: true } },
+            yaxis: { lines: { show: false } },
+            padding: { top: 0, right: 36, bottom: 0, left: 10 }
+        },
+        legend: {
+            position: "top",
+            horizontalAlign: "right",
+            fontSize: "12px",
+            itemMargin: { horizontal: 8, vertical: 0 },
+            markers: { radius: 4 }
+        },
+        tooltip: {
+            theme: dark ? "dark" : "light",
+            custom: function({ dataPointIndex }) {
+                const stage = stageList[dataPointIndex];
+                if (!stage) return "";
+                const avgProb = stage.pipelineVal > 0 ? ((stage.expectedVal / stage.pipelineVal) * 100) : 0;
+                const risk = Math.max(0, stage.pipelineVal - stage.expectedVal);
+                return `
+                    <div class="crm-chart-tooltip">
+                        <div class="tooltip-header" style="border-left: 4px solid #10b981;">
+                            <strong>${escapeHtml(stage.label)}</strong>
+                            <span style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-left: 8px;">Xác suất: ${avgProb.toFixed(0)}%</span>
+                        </div>
+                        <div class="tooltip-body">
+                            <div class="tooltip-row">
+                                <span>Giá trị danh nghĩa:</span>
+                                <strong style="color: #3b82f6;">${money(stage.pipelineVal)}</strong>
+                            </div>
+                            <div class="tooltip-row">
+                                <span>Kỳ vọng theo xác suất:</span>
+                                <strong style="color: #10b981;">${money(stage.expectedVal)}</strong>
+                            </div>
+                            <div class="tooltip-row">
+                                <span>Rủi ro chênh lệch:</span>
+                                <strong style="color: #f43f5e;">-${money(risk)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        },
+        theme: { mode: dark ? "dark" : "light" }
+    };
+
+    forecastChartInstance = new ApexCharts(chartWrapper, options);
+    forecastChartInstance.render();
 }
 
 
@@ -683,110 +868,136 @@ function renderForecast(
    ACTIVITY
 ========================================================= */
 
+function formatDisplayDate(dateStr) {
+    if (!dateStr) return "Mới đây";
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) {
+            const parts = String(dateStr).split("T")[0];
+            return parts || "Mới đây";
+        }
+        const now = new Date();
+        const diffMs = now.getTime() - d.getTime();
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+        if (diffMinutes >= 0 && diffMinutes < 2) return "Vừa xong";
+        if (diffMinutes >= 2 && diffMinutes < 60) return `${diffMinutes} phút trước`;
+        if (diffHours >= 1 && diffHours < 24 && d.getDate() === now.getDate()) {
+            return `Hôm nay, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        }
+        if (diffHours < 48 && d.getDate() === now.getDate() - 1) {
+            return `Hôm qua, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        }
+        return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    } catch (_) {
+        return String(dateStr).split("T")[0] || "Mới đây";
+    }
+}
+
+function formatDueDate(dateStr) {
+    if (!dateStr) return "Không có hạn";
+    try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) {
+            const parts = String(dateStr).split("-");
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return String(dateStr);
+        }
+        const now = new Date();
+        const isSameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+        const timePart = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+        if (isSameDay) {
+            return `Hôm nay${timePart !== "00:00" ? " " + timePart : ""}`;
+        }
+        return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+    } catch (_) {
+        return String(dateStr);
+    }
+}
+
 function renderRecentActivities(
     activities
 ) {
-
     const container =
         document.getElementById(
             "recentActivities"
         );
-
+    if (!container) return;
 
     container.innerHTML = "";
-
 
     const latest =
         [...activities]
             .sort(
-                (
-                    a,
-                    b
-                ) =>
-                    String(
-                        b.createdAt
-                        ||
-                        ""
-                    )
+                (a, b) =>
+                    String(b.createdAt || b.date || "")
                     .localeCompare(
-                        String(
-                            a.createdAt
-                            ||
-                            ""
-                        )
+                        String(a.createdAt || a.date || "")
                     )
             )
-            .slice(
-                0,
-                5
-            );
+            .slice(0, 5);
 
+    const emptyEl = document.getElementById("recentActivitiesEmpty");
+    if (emptyEl) {
+        emptyEl.style.display = latest.length ? "none" : "flex";
+    }
 
-    document
-        .getElementById(
-            "recentActivitiesEmpty"
-        )
-        .style
-        .display =
-            latest.length
-            ?
-            "none"
-            :
-            "flex";
+    const countBadge = document.getElementById("recentActivitiesCount");
+    if (countBadge) {
+        countBadge.textContent = latest.length ? `${latest.length} mới nhất` : "0 mới";
+    }
 
+    for (const item of latest) {
+        const row = document.createElement("div");
+        row.className = "recent-item";
 
-    for (
-        const item
-        of latest
-    ) {
-
-        const row =
-            document.createElement(
-                "div"
-            );
-
-
-        row.className =
-            "recent-item";
-
+        const type = (item.type || "note").toLowerCase();
+        const typeCls = ["call", "email", "meeting", "task", "note"].includes(type) ? type : "note";
+        const iconHtml = activityIcon(typeCls);
+        const label = typeLabel(typeCls);
+        const timeDisplay = formatDisplayDate(item.createdAt || item.date);
 
         row.innerHTML = `
-            <div class="recent-icon">
-                ${activityIcon(item.type)}
+            <div class="recent-icon icon-${typeCls}">
+                ${iconHtml}
             </div>
 
             <div class="recent-copy">
+                <div class="recent-item-title-row">
+                    <strong class="recent-title" title="${escapeHtml(item.title || "Hoạt động")}">
+                        ${escapeHtml(item.title || "Hoạt động")}
+                    </strong>
+                    <span class="act-type-pill pill-${typeCls}">${label}</span>
+                </div>
 
-                <strong>
-                    ${escapeHtml(item.title || "Hoạt động")}
-                </strong>
-
-                <span>
+                <div class="recent-meta-row">
                     ${
-                        escapeHtml(
-                            item.relation
-                            ||
-                            typeLabel(
-                                item.type
-                            )
-                        )
+                        item.relation
+                        ? `<span class="recent-meta-item" title="Khách hàng / Liên hệ"><i class="fa-regular fa-building"></i> ${escapeHtml(item.relation)}</span>`
+                        : ""
                     }
-                </span>
-
+                    ${
+                        item.owner
+                        ? `<span class="recent-meta-item" title="Người thực hiện"><i class="fa-regular fa-user"></i> ${escapeHtml(item.owner)}</span>`
+                        : ""
+                    }
+                    ${
+                        (!item.relation && !item.owner)
+                        ? `<span class="recent-meta-item"><i class="fa-regular fa-circle-dot"></i> Hoạt động hệ thống</span>`
+                        : ""
+                    }
+                </div>
             </div>
 
-            <small>
-                ${escapeHtml(item.date || "—")}
-            </small>
+            <div class="recent-item-time" title="${escapeHtml(item.createdAt || item.date || "")}">
+                <i class="fa-regular fa-clock"></i>
+                <span>${timeDisplay}</span>
+            </div>
         `;
 
-
-        container.appendChild(
-            row
-        );
-
+        container.appendChild(row);
     }
-
 }
 
 
@@ -797,133 +1008,110 @@ function renderRecentActivities(
 function renderTasks(
     activities
 ) {
-
     const container =
         document.getElementById(
             "dashboardTasks"
         );
-
+    if (!container) return;
 
     container.innerHTML = "";
-
 
     const tasks =
         activities
             .filter(
                 item =>
-                    item.type
-                    === "task"
-                    &&
-                    item.status
-                    !== "done"
+                    item.type === "task"
+                    && item.status !== "done"
             )
             .sort(
-                (
-                    a,
-                    b
-                ) =>
-                    String(
-                        a.date
-                        ||
-                        "9999-99-99"
-                    )
-                    .localeCompare(
-                        String(
-                            b.date
-                            ||
-                            "9999-99-99"
-                        )
-                    )
+                (a, b) =>
+                    String(a.date || "9999-99-99")
+                    .localeCompare(String(b.date || "9999-99-99"))
             )
-            .slice(
-                0,
-                5
-            );
+            .slice(0, 5);
 
+    const emptyEl = document.getElementById("dashboardTasksEmpty");
+    if (emptyEl) {
+        emptyEl.style.display = tasks.length ? "none" : "flex";
+    }
 
-    document
-        .getElementById(
-            "dashboardTasksEmpty"
-        )
-        .style
-        .display =
-            tasks.length
-            ?
-            "none"
-            :
-            "flex";
+    const countBadge = document.getElementById("dashboardTasksCount");
+    if (countBadge) {
+        countBadge.textContent = `${tasks.length} đang mở`;
+        countBadge.className = tasks.some(t => isLate(t))
+            ? "panel-badge-pill warning"
+            : "panel-badge-pill";
+    }
 
-
-    for (
-        const task
-        of tasks
-    ) {
-
-        const row =
-            document.createElement(
-                "div"
-            );
-
-
-        row.className =
-            "dashboard-task";
-
+    for (const task of tasks) {
+        const row = document.createElement("div");
+        const late = isLate(task);
+        row.className = `dashboard-task ${late ? "is-late" : ""}`;
 
         row.innerHTML = `
-            <div class="recent-icon">
-                ✓
+            <div class="task-checkbox-wrap">
+                <button class="task-check-circle" type="button" title="Đánh dấu hoàn thành" onclick="quickCompleteTask(${task.id})">
+                    <i class="fa-solid fa-check"></i>
+                </button>
             </div>
 
             <div class="dashboard-task-copy">
-
-                <strong>
-                    ${escapeHtml(task.title)}
-                </strong>
-
-                <span>
+                <div class="task-title-row">
+                    <strong class="task-title" title="${escapeHtml(task.title)}">
+                        ${escapeHtml(task.title)}
+                    </strong>
                     ${
-                        escapeHtml(
-                            task.date
-                            ||
-                            "Chưa có hạn"
-                        )
+                        late
+                        ? `<span class="task-badge-urgent"><i class="fa-solid fa-triangle-exclamation"></i> Quá hạn</span>`
+                        : `<span class="task-badge-open"><i class="fa-regular fa-hourglass-half"></i> Đang mở</span>`
                     }
+                </div>
+
+                <div class="task-meta-row">
+                    <span class="task-meta-item ${late ? "text-late" : ""}" title="Hạn hoàn thành">
+                        <i class="fa-regular fa-calendar-xmark"></i> ${formatDueDate(task.date)}
+                    </span>
                     ${
                         task.owner
-                        ?
-                        " · "
-                        +
-                        escapeHtml(
-                            task.owner
-                        )
-                        :
-                        ""
+                        ? `<span class="task-meta-item" title="Người phụ trách"><i class="fa-regular fa-user"></i> ${escapeHtml(task.owner)}</span>`
+                        : ""
                     }
-                </span>
-
+                    ${
+                        task.relation
+                        ? `<span class="task-meta-item" title="Khách hàng liên quan"><i class="fa-regular fa-building"></i> ${escapeHtml(task.relation)}</span>`
+                        : ""
+                    }
+                </div>
             </div>
 
-            ${
-                isLate(task)
-                ?
-                `
-                <span class="task-warning">
-                    Quá hạn
-                </span>
-                `
-                :
-                ""
-            }
+            <a href="tasks.html" class="task-action-btn" title="Xem chi tiết công việc">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
         `;
 
-
-        container.appendChild(
-            row
-        );
-
+        container.appendChild(row);
     }
-
 }
+
+window.quickCompleteTask = async function(id) {
+    if (!id) return;
+    try {
+        const acts = loadArray("crm_ui_activities");
+        const target = acts.find(a => Number(a.id) === Number(id));
+        if (target) {
+            target.status = "done";
+            localStorage.setItem("crm_ui_activities", JSON.stringify(acts));
+            renderDashboard();
+        }
+        const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+        await fetch(`${API_BASE}/api/activities/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ status: "COMPLETED" })
+        }).catch(() => {});
+    } catch (_) {}
+};
 
 
 /* =========================================================
@@ -1169,25 +1357,18 @@ function todayString() {
 
 
 function activityIcon(type) {
-
     switch (type) {
-
         case "call":
             return '<i class="fa-solid fa-phone"></i>';
-
         case "email":
             return '<i class="fa-solid fa-envelope"></i>';
-
         case "meeting":
             return '<i class="fa-solid fa-calendar-days"></i>';
-
         case "task":
-            return '<i class="fa-solid fa-circle-check"></i>';
-
+            return '<i class="fa-solid fa-list-check"></i>';
         default:
-            return '<i class="fa-solid fa-pen-to-square"></i>';
+            return '<i class="fa-solid fa-note-sticky"></i>';
     }
-
 }
 
 
@@ -1251,16 +1432,22 @@ renderDashboard();
 (async function syncBackendData() {
     try {
         const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
-        const [oppRes, quoteRes, actRes] = await Promise.all([
-            fetch(`${API_BASE}/api/opportunities`, { credentials: "include" }),
-            fetch(`${API_BASE}/api/quotes`, { credentials: "include" }),
-            fetch(`${API_BASE}/api/activities`, { credentials: "include" })
+        const [oppRes, quoteRes, actRes, custRes, userRes, prodRes] = await Promise.all([
+            fetch(`${API_BASE}/api/opportunities`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/quotes`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/activities`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/customers?size=100`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/users?size=100`, { credentials: "include" }).catch(() => null),
+            fetch(`${API_BASE}/api/products`, { credentials: "include" }).catch(() => null)
         ]);
 
-        const [oppJson, quoteJson, actJson] = await Promise.all([
-            oppRes.json().catch(() => null),
-            quoteRes.json().catch(() => null),
-            actRes.json().catch(() => null)
+        const [oppJson, quoteJson, actJson, custJson, userJson, prodJson] = await Promise.all([
+            oppRes ? oppRes.json().catch(() => null) : null,
+            quoteRes ? quoteRes.json().catch(() => null) : null,
+            actRes ? actRes.json().catch(() => null) : null,
+            custRes ? custRes.json().catch(() => null) : null,
+            userRes ? userRes.json().catch(() => null) : null,
+            prodRes ? prodRes.json().catch(() => null) : null
         ]);
 
         let changed = false;
@@ -1297,13 +1484,57 @@ renderDashboard();
         }
 
         if (actJson?.success && Array.isArray(actJson.data)) {
-            const acts = actJson.data.map(a => ({
-                id: a.id,
-                type: (a.type || "task").toLowerCase(),
-                title: a.subject || "Hoạt động",
-                status: (a.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open"
-            }));
+            const acts = actJson.data.map(a => {
+                const rawDate = a.dueDate || a.due_date || a.activityDate || a.createdAt || a.created_at || "";
+                return {
+                    id: a.id,
+                    type: (a.type || "note").toLowerCase(),
+                    title: a.subject || a.title || "Hoạt động",
+                    relation: a.customerName || a.opportunityName || a.relation || "",
+                    owner: a.ownerName || a.owner || "",
+                    date: rawDate ? String(rawDate).replace("T", " ").substring(0, 16) : "",
+                    createdAt: a.createdAt || a.created_at || rawDate || "",
+                    status: (a.status || "OPEN").toUpperCase() === "COMPLETED" ? "done" : "open",
+                    description: a.description || ""
+                };
+            });
             localStorage.setItem("crm_ui_activities", JSON.stringify(acts));
+            changed = true;
+        }
+
+        if (custJson?.success) {
+            const total = custJson.data?.totalItems ?? (Array.isArray(custJson.data?.items) ? custJson.data.items.length : (Array.isArray(custJson.data) ? custJson.data.length : null));
+            const custList = Array.isArray(custJson.data?.items) ? custJson.data.items : (Array.isArray(custJson.data) ? custJson.data : []);
+            if (custList.length > 0) {
+                localStorage.setItem("crm_ui_customers", JSON.stringify(custList));
+            }
+            if (total !== null && total !== undefined) {
+                localStorage.setItem("crm_metric_customers_count", String(total));
+            }
+            changed = true;
+        }
+
+        if (userJson?.success) {
+            const total = userJson.data?.totalItems ?? (Array.isArray(userJson.data?.items) ? userJson.data.items.length : (Array.isArray(userJson.data) ? userJson.data.length : null));
+            const userList = Array.isArray(userJson.data?.items) ? userJson.data.items : (Array.isArray(userJson.data) ? userJson.data : []);
+            if (userList.length > 0) {
+                localStorage.setItem("crm_ui_users", JSON.stringify(userList));
+            }
+            if (total !== null && total !== undefined) {
+                localStorage.setItem("crm_metric_users_count", String(total));
+            }
+            changed = true;
+        }
+
+        if (prodJson?.success) {
+            const prodList = Array.isArray(prodJson.data?.items) ? prodJson.data.items : (Array.isArray(prodJson.data) ? prodJson.data : []);
+            const total = prodJson.data?.totalItems ?? prodList.length;
+            if (prodList.length > 0) {
+                localStorage.setItem("crm_ui_products", JSON.stringify(prodList));
+            }
+            if (total !== null && total !== undefined) {
+                localStorage.setItem("crm_metric_products_count", String(total));
+            }
             changed = true;
         }
 

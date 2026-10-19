@@ -1,73 +1,45 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
 <script>
 (function () {
     try {
-        var theme =
-            localStorage.getItem("crm_ui_theme");
-
-        document.documentElement.setAttribute(
-            "data-theme",
-            theme === "dark"
-                ? "dark"
-                : "light"
-        );
-
-        document.documentElement.removeAttribute(
-            "data-crm-theme"
-        );
+        var theme = localStorage.getItem("crm_ui_theme");
+        document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+        document.documentElement.removeAttribute("data-crm-theme");
     } catch (e) {
-        document.documentElement.setAttribute(
-            "data-theme",
-            "light"
-        );
+        document.documentElement.setAttribute("data-theme", "light");
     }
 })();
 </script>
-
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<meta
-    name="viewport"
-    content="width=device-width,initial-scale=1.0"
->
-
-<title>Tạo Báo giá</title>
+<title>Soạn thảo Báo giá | Corporate CRM</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/app-shell.css?v=20261014_dark2">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/pages/quote-editor.css?v=20261014_dark2">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
+<link rel="stylesheet" href="css/design-system.css?v=20261017_v7">
+<link rel="stylesheet" href="css/app-shell.css?v=20261017_v7">
+<link rel="stylesheet" href="css/pages/quote-editor.css?v=20261017_v7">
+<link rel="stylesheet" href="css/pages/quotations.css?v=20261017_v7">
+<link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
 </head>
 
 <body class="crm-private">
 
-
 <aside class="crm-sidebar">
-
     <div class="crm-brand">
         <div class="crm-brand-mark">C</div>
         <span class="crm-brand-name">Corporate CRM</span>
     </div>
 
     <nav class="crm-nav">
+        <div class="crm-nav-section">Không gian làm việc</div>
 
         <a href="dashboard.html" class="crm-nav-item">
             <span class="crm-nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
@@ -75,346 +47,475 @@
         </a>
 
         <a href="customers.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-building"></i></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-users"></i></span>
             <span class="crm-nav-label">Khách hàng</span>
         </a>
 
         <a href="pipeline.html" class="crm-nav-item">
-            <span class="crm-nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-bullseye"></i></span>
             <span class="crm-nav-label">Cơ hội</span>
         </a>
 
         <a href="quotations.html" class="crm-nav-item active">
-            <span class="crm-nav-icon"><i class="fa-solid fa-file-lines"></i></span>
+            <span class="crm-nav-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>
             <span class="crm-nav-label">Báo giá</span>
         </a>
 
+        <a href="contracts.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-file-signature"></i></span>
+            <span class="crm-nav-label">Hợp đồng</span>
+        </a>
+
+        <a href="products.html" class="crm-nav-item">
+            <span class="crm-nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
+            <span class="crm-nav-label">Sản phẩm & Bảng giá</span>
+        </a>
     </nav>
-
-    
-
 </aside>
 
-
 <header class="crm-topbar">
-
     <div class="crm-search">
-
         <svg viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="7"/>
             <path d="m20 20-4-4"/>
         </svg>
-
-        <input
-            id="globalSearch"
-            type="search"
-            placeholder="Tìm kiếm..."
-        >
-
+        <input id="globalSearch" type="search" placeholder="Tìm kiếm... (Ctrl + K)">
         <kbd>Ctrl K</kbd>
-
     </div>
 
     <div class="crm-top-actions">
-
         <div class="crm-user">
-
-            <button
-                id="userButton"
-                class="crm-user-button"
-                type="button"
-            >
+            <button id="userButton" class="crm-user-button" type="button">
                 <div class="crm-avatar">U</div>
-
                 <div class="crm-user-copy">
-                    <span class="crm-user-name">Người dùng</span>
-                    <span class="crm-user-role">Vai trò</span>
+                    <span class="crm-user-name">Đang tải...</span>
+                    <span class="crm-user-role">Người dùng</span>
                 </div>
-
                 <span><svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
             </button>
 
             <div id="userDropdown" class="crm-user-dropdown">
-                <a href="#">Hồ sơ cá nhân</a>
-                <button type="button">Đăng xuất</button>
+                <a href="profile.html"><i class="fa-solid fa-user-circle"></i> Hồ sơ cá nhân</a>
+                <a href="change-password.html"><i class="fa-solid fa-key"></i> Đổi mật khẩu</a>
+                <button type="button" id="btnLogoutTop"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</button>
             </div>
-
         </div>
-
     </div>
-
 </header>
 
-
 <main class="crm-main quote-editor-page">
-
+    <!-- 1. HEADER SECTION -->
     <section class="editor-head">
-
         <div>
-
-            <a
-                href="quotations.html"
-                class="back-link"
-            >
-                ← Danh sách báo giá
+            <a href="quotations.html" class="back-link">
+                <i class="fa-solid fa-arrow-left"></i> Quay lại danh sách báo giá
             </a>
-
-            <h1 id="editorPageTitle">
-                Tạo Báo giá
+            <h1>
+                <span id="editorPageTitle">Tạo Báo giá Mới</span>
+                <span id="editorStatusBadge" class="quote-status-badge draft">Bản nháp</span>
             </h1>
-
-            <p>
-                Nhập thông tin và các dòng sản phẩm.
-            </p>
-
+            <p>Nhập thông tin khách hàng, cấu hình bảng giá và kiểm soát giá sàn tự động.</p>
         </div>
 
         <div class="editor-head-actions">
-
-            <button
-                id="saveDraftButton"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                Lưu nháp
+            <button id="btnPreviewPdfTop" class="crm-btn crm-btn-secondary" type="button" title="Xem trước bản in chính thức">
+                <i class="fa-solid fa-print"></i> Xem trước / In
             </button>
-
-            <button
-                id="submitApprovalButton"
-                class="crm-btn crm-btn-primary"
-                type="button"
-            >
-                Gửi duyệt
+            <button id="saveDraftButton" class="crm-btn crm-btn-secondary" type="button">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu bản nháp
             </button>
-
+            <button id="submitApprovalButton" class="crm-btn crm-btn-primary" type="button">
+                <i class="fa-solid fa-paper-plane"></i> Gửi duyệt báo giá
+            </button>
         </div>
-
     </section>
 
+    <!-- 2. WORKFLOW STEPPER -->
+    <div class="cpq-stepper-bar">
+        <div class="cpq-step completed">
+            <span class="cpq-step-num"><i class="fa-solid fa-check"></i></span>
+            <span>1. Khởi tạo</span>
+        </div>
+        <div class="cpq-step-divider"></div>
+        <div class="cpq-step active">
+            <span class="cpq-step-num">2</span>
+            <span>2. Soạn dòng sản phẩm</span>
+        </div>
+        <div class="cpq-step-divider"></div>
+        <div class="cpq-step" id="stepCheckFloor">
+            <span class="cpq-step-num">3</span>
+            <span>3. Kiểm tra giá sàn</span>
+        </div>
+        <div class="cpq-step-divider"></div>
+        <div class="cpq-step" id="stepApproval">
+            <span class="cpq-step-num">4</span>
+            <span>4. Phê duyệt & Ký</span>
+        </div>
+    </div>
 
-    <section class="quote-meta crm-card">
+    <!-- 3. GENERAL INFORMATION CARD -->
+    <section class="quote-meta-card">
+        <div class="card-title-bar">
+            <h2><i class="fa-solid fa-circle-info" style="color:var(--crm-primary);"></i> Thông tin Báo giá</h2>
+            <span style="font-size:0.8rem; color:var(--crm-muted);">Các mục đánh dấu <span style="color:#ef4444;">*</span> là bắt buộc</span>
+        </div>
 
         <div class="quote-meta-grid">
+            <div class="form-group">
+                <label for="quoteCode">
+                    <i class="fa-solid fa-barcode"></i> Mã báo giá <span style="color:#ef4444;">*</span>
+                </label>
+                <div class="input-with-action">
+                    <input
+                        id="quoteCode"
+                        class="form-control-pro"
+                        type="text"
+                        placeholder="VD: BG-2026-001"
+                    >
+                </div>
+            </div>
 
-            <label>
-                Mã báo giá
-
-                <input
-                    id="quoteCode"
-                    class="crm-input"
-                    type="text"
-                    placeholder="VD: BG-001"
-                >
-            </label>
-
-
-            <label>
-                Khách hàng
-
+            <div class="form-group">
+                <label for="quoteCustomer">
+                    <i class="fa-solid fa-building"></i> Khách hàng mục tiêu <span style="color:#ef4444;">*</span>
+                </label>
                 <input
                     id="quoteCustomer"
-                    class="crm-input"
+                    class="form-control-pro"
                     type="text"
+                    placeholder="Chọn hoặc nhập tên khách hàng..."
+                    autocomplete="off"
                 >
-            </label>
+            </div>
 
-
-            <label>
-                Cơ hội
-
+            <div class="form-group">
+                <label for="quoteOpportunity">
+                    <i class="fa-solid fa-bullseye"></i> Cơ hội liên kết (Pipeline)
+                </label>
                 <input
                     id="quoteOpportunity"
-                    class="crm-input"
+                    class="form-control-pro"
                     type="text"
+                    placeholder="VD: Dự án CRM Enterprise 2026"
                 >
-            </label>
+            </div>
 
-
-            <label>
-                Hiệu lực đến
-
+            <div class="form-group">
+                <label for="quoteValidUntil">
+                    <i class="fa-regular fa-calendar-check"></i> Hiệu lực báo giá đến
+                </label>
                 <input
                     id="quoteValidUntil"
-                    class="crm-input"
+                    class="form-control-pro"
                     type="date"
                 >
-            </label>
-
+                <div class="preset-date-chips">
+                    <span class="date-chip" data-days="7">+7 ngày</span>
+                    <span class="date-chip" data-days="15">+15 ngày</span>
+                    <span class="date-chip" data-days="30">+30 ngày</span>
+                </div>
+            </div>
         </div>
-
     </section>
 
-
-    <section class="crm-card product-lines-card">
-
-        <header class="section-head">
-
+    <!-- 4. PRODUCT LINE ITEMS CARD -->
+    <section class="product-lines-card">
+        <header class="section-head-pro">
             <div>
                 <h2>
-                    Dòng sản phẩm / dịch vụ
+                    <i class="fa-solid fa-boxes-stacked" style="color:var(--crm-primary);"></i>
+                    Dòng sản phẩm & Dịch vụ
+                    <span class="quote-head-badge" id="lineCountBadge" style="margin-left:8px;">0 dòng</span>
                 </h2>
-
-                <p>
-                    Thành tiền được tính tự động theo số lượng, đơn giá và chiết khấu.
-                </p>
+                <p>Thành tiền được tự động tính theo số lượng, đơn giá và chiết khấu. Kiểm soát tự động giá sàn.</p>
             </div>
 
-            <button
-                id="addQuoteLine"
-                class="crm-btn crm-btn-secondary"
-                type="button"
-            >
-                + Thêm dòng
-            </button>
-
+            <div class="section-actions">
+                <button
+                    id="btnOpenCatalogModal"
+                    class="crm-btn crm-btn-secondary"
+                    type="button"
+                    title="Mở danh mục chọn sản phẩm nhanh"
+                >
+                    <i class="fa-solid fa-magnifying-glass-plus"></i> Chọn từ danh mục
+                </button>
+                <button
+                    id="addQuoteLine"
+                    class="crm-btn crm-btn-primary"
+                    type="button"
+                >
+                    <i class="fa-solid fa-plus"></i> Thêm dòng
+                </button>
+            </div>
         </header>
 
-
         <div class="line-table-scroll">
-
-            <table class="line-table">
-
+            <table class="line-table-pro">
                 <thead>
-                <tr>
-                    <th>Sản phẩm / dịch vụ</th>
-                    <th>SL</th>
-                    <th>Đơn giá</th>
-                    <th>Giảm %</th>
-                    <th>Thành tiền</th>
-                    <th></th>
-                </tr>
+                    <tr>
+                        <th style="width:40px; text-align:center;">#</th>
+                        <th>Sản phẩm / Dịch vụ</th>
+                        <th style="width:75px; text-align:center;">ĐVT</th>
+                        <th style="width:90px; text-align:center;">Số lượng</th>
+                        <th style="width:170px; text-align:right;">Đơn giá (VNĐ)</th>
+                        <th style="width:110px; text-align:center;">Chiết khấu (%)</th>
+                        <th style="width:170px; text-align:right;">Thành tiền (VNĐ)</th>
+                        <th style="width:50px; text-align:center;"></th>
+                    </tr>
                 </thead>
-
                 <tbody id="quoteLineBody"></tbody>
-
             </table>
-
         </div>
 
-
-        <div
-            id="lineEmpty"
-            class="line-empty"
-        >
-            Chưa có dòng sản phẩm.
+        <div id="lineEmpty" class="line-empty-state" style="display:none;">
+            <i class="fa-solid fa-basket-shopping" style="font-size:2rem; opacity:0.5;"></i>
+            <span>Chưa có dòng sản phẩm nào. Nhấn <strong>"Thêm dòng"</strong> hoặc <strong>"Chọn từ danh mục"</strong> để bắt đầu.</span>
         </div>
-
     </section>
 
-
+    <!-- 5. BOTTOM GRID: TERMS & FINANCIAL SUMMARY -->
     <section class="quote-bottom-grid">
+        <!-- Terms Card -->
+        <article class="quote-terms-card">
+            <h2><i class="fa-solid fa-file-contract" style="color:var(--crm-primary);"></i> Điều khoản thương mại & Ghi chú</h2>
 
-        <article class="crm-card quote-terms">
-
-            <h2>
-                Điều khoản
-            </h2>
-
-            <label>
-                Điều khoản thanh toán
-
+            <div class="form-group">
+                <label>
+                    Điều khoản thanh toán
+                </label>
+                <div class="terms-preset-bar">
+                    <span class="terms-chip" data-preset="payment" data-text="Thanh toán 100% ngay sau khi ký hợp đồng qua chuyển khoản.">100% khi ký</span>
+                    <span class="terms-chip" data-preset="payment" data-text="Tạm ứng 50% khi ký hợp đồng, 50% còn lại trong vòng 07 ngày sau khi nghiệm thu.">50% - 50%</span>
+                    <span class="terms-chip" data-preset="payment" data-text="Thanh toán theo điều khoản Net 30 ngày kể từ ngày xuất hóa đơn GTGT.">Net 30 ngày</span>
+                </div>
                 <textarea
                     id="paymentTerms"
-                    rows="4"
-                    placeholder="Nhập điều khoản thanh toán..."
+                    rows="3"
+                    placeholder="Nhập chi tiết điều khoản thanh toán..."
                 ></textarea>
-            </label>
+            </div>
 
-            <label>
-                Điều khoản giao hàng
-
+            <div class="form-group">
+                <label>
+                    Điều khoản giao hàng / Triển khai
+                </label>
+                <div class="terms-preset-bar">
+                    <span class="terms-chip" data-preset="delivery" data-text="Bàn giao và kích hoạt hệ thống trong vòng 03 ngày làm việc kể từ ngày nhận tạm ứng.">03 ngày làm việc</span>
+                    <span class="terms-chip" data-preset="delivery" data-text="Triển khai và đào tạo người dùng trong vòng 10 ngày làm việc.">10 ngày làm việc</span>
+                </div>
                 <textarea
                     id="deliveryTerms"
-                    rows="4"
-                    placeholder="Nhập điều khoản giao hàng..."
+                    rows="3"
+                    placeholder="Nhập điều khoản giao hàng hoặc bàn giao dịch vụ..."
                 ></textarea>
-            </label>
-
+            </div>
         </article>
 
+        <!-- Summary & Approval Card -->
+        <aside class="quote-summary-card">
+            <h2><i class="fa-solid fa-calculator" style="color:var(--crm-primary);"></i> Tổng hợp Chi phí</h2>
 
-        <aside class="crm-card quote-summary">
+            <div class="summary-rows">
+                <div class="summary-row">
+                    <span>Tạm tính (Chưa giảm giá):</span>
+                    <strong id="subtotalText">0 ₫</strong>
+                </div>
 
-            <h2>
-                Tổng cộng
-            </h2>
+                <div class="summary-row">
+                    <span>Tổng chiết khấu:</span>
+                    <strong id="discountText" style="color:#ef4444;">-0 ₫</strong>
+                </div>
 
-            <div class="summary-row">
-                <span>Tạm tính</span>
-                <strong id="subtotalText">0 ₫</strong>
+                <div class="summary-row">
+                    <span>Thuế GTGT (VAT 10%):</span>
+                    <strong id="taxText">0 ₫</strong>
+                </div>
+
+                <div class="summary-row total">
+                    <span>Tổng giá trị thanh toán:</span>
+                    <strong id="totalText">0 ₫</strong>
+                </div>
             </div>
 
-            <div class="summary-row">
-                <span>Chiết khấu</span>
-                <strong id="discountText">0 ₫</strong>
-            </div>
+            <!-- Approval Policy Box -->
+            <div class="approval-workflow-box">
+                <div class="approval-workflow-header">
+                    <h4><i class="fa-solid fa-shield-halved" style="color:#f59e0b;"></i> Quy trình Phê duyệt</h4>
+                    <span id="approvalBadgeState" class="quote-status-badge draft" style="font-size:0.7rem;">Kiểm tra tự động</span>
+                </div>
 
-            <div class="summary-row total">
-                <span>Thành tiền</span>
-                <strong id="totalText">0 ₫</strong>
-            </div>
+                <div id="approvalPolicyAlert" class="approval-policy-alert safe">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Báo giá hợp lệ và nằm trong thẩm quyền duyệt tự động.</span>
+                </div>
 
-
-            <div
-                id="approvalWarning"
-                class="approval-warning"
-                hidden
-            >
-                <svg class="crm-inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 10 18H2L12 3Z"/><path d="M12 9v5m0 3v1"/></svg> Mức chiết khấu đang chạm ngưỡng cần duyệt.
-            </div>
-
-
-            <div class="approval-demo">
-
-                <span>
-                    Mô phỏng duyệt FE
-                </span>
-
-                <div class="approval-buttons">
-
+                <div class="approval-workflow-actions">
                     <button
                         id="approveQuote"
-                        class="approval-btn approve"
+                        class="btn-workflow-approve"
                         type="button"
                     >
-                        Duyệt
+                        <i class="fa-solid fa-circle-check"></i> Phê duyệt
                     </button>
 
                     <button
                         id="rejectQuote"
-                        class="approval-btn reject"
+                        class="btn-workflow-reject"
                         type="button"
                     >
-                        Từ chối
+                        <i class="fa-solid fa-circle-xmark"></i> Từ chối
                     </button>
-
                 </div>
+            </div>
+        </aside>
+    </section>
+</main>
 
+<!-- 6. PRODUCT CATALOG PICKER MODAL -->
+<div id="modalProductCatalog" class="catalog-modal-overlay">
+    <div class="catalog-modal-container">
+        <div class="catalog-modal-header">
+            <h3><i class="fa-solid fa-boxes-stacked" style="color:#2563eb;"></i> Chọn Sản phẩm từ Danh mục</h3>
+            <button type="button" id="btnCloseCatalogModal" style="background:none; border:none; font-size:1.3rem; cursor:pointer; color:#64748b;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="catalog-modal-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="catalogSearchInput" placeholder="Tìm theo tên sản phẩm, mã SKU, danh mục...">
+        </div>
+
+        <div class="catalog-modal-body">
+            <table class="catalog-table">
+                <thead>
+                    <tr>
+                        <th>Mã SKU</th>
+                        <th>Tên sản phẩm / Dịch vụ</th>
+                        <th>Danh mục</th>
+                        <th style="text-align:right;">Giá niêm yết</th>
+                        <th style="text-align:right;">Giá sàn</th>
+                        <th style="width:100px; text-align:center;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="catalogTableBody">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 7. QUOTATION PRINT & PDF MODAL -->
+<div id="quotePreviewModal" class="quote-modal-overlay">
+    <div class="quote-modal-container">
+        <div class="quote-modal-header">
+            <h3><i class="fa-solid fa-file-invoice" style="color:#2563eb;"></i> Xem trước Bản Báo giá</h3>
+            <button type="button" id="btnClosePreviewModal" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#64748b;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="quote-modal-body" id="quotePrintSheet">
+            <div class="quote-doc-header">
+                <div class="quote-doc-company">
+                    <h2>CORPORATE CRM SOLUTIONS</h2>
+                    <p><i class="fa-solid fa-location-dot"></i> Tầng 12, Tòa nhà Công Nghệ Cao, Hà Nội</p>
+                    <p><i class="fa-solid fa-phone"></i> Hotline: (024) 8888 9999 | Email: contact@crm.local</p>
+                    <p><i class="fa-solid fa-globe"></i> Website: https://crm.enterprise.vn</p>
+                </div>
+                <div class="quote-doc-meta">
+                    <h1>BÁO GIÁ</h1>
+                    <p><strong>Mã:</strong> <span id="modalDocCode">BG-000</span></p>
+                    <p><strong>Ngày lập:</strong> <span id="modalDocDate">--/--/----</span></p>
+                    <p><strong>Hiệu lực đến:</strong> <span id="modalDocValid">--/--/----</span></p>
+                </div>
             </div>
 
-        </aside>
+            <div class="quote-doc-client-card">
+                <div>
+                    <h4>Thông tin khách hàng</h4>
+                    <p><strong>Đơn vị:</strong> <span id="modalDocCustomer">Công ty CP Mới</span></p>
+                    <p><strong>Người liên hệ:</strong> Đại diện phụ trách</p>
+                    <p><strong>Địa chỉ:</strong> Toàn quốc</p>
+                </div>
+                <div>
+                    <h4>Đơn vị phát hành</h4>
+                    <p><strong>Chuyên viên:</strong> Quản trị viên hệ thống</p>
+                    <p><strong>Bộ phận:</strong> Phòng Kinh Doanh Doanh Nghiệp</p>
+                    <p><strong>Trạng thái:</strong> <span id="modalDocStatus" style="font-weight:700; color:#10b981;">Bản nháp</span></p>
+                </div>
+            </div>
 
-    </section>
+            <table class="quote-doc-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;">STT</th>
+                        <th>Tên sản phẩm / Dịch vụ</th>
+                        <th style="width:70px; text-align:center;">SL</th>
+                        <th style="width:120px; text-align:right;">Đơn giá</th>
+                        <th style="width:80px; text-align:center;">CK (%)</th>
+                        <th style="width:140px; text-align:right;">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody id="modalDocItemsBody">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
 
-</main>
+            <div class="quote-doc-summary-box">
+                <div class="quote-doc-summary-row">
+                    <span>Tạm tính (Chưa VAT):</span>
+                    <strong id="modalDocSubtotal">0 ₫</strong>
+                </div>
+                <div class="quote-doc-summary-row">
+                    <span>Chiết khấu tổng cộng:</span>
+                    <strong id="modalDocDiscount" style="color:#ef4444;">-0 ₫</strong>
+                </div>
+                <div class="quote-doc-summary-row">
+                    <span>Thuế GTGT (VAT 10%):</span>
+                    <strong id="modalDocTax">0 ₫</strong>
+                </div>
+                <div class="quote-doc-summary-row total">
+                    <span>TỔNG CỘNG THANH TOÁN:</span>
+                    <span id="modalDocTotal">0 ₫</span>
+                </div>
+            </div>
+
+            <div style="font-size:0.82rem; color:#475569; margin-top:15px; border-top:1px dashed #cbd5e1; padding-top:10px;">
+                <p><strong>Điều khoản thanh toán:</strong> <span id="modalDocPaymentTerms">Thanh toán 100% khi ký</span></p>
+                <p><strong>Điều khoản giao hàng:</strong> <span id="modalDocDeliveryTerms">Bàn giao trong vòng 03 ngày làm việc</span></p>
+            </div>
+
+            <div class="quote-doc-signatures">
+                <div>
+                    <h5>Đại diện Khách hàng</h5>
+                    <p>(Ký, ghi rõ họ tên & đóng dấu)</p>
+                </div>
+                <div>
+                    <h5>Đại diện Bán hàng</h5>
+                    <p>(Ký, ghi rõ họ tên & đóng dấu)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="quote-modal-footer">
+            <button type="button" class="crm-btn crm-btn-secondary" id="btnClosePreviewBtn">Đóng</button>
+            <button type="button" class="crm-btn crm-btn-primary" id="btnPrintModalDoc">
+                <i class="fa-solid fa-print"></i> In / Xuất PDF
+            </button>
+        </div>
+    </div>
+</div>
 
 <header class="crm-mobile-header"></header>
 <div id="drawerOverlay" class="crm-drawer-overlay"></div>
 <aside id="mobileDrawer" class="crm-mobile-drawer"></aside>
 
-
-
-
-
-<script src="js/pages/quote-editor.js"></script>
-
+<script src="js/pages/quote-editor.js?v=20261017_v7"></script>
 <script src="js/page-transition.js"></script>
-
-
-
-
 <script src="js/theme.js?v=20261014_v3"></script>
-<script src="js/shared-shell.js?v=20261014_v3"></script>
+<script src="js/shared-shell.js?v=20261017_v6"></script>
 <script src="js/ui-core.js"></script>
 <script src="js/ui-effects.js"></script>
 </body>

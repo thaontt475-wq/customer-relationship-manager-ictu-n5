@@ -33,8 +33,9 @@ public class CustomerImportService {
     }
 
     public void writeTemplate(OutputStream out,long user) throws Exception {
-        scopes.resolve(user,"create");excel.writeTemplate(out);
+        scopes.resolve(user,"create");excel.writeTemplate(out, true);
     }
+
 
     public Map<String,Object> preview(InputStream input,long user) throws Exception {
         scopes.resolve(user,"create");

@@ -829,7 +829,7 @@ function setupDropZone(col, stageId) {
 }
 
 /* =========================================================
-   DRAWER OPEN / CLOSE
+   MODAL OPEN / CLOSE (CỬA SỔ NỔI THÊM / SỬA CƠ HỘI)
 ========================================================= */
 function openOpportunityDrawer(id = null) {
     editingOppId = id;
@@ -842,7 +842,7 @@ function openOpportunityDrawer(id = null) {
     if (id !== null) {
         const opp = opportunities.find(o => o.id === id);
         if (opp) {
-            if (titleEl) titleEl.textContent = "Sửa cơ hội";
+            if (titleEl) titleEl.textContent = "Chỉnh sửa cơ hội";
             setField("opportunityName", opp.name);
             setField("opportunityCustomer", opp.customerId);
             setField("opportunityValue", opp.amount);
@@ -852,7 +852,7 @@ function openOpportunityDrawer(id = null) {
             setField("opportunityOwner", opp.ownerName);
         }
     } else {
-        if (titleEl) titleEl.textContent = "Thêm cơ hội";
+        if (titleEl) titleEl.textContent = "Thêm cơ hội mới";
         opportunityForm.reset();
         if (stages.length > 0) {
             setField("opportunityStage", stages[0].id);
@@ -866,6 +866,9 @@ function openOpportunityDrawer(id = null) {
 
     opportunityDrawer?.classList.add("open");
     opportunityOverlay?.classList.add("open");
+    setTimeout(() => {
+        document.getElementById("opportunityName")?.focus();
+    }, 150);
 }
 
 function closeOpportunityDrawer() {
@@ -873,6 +876,16 @@ function closeOpportunityDrawer() {
     opportunityOverlay?.classList.remove("open");
     editingOppId = null;
 }
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        if (opportunityDrawer?.classList.contains("open")) {
+            closeOpportunityDrawer();
+        } else if (closeDealModal?.classList.contains("open")) {
+            closeDeal();
+        }
+    }
+});
 
 /* =========================================================
    CLOSE DEAL MODAL

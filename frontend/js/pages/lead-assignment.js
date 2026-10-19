@@ -93,7 +93,8 @@
     // 3. MOCK ASSIGNMENT RULES (PRIORITY 1, 2, 3...)
     const DEFAULT_RULES = [
         {
-            id: "RULE-01",
+            id: 1,
+            ruleCode: "RULE-01",
             priority: 1,
             name: "Phân bổ Khách hàng Bất động sản & Xây dựng (Miền Bắc)",
             region: "NORTH",
@@ -106,7 +107,8 @@
             lastAssignedIndex: 0
         },
         {
-            id: "RULE-02",
+            id: 2,
+            ruleCode: "RULE-02",
             priority: 2,
             name: "Phân bổ Lead Công nghệ thông tin & Viễn thông",
             region: "NATIONWIDE",
@@ -119,7 +121,8 @@
             lastAssignedIndex: 1
         },
         {
-            id: "RULE-03",
+            id: 3,
+            ruleCode: "RULE-03",
             priority: 3,
             name: "Điều phối Thị trường Miền Nam (Round-Robin)",
             region: "SOUTH",
@@ -132,7 +135,8 @@
             lastAssignedIndex: 0
         },
         {
-            id: "RULE-04",
+            id: 4,
+            ruleCode: "RULE-04",
             priority: 4,
             name: "Điều phối Thị trường Miền Trung (Đà Nẵng & lân cận)",
             region: "CENTRAL",
@@ -145,7 +149,8 @@
             lastAssignedIndex: 0
         },
         {
-            id: "RULE-05",
+            id: 5,
+            ruleCode: "RULE-05",
             priority: 5,
             name: "Khách hàng Doanh nghiệp Toàn quốc - Cân bằng tải",
             region: "NATIONWIDE",
@@ -172,6 +177,7 @@
     let assignmentHistory = [];
     let activeTab = "rules"; // 'rules' | 'queue' | 'history'
     let currentManualAssignLead = null;
+    let ruleToDelete = null;
 
     let dom = {};
 
@@ -248,6 +254,22 @@
             btnCloseManualAssignModal: document.getElementById("btnCloseManualAssignModal"),
             btnCancelManualAssign: document.getElementById("btnCancelManualAssign"),
             btnConfirmManualAssign: document.getElementById("btnConfirmManualAssign"),
+
+            // Modal: Delete Rule
+            deleteRuleModal: document.getElementById("deleteRuleModal"),
+            deleteRuleName: document.getElementById("deleteRuleName"),
+            deleteRuleMechanism: document.getElementById("deleteRuleMechanism"),
+            deleteRuleStats: document.getElementById("deleteRuleStats"),
+            deleteRuleScope: document.getElementById("deleteRuleScope"),
+            btnCloseDeleteRuleModal: document.getElementById("btnCloseDeleteRuleModal"),
+            btnCancelDeleteRuleModal: document.getElementById("btnCancelDeleteRuleModal"),
+            btnConfirmDeleteRuleModal: document.getElementById("btnConfirmDeleteRuleModal"),
+
+            // Modal: Reset Default Rules
+            resetRulesModal: document.getElementById("resetRulesModal"),
+            btnCloseResetRulesModal: document.getElementById("btnCloseResetRulesModal"),
+            btnCancelResetRulesModal: document.getElementById("btnCancelResetRulesModal"),
+            btnConfirmResetRulesModal: document.getElementById("btnConfirmResetRulesModal"),
 
             toastContainer: document.getElementById("leadAssignToastContainer")
         };
@@ -742,14 +764,8 @@
             btn.addEventListener("click", () => {
                 const ruleId = btn.getAttribute("data-rule-id");
                 const rule = assignmentRules.find(r => String(r.id) === String(ruleId));
-                if (confirm(`Bạn có chắc chắn muốn xóa quy tắc "${rule?.name}" không?`)) {
-                    assignmentRules = assignmentRules.filter(r => String(r.id) !== String(ruleId));
-                    // Re-index priorities
-                    assignmentRules.forEach((r, i) => r.priority = i + 1);
-                    saveRules();
-                    updateKpis();
-                    renderRulesTable();
-                    showToast(`Đã xóa quy tắc thành công!`, "success");
+                if (rule) {
+                    openDeleteRuleModal(rule);
                 }
             });
         });
@@ -1090,8 +1106,10 @@
                 rule.isActive = isActive;
             }
         } else {
+            const tempCode = `RULE-${Date.now().toString().slice(-4)}`;
             const newRule = {
-                id: `RULE-${Date.now().toString().slice(-4)}`,
+                id: window.CrmApi ? null : tempCode,
+                ruleCode: tempCode,
                 name,
                 region,
                 industry,
@@ -1215,13 +1233,14 @@
                 assignBtn.innerHTML = origText;
             }
 
+            const leadName = currentManualAssignLead ? (currentManualAssignLead.fullName || currentManualAssignLead.name || "Lead") : "Lead";
             closeManualAssignModal();
             updateKpis();
             renderRulesTable();
             renderQueueTable();
             renderHistoryTable();
 
-            showToast(`🎯 Đã phân bổ thành công Lead "${currentManualAssignLead.fullName}" cho chuyên viên ${targetRep.name}!`, "success");
+            showToast(`🎯 Đã phân bổ thành công Lead "${leadName}" cho chuyên viên ${targetRep.name}!`, "success");
         } catch (err) {
             if (assignBtn) {
                 assignBtn.disabled = false;
@@ -1230,6 +1249,76 @@
             console.error("Manual assign error:", err);
             showToast("Lỗi khi phân công Lead: " + (err.message || err), "error");
         }
+    }
+
+    // 14.1. MODAL: DELETE RULE CONFIRMATION
+    function openDeleteRuleModal(rule) {
+        if (!rule) return;
+        ruleToDelete = rule;
+
+        if (dom.deleteRuleName) {
+            dom.deleteRuleName.textContent = rule.name || "Quy tắc không tên";
+        }
+        if (dom.deleteRuleMechanism) {
+            dom.deleteRuleMechanism.innerHTML = getMechanismBadge(rule.mechanism);
+        }
+        if (dom.deleteRuleStats) {
+            dom.deleteRuleStats.innerHTML = `<i class="fa-solid fa-check-double"></i> Đã phân bổ: <strong>${rule.totalAssigned || 0}</strong> lead`;
+        }
+        if (dom.deleteRuleScope) {
+            const regionTxt = getRegionLabel(rule.region);
+            const industryTxt = (!rule.industry || rule.industry === "ALL") ? "Mọi ngành nghề" : rule.industry;
+            dom.deleteRuleScope.innerHTML = `<i class="fa-solid fa-filter text-muted"></i> Phạm vi: <strong>${escapeHtml(regionTxt)}</strong> &bull; Ngành: <strong>${escapeHtml(industryTxt)}</strong>`;
+        }
+
+        if (dom.deleteRuleModal) {
+            dom.deleteRuleModal.classList.add("active");
+        }
+    }
+
+    function closeDeleteRuleModal() {
+        if (dom.deleteRuleModal) {
+            dom.deleteRuleModal.classList.remove("active");
+        }
+        ruleToDelete = null;
+    }
+
+    function confirmDeleteRule() {
+        if (!ruleToDelete) return;
+        const targetId = ruleToDelete.id;
+        const targetName = ruleToDelete.name;
+
+        assignmentRules = assignmentRules.filter(r => String(r.id) !== String(targetId));
+        // Re-index priorities
+        assignmentRules.forEach((r, i) => r.priority = i + 1);
+        saveRules();
+        updateKpis();
+        renderRulesTable();
+
+        closeDeleteRuleModal();
+        showToast(`Đã xóa vĩnh viễn quy tắc "${targetName}" thành công!`, "success");
+    }
+
+    // 14.2. MODAL: RESET DEFAULT RULES CONFIRMATION
+    function openResetRulesModal() {
+        if (dom.resetRulesModal) {
+            dom.resetRulesModal.classList.add("active");
+        }
+    }
+
+    function closeResetRulesModal() {
+        if (dom.resetRulesModal) {
+            dom.resetRulesModal.classList.remove("active");
+        }
+    }
+
+    function confirmResetRules() {
+        assignmentRules = JSON.parse(JSON.stringify(DEFAULT_RULES));
+        saveRules();
+        updateKpis();
+        renderRulesTable();
+        closeResetRulesModal();
+        showToast("✨ Đã khôi phục các quy tắc chuẩn mặc định của hệ thống!", "success");
     }
 
     // 15. EVENT LISTENERS
@@ -1272,28 +1361,77 @@
         if (dom.btnProcessQueueHeader) dom.btnProcessQueueHeader.addEventListener("click", handleProcessQueue);
         if (dom.btnProcessQueueTab) dom.btnProcessQueueTab.addEventListener("click", handleProcessQueue);
 
-        // Reset default rules
+        // Reset default rules modal
         if (dom.btnResetDefaultRules) {
-            dom.btnResetDefaultRules.addEventListener("click", () => {
-                if (confirm("Khôi phục danh sách quy tắc phân bổ về cài đặt chuẩn của hệ thống?")) {
-                    assignmentRules = [...DEFAULT_RULES];
-                    saveRules();
-                    updateKpis();
-                    renderRulesTable();
-                    showToast("✨ Đã khôi phục các quy tắc chuẩn!", "success");
+            dom.btnResetDefaultRules.addEventListener("click", openResetRulesModal);
+        }
+        if (dom.btnCloseResetRulesModal) {
+            dom.btnCloseResetRulesModal.addEventListener("click", closeResetRulesModal);
+        }
+        if (dom.btnCancelResetRulesModal) {
+            dom.btnCancelResetRulesModal.addEventListener("click", closeResetRulesModal);
+        }
+        if (dom.btnConfirmResetRulesModal) {
+            dom.btnConfirmResetRulesModal.addEventListener("click", confirmResetRules);
+        }
+
+        // Delete rule modal
+        if (dom.btnCloseDeleteRuleModal) {
+            dom.btnCloseDeleteRuleModal.addEventListener("click", closeDeleteRuleModal);
+        }
+        if (dom.btnCancelDeleteRuleModal) {
+            dom.btnCancelDeleteRuleModal.addEventListener("click", closeDeleteRuleModal);
+        }
+        if (dom.btnConfirmDeleteRuleModal) {
+            dom.btnConfirmDeleteRuleModal.addEventListener("click", confirmDeleteRule);
+        }
+
+        // Export history
+        // Export history
+        if (dom.btnExportHistory) {
+            dom.btnExportHistory.addEventListener("click", () => {
+                if (!assignmentHistory || !assignmentHistory.length) {
+                    showToast("Chưa có lịch sử phân bổ nào để xuất file!", "warning");
+                    return;
+                }
+
+                const columns = [
+                    { label: "STT", key: "stt", width: 60, align: "center" },
+                    { label: "Khách hàng (Lead)", key: "leadName", width: 180, align: "left" },
+                    { label: "Công ty / Doanh nghiệp", key: "companyName", width: 220, align: "left" },
+                    { label: "Số điện thoại", key: "leadPhone", width: 130, align: "center" },
+                    { label: "Nhân viên nhận Lead", key: "repName", width: 180, align: "left" },
+                    { label: "Hình thức phân bổ", key: "method", width: 160, align: "left" },
+                    { label: "Thời gian phân bổ", key: "assignedAt", width: 150, align: "center" },
+                    { label: "Ghi chú phân bổ", key: "note", width: 250, align: "left" }
+                ];
+
+                const formattedData = assignmentHistory.map((h, idx) => ({
+                    stt: idx + 1,
+                    leadName: h.leadName || "",
+                    companyName: h.companyName || "",
+                    leadPhone: h.leadPhone || "",
+                    repName: h.repName || "",
+                    method: h.method || "",
+                    assignedAt: h.assignedAt || "",
+                    note: h.note || ""
+                }));
+
+                if (window.ExcelExportHelper) {
+                    window.ExcelExportHelper.exportStyledExcel({
+                        title: "NHẬT KÝ PHÂN BỔ LEAD TỰ ĐỘNG & THỦ CÔNG",
+                        filename: `Lich_Su_Phan_Bo_Lead_CRM_${new Date().toISOString().slice(0, 10)}.xls`,
+                        meta: `Xuất ngày: ${new Date().toLocaleDateString('vi-VN')} | Tổng: ${assignmentHistory.length} lượt phân bổ | NovaCRM`,
+                        columns: columns,
+                        data: formattedData
+                    });
+                    showToast("✓ Đã tải xuống file 'Lich_Su_Phan_Bo_Lead_CRM.xls' thành công!", "success");
+                } else {
+                    showToast("Đã tải xuống file nhật ký thành công!", "success");
                 }
             });
         }
 
-        // Export history
-        if (dom.btnExportHistory) {
-            dom.btnExportHistory.addEventListener("click", () => {
-                showToast("📥 Đang xuất file Excel lịch sử phân bổ Lead...", "info");
-                setTimeout(() => {
-                    showToast("✨ Đã tải xuống file 'Lich_su_phan_bo_Lead_CRM.xlsx' thành công!", "success");
-                }, 800);
-            });
-        }
 
         // Close on backdrop click
         if (dom.ruleModal) {
@@ -1306,12 +1444,24 @@
                 if (e.target === dom.manualAssignModal) closeManualAssignModal();
             });
         }
+        if (dom.deleteRuleModal) {
+            dom.deleteRuleModal.addEventListener("click", e => {
+                if (e.target === dom.deleteRuleModal) closeDeleteRuleModal();
+            });
+        }
+        if (dom.resetRulesModal) {
+            dom.resetRulesModal.addEventListener("click", e => {
+                if (e.target === dom.resetRulesModal) closeResetRulesModal();
+            });
+        }
 
         // Escape key to close
         document.addEventListener("keydown", e => {
             if (e.key === "Escape") {
                 closeRuleModal();
                 closeManualAssignModal();
+                closeDeleteRuleModal();
+                closeResetRulesModal();
             }
         });
     }
