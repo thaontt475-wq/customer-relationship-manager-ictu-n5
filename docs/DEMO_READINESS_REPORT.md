@@ -121,3 +121,51 @@ Thực hiện tự động hóa trực tiếp trên trình duyệt Microsoft Edg
    ```powershell
    powershell -ExecutionPolicy Bypass -File backend\database\seed\run-seed.ps1 -Database crm_demo -CleanFirst
    ```
+
+---
+
+## 7. Đồng bộ nguồn Lead & Khắc phục triệt để lỗi bộ lọc (Sprint Fix)
+
+### 7.1 Phân tích nguyên nhân gốc rễ (Root Cause Analysis)
+
+1. **Lỗi JavaScript "Không thể xử lý bộ lọc":**
+   - **Hiện tượng:** Khi truy cập màn hình hoặc gọi API bộ lọc, xuất hiện thông báo JavaScript `Không thể xử lý bộ lọc`.
+   - **Nguyên nhân gốc:** `SavedCustomerFilterServlet.java:65` trả về HTTP 500 khi client gọi `GET /api/saved-filters?entity=CUSTOMER&page=1&size=100`. Bản ghi trong bảng `saved_customer_filters` (seed ID 1) lưu tiêu chí `{"status": "KHACH_HANG"}`. Trong khi đó, enum/whitelist tại `CustomerSearchFilter.java` và `CustomerValidation.java` chỉ cho phép `Set.of("TIEM_NANG", "DANG_GIAO_DICH", "CHINH_THUC", "NGUNG_HOP_TAC")`, thiếu hoàn toàn `"KHACH_HANG"`. Khi Gson parse JSON sang record `CustomerSearchFilter`, constructor ném `IllegalArgumentException: Trạng thái khách hàng không hợp lệ` -> Servlet bắt ngoại lệ và trả về HTTP 500 với thông điệp "Không thể xử lý bộ lọc".
+   - **Giải pháp:** Bổ sung `"KHACH_HANG"` vào whitelist `STATUSES` của cả `CustomerSearchFilter.java` và `CustomerValidation.java`.
+
+2. **Lỗi hiển thị "Nguồn khác (OTHER)" tại màn hình tạo Lead thủ công:**
+   - **Hiện tượng:** Dropdown nguồn tiếp nhận hiển thị kèm mã kỹ thuật `(OTHER)`.
+   - **Nguyên nhân gốc:** `frontend/js/pages/lead-manual-import.js:88` ghép chuỗi `${esc(s.name)} (${esc(s.code)})`.
+   - **Giải pháp:** Bỏ chuỗi ` (${esc(s.code)})`, chỉ hiển thị `${esc(s.name)}` chuẩn tiếng Việt ("Nguồn khác").
+
+3. **Lỗi không đồng bộ danh mục nguồn và không lọc được Lead theo nguồn:**
+   - **Hiện tượng:** Màn hình danh sách Lead hiển thị bộ lọc nguồn khác với màn hình tạo; khi tạo Lead với nguồn `OTHER` thì bộ lọc không tìm thấy Lead đó.
+   - **Nguyên nhân gốc:**
+     - Trong Backend: `LeadDAO.insert(Connection, LeadWriteRequest, long, String)` chỉ ghi `source_id`, không ghi 2 cột `source` (code) và `source_name`. Do bảng `leads` có default `source = 'WEB_FORM'`, tất cả Lead tạo qua form này đều bị ghi đè thành `source = 'WEB_FORM'` và `source_name = NULL`.
+     - Trong khi đó, `LeadDAO.buildFilterPredicates` chỉ lọc `WHERE l.source = ?`. Khi lọc `source = 'OTHER'`, câu lệnh truy vấn tìm `l.source = 'OTHER'` nên không bao giờ khớp với Lead vừa tạo.
+     - Trong Frontend: `frontend/leads.html` có các option hardcode tĩnh không đồng bộ; `frontend/js/pages/leads.js` có logic lọc client-side `lead.source !== currentCriteria.source` bị lệch khi so sánh mã và ID.
+   - **Giải pháp:**
+     - `LeadDAO.java`: Trong cả `insert` và `update`, tự động tra cứu `code` và `name` từ `master_data` theo `source_id` để ghi đầy đủ vào cả 3 cột `source_id`, `source`, `source_name`.
+     - `LeadDAO.java`: Cải tiến cơ chế lọc nguồn trong `appendSourceFilter` để hỗ trợ lọc kép thông minh: hỗ trợ cả code chuỗi (`OTHER`, `WEBSITE`, `EVENT`, `REFERRAL`, `COLD_CALL`, `SOCIAL_MEDIA`, `PARTNER`, `EXCEL`, `CAMPAIGN`), ID số, và nhóm website/web_form.
+     - `leads.html` & `leads.js`: Chuẩn hóa danh mục nguồn trên giao diện sang nhãn tiếng Việt đồng nhất; tự động đồng bộ từ API `/api/leads/sources` khi khởi tạo; hỗ trợ lọc client-side linh hoạt.
+
+### 7.2 Kết quả kiểm thử thực tế 12 Test Cases (TC01 - TC12)
+
+Đã thực thi bộ kiểm thử tự động `verify_test_cases.py` trên môi trường Tomcat demo (port 8090) và cơ sở dữ liệu `crm_demo`:
+
+| Mã TC | Nội dung kiểm thử | Kết quả thực tế | Trạng thái |
+|:---:|:---|:---|:---:|
+| **TC01** | Kiểm tra danh mục nguồn từ `/api/leads/sources` | Trả về 8 nguồn, nguồn ID 22 có `code: OTHER`, nhãn `Nguồn khác` (không chứa mã kỹ thuật) | **PASS** |
+| **TC02** | Kiểm tra API `/api/saved-filters?entity=CUSTOMER` | Trả về HTTP 200, loại bỏ hoàn toàn lỗi HTTP 500 "Không thể xử lý bộ lọc" | **PASS** |
+| **TC03** | Tạo Lead mới với nguồn `OTHER` (ID 22) | Trả về HTTP 201 Created, Lead ID `#221`, `sourceCode: OTHER`, `sourceName: Nguồn khác` | **PASS** |
+| **TC04** | Kiểm tra trực tiếp bảng MySQL `crm_demo.leads` | Cột `source='OTHER'`, `source_id=22`, `source_name='Nguồn khác'` được lưu chuẩn xác | **PASS** |
+| **TC05** | Lọc danh sách Lead theo nguồn `OTHER` | Trả về 6 Lead nguồn `OTHER`, chứa chính xác Lead vừa tạo | **PASS** |
+| **TC06** | Lọc danh sách Lead theo nguồn `WEBSITE` | Trả về 16 Lead thuộc nguồn WEBSITE / WEB_FORM | **PASS** |
+| **TC07** | Lọc danh sách Lead theo nguồn `EVENT` | Trả về 3 Lead thuộc nguồn Hội thảo / Sự kiện | **PASS** |
+| **TC08** | Lọc danh sách Lead theo nguồn `REFERRAL` | Trả về 3 Lead thuộc nguồn Giới thiệu / Đối tác | **PASS** |
+| **TC09** | Lọc danh sách Lead với `source=ALL` | Trả về đầy đủ 37 Lead trong hệ thống | **PASS** |
+| **TC10** | Lọc kết hợp nguồn `OTHER` + trạng thái Lead | Trả về chính xác các Lead khớp đồng thời cả 2 tiêu chí | **PASS** |
+| **TC11** | Lọc kết hợp nguồn `OTHER` + từ khóa tìm kiếm | Trả về chính xác các Lead khớp nguồn `OTHER` và từ khóa | **PASS** |
+| **TC12** | Kiểm tra Data Scope với tài khoản `hung.nv@company.com` | Nhân viên kinh doanh chỉ thấy phạm vi dữ liệu được phân quyền (Scope SELF) | **PASS** |
+
+**Kết luận:** Hệ thống NovaCRM Demo đã đạt trạng thái **100% DEMO READY**.

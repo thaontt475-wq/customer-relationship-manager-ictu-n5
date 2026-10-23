@@ -37,6 +37,22 @@ public class LeadDAO {
         StringBuilder vals = new StringBuilder("VALUES (?,?,?,?,?");
         List<Object> args = new ArrayList<>(Arrays.asList(lead.fullName(), lead.phone(), lead.sourceId(), user, user));
 
+        String sourceCode = null;
+        String sourceName = null;
+        if (lead.sourceId() != null) {
+            try (PreparedStatement ps = c.prepareStatement("SELECT code, name FROM master_data WHERE id = ?")) {
+                ps.setLong(1, lead.sourceId());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        sourceCode = rs.getString("code");
+                        sourceName = rs.getString("name");
+                    }
+                }
+            }
+        }
+        if (sourceCode != null) { cols.append(",source"); vals.append(",?"); args.add(sourceCode); }
+        if (sourceName != null) { cols.append(",source_name"); vals.append(",?"); args.add(sourceName); }
+
         if (lead.companyName() != null) { cols.append(",company_name"); vals.append(",?"); args.add(lead.companyName()); }
         if (lead.email() != null) { cols.append(",email"); vals.append(",?"); args.add(lead.email()); }
         if (lead.notes() != null) { cols.append(",notes"); vals.append(",?"); args.add(lead.notes()); }
@@ -92,15 +108,30 @@ public class LeadDAO {
     }
 
     public void update(Connection c, long id, LeadWriteRequest lead) throws SQLException {
-        String sql = "UPDATE leads SET full_name=?,company_name=?,email=?,phone=?,source_id=?,notes=? WHERE id=?";
+        String sourceCode = null;
+        String sourceName = null;
+        if (lead.sourceId() != null) {
+            try (PreparedStatement ps = c.prepareStatement("SELECT code, name FROM master_data WHERE id = ?")) {
+                ps.setLong(1, lead.sourceId());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        sourceCode = rs.getString("code");
+                        sourceName = rs.getString("name");
+                    }
+                }
+            }
+        }
+        String sql = "UPDATE leads SET full_name=?,company_name=?,email=?,phone=?,source_id=?,source=?,source_name=?,notes=? WHERE id=?";
         try (PreparedStatement p = c.prepareStatement(sql)) {
             p.setString(1, lead.fullName());
             p.setString(2, lead.companyName());
             p.setString(3, lead.email());
             p.setString(4, lead.phone());
             p.setObject(5, lead.sourceId());
-            p.setString(6, lead.notes());
-            p.setLong(7, id);
+            p.setString(6, sourceCode);
+            p.setString(7, sourceName);
+            p.setString(8, lead.notes());
+            p.setLong(9, id);
             p.executeUpdate();
         }
     }
@@ -467,6 +498,29 @@ public class LeadDAO {
         return stats;
     }
 
+    private void appendSourceFilter(StringBuilder sql, List<Object> params, String source, String prefix) {
+        if (source != null && !source.isBlank() && !"ALL".equalsIgnoreCase(source)) {
+            String s = source.trim().toUpperCase();
+            String colSource = prefix == null || prefix.isEmpty() ? "source" : prefix + ".source";
+            String colSourceId = prefix == null || prefix.isEmpty() ? "source_id" : prefix + ".source_id";
+            if ("WEBSITE".equalsIgnoreCase(s) || "WEB_FORM".equalsIgnoreCase(s)) {
+                sql.append(" AND (").append(colSource).append(" IN ('WEBSITE', 'WEB_FORM') OR ")
+                   .append(colSourceId).append(" IN (17, 131))");
+            } else if (s.matches("\\d+")) {
+                long sid = Long.parseLong(s);
+                sql.append(" AND (").append(colSourceId).append(" = ? OR ")
+                   .append(colSource).append(" = (SELECT code FROM master_data WHERE id = ?))");
+                params.add(sid);
+                params.add(sid);
+            } else {
+                sql.append(" AND (").append(colSource).append(" = ? OR ")
+                   .append(colSourceId).append(" IN (SELECT id FROM master_data WHERE type = 'lead-source' AND UPPER(code) = ?))");
+                params.add(s);
+                params.add(s);
+            }
+        }
+    }
+
     private void buildFilterPredicates(StringBuilder sql, List<Object> params,
                                        LeadFilterRequest filter, DataScopeContext scope, Long currentUserId, boolean withScores) {
         // 1. Data Scope
@@ -494,15 +548,7 @@ public class LeadDAO {
         }
 
         // 4. Source
-        String source = filter.getSource();
-        if (source != null && !source.isBlank() && !"ALL".equalsIgnoreCase(source)) {
-            if ("WEBSITE".equalsIgnoreCase(source) || "WEB_FORM".equalsIgnoreCase(source)) {
-                sql.append(" AND (l.source = 'WEBSITE' OR l.source = 'WEB_FORM')");
-            } else {
-                sql.append(" AND l.source = ?");
-                params.add(source.trim().toUpperCase());
-            }
-        }
+        appendSourceFilter(sql, params, filter.getSource(), "l");
 
         // 5. Owner / Assigned Rep
         String owner = filter.getOwner();
@@ -755,10 +801,7 @@ public class LeadDAO {
             sql.append(" AND status = ?");
             params.add(status.trim());
         }
-        if (source != null && !source.isBlank()) {
-            sql.append(" AND source = ?");
-            params.add(source.trim());
-        }
+        appendSourceFilter(sql, params, source, "");
 
         if (scope != null) {
             scope.appendOwnerPredicate("assigned_to", sql, params);
@@ -794,10 +837,7 @@ public class LeadDAO {
             sql.append(" AND status = ?");
             params.add(status.trim());
         }
-        if (source != null && !source.isBlank()) {
-            sql.append(" AND source = ?");
-            params.add(source.trim());
-        }
+        appendSourceFilter(sql, params, source, "");
 
         if (scope != null) {
             scope.appendOwnerPredicate("assigned_to", sql, params);
@@ -846,10 +886,7 @@ public class LeadDAO {
             sql.append(" AND status = ?");
             params.add(status.trim());
         }
-        if (source != null && !source.isBlank()) {
-            sql.append(" AND source = ?");
-            params.add(source.trim());
-        }
+        appendSourceFilter(sql, params, source, "");
 
         sql.append(" ORDER BY id DESC LIMIT ? OFFSET ?");
         int offset = Math.max(0, (page - 1) * size);
@@ -884,10 +921,7 @@ public class LeadDAO {
             sql.append(" AND status = ?");
             params.add(status.trim());
         }
-        if (source != null && !source.isBlank()) {
-            sql.append(" AND source = ?");
-            params.add(source.trim());
-        }
+        appendSourceFilter(sql, params, source, "");
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {

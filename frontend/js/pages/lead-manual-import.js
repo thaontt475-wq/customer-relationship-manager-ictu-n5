@@ -85,7 +85,7 @@
     for(const id of ["listSearchInput","listFilterSource","listFilterStatus"])$(id).addEventListener("input",render);
     $("btnResetListFilters").addEventListener("click",()=>{$("listSearchInput").value="";$("listFilterSource").value="ALL";$("listFilterStatus").value="ALL";render();});
     $("chkOnlyValid").checked=true;$("chkOnlyValid").disabled=true;$("btnSubmitManualLead").disabled=true;
-    try{sources=await api("/sources");$("manualSource").innerHTML='<option value="">-- Chọn nguồn tiếp nhận --</option>'+sources.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${esc(s.code)})</option>`).join("");
+    try{sources=await api("/sources");$("manualSource").innerHTML='<option value="">-- Chọn nguồn tiếp nhận --</option>'+sources.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");
       $("listFilterSource").innerHTML='<option value="ALL">Tất cả nguồn tiếp nhận</option>'+sources.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("");$("btnSubmitManualLead").disabled=false;
       const ids=new URL(location.href).searchParams.get("leads");if(ids)await reload(ids.split(","));
     }catch(e){toast(e.message,"danger");}render();
