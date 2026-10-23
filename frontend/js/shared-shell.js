@@ -3,7 +3,7 @@
 (function () {
 
     const API_BASE =
-        (window.CRM_BACKEND_BASE || (window.location.pathname.startsWith("/crm/") ? window.location.origin + "/crm" : `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`));
+        (window.CRM_BACKEND_BASE || (window.location.pathname.startsWith("/crm/") ? window.location.origin + "/crm" : `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`));
 
 
     const currentPage =
@@ -803,7 +803,7 @@
     function absoluteAvatarUrl(url) {
         if (!url) return "";
         if (/^https?:\/\//i.test(url)) return url;
-        const origin = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080`;
+        const origin = `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}`;
         return origin + (url.startsWith("/") ? url : "/" + url);
     }
 

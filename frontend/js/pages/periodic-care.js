@@ -18,7 +18,7 @@
 "use strict";
 
 (function () {
-    const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`);
+    const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`);
 
     // Module Global States
     let careCustomers = [];

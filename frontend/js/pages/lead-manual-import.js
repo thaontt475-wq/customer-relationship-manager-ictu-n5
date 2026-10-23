@@ -2,7 +2,7 @@
 "use strict";
 (() => {
   const $=id=>document.getElementById(id);
-  const base=(window.CRM_BACKEND_BASE || `${location.protocol}//${location.hostname}:8080/crm`).replace(/\/+$/,"")+"/api/leads";
+  const base=(window.CRM_BACKEND_BASE || `${location.pathname.startsWith("/crm/") ? location.origin : location.protocol + "//" + location.hostname + ":8080"}/crm`).replace(/\/+$/,"")+"/api/leads";
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   let sources=[],leads=[],preview=null,generation=0;
   function toast(message,type="info") {
