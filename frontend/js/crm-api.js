@@ -23,6 +23,7 @@ window.CrmApi = (() => {
         if (!response.ok || !result?.success) {
             const error = new Error(result?.message || `Không thể thực hiện yêu cầu (HTTP ${response.status}).`);
             error.status = response.status;
+            error.data = result?.data;
             if (response.status === 401) {
                 sessionPromise = null;
                 sessionValue = null;
