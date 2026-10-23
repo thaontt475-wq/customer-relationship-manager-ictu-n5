@@ -88,8 +88,7 @@ public class PasswordResetService {
              * để tránh account enumeration.
              */
             System.err.println(
-                    "Không thể gửi email reset password"
-                            
+                    "Không thể gửi email reset password: " + e.getMessage()
             );
         }
     }

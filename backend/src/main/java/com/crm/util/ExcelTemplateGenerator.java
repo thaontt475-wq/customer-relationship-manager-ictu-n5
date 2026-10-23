@@ -26,8 +26,6 @@ public final class ExcelTemplateGenerator {
     private static final byte[] COLOR_ZEBRA_LIGHT = new byte[]{(byte) 248, (byte) 250, (byte) 252};  // #F8FAFC
     private static final byte[] COLOR_BORDER_GRAY = new byte[]{(byte) 203, (byte) 213, (byte) 225};  // #CBD5E1
     private static final byte[] COLOR_TOTAL_BG = new byte[]{(byte) 238, (byte) 242, (byte) 255};     // #EEF2FF
-    private static final byte[] COLOR_SUCCESS_BG = new byte[]{(byte) 220, (byte) 252, (byte) 231};   // #DCFCE7
-    private static final byte[] COLOR_SUCCESS_TEXT = new byte[]{(byte) 22, (byte) 101, (byte) 52};   // #166534
 
     /* =========================================================================
        1. MẪU NHẬP KHÁCH HÀNG (CUSTOMER IMPORT TEMPLATE)
