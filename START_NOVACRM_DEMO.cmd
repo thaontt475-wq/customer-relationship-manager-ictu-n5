@@ -23,17 +23,28 @@ if not defined DEMO_TOMCAT_HOME (
     )
 )
 
-REM 4. Dung ro rang neu khong tim thay
+REM 4. Thu duong dan Program Files
 if not defined DEMO_TOMCAT_HOME (
-    echo.
-    echo [FAIL] Khong tim thay Apache Tomcat 10.1.60.
-    echo Hay cai dat Tomcat hoac cau hinh bien NOVACRM_TOMCAT_HOME.
-    echo.
-    pause
-    exit /b 1
+    if exist "%ProgramFiles%\Apache Software Foundation\Tomcat 10.1\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=%ProgramFiles%\Apache Software Foundation\Tomcat 10.1"
+    )
+)
+if not defined DEMO_TOMCAT_HOME (
+    if exist "%ProgramFiles%\Apache Software Foundation\Tomcat 10.1.60\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=%ProgramFiles%\Apache Software Foundation\Tomcat 10.1.60"
+    )
 )
 
-set "NOVACRM_TOMCAT_HOME=%DEMO_TOMCAT_HOME%"
+REM 5. Thu duong dan tools local cua demo (neu da tai truoc do)
+if not defined DEMO_TOMCAT_HOME (
+    if exist "%~dp0..\NovaCRM-Demo-Local\tools\apache-tomcat-10.1.60\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=%~dp0..\NovaCRM-Demo-Local\tools\apache-tomcat-10.1.60"
+    )
+)
+
+if defined DEMO_TOMCAT_HOME (
+    set "NOVACRM_TOMCAT_HOME=%DEMO_TOMCAT_HOME%"
+)
 
 REM Chay tu thu muc chua file CMD
 cd /d "%~dp0"
@@ -44,7 +55,11 @@ echo ==========================================
 echo              NovaCRM Demo
 echo ==========================================
 echo.
-echo [INFO] Tomcat: %NOVACRM_TOMCAT_HOME%
+if defined NOVACRM_TOMCAT_HOME (
+    echo [INFO] Tomcat: %NOVACRM_TOMCAT_HOME%
+) else (
+    echo [INFO] Tomcat: Tu dong tim kiem hoac tai ve boi PowerShell...
+)
 echo.
 
 if not exist "%START_SCRIPT%" (
