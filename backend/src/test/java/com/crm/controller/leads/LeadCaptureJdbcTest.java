@@ -1,7 +1,6 @@
 package com.crm.controller.leads;
 
 import com.crm.config.DatabaseConfig;
-import com.crm.dao.leads.LeadCaptureDAO;
 import com.crm.dto.leads.WebFormLeadRequest;
 import com.crm.filter.AuthenticationFilter;
 import com.crm.model.leads.Lead;

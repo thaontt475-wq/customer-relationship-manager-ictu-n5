@@ -3,10 +3,10 @@
 (() => {
 
     const API_BASE =
-        `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+        `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`;
 
     const BACKEND_ORIGIN =
-        `${window.location.protocol}//${window.location.hostname || "localhost"}:8080`;
+        `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}`;
 
 
     function absoluteAvatarUrl(url) {

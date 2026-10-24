@@ -104,11 +104,6 @@ public class LeadAutoAssignmentService {
                 targetRep = repLookup.get(targetId);
             }
 
-            if (targetRep == null && !allReps.isEmpty()) {
-                int fallbackIndex = Math.max(0, repIndex) % allReps.size();
-                targetRep = allReps.get(fallbackIndex);
-            }
-
             if (targetRep != null) {
                 Long repUserId = parseLongSafe(targetRep.getId());
 

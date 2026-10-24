@@ -17,6 +17,285 @@
     let currentSession = null;
     let currentMenu = [];
 
+    /* =====================================================
+       SESSION INACTIVITY & TIMEOUT MANAGER (15 MINUTES)
+    ===================================================== */
+    const SESSION_TIMEOUT_SECONDS = 15 * 60; // 900 seconds
+    const WARNING_THRESHOLD_SECONDS = 14 * 60; // 840 seconds
+    const STORAGE_KEY_LAST_REQUEST = "crm_last_request_time";
+    const STORAGE_KEY_EXPIRED_MSG = "crm_session_expired_message";
+    const STORAGE_KEY_EXPIRED_AT = "crm_session_expired_at";
+    const STORAGE_KEY_MANUAL_LOGOUT = "crm_manual_logout";
+
+    let sessionWarningModalEl = null;
+    let isExpiring = false;
+
+    function getStoredLastRequestTime() {
+        const val = localStorage.getItem(STORAGE_KEY_LAST_REQUEST);
+        if (!val) return null;
+        const num = parseInt(val, 10);
+        return isNaN(num) ? null : num;
+    }
+
+    function recordActivityTimestamp() {
+        const now = Date.now();
+        localStorage.setItem(STORAGE_KEY_LAST_REQUEST, now.toString());
+        hideSessionWarningModal();
+    }
+
+    function ensureSessionWarningModal() {
+        if (sessionWarningModalEl && document.body && document.body.contains(sessionWarningModalEl)) {
+            return sessionWarningModalEl;
+        }
+
+        let existing = document.getElementById("crmSessionWarningModal");
+        if (existing) {
+            sessionWarningModalEl = existing;
+            return existing;
+        }
+
+        if (!document.body) return null;
+
+        const modal = document.createElement("div");
+        modal.id = "crmSessionWarningModal";
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("aria-labelledby", "crmSessionWarningTitle");
+        modal.style.cssText = [
+            "display: none;",
+            "position: fixed;",
+            "top: 0;",
+            "left: 0;",
+            "width: 100vw;",
+            "height: 100vh;",
+            "background: rgba(15, 23, 42, 0.65);",
+            "backdrop-filter: blur(6px);",
+            "-webkit-backdrop-filter: blur(6px);",
+            "z-index: 999999;",
+            "align-items: center;",
+            "justify-content: center;",
+            "padding: 20px;",
+            "box-sizing: border-box;"
+        ].join(" ");
+
+        modal.innerHTML = `
+            <div style="
+                background: var(--crm-card-bg, #ffffff);
+                color: var(--crm-text-primary, #0f172a);
+                border: 1px solid var(--crm-border-color, rgba(226, 232, 240, 0.8));
+                border-radius: 16px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+                max-width: 440px;
+                width: 100%;
+                padding: 28px 24px;
+                text-align: center;
+                box-sizing: border-box;
+                font-family: inherit;
+            ">
+                <div style="
+                    width: 56px;
+                    height: 56px;
+                    border-radius: 50%;
+                    background: rgba(245, 158, 11, 0.15);
+                    color: #d97706;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 26px;
+                    margin-bottom: 16px;
+                ">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <h3 id="crmSessionWarningTitle" style="
+                    margin: 0 0 10px 0;
+                    font-size: 19px;
+                    font-weight: 700;
+                    color: var(--crm-text-primary, #0f172a);
+                ">Cảnh báo phiên đăng nhập</h3>
+                <p style="
+                    margin: 0 0 24px 0;
+                    font-size: 14.5px;
+                    line-height: 1.55;
+                    color: var(--crm-text-secondary, #475569);
+                ">Phiên đăng nhập của bạn sẽ hết hạn sau 1 phút do không hoạt động.</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button type="button" id="crmBtnExtendSession" style="
+                        background: #2563eb;
+                        color: #ffffff;
+                        border: none;
+                        padding: 11px 22px;
+                        border-radius: 10px;
+                        font-size: 14.5px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 8px;
+                        transition: all 0.15s ease;
+                        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+                    ">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Tiếp tục phiên</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        sessionWarningModalEl = modal;
+
+        const btnExtend = modal.querySelector("#crmBtnExtendSession");
+        btnExtend?.addEventListener("click", async () => {
+            btnExtend.disabled = true;
+            btnExtend.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang làm mới...</span>`;
+            try {
+                await CrmSessionManager.extendSession();
+            } finally {
+                btnExtend.disabled = false;
+                btnExtend.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> <span>Tiếp tục phiên</span>`;
+            }
+        });
+
+        return modal;
+    }
+
+    function showSessionWarningModal() {
+        if (currentPage === "login.html" || isExpiring) return;
+        const modal = ensureSessionWarningModal();
+        if (modal && modal.style.display !== "flex") {
+            modal.style.display = "flex";
+        }
+    }
+
+    function hideSessionWarningModal() {
+        const modal = sessionWarningModalEl || document.getElementById("crmSessionWarningModal");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function handleSessionExpired(customMessage) {
+        if (isExpiring) return;
+        isExpiring = true;
+        hideSessionWarningModal();
+
+        const message = customMessage || "Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.";
+
+        try {
+            localStorage.setItem(STORAGE_KEY_EXPIRED_AT, Date.now().toString());
+            localStorage.setItem(STORAGE_KEY_EXPIRED_MSG, message);
+            localStorage.removeItem("crm_ui_session");
+            localStorage.removeItem(STORAGE_KEY_LAST_REQUEST);
+        } catch (_) {}
+
+        if (currentPage !== "login.html") {
+            window.location.href = "login.html?reason=timeout";
+        }
+    }
+
+    const CrmSessionManager = {
+        recordActivity: recordActivityTimestamp,
+        isWarningVisible: () => {
+            const modal = sessionWarningModalEl || document.getElementById("crmSessionWarningModal");
+            return !!(modal && modal.style.display === "flex");
+        },
+        showWarning: showSessionWarningModal,
+        hideWarning: hideSessionWarningModal,
+        expire: handleSessionExpired,
+        extendSession: async () => {
+            try {
+                const response = await fetch(API_BASE + "/api/auth/session", {
+                    method: "GET",
+                    credentials: "include",
+                    headers: { "Accept": "application/json" }
+                });
+                if (response.status === 401 || !response.ok) {
+                    handleSessionExpired("Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.");
+                    return false;
+                }
+                const result = await response.json().catch(() => null);
+                if (result && result.success) {
+                    recordActivityTimestamp();
+                    return true;
+                } else {
+                    handleSessionExpired("Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.");
+                    return false;
+                }
+            } catch (err) {
+                console.warn("Extend session check error:", err);
+                return false;
+            }
+        },
+        getRemainingSeconds: () => {
+            const last = getStoredLastRequestTime();
+            if (!last) return SESSION_TIMEOUT_SECONDS;
+            const elapsed = Math.floor((Date.now() - last) / 1000);
+            return Math.max(0, SESSION_TIMEOUT_SECONDS - elapsed);
+        },
+        simulateInactivity: (seconds) => {
+            const pastTimestamp = Date.now() - (seconds * 1000);
+            localStorage.setItem(STORAGE_KEY_LAST_REQUEST, pastTimestamp.toString());
+            tickCheck();
+        }
+    };
+
+    window.CrmSessionManager = CrmSessionManager;
+
+    // Multi-tab synchronization
+    window.addEventListener("storage", (event) => {
+        if (event.key === STORAGE_KEY_LAST_REQUEST) {
+            hideSessionWarningModal();
+        } else if (event.key === STORAGE_KEY_EXPIRED_AT) {
+            if (currentPage !== "login.html" && !isExpiring) {
+                isExpiring = true;
+                window.location.href = "login.html?reason=timeout";
+            }
+        }
+    });
+
+    // Global fetch interceptor for request activity tracking & 401 handling
+    const originalFetch = window.fetch;
+    window.fetch = async function (...args) {
+        const response = await originalFetch.apply(this, args);
+        try {
+            const rawUrl = (args[0] && (typeof args[0] === "string" ? args[0] : args[0].url)) || "";
+            if (rawUrl.includes("/api/")) {
+                const isLoginApi = rawUrl.includes("/api/auth/login");
+                if (response.ok && !isLoginApi) {
+                    recordActivityTimestamp();
+                } else if (response.status === 401 && !isLoginApi) {
+                    handleSessionExpired("Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.");
+                }
+            }
+        } catch (_) {}
+        return response;
+    };
+
+    function tickCheck() {
+        if (currentPage === "login.html" || isExpiring) return;
+        const last = getStoredLastRequestTime();
+        if (!last) {
+            recordActivityTimestamp();
+            return;
+        }
+
+        const elapsed = Math.floor((Date.now() - last) / 1000);
+        if (elapsed >= SESSION_TIMEOUT_SECONDS) {
+            handleSessionExpired("Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.");
+        } else if (elapsed >= WARNING_THRESHOLD_SECONDS) {
+            showSessionWarningModal();
+        } else {
+            hideSessionWarningModal();
+        }
+    }
+
+    if (currentPage !== "login.html") {
+        setInterval(tickCheck, 1000);
+        if (!getStoredLastRequestTime()) {
+            recordActivityTimestamp();
+        }
+    }
+
 
     /* =====================================================
        ICON
@@ -413,21 +692,17 @@
         if (
             response.status === 401
         ) {
-            const saved = localStorage.getItem("crm_ui_session");
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed && (parsed.authenticated || parsed.email)) {
-                        return { success: true, data: parsed };
-                    }
-                } catch (_) {}
+            if (window.CrmSessionManager && typeof window.CrmSessionManager.expire === "function") {
+                window.CrmSessionManager.expire("Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.");
+            } else {
+                localStorage.removeItem("crm_ui_session");
+                localStorage.removeItem("crm_last_request_time");
+                localStorage.setItem("crm_session_expired_message", "Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.");
+                window.location.href = "login.html?reason=timeout";
             }
 
-            window.location.href =
-                "login.html";
-
             throw new Error(
-                "Chưa đăng nhập"
+                "Chưa đăng nhập hoặc phiên đã hết hạn"
             );
         }
 
@@ -1420,6 +1695,11 @@
             async () => {
 
                 try {
+                    localStorage.setItem("crm_manual_logout", "true");
+                    localStorage.removeItem("crm_session_expired_message");
+                    localStorage.removeItem("crm_ui_session");
+                    localStorage.removeItem("crm_last_request_time");
+                    localStorage.removeItem("crm_session_expired_at");
 
                     await fetch(
                         API_BASE +
@@ -1445,7 +1725,7 @@
                     sessionStorage.clear();
 
                     window.location.href =
-                        "login.html";
+                        "login.html?reason=logout";
                 }
             }
         );

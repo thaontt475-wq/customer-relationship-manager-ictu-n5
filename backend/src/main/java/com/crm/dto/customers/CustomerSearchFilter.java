@@ -5,7 +5,7 @@ import java.util.Set;
 /** Only search criteria are persisted. Permissions and pagination are resolved per request. */
 public record CustomerSearchFilter(String search, String status, Long industryId,
                                    Long companySizeId, String region, Long ownerId, String industry) {
-    private static final Set<String> STATUSES = Set.of("TIEM_NANG", "DANG_GIAO_DICH", "CHINH_THUC", "NGUNG_HOP_TAC");
+    private static final Set<String> STATUSES = Set.of("TIEM_NANG", "DANG_GIAO_DICH", "CHINH_THUC", "KHACH_HANG", "NGUNG_HOP_TAC");
 
     public CustomerSearchFilter {
         search = text(search, "search", 255);
