@@ -110,5 +110,3 @@ function Wait-DemoHealth([int]$TimeoutSec = 120) {
     }
     return $false
 }
-
-

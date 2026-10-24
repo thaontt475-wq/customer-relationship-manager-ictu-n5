@@ -8,5 +8,3 @@ $env:CATALINA_BASE = $script:CatalinaBase
 $env:CATALINA_OPTS = '-Dfile.encoding=UTF-8 -Duser.timezone=Asia/Ho_Chi_Minh'
 New-Item -ItemType Directory -Force $script:LogDir | Out-Null
 & "$($script:CatalinaHome)\bin\catalina.bat" run *>> (Join-Path $script:LogDir 'tomcat-demo.out.log')
-
-

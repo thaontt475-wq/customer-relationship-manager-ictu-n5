@@ -52,6 +52,3 @@ Check 'Dang xuat' { (Invoke-WebRequest "$base/api/auth/logout" -Method Post -Web
 
 if ($fail -eq 0) { Write-Host "`nTAT CA KIEM TRA DAT" -ForegroundColor Green; exit 0 }
 Write-Host "`n$fail kiem tra that bai" -ForegroundColor Red; exit 1
-
-
-
