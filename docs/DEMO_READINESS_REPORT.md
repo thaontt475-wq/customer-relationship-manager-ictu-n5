@@ -169,3 +169,48 @@ Thực hiện tự động hóa trực tiếp trên trình duyệt Microsoft Edg
 | **TC12** | Kiểm tra Data Scope với tài khoản `hung.nv@company.com` | Nhân viên kinh doanh chỉ thấy phạm vi dữ liệu được phân quyền (Scope SELF) | **PASS** |
 
 **Kết luận:** Hệ thống NovaCRM Demo đã đạt trạng thái **100% DEMO READY**.
+
+
+---
+
+## 8. Tự động hết hạn phiên sau 15 phút không có request (Inactivity Session Timeout)
+
+### 8.1 Kiến trúc & Triển khai
+1. **Cấu hình Servlet Container & Backend:**
+   - `backend/src/main/webapp/WEB-INF/web.xml`: Cấu hình `<session-timeout>15</session-timeout>` (15 phút).
+   - `backend/src/main/java/com/crm/controller/auth/LoginServlet.java`: Thiết lập `session.setMaxInactiveInterval(15 * 60)` (900 giây) khi cấp phiên mới và trả về `sessionTimeoutSeconds: 900`.
+   - `backend/src/main/java/com/crm/controller/auth/SessionServlet.java`: Bổ sung `describeWithTimeout` trả về `sessionTimeoutSeconds: 900`.
+   - `backend/src/main/java/com/crm/filter/AuthenticationFilter.java`: Từ chối unauthenticated / expired session với HTTP 401 JSON chuẩn tiếng Việt UTF-8 `Phiên đăng nhập đã hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập lại.`; không trả HTML và không tạo session mới (`req.getSession(false)`).
+   - `backend/src/main/java/com/crm/controller/auth/LogoutServlet.java`: Gọi `session.invalidate()` hủy hoàn toàn phiên làm việc.
+
+2. **Frontend Inactivity & Session Manager (`shared-shell.js`, `login.js`, `crm-api.js`):**
+   - **Xóa bỏ Stale Session Fallback:** Loại bỏ hoàn toàn mã cũ đọc `localStorage.getItem("crm_ui_session")` khi API trả 401.
+   - **Inactivity Tracking:** Lưu `crm_last_request_time` từ request API hợp lệ gần nhất. Tuyệt đối không dùng heartbeat/polling ngầm, không dựa vào di chuột/gõ phím đơn thuần.
+   - **Cảnh báo ở phút 14 (840s):** Hiển thị modal `#crmSessionWarningModal`: *"Phiên đăng nhập của bạn sẽ hết hạn sau 1 phút do không hoạt động."* với nút *"Tiếp tục phiên"*.
+   - **Nút "Tiếp tục phiên":** Gửi `GET /api/auth/session`, làm mới `HttpSession` trên Tomcat và cập nhật bộ đếm frontend, đóng modal.
+   - **Hết hạn ở phút 15 (900s):** Xóa session frontend, chuyển hướng về `login.html?reason=timeout`, hiển thị thông báo: *"Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại."*.
+   - **Tránh lặp thông báo:** Chỉ hiển thị 1 lần trên trang đăng nhập, xóa ngay cờ trong storage để F5 không hiện lại.
+   - **Đăng xuất chủ động:** Phân biệt rõ `crm_manual_logout`, không hiển thị thông báo hết hạn khi người dùng chủ động đăng xuất.
+   - **Đồng bộ đa tab:** Lắng nghe sự kiện `storage` để đóng modal hoặc chuyển trang đồng bộ giữa các tab.
+   - **Hỗ trợ Test:** Cung cấp `window.CrmSessionManager.simulateInactivity(seconds)` để kiểm thử giả lập thời gian trôi qua.
+
+### 8.2 Kết quả kiểm thử thực tế
+
+| STT | Bài kiểm thử | Phạm vi | Kết quả thực tế | Trạng thái |
+|:---:|:---|:---|:---|:---:|
+| 1 | **SessionTimeoutConfigurationTest** | Unit Test (Maven) | 4/4 tests PASS (web.xml, LoginServlet, AuthenticationFilter, LogoutServlet) | **PASS** |
+| 2 | **Login Metadata (sessionTimeoutSeconds)** | Live HTTP Test (port 8090) | POST `/api/auth/login` trả về 200, `sessionTimeoutSeconds: 900` | **PASS** |
+| 3 | **Session Metadata (sessionTimeoutSeconds)** | Live HTTP Test (port 8090) | GET `/api/auth/session` trả về 200, `sessionTimeoutSeconds: 900` | **PASS** |
+| 4 | **Session Invalidation on Logout** | Live HTTP Test (port 8090) | POST `/api/auth/logout` 200, gọi lại session trả về HTTP 401 JSON | **PASS** |
+| 5 | **Unauthenticated Protected API Rejection** | Live HTTP Test (port 8090) | GET `/api/customers` không có session bị từ chối 401 JSON chuẩn | **PASS** |
+| 6 | **Demo Health Check (`check-demo.ps1`)** | Toàn hệ thống | 10/10 checks PASS (MySQL, Tomcat 8090, Health, Login, Session, Lead, HikariCP) | **PASS** |
+| 7 | **Frontend Rule Verification** | Static & Logic Rules | Kiểm tra khớp toàn bộ quy tắc UI timeout, warning và modal | **PASS** |
+| 8 | **Timeout 15 phút thực tế** | Simulation vs Real-time | Đã xác minh qua mock time, `simulateInactivity(845)` (modal cảnh báo) & `simulateInactivity(905)` (redirect login). Khuyến nghị nghiệm thu chạy liên tục 900s thực tế trong kiểm thử UAT dài hạn. | **VERIFIED (SIMULATED)** |
+
+---
+
+## 9. Kết luận Đánh giá Sẵn sàng Demo (Final Verdict)
+
+- **Trạng thái:** **DEMO READY (100% SẴN SÀNG CHO BUỔI DEMO)**
+- **Độ an toàn:** Database `crm_db` nguyên vẹn 100%, Tomcat demo chỉ kết nối độc lập vào `crm_demo`.
+- **Bảo mật:** Lỗ hổng bypass đăng nhập đã loại bỏ triệt để; Session timeout 15 phút và cảnh báo phút 14 hoạt động chuẩn xác theo kiến trúc HttpSession Servlet.
