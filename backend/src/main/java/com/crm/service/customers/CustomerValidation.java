@@ -8,7 +8,7 @@ import java.util.Set;
 /** Business statuses retain the existing API codes; DA_GOP belongs only to merge. */
 public final class CustomerValidation {
     public static final Set<String> STATUSES = Set.of(
-            "TIEM_NANG", "DANG_GIAO_DICH", "CHINH_THUC", "NGUNG_HOP_TAC");
+            "TIEM_NANG", "DANG_GIAO_DICH", "CHINH_THUC", "KHACH_HANG", "NGUNG_HOP_TAC");
 
     private CustomerValidation() {}
 

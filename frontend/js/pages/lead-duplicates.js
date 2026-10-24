@@ -19,9 +19,9 @@
     const STORAGE_KEY_CUSTOMERS = "crm_ui_customers";
     const STORAGE_KEY_DUPLICATES = "crm_lead_duplicate_pairs";
 
-    const API_DUPLICATES = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`) + "/api/leads/duplicates";
-    const API_MERGE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`) + "/api/leads/merge";
-    const API_ATTACH = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`) + "/api/leads/attach-customer";
+    const API_DUPLICATES = (window.CRM_BACKEND_BASE || `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`) + "/api/leads/duplicates";
+    const API_MERGE = (window.CRM_BACKEND_BASE || `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`) + "/api/leads/merge";
+    const API_ATTACH = (window.CRM_BACKEND_BASE || `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`) + "/api/leads/attach-customer";
 
     // State
     let allLeads = [];
