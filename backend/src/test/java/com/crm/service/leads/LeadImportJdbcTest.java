@@ -44,7 +44,7 @@ class LeadImportJdbcTest {
             s.execute("CREATE TEMPORARY TABLE lead_import_batches(token_hash CHAR(64) PRIMARY KEY,owner_user_id BIGINT,total_rows INT,success_count INT,failure_count INT) ENGINE=InnoDB");
             s.execute("""
                 CREATE TEMPORARY TABLE leads(id BIGINT AUTO_INCREMENT PRIMARY KEY,full_name VARCHAR(150),company_name VARCHAR(255),
-                email VARCHAR(255),phone VARCHAR(50),source_id BIGINT, source VARCHAR(50), source_name VARCHAR(150), notes VARCHAR(2000),status VARCHAR(30),owner_user_id BIGINT,
+                email VARCHAR(255),phone VARCHAR(50),source_id BIGINT,notes VARCHAR(2000),status VARCHAR(30),owner_user_id BIGINT,
                 created_by BIGINT,import_batch_hash CHAR(64),created_at DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB
                 """);
         }

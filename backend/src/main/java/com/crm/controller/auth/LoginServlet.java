@@ -113,7 +113,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("sessionVersion", user.getSessionVersion());
 
             session.setMaxInactiveInterval(
-                    15 * 60
+                    30 * 60
             );
 
             session.setAttribute(
@@ -142,7 +142,6 @@ public class LoginServlet extends HttpServlet {
                     "roles",
                     user.getRoles()
             );
-            data.put("sessionTimeoutSeconds", 15 * 60);
 
             ResponseUtil.json(
                     response,

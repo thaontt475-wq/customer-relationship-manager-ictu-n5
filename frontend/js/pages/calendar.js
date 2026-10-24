@@ -552,7 +552,7 @@ render();
 
 (async function syncCalendarActivities() {
     try {
-        const API_BASE = `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`;
+        const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
         const res = await fetch(`${API_BASE}/api/activities`, { credentials: "include" });
         const json = await res.json();
         if (json?.success && Array.isArray(json.data)) {

@@ -24,11 +24,11 @@ public class MailService {
     public MailService() {
         this.smtpHost = getEnv("CRM_SMTP_HOST", "smtp.gmail.com");
         this.smtpPort = getEnv("CRM_SMTP_PORT", "587");
-        this.smtpUsername = getEnv("CRM_SMTP_USERNAME", null);
-        this.smtpPassword = getEnv("CRM_SMTP_PASSWORD", null);
+        this.smtpUsername = System.getenv("CRM_SMTP_USERNAME");
+        this.smtpPassword = System.getenv("CRM_SMTP_PASSWORD");
         this.frontendBaseUrl = getEnv(
                 "CRM_FRONTEND_BASE_URL",
-                "http://localhost:8080/crm"
+                "http://localhost:5500"
         );
     }
 
@@ -241,16 +241,6 @@ Transport.send(message);
             String name,
             String defaultValue
     ) {
-        String propKey = name.toLowerCase().replace('_', '.');
-        String propVal = System.getProperty(propKey);
-        if (propVal != null && !propVal.isBlank()) {
-            return propVal.trim();
-        }
-
-        String rawPropVal = System.getProperty(name);
-        if (rawPropVal != null && !rawPropVal.isBlank()) {
-            return rawPropVal.trim();
-        }
 
         String value =
                 System.getenv(name);

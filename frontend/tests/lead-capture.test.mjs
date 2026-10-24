@@ -13,8 +13,7 @@ function formHarness(fetchImpl, search = '?formId=00000000-0000-0000-0000-000000
     const element = id => {
         if (!nodes.has(id)) nodes.set(id, {
             value: '', style: {}, handlers: {}, classList: { add() {}, remove() {} },
-            addEventListener(type, handler) { this.handlers[type] = handler; }, reset() {},
-            closest(selector) { return selector === '.form-group' ? { querySelector: () => null } : null; }
+            addEventListener(type, handler) { this.handlers[type] = handler; }, reset() {}
         });
         return nodes.get(id);
     };

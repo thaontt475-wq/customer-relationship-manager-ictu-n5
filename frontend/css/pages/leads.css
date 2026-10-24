@@ -1160,6 +1160,3 @@
         grid-template-columns: 1fr;
     }
 }
-
-/* Validation feedback must remain visible above the create modal (z-index 99999). */
-#crmToastContainer { z-index: 100001 !important; }

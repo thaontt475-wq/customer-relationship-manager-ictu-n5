@@ -1,7 +1,7 @@
 // campaigns.js - Frontend controller for S4-03 Campaigns & Lead Association
 // Phụ trách: Hoàng Văn Thắng (S4-03-FE & S4-03-INT)
 
-const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`).replace(/\/$/, "");
+const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
 
 let currentPage = 1;
 let currentSize = 10;

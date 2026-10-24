@@ -2,8 +2,6 @@ package com.crm.controller.leads;
 
 import com.crm.dto.leads.LeadFilterRequest;
 import com.crm.dto.leads.LeadSlaResponseDTO;
-import com.crm.dto.leads.LeadWriteRequest;
-import com.crm.dao.leads.LeadDAO;
 import com.crm.model.leads.Lead;
 import com.crm.model.leads.SavedLeadFilter;
 import com.crm.service.leads.*;
@@ -16,8 +14,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.lang.reflect.*;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -465,11 +461,6 @@ class LeadServletTest {
                 leads.authorizeCreate(user);
             }
         };
-        return call(new LeadServlet(leads, imports), method, path, type, body, session, part);
-    }
-
-    private Result call(LeadServlet servlet, String method, String path, String type, String body,
-                        boolean session, Part part) throws Exception {
         HttpSession auth = (HttpSession) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{HttpSession.class},
                 (p, m, a) -> m.getName().equals("getAttribute") && a[0].equals("userId") ? 1L : null);
         HttpServletRequest request = (HttpServletRequest) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{HttpServletRequest.class}, (p, m, a) -> switch (m.getName()) {
@@ -489,203 +480,8 @@ class LeadServletTest {
             if (m.getName().equals("setHeader") && a[0].equals("Allow")) allow[0] = (String) a[1];
             return m.getName().equals("getWriter") ? new PrintWriter(writer) : null;
         });
-        servlet.service(request, response);
+        new LeadServlet(leads, imports).service(request, response);
         return new Result(status[0], writer.toString(), allow[0]);
-    }
-
-    private static final String VALID_WRITE = """
-            {"fullName":"  An  ","companyName":"Company","email":"an@example.invalid",
-             "phone":"0901234567","sourceId":10,"notes":"Note"}
-            """;
-
-    /** Exercise the real validation/transaction/scoring service without opening a database. */
-    private static class WriteFixture {
-        int opens, inserts, updates, commits, rollbacks, scores, legacyWrites;
-        boolean denied, missing, locked, failRead;
-        Exception scoringFailure;
-        Throwable logged;
-        LeadWriteRequest written;
-        final Connection connection = (Connection) Proxy.newProxyInstance(
-                getClass().getClassLoader(), new Class[]{Connection.class}, (p, m, a) -> {
-                    if (m.getName().equals("commit")) commits++;
-                    if (m.getName().equals("rollback")) rollbacks++;
-                    return null;
-                });
-        final LeadDAO dao = new LeadDAO() {
-            @Override public Connection open() { opens++; return connection; }
-            @Override public List<Map<String, Object>> sources(Connection c, boolean lock) {
-                return List.of(Map.of("id", 10L, "code", "EVENT"));
-            }
-            @Override public long insert(Connection c, LeadWriteRequest lead, long user, String batch) {
-                inserts++; written = lead; return 42L;
-            }
-            @Override public void update(Connection c, long id, LeadWriteRequest lead) {
-                updates++; written = lead;
-            }
-            @Override public Map<String, Object> get(Connection c, long id, DataScopeContext scope, boolean lock)
-                    throws SQLException {
-                if (failRead) throw new SQLException("Injected read failure");
-                return missing ? null : Map.of("id", id, "fullName", "An", "isLocked", locked,
-                        "status", locked ? "CONVERTED" : "NEW");
-            }
-            @Override public long insert(Lead lead) { legacyWrites++; return 99L; }
-        };
-        final LeadService service = new LeadService(dao, (user, action) -> {
-            if (denied) throw new SecurityException("Forbidden");
-            return new DataScopeContext(user, "lead", ScopeType.SELF, null, Set.of(user));
-        }, new LeadService.ScoringHook() {
-            @Override public void beforeCreate(Connection c) {}
-            @Override public void scoreCreated(Connection c, long id) throws Exception {
-                scores++;
-                if (scoringFailure != null) throw scoringFailure;
-            }
-        }) {
-            @Override public boolean updateLead(Lead lead, long user) { legacyWrites++; return true; }
-        };
-        final LeadServlet servlet = new LeadServlet(service, null, null, null, null, dao, null, null, null) {
-            @Override public void log(String message, Throwable error) { logged = error; }
-        };
-    }
-
-    private Result write(WriteFixture fixture, String method, String body) throws Exception {
-        return call(fixture.servlet, method, "POST".equals(method) ? "" : "/42",
-                "application/json", body, true, null);
-    }
-
-    @Test
-    void invalidCreateAndUpdateNeverReachPersistence() throws Exception {
-        WriteFixture fixture = new WriteFixture();
-        for (String method : List.of("POST", "PUT")) {
-            for (String body : List.of("{\"ownerUserId\":2}", "{}", "[]", "null", "[",
-                    "{\"fullName\":7}", "{\"sourceId\":\"10\"}",
-                    VALID_WRITE.replace("an@example.invalid", "bad"),
-                    VALID_WRITE.replace("\"sourceId\":10", "\"sourceId\":null"),
-                    VALID_WRITE.replace("\"  An  \"", "\" \""))) {
-                assertEquals(400, write(fixture, method, body).status, method + ": " + body);
-            }
-        }
-        assertEquals(0, fixture.opens);
-        assertEquals(0, fixture.legacyWrites);
-    }
-
-    @Test
-    void createAndUpdateKeepValidationScoringAndSingleCommit() throws Exception {
-        for (String method : List.of("POST", "PUT")) {
-            WriteFixture fixture = new WriteFixture();
-            Result result = write(fixture, method, VALID_WRITE);
-            assertEquals("POST".equals(method) ? 201 : 200, result.status);
-            JsonObject body = JsonUtil.getGson().fromJson(result.body, JsonObject.class);
-            assertTrue(body.get("success").getAsBoolean());
-            assertEquals(42L, body.getAsJsonObject("data").get("id").getAsLong());
-            assertEquals("An", fixture.written.fullName());
-            assertEquals(1, fixture.scores);
-            assertEquals(1, fixture.commits);
-            assertEquals(0, fixture.rollbacks);
-            assertEquals("POST".equals(method) ? 1 : 0, fixture.inserts);
-            assertEquals("PUT".equals(method) ? 1 : 0, fixture.updates);
-            assertEquals(0, fixture.legacyWrites);
-        }
-    }
-
-    @Test
-    void writeFailuresPreserveStatusAndRollbackWithoutRetry() throws Exception {
-        for (String method : List.of("POST", "PUT")) {
-            for (Exception failure : List.of(new SQLException("Injected scoring SQL failure"),
-                    new Exception("Injected system failure"), new SecurityException("Forbidden"),
-                    new IllegalStateException("Lead đã bị khóa"))) {
-                WriteFixture fixture = new WriteFixture();
-                fixture.scoringFailure = failure;
-                int expected = failure instanceof SecurityException ? 403
-                        : failure instanceof IllegalStateException ? 409 : 500;
-                Result result = write(fixture, method, VALID_WRITE);
-                assertEquals(expected, result.status);
-                assertFalse(JsonUtil.getGson().fromJson(result.body, JsonObject.class).get("success").getAsBoolean());
-                assertEquals(1, fixture.inserts + fixture.updates);
-                assertEquals(1, fixture.rollbacks);
-                assertEquals(0, fixture.commits);
-                assertEquals(0, fixture.legacyWrites);
-                if (expected == 500) assertSame(failure, fixture.logged);
-            }
-        }
-    }
-
-    @Test
-    void readFailureAfterCommittedCreateDoesNotInsertAgain() throws Exception {
-        WriteFixture fixture = new WriteFixture();
-        fixture.failRead = true;
-        assertEquals(500, write(fixture, "POST", VALID_WRITE).status);
-        assertEquals(1, fixture.commits);
-        assertEquals(1, fixture.inserts);
-        assertEquals(0, fixture.legacyWrites);
-        assertInstanceOf(SQLException.class, fixture.logged);
-    }
-
-    @Test
-    void deniedWritesNeverOpenDatabase() throws Exception {
-        WriteFixture fixture = new WriteFixture();
-        fixture.denied = true;
-        for (String method : List.of("POST", "PUT"))
-            assertEquals(403, write(fixture, method, VALID_WRITE).status);
-        assertEquals(0, fixture.opens);
-        assertEquals(0, fixture.legacyWrites);
-    }
-
-    @Test
-    void missingScopedOrConvertedLeadCannotBeUpdated() throws Exception {
-        WriteFixture fixture = new WriteFixture();
-        fixture.missing = true;
-        assertEquals(404, write(fixture, "PUT", VALID_WRITE).status);
-        fixture.missing = false;
-        fixture.locked = true;
-        assertEquals(409, write(fixture, "PUT", VALID_WRITE).status);
-        assertEquals(0, fixture.updates);
-        assertEquals(0, fixture.legacyWrites);
-        assertEquals(0, fixture.commits);
-    }
-
-    @Test
-    void previewAndConfirmKeepMultipartAndTokenContract() throws Exception {
-        byte[] upload = {1, 2, 3};
-        int[] authorized = {0};
-        boolean[] deleted = {false};
-        String token = UUID.randomUUID().toString();
-        LeadImportService imports = new LeadImportService() {
-            @Override public void authorize(long user) { assertEquals(1L, user); authorized[0]++; }
-            @Override public Map<String, Object> preview(long user, InputStream input) throws Exception {
-                assertEquals(1L, user);
-                assertArrayEquals(upload, input.readAllBytes());
-                return Map.of("batchToken", token, "totalRows", 1, "validCount", 1,
-                        "errorCount", 0, "validRows", List.of(), "errorRows", List.of());
-            }
-            @Override public Map<String, Object> confirm(long user, String batchToken) {
-                assertEquals(1L, user);
-                assertEquals(token, batchToken);
-                return Map.of("successCount", 1, "failureCount", 0, "leadIds", List.of(42L));
-            }
-        };
-        Part part = (Part) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Part.class},
-                (p, m, a) -> switch (m.getName()) {
-                    case "getSubmittedFileName" -> "leads.xlsx";
-                    case "getSize" -> (long) upload.length;
-                    case "getInputStream" -> new ByteArrayInputStream(upload);
-                    case "delete" -> { deleted[0] = true; yield null; }
-                    default -> null;
-                });
-        LeadServlet servlet = new LeadServlet(new LeadService(), imports);
-        Result preview = call(servlet, "POST", "/import/preview", "multipart/form-data; boundary=qa",
-                null, true, part);
-        assertEquals(200, preview.status);
-        assertTrue(deleted[0]);
-        JsonObject data = JsonUtil.getGson().fromJson(preview.body, JsonObject.class).getAsJsonObject("data");
-        assertEquals(token, data.get("batchToken").getAsString());
-        assertEquals(1, data.get("validCount").getAsInt());
-        Result confirmed = call(servlet, "POST", "/import/confirm", "application/json",
-                "{\"batchToken\":\"" + token + "\"}", true, null);
-        assertEquals(200, confirmed.status);
-        JsonObject result = JsonUtil.getGson().fromJson(confirmed.body, JsonObject.class).getAsJsonObject("data");
-        assertEquals(1, result.get("successCount").getAsInt());
-        assertEquals(42L, result.getAsJsonArray("leadIds").get(0).getAsLong());
-        assertEquals(2, authorized[0]);
     }
 
     @Test

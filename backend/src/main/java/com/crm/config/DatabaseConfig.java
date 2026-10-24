@@ -1,10 +1,8 @@
 package com.crm.config;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
 import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -15,10 +13,6 @@ public final class DatabaseConfig {
     private static final String DEFAULT_URL =
             "jdbc:mysql://localhost:3306/crm_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8";
     private static final String DEFAULT_USER = "crm_user";
-
-    private static volatile HikariDataSource dataSource;
-    private static String currentPoolUrl;
-    private static String currentPoolUser;
 
     static {
         try (
@@ -94,55 +88,13 @@ public final class DatabaseConfig {
         return getPropertyOrEnv("crm.db.password", "CRM_DB_PASSWORD", PROPERTIES.getProperty("db.password", ""));
     }
 
-    private static HikariDataSource getDataSource(String url, String username, String password) {
-        if (dataSource == null || !url.equals(currentPoolUrl) || !username.equals(currentPoolUser)) {
-            synchronized (DatabaseConfig.class) {
-                if (dataSource == null || !url.equals(currentPoolUrl) || !username.equals(currentPoolUser)) {
-                    if (dataSource != null && !dataSource.isClosed()) {
-                        dataSource.close();
-                    }
-                    HikariConfig config = new HikariConfig();
-                    config.setJdbcUrl(url);
-                    config.setUsername(username);
-                    config.setPassword(password != null ? password : "");
-                    config.setDriverClassName(getPropertyOrEnv("db.driver", null, DEFAULT_DRIVER));
-                    config.setMaximumPoolSize(30);
-                    config.setMinimumIdle(5);
-                    config.setIdleTimeout(30000);
-                    config.setMaxLifetime(600000);
-                    config.setConnectionTimeout(10000);
-                    config.setPoolName("NovaCRM-HikariPool");
-
-                    config.addDataSourceProperty("cachePrepStmts", "true");
-                    config.addDataSourceProperty("prepStmtCacheSize", "250");
-                    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-                    config.addDataSourceProperty("useServerPrepStmts", "true");
-
-                    dataSource = new HikariDataSource(config);
-                    currentPoolUrl = url;
-                    currentPoolUser = username;
-                }
-            }
-        }
-        return dataSource;
-    }
-
-    private static boolean isContainerManaged() {
-        return System.getProperty("catalina.base") != null
-                || "true".equalsIgnoreCase(System.getProperty("crm.pool.enabled"))
-                || "true".equalsIgnoreCase(System.getenv("CRM_POOL_ENABLED"));
-    }
-
     public static Connection getConnection() throws SQLException {
         String url = getUrl();
         String username = getUsername();
         String password = getPassword();
 
         try {
-            if (isContainerManaged()) {
-                return getDataSource(url, username, password).getConnection();
-            }
-            return java.sql.DriverManager.getConnection(url, username, password != null ? password : "");
+            return DriverManager.getConnection(url, username, password != null ? password : "");
         } catch (SQLException e) {
             String msg = e.getMessage();
             int errCode = e.getErrorCode();
@@ -157,13 +109,6 @@ public final class DatabaseConfig {
                 );
             }
             throw e;
-        }
-    }
-
-    public static synchronized void closePool() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-            dataSource = null;
         }
     }
 }
