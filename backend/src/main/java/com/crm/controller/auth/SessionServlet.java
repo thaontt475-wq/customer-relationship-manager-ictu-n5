@@ -7,9 +7,18 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @WebServlet("/api/auth/session")
 public class SessionServlet extends HttpServlet {
+
+    public static Map<String, Object> describeWithTimeout(Map<String, Object> account) {
+        if (account == null) return null;
+        Map<String, Object> enriched = new LinkedHashMap<>(account);
+        enriched.put("sessionTimeoutSeconds", 15 * 60);
+        return enriched;
+    }
 
     @Override
     protected void doGet(
@@ -49,13 +58,16 @@ public class SessionServlet extends HttpServlet {
                             .getAttribute("userId"))
                             .longValue();
 
+            Map<String, Object> account =
+                    new SessionService()
+                            .describe(id);
+
             ResponseUtil.json(
                     response,
                     200,
                     ApiResponse.success(
                             "Lấy thông tin phiên đăng nhập thành công",
-                            new SessionService()
-                                    .describe(id)
+                            describeWithTimeout(account)
                     )
             );
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`).replace(/\/$/, "");
+const API_BASE = (window.CRM_BACKEND_BASE || `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`).replace(/\/$/, "");
 
 let stages = [
     { id: 1, name: "Tiềm năng", orderNo: 1, probability: 10 },
