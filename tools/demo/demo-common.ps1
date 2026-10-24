@@ -1,4 +1,4 @@
-﻿# NovaCRM demo - shared settings and helpers (dot-sourced by start/check/stop scripts).
+# NovaCRM demo - shared settings and helpers (dot-sourced by start/check/stop scripts).
 # KHONG luu mat khau that trong file nay. Mat khau MySQL doc tu file local ngoai repo:
 #   <repo>\..\NovaCRM-Demo-Local\demo.env   (dong dang KEY=VALUE, vi du CRM_DB_PASSWORD=...)
 # hoac tu bien moi truong CRM_DB_PASSWORD co san.
@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Stop'
 
 $script:RepoRoot     = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $script:LocalRoot    = Join-Path (Split-Path $script:RepoRoot -Parent) 'NovaCRM-Demo-Local'
-$script:CatalinaHome = if ($env:NOVACRM_TOMCAT_HOME) { $env:NOVACRM_TOMCAT_HOME } else { 'C:\Users\Windows\Tools\apache-tomcat-10.1.60' }
+$script:CatalinaHome = if ($env:NOVACRM_TOMCAT_HOME) { $env:NOVACRM_TOMCAT_HOME } else { 'C:\Tools\apache-tomcat-10.1.60' }
 $script:CatalinaBase = Join-Path $script:LocalRoot 'tomcat-base'
 $script:LogDir       = Join-Path $script:LocalRoot 'logs'
 $script:HttpPort     = 8090

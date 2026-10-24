@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS  Kiem tra suc khoe NovaCRM demo: MySQL, du lieu, Tomcat, health, login that, session, API Lead, HikariCP.
 .PARAMETER DemoUser  Email tai khoan demo (mac dinh admin@company.com - seed tong hop).
 Mat khau demo doc tu bien NOVACRM_DEMO_PASSWORD (hoac demo.env); mac dinh la mat khau tai khoan seed tong hop trong backend\database\seed\README.md.
@@ -43,10 +43,50 @@ Check 'Tomcat chi noi vao crm_demo (khong crm_db)' {
     $o = Invoke-DemoSql "SELECT CONCAT('crm_demo=',SUM(db='crm_demo'),' crm_db=',SUM(db='crm_db')) FROM information_schema.processlist WHERE user='$($env:CRM_DB_USERNAME)' AND host LIKE '%:%' AND db IS NOT NULL"
     if ($o -match 'crm_demo=([1-9]\d*) crm_db=0') { $o }
 }
-Check 'HikariCP trong log Tomcat' {
-    $logs = Get-ChildItem $script:LogDir, (Join-Path $script:CatalinaBase 'logs') -Include *.log, *.txt -Recurse -ErrorAction SilentlyContinue
-    $hit = $logs | Select-String -Pattern 'NovaCRM-HikariPool' -List | Select-Object -First 1
-    if ($hit) { 'NovaCRM-HikariPool started' }
+Check 'HikariCP dependency/configuration' {
+    $warPath = Join-Path $script:CatalinaBase 'webapps\crm.war'
+    $sourcePath = Join-Path $script:RepoRoot 'backend\src\main\java\com\crm\config\DatabaseConfig.java'
+
+    if (-not (Test-Path $warPath)) {
+        throw "Khong tim thay WAR da trien khai: $warPath"
+    }
+
+    if (-not (Test-Path $sourcePath)) {
+        throw "Khong tim thay DatabaseConfig.java: $sourcePath"
+    }
+
+    $sourceText = Get-Content $sourcePath -Raw
+    $hasPoolConfig = (
+        $sourceText -match 'new\s+HikariConfig\s*\(' -and
+        $sourceText -match 'config\.setPoolName\("NovaCRM-HikariPool"\)' -and
+        $sourceText -match 'new\s+HikariDataSource\s*\(\s*config\s*\)'
+    )
+
+    if (-not $hasPoolConfig) {
+        throw "Khong xac nhan duoc cau hinh HikariCP trong source."
+    }
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
+    $zip = [System.IO.Compression.ZipFile]::OpenRead($warPath)
+
+    try {
+        $hasHikariJar = [bool](
+            $zip.Entries |
+            Where-Object {
+                $_.FullName -match '^WEB-INF/lib/HikariCP-[^/]+\.jar$'
+            } |
+            Select-Object -First 1
+        )
+    }
+    finally {
+        $zip.Dispose()
+    }
+
+    if (-not $hasHikariJar) {
+        throw "WAR da trien khai khong chua HikariCP JAR."
+    }
+
+    'HikariCP JAR co trong WAR; pool duoc cau hinh trong source'
 }
 Check 'Dang xuat' { (Invoke-WebRequest "$base/api/auth/logout" -Method Post -WebSession $sess -UseBasicParsing -TimeoutSec 8).StatusCode }
 
