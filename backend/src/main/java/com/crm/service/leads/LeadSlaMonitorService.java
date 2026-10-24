@@ -40,7 +40,7 @@ public class LeadSlaMonitorService {
         try (Connection c = DatabaseConfig.getConnection()) {
             // 1. Find leads currently pending response whose SLA deadline has passed
             String findOverdueSql = """
-                SELECT l.id, l.full_name, l.sla_deadline,
+                SELECT l.id, l.full_name, l.assigned_to_user_id, l.sla_deadline,
                        rep.full_name AS rep_name
                 FROM leads l
                 LEFT JOIN users rep ON rep.id = l.assigned_to_user_id
@@ -58,9 +58,10 @@ public class LeadSlaMonitorService {
                     while (rs.next()) {
                         long id = rs.getLong("id");
                         String fullName = rs.getString("full_name");
+                        Long repId = rs.getObject("assigned_to_user_id", Long.class);
                         Timestamp deadlineTs = rs.getTimestamp("sla_deadline");
                         String repName = rs.getString("rep_name");
-                        overdueLeads.add(new OverdueLeadInfo(id, fullName, deadlineTs, repName));
+                        overdueLeads.add(new OverdueLeadInfo(id, fullName, repId, deadlineTs, repName));
                     }
                 }
             }
@@ -145,12 +146,14 @@ public class LeadSlaMonitorService {
     private static class OverdueLeadInfo {
         final long id;
         final String fullName;
+        final Long repId;
         final Timestamp deadline;
         final String repName;
 
-        OverdueLeadInfo(long id, String fullName, Timestamp deadline, String repName) {
+        OverdueLeadInfo(long id, String fullName, Long repId, Timestamp deadline, String repName) {
             this.id = id;
             this.fullName = fullName;
+            this.repId = repId;
             this.deadline = deadline;
             this.repName = repName;
         }

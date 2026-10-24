@@ -7,7 +7,7 @@
 
 "use strict";
 
-const API_BASE = `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`;
+const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
 
 let currentCategory = "industry";
 let values = [];

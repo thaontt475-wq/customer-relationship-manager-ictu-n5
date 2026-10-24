@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <script src="js/crm-api.js?v=20261023_crm261_2"></script>
+    <script src="js/crm-api.js"></script>
     <script>
     (function () {
         try {
@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="css/design-system.css?v=20261014_dark2">
     <link rel="stylesheet" href="css/app-shell.css?v=20261017_v6">
     <link rel="stylesheet" href="css/animations.css?v=20261014_dark2">
-    <link rel="stylesheet" href="css/pages/leads.css?v=20261023_crm261">
+    <link rel="stylesheet" href="css/pages/leads.css?v=20261019_modal_css">
 
     <style>
     /* ================= CREATE LEAD MODAL STYLING ================= */
@@ -355,15 +355,11 @@
                 <label for="filterSource" class="sr-only">Nguồn Lead</label>
                 <select id="filterSource" class="crm-select">
                     <option value="ALL">Tất cả nguồn</option>
-                    <option value="WEBSITE">Website / Đăng ký trực tuyến</option>
-                    <option value="REFERRAL">Giới thiệu từ đối tác / khách hàng</option>
-                    <option value="EVENT">Hội thảo / Sự kiện / Triển lãm</option>
-                    <option value="COLD_CALL">Telesales / Tiếp cận trực tiếp</option>
-                    <option value="SOCIAL_MEDIA">Mạng xã hội (Facebook, LinkedIn)</option>
-                    <option value="PARTNER">Kênh đối tác phân phối</option>
+                    <option value="WEBSITE">Website Form</option>
                     <option value="EXCEL">Nhập Excel</option>
+                    <option value="EVENT">Sự kiện / Hội thảo</option>
+                    <option value="REFERRAL">Giới thiệu / Đối tác</option>
                     <option value="CAMPAIGN">Chiến dịch Marketing</option>
-                    <option value="OTHER">Nguồn khác</option>
                 </select>
             </div>
 
@@ -667,15 +663,12 @@
                     </div>
                     <div class="form-group">
                         <label for="newSource">Nguồn Lead</label>
-                        <select id="newSource" class="crm-select" required>
-                            <option value="">-- Chọn nguồn Lead --</option>
-                            <option value="17">Website / Đăng ký trực tuyến</option>
-                            <option value="18">Giới thiệu từ đối tác / khách hàng</option>
-                            <option value="19">Telesales / Tiếp cận trực tiếp</option>
-                            <option value="20">Mạng xã hội (Facebook, LinkedIn)</option>
-                            <option value="21">Hội thảo / Sự kiện / Triển lãm</option>
-                            <option value="136">Kênh đối tác phân phối</option>
-                            <option value="22">Nguồn khác</option>
+                        <select id="newSource" class="crm-select">
+                            <option value="WEBSITE">Website Form</option>
+                            <option value="EXCEL">Nhập Excel</option>
+                            <option value="EVENT">Sự kiện / Hội thảo</option>
+                            <option value="REFERRAL">Giới thiệu / Đối tác</option>
+                            <option value="CAMPAIGN">Chiến dịch Marketing</option>
                         </select>
                     </div>
                 </div>
@@ -712,8 +705,7 @@
 <!-- Scripts -->
 <script src="js/shared-shell.js?v=20261017_v6"></script>
 <script src="js/excel-export-helper.js"></script>
-<script src="js/crm-api.js?v=20261023_crm261_2"></script>
-<script src="js/pages/leads.js?v=20261023_crm261_3"></script>
+<script src="js/pages/leads.js?v=20261014_s409"></script>
 
 </body>
 </html>

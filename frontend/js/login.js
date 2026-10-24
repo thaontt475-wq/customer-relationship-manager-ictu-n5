@@ -104,49 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    function showSessionTimeoutNotice(message) {
-        const box = findMessageBox();
-        if (box) {
-            box.textContent = message;
-            box.hidden = false;
-            box.style.display = "block";
-            box.className = "auth-alert-box alert-warning";
-            box.style.background = "rgba(245, 158, 11, 0.15)";
-            box.style.border = "1px solid #f59e0b";
-            box.style.color = "#d97706";
-            box.style.padding = "12px 16px";
-            box.style.borderRadius = "8px";
-            box.style.marginBottom = "16px";
-            box.style.fontSize = "14px";
-            box.style.fontWeight = "500";
-        } else {
-            alert(message);
-        }
-    }
-
-    // Process session expiration notice on page load
-    (function checkSessionExpirationState() {
-        try {
-            const urlParams = new URLSearchParams(window.location.search);
-            const reason = urlParams.get("reason");
-            const isManualLogout = localStorage.getItem("crm_manual_logout") === "true" || reason === "logout";
-            const storedExpiredMsg = localStorage.getItem("crm_session_expired_message") || sessionStorage.getItem("crm_session_expired_message");
-
-            if (isManualLogout) {
-                localStorage.removeItem("crm_manual_logout");
-                localStorage.removeItem("crm_session_expired_message");
-                sessionStorage.removeItem("crm_session_expired_message");
-            } else if (reason === "timeout" || storedExpiredMsg) {
-                const message = storedExpiredMsg || "Phiên đăng nhập đã hết hạn do không hoạt động quá 15 phút. Vui lòng đăng nhập lại.";
-                showSessionTimeoutNotice(message);
-                localStorage.removeItem("crm_session_expired_message");
-                sessionStorage.removeItem("crm_session_expired_message");
-            }
-        } catch (e) {
-            console.warn("Session check error on login init:", e);
-        }
-    })();
-
 
     function setLoading(loading) {
 
@@ -405,12 +362,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     localStorage.removeItem("crm_remembered_email");
                 }
-
-                localStorage.setItem("crm_last_request_time", Date.now().toString());
-                localStorage.removeItem("crm_session_expired_message");
-                localStorage.removeItem("crm_manual_logout");
-                localStorage.removeItem("crm_session_expired_at");
-                sessionStorage.removeItem("crm_session_expired_message");
 
                 window.location.href =
                     "dashboard.html";

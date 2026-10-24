@@ -1103,7 +1103,7 @@ window.quickCompleteTask = async function(id) {
             localStorage.setItem("crm_ui_activities", JSON.stringify(acts));
             renderDashboard();
         }
-        const API_BASE = `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`;
+        const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
         await fetch(`${API_BASE}/api/activities/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -1431,7 +1431,7 @@ renderDashboard();
 
 (async function syncBackendData() {
     try {
-        const API_BASE = `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`;
+        const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
         const [oppRes, quoteRes, actRes, custRes, userRes, prodRes] = await Promise.all([
             fetch(`${API_BASE}/api/opportunities`, { credentials: "include" }).catch(() => null),
             fetch(`${API_BASE}/api/quotes`, { credentials: "include" }).catch(() => null),

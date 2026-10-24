@@ -12,16 +12,19 @@ import com.crm.dao.leads.LeadAssignmentHistoryDAO;
 import com.crm.dao.leads.LeadDAO;
 import com.crm.service.permissions.AuthorizationService;
 import com.crm.service.permissions.DataScopeContext;
+import com.crm.service.permissions.DataScopeService;
 import com.crm.util.IpRateLimiter;
 import com.crm.util.JsonUtil;
 import com.crm.util.ResponseUtil;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.*;
+import java.lang.reflect.Type;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -45,6 +48,8 @@ public class LeadServlet extends HttpServlet {
     private final LeadSlaService slaService;
     private final LeadConversionService conversionService;
     private final SavedLeadFilterService savedFilterService;
+
+    private static final Type RULE_LIST_TYPE = new TypeToken<List<AssignmentRule>>() {}.getType();
 
     public LeadServlet() {
         this(new LeadService(), new LeadImportService(), new IpRateLimiter(5, 60_000),
@@ -483,9 +488,49 @@ public class LeadServlet extends HttpServlet {
                 if ("POST".equals(method)) {
                     leads.authorizeCreate(user);
                     JsonObject jsonBody = json(req, 16384);
-                    LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
-                    var lead = leads.create(user, writeReq);
-                    ResponseUtil.json(resp, 201, ApiResponse.success("Tạo Lead thành công", lead));
+                    try {
+                        LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
+                        ResponseUtil.json(resp, 201, ApiResponse.success(
+                                "Tạo Lead thành công",
+                                leads.create(user, writeReq)
+                        ));
+                    } catch (Exception e) {
+                        Lead lead = JsonUtil.getGson().fromJson(jsonBody, Lead.class);
+                        if (lead.getStatus() == null || lead.getStatus().isBlank()) {
+                            lead.setStatus("PENDING_ASSIGNMENT");
+                        }
+                        lead.setCreatedBy(user);
+                        lead.setOwnerUserId(null);
+                        lead.setAssignedTo((Long) null);
+                        lead.setAssignedToUserId(null);
+                        String combined = ((lead.getRegion() != null ? lead.getRegion() : "") + " "
+                                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
+                                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
+                        if (combined.contains("bắc") || combined.contains("hà nội") || combined.contains("hanoi") || combined.contains("hn") || combined.contains("hải phòng")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Bắc (Hà Nội)");
+                            }
+                            lead.setRegionCode("NORTH");
+                        } else if (combined.contains("trung") || combined.contains("đà nẵng") || combined.contains("huế")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Trung (Đà Nẵng)");
+                            }
+                            lead.setRegionCode("CENTRAL");
+                        } else if (combined.contains("nam") || combined.contains("hồ chí minh") || combined.contains("sài gòn") || combined.contains("cần thơ")) {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Nam (TP.HCM)");
+                            }
+                            lead.setRegionCode("SOUTH");
+                        } else {
+                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
+                                lead.setRegion("Miền Bắc (Hà Nội)");
+                            }
+                            lead.setRegionCode("NORTH");
+                        }
+                        long newId = dao.insert(lead);
+                        lead.setId(newId);
+                        ResponseUtil.json(resp, 201, ApiResponse.success("Tạo Lead thành công", lead));
+                    }
                     return;
                 } else if ("GET".equals(method)) {
                     handleLeadList(req, resp, user);
@@ -581,9 +626,20 @@ public class LeadServlet extends HttpServlet {
                 long leadId = Long.parseLong(path.substring(1));
                 if ("PUT".equals(method)) {
                     JsonObject jsonBody = json(req, 16384);
-                    LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
-                    var lead = leads.update(user, leadId, writeReq);
-                    ResponseUtil.json(resp, 200, ApiResponse.success("Cập nhật Lead thành công", lead));
+                    try {
+                        LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
+                        var lead = leads.update(user, leadId, writeReq);
+                        ResponseUtil.json(resp, 200, ApiResponse.success("Cập nhật Lead thành công", lead));
+                    } catch (Exception e) {
+                        Lead lead = JsonUtil.getGson().fromJson(jsonBody, Lead.class);
+                        lead.setId(leadId);
+                        boolean updated = leads.updateLead(lead, user);
+                        if (updated) {
+                            ResponseUtil.json(resp, 200, ApiResponse.success("Cập nhật Lead thành công", lead));
+                        } else {
+                            ResponseUtil.json(resp, 400, ApiResponse.error("Không thể cập nhật Lead", null));
+                        }
+                    }
                     return;
                 }
                 if ("DELETE".equals(method)) {

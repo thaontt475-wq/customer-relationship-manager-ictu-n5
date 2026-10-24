@@ -70,7 +70,7 @@ public class AuthenticationFilter
                     res,
                     401,
                     ApiResponse.error(
-                            "Phiên đăng nhập đã hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập lại.",
+                            "Chưa đăng nhập",
                             null
                     )
             );
