@@ -768,7 +768,12 @@
 
             // Source Filter
             if (currentCriteria.source !== "ALL") {
-                if (lead.source !== currentCriteria.source) return false;
+                const cs = String(currentCriteria.source).toUpperCase();
+                const ls = String(lead.source || "").toUpperCase();
+                const lsid = String(lead.sourceId || "");
+                const matchWeb = (cs === "WEBSITE" || cs === "WEB_FORM") && (ls === "WEBSITE" || ls === "WEB_FORM" || lsid === "17" || lsid === "131");
+                const matchCodeOrId = (ls === cs || lsid === cs);
+                if (!matchWeb && !matchCodeOrId) return false;
             }
 
             // Owner Filter
@@ -1629,6 +1634,22 @@
     document.addEventListener("DOMContentLoaded", () => {
         LeadsService.init();
         initEventHandlers();
+        if (window.CrmApi && typeof window.CrmApi.request === 'function') {
+            window.CrmApi.request('/api/leads/sources').then(srcs => {
+                const sel = document.getElementById('filterSource');
+                if (sel && Array.isArray(srcs) && srcs.length) {
+                    const currentVal = sel.value || 'ALL';
+                    sel.replaceChildren();
+                    sel.append(new Option('Tất cả nguồn', 'ALL'));
+                    for (const s of srcs) {
+                        sel.append(new Option(s.name, s.code || String(s.id)));
+                    }
+                    if (!srcs.some(s => s.code === 'EXCEL')) sel.append(new Option('Nhập Excel', 'EXCEL'));
+                    if (!srcs.some(s => s.code === 'CAMPAIGN')) sel.append(new Option('Chiến dịch Marketing', 'CAMPAIGN'));
+                    sel.value = currentVal;
+                }
+            }).catch(() => {});
+        }
 
         // Check if there is a default saved filter configured
         const defaultFilterId = LeadsService.getDefaultFilterId();

@@ -73,8 +73,7 @@ public class AuthService {
             user.setLockedUntil(null);
         }
 
-        boolean passwordMatches = PasswordUtil.matches(password, user.getPasswordHash())
-                || "123456".equals(password);
+        boolean passwordMatches = PasswordUtil.matches(password, user.getPasswordHash());
         if (!passwordMatches) {
 
             int attempts =

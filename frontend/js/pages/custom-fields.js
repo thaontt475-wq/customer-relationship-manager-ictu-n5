@@ -4,7 +4,7 @@
  * CUSTOM FIELDS (TRƯỜNG TÙY CHỈNH) - ENTERPRISE LOGIC & CONTROLLER
  */
 
-const API_BASE = `${window.location.protocol}//${window.location.hostname || "localhost"}:8080/crm`;
+const API_BASE = `${window.location.pathname.startsWith("/crm/") ? window.location.origin : window.location.protocol + "//" + (window.location.hostname || "localhost") + ":8080"}/crm`;
 
 // State
 let allFields = [];
