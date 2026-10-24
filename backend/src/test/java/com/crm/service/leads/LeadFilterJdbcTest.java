@@ -235,4 +235,85 @@ class LeadFilterJdbcTest {
         boolean deleted = filterService.deleteCustomFilter(filterId, user1);
         assertTrue(deleted);
     }
+
+    @Test
+    void testFilterByPendingResponseAndVietnameseDisplay() {
+        long now = System.currentTimeMillis();
+
+        // Lead A: "Nông Quang Tiệp Alpha", status PENDING_RESPONSE, overdue
+        Lead la = new Lead();
+        la.setFullName("Nông Quang Tiệp Alpha");
+        la.setCompanyName("Alpha Corp Tiệp");
+        la.setEmail("tiep.alpha@example.com");
+        la.setPhone("0901112222");
+        la.setStatus("PENDING_RESPONSE");
+        la.setSlaDeadline(new Timestamp(now - 3600000L));
+        long idA = leadDAO.insert(la);
+        assertTrue(idA > 0);
+        createdLeadIds.add(idA);
+
+        // Lead B: "Nông Quang Tiệp Beta", status NEW
+        Lead lb = new Lead();
+        lb.setFullName("Nông Quang Tiệp Beta");
+        lb.setCompanyName("Beta Corp Tiệp");
+        lb.setEmail("tiep.beta@example.com");
+        lb.setPhone("0903334444");
+        lb.setStatus("NEW");
+        lb.setSlaDeadline(new Timestamp(now + 3600000L));
+        long idB = leadDAO.insert(lb);
+        assertTrue(idB > 0);
+        createdLeadIds.add(idB);
+
+        DataScopeContext scope = new DataScopeContext(1L, "lead", ScopeType.ALL, null, Set.of());
+
+        // 1. Search keyword "tiệp" only -> both should be found
+        LeadFilterRequest fAll = new LeadFilterRequest();
+        fAll.setKeyword("tiệp");
+        fAll.setSize(100);
+        List<Lead> rAll = leadDAO.findWithFilters(fAll, scope, 1L);
+        assertTrue(rAll.stream().anyMatch(l -> l.getId() == idA));
+        assertTrue(rAll.stream().anyMatch(l -> l.getId() == idB));
+
+        // 2. Search keyword "tiệp" + status "PENDING_RESPONSE" -> only Lead A found
+        LeadFilterRequest fPending = new LeadFilterRequest();
+        fPending.setKeyword("tiệp");
+        fPending.setStatus("PENDING_RESPONSE");
+        fPending.setSize(100);
+        List<Lead> rPending = leadDAO.findWithFilters(fPending, scope, 1L);
+        assertTrue(rPending.stream().anyMatch(l -> l.getId() == idA));
+        assertFalse(rPending.stream().anyMatch(l -> l.getId() == idB));
+
+        // 3. Search keyword "tiệp" + Vietnamese status "Chờ phản hồi" -> only Lead A found
+        LeadFilterRequest fViPending = new LeadFilterRequest();
+        fViPending.setKeyword("tiệp");
+        fViPending.setStatus("Chờ phản hồi");
+        fViPending.setSize(100);
+        List<Lead> rViPending = leadDAO.findWithFilters(fViPending, scope, 1L);
+        assertTrue(rViPending.stream().anyMatch(l -> l.getId() == idA));
+        assertFalse(rViPending.stream().anyMatch(l -> l.getId() == idB));
+
+        // 4. Search keyword "tiệp" + status "NEW" -> only Lead B found
+        LeadFilterRequest fNew = new LeadFilterRequest();
+        fNew.setKeyword("tiệp");
+        fNew.setStatus("NEW");
+        fNew.setSize(100);
+        List<Lead> rNew = leadDAO.findWithFilters(fNew, scope, 1L);
+        assertFalse(rNew.stream().anyMatch(l -> l.getId() == idA));
+        assertTrue(rNew.stream().anyMatch(l -> l.getId() == idB));
+
+        // 5. Search keyword "tiệp" + status "CONVERTED" -> neither found
+        LeadFilterRequest fConverted = new LeadFilterRequest();
+        fConverted.setKeyword("tiệp");
+        fConverted.setStatus("CONVERTED");
+        fConverted.setSize(100);
+        List<Lead> rConverted = leadDAO.findWithFilters(fConverted, scope, 1L);
+        assertFalse(rConverted.stream().anyMatch(l -> l.getId() == idA));
+        assertFalse(rConverted.stream().anyMatch(l -> l.getId() == idB));
+
+        // 6. Pagination count matching total
+        int totalPending = leadDAO.countWithFilters(fPending, scope, 1L);
+        assertTrue(totalPending >= 1);
+        int totalConverted = leadDAO.countWithFilters(fConverted, scope, 1L);
+        assertEquals(0, (int) rConverted.size());
+    }
 }

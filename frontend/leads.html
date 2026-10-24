@@ -226,6 +226,10 @@
                 <i class="fa-solid fa-rotate-left"></i>
                 <span>Dữ liệu mẫu</span>
             </button>
+            <a href="lead-manual-import.html" class="crm-btn crm-btn-secondary" id="btnGoImportExcel" title="Tạo Lead & Nhập hàng loạt từ tệp Excel (S4-02)">
+                <i class="fa-solid fa-file-import"></i>
+                <span>Nhập Excel</span>
+            </a>
             <button id="btnExportExcel" class="crm-btn crm-btn-secondary" type="button" title="Xuất dữ liệu Excel / CSV">
                 <i class="fa-solid fa-file-excel"></i>
                 <span>Xuất Excel</span>
@@ -236,6 +240,37 @@
             </button>
         </div>
     </section>
+
+    <!-- SPRINT 4 MODULE HUB NAVIGATION -->
+    <nav class="leads-module-nav" aria-label="Phân hệ Lead & Marketing (Sprint 4)">
+        <a href="leads.html" class="module-tab active" title="Danh sách Lead và bộ lọc nâng cao (S4-09)">
+            <i class="fa-solid fa-list-check"></i> <span>Danh sách Lead</span>
+        </a>
+        <a href="lead-manual-import.html" class="module-tab" title="Tạo Lead thủ công & Nhập Excel (S4-02)">
+            <i class="fa-solid fa-file-excel"></i> <span>Tạo & Nhập Excel</span>
+        </a>
+        <a href="lead-capture-manager.html" class="module-tab" title="Thu thập Lead từ biểu mẫu nhúng Website (S4-01)">
+            <i class="fa-solid fa-code"></i> <span>Biểu mẫu nhúng</span>
+        </a>
+        <a href="campaigns.html" class="module-tab" title="Quản lý Chiến dịch Marketing & Báo cáo ROI (S4-03)">
+            <i class="fa-solid fa-bullhorn"></i> <span>Chiến dịch</span>
+        </a>
+        <a href="lead-duplicates.html" class="module-tab" title="Phát hiện trùng lặp & Gộp Lead (S4-04)">
+            <i class="fa-solid fa-code-merge"></i> <span>Trùng lặp & Gộp</span>
+        </a>
+        <a href="lead-scoring.html" class="module-tab" title="Cấu hình tiêu chí & Chấm điểm Lead (S4-05)">
+            <i class="fa-solid fa-star-half-stroke"></i> <span>Chấm điểm</span>
+        </a>
+        <a href="lead-assignment.html" class="module-tab" title="Cấu hình quy tắc phân bổ & Hàng chờ (S4-06)">
+            <i class="fa-solid fa-diagram-project"></i> <span>Phân bổ tự động</span>
+        </a>
+        <a href="lead-sla-response.html" class="module-tab" title="Nhận / Từ chối Lead & Kiểm soát SLA phản hồi (S4-07)">
+            <i class="fa-solid fa-stopwatch"></i> <span>Phản hồi SLA</span>
+        </a>
+        <a href="lead-conversion.html" class="module-tab" title="Chuyển đổi 3-trong-1 thành Khách hàng, Người liên hệ & Cơ hội (S4-08)">
+            <i class="fa-solid fa-arrows-split-up-and-left"></i> <span>Chuyển đổi</span>
+        </a>
+    </nav>
 
     <!-- 2. KPI METRICS CARDS -->
     <section class="leads-kpis">
@@ -331,7 +366,9 @@
                 <label for="filterStatus" class="sr-only">Trạng thái</label>
                 <select id="filterStatus" class="crm-select">
                     <option value="ALL">Tất cả trạng thái</option>
+                    <option value="ACTIVE">Đang xử lý (Mới & Chờ phản hồi)</option>
                     <option value="NEW">Mới (New)</option>
+                    <option value="PENDING_RESPONSE">Chờ phản hồi (Pending Response)</option>
                     <option value="IN_PROGRESS">Đang chăm sóc (In Progress)</option>
                     <option value="QUALIFIED">Đủ điều kiện (Qualified)</option>
                     <option value="CONVERTED">Đã chuyển đổi (Converted)</option>
@@ -579,6 +616,7 @@
                     <div class="detail-row"><span class="dt-label">Nhiệt độ:</span> <span class="dt-val" id="dtTier">--</span></div>
                     <div class="detail-row"><span class="dt-label">Điểm tiềm năng:</span> <span class="dt-val" id="dtScore">--</span></div>
                     <div class="detail-row"><span class="dt-label">Nguồn Lead:</span> <span class="dt-val" id="dtSource">--</span></div>
+                    <div class="detail-row"><span class="dt-label">Chiến dịch:</span> <span class="dt-val" id="dtCampaign">--</span></div>
                     <div class="detail-row"><span class="dt-label">Giá trị ước tính:</span> <span class="dt-val" id="dtValue">--</span></div>
                 </div>
 
@@ -587,12 +625,29 @@
                     <div class="detail-row"><span class="dt-label">Trạng thái:</span> <span class="dt-val" id="dtStatus">--</span></div>
                     <div class="detail-row"><span class="dt-label">Người phụ trách:</span> <span class="dt-val" id="dtOwner">--</span></div>
                     <div class="detail-row"><span class="dt-label">Hạn phản hồi SLA:</span> <span class="dt-val" id="dtSla">--</span></div>
+                    <div class="detail-row" id="rowConvertedCustomer" style="display:none;"><span class="dt-label">Khách hàng:</span> <span class="dt-val" id="dtConvertedCustomer">--</span></div>
+                    <div class="detail-row" id="rowConvertedOpportunity" style="display:none;"><span class="dt-label">Cơ hội liên kết:</span> <span class="dt-val" id="dtConvertedOpportunity">--</span></div>
                     <div class="detail-row"><span class="dt-label">Ghi chú:</span> <span class="dt-val" id="dtNotes">--</span></div>
                 </div>
             </div>
         </div>
 
-        <div class="crm-modal-footer">
+        <div class="crm-modal-footer" id="detailModalFooter" style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+            <span id="dtConvertedBanner" style="display:none; color:#10b981; font-weight:600; font-size:13px; margin-right:auto;">
+                <i class="fa-solid fa-lock"></i> Đã chuyển đổi (Chế độ chỉ đọc)
+            </span>
+            <a id="btnDetailConvert" href="lead-conversion.html" class="crm-btn crm-btn-primary" title="Chuyển đổi 3-trong-1 thành Khách hàng, Liên hệ & Cơ hội">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i> <span>Chuyển đổi</span>
+            </a>
+            <a id="btnDetailDuplicates" href="lead-duplicates.html" class="crm-btn crm-btn-secondary" title="Kiểm tra trùng lặp & Gộp Lead">
+                <i class="fa-solid fa-code-merge"></i> <span>Kiểm tra trùng</span>
+            </a>
+            <button id="btnDetailAccept" class="crm-btn crm-btn-success" type="button" style="display:none;" title="Tiếp nhận Lead">
+                <i class="fa-solid fa-check"></i> <span>Nhận Lead</span>
+            </button>
+            <button id="btnDetailReject" class="crm-btn crm-btn-danger" type="button" style="display:none;" title="Từ chối Lead và chuyển về hàng chờ">
+                <i class="fa-solid fa-xmark"></i> <span>Từ chối</span>
+            </button>
             <button id="btnDismissDetailModal" class="crm-btn crm-btn-secondary" type="button">Đóng</button>
         </div>
     </div>
