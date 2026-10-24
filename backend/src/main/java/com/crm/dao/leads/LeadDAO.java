@@ -458,7 +458,7 @@ public class LeadDAO {
                     "SUM(CASE WHEN l.sla_deadline IS NOT NULL AND l.sla_deadline < NOW() AND l.status NOT IN ('CONVERTED', 'LOST') THEN 1 ELSE 0 END) AS overdue_count, " +
                     "SUM(CASE WHEN (l.assigned_to IS NULL AND l.assigned_to_user_id IS NULL) THEN 1 ELSE 0 END) AS unassigned_count, " +
                     "SUM(CASE WHEN l.status = 'NEW' THEN 1 ELSE 0 END) AS new_count, " +
-                    "SUM(CASE WHEN l.status = 'IN_PROGRESS' THEN 1 ELSE 0 END) AS in_progress_count, " +
+                    "SUM(CASE WHEN l.status IN ('IN_PROGRESS', 'CONTACTED', 'CONTACTING') THEN 1 ELSE 0 END) AS in_progress_count, " +
                     "SUM(CASE WHEN l.status = 'QUALIFIED' THEN 1 ELSE 0 END) AS qualified_count, " +
                     "SUM(CASE WHEN l.status = 'CONVERTED' THEN 1 ELSE 0 END) AS converted_count, " +
                     "COALESCE(SUM(l.estimated_value), 0) AS total_estimated_value " +
@@ -521,6 +521,23 @@ public class LeadDAO {
         }
     }
 
+    public static String normalizeStatus(String status) {
+        if (status == null || status.isBlank() || "ALL".equalsIgnoreCase(status.trim())) return null;
+        String s = status.trim().toUpperCase();
+        return switch (s) {
+            case "ACTIVE", "ĐANG XỬ LÝ", "DANG XU LY", "HOẠT ĐỘNG", "HOAT DONG" -> "ACTIVE";
+            case "PENDING_RESPONSE", "CHỜ PHẢN HỒI", "CHO PHAN HOI", "CHO_PHAN_HOI", "WAITING_RESPONSE" -> "PENDING_RESPONSE";
+            case "NEW", "MỚI", "MOI" -> "NEW";
+            case "IN_PROGRESS", "ĐANG CHĂM SÓC", "DANG CHAM SOC", "DANG_CHAM_SOC", "CONTACTING", "CONTACTED" -> "IN_PROGRESS";
+            case "QUALIFIED", "ĐỦ ĐIỀU KIỆN", "DU DIEU KIEN", "DU_DIEU_KIEN" -> "QUALIFIED";
+            case "CONVERTED", "ĐÃ CHUYỂN ĐỔI", "DA CHUYEN DOI", "DA_CHUYEN_DOI" -> "CONVERTED";
+            case "LOST", "CLOSED", "ĐÓNG / MẤT", "DONG / MAT", "ĐÓNG", "MẤT", "DONG", "MAT" -> "LOST";
+            case "PENDING_ASSIGNMENT", "CHỜ PHÂN BỔ", "CHO PHAN BO", "CHO_PHAN_BO" -> "PENDING_ASSIGNMENT";
+            case "REJECTED", "ĐÃ TỪ CHỐI", "DA TU CHOI", "DA_TU_CHOI" -> "REJECTED";
+            default -> s;
+        };
+    }
+
     private void buildFilterPredicates(StringBuilder sql, List<Object> params,
                                        LeadFilterRequest filter, DataScopeContext scope, Long currentUserId, boolean withScores) {
         // 1. Data Scope
@@ -529,13 +546,17 @@ public class LeadDAO {
         }
 
         // 2. Status
-        String status = filter.getStatus();
-        if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
+        String status = normalizeStatus(filter.getStatus());
+        if (status != null) {
             if ("IN_PROGRESS".equalsIgnoreCase(status)) {
                 sql.append(" AND l.status IN ('IN_PROGRESS', 'CONTACTED', 'CONTACTING')");
+            } else if ("LOST".equalsIgnoreCase(status)) {
+                sql.append(" AND l.status IN ('LOST', 'CLOSED')");
+            } else if ("ACTIVE".equalsIgnoreCase(status)) {
+                sql.append(" AND l.status IN ('NEW', 'PENDING_RESPONSE', 'IN_PROGRESS', 'CONTACTING')");
             } else {
                 sql.append(" AND l.status = ?");
-                params.add(status.trim().toUpperCase());
+                params.add(status);
             }
         }
 
@@ -797,9 +818,18 @@ public class LeadDAO {
         StringBuilder sql = new StringBuilder("SELECT * FROM leads WHERE is_deleted = 0");
         List<Object> params = new ArrayList<>();
 
-        if (status != null && !status.isBlank()) {
-            sql.append(" AND status = ?");
-            params.add(status.trim());
+        String normStatus = normalizeStatus(status);
+        if (normStatus != null) {
+            if ("IN_PROGRESS".equalsIgnoreCase(normStatus)) {
+                sql.append(" AND status IN ('IN_PROGRESS', 'CONTACTED', 'CONTACTING')");
+            } else if ("LOST".equalsIgnoreCase(normStatus)) {
+                sql.append(" AND status IN ('LOST', 'CLOSED')");
+            } else if ("ACTIVE".equalsIgnoreCase(normStatus)) {
+                sql.append(" AND status IN ('NEW', 'PENDING_RESPONSE', 'IN_PROGRESS', 'CONTACTING')");
+            } else {
+                sql.append(" AND status = ?");
+                params.add(normStatus);
+            }
         }
         appendSourceFilter(sql, params, source, "");
 

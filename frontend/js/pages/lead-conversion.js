@@ -1697,9 +1697,9 @@
         initEventHandlers();
         refreshData();
 
-        // Check if redirected from other screens with ?leadId=...
+        // Check if redirected from other screens with ?leadId=... or ?id=...
         const urlParams = new URLSearchParams(window.location.search);
-        const leadIdParam = urlParams.get("leadId");
+        const leadIdParam = urlParams.get("leadId") || urlParams.get("id");
         if (leadIdParam) {
             await openConversionModal(leadIdParam);
         }

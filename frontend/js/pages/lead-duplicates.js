@@ -93,6 +93,14 @@
         if (!loaded) {
             scanAndRenderDuplicates();
         }
+
+        // Support ?leadId= or ?id= parameter for direct navigation from leads list
+        const urlParams = new URLSearchParams(window.location.search);
+        const leadIdParam = urlParams.get("leadId") || urlParams.get("id");
+        if (leadIdParam && dom.dupSearchInput) {
+            dom.dupSearchInput.value = leadIdParam;
+            renderDuplicatesTable();
+        }
     }
 
     async function fetchDuplicatesFromBackend() {

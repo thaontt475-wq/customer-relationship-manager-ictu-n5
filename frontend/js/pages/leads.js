@@ -380,10 +380,10 @@
                         slaRemainingText: l.slaRemainingText,
                         slaStatus: l.slaStatus
                     }));
-                    if (mapped.length > 0) {
-                        this.saveLeads(mapped);
-                        return mapped;
-                    }
+                    mapped.totalRecords = typeof data?.totalRecords === "number" ? data.totalRecords : mapped.length;
+                    mapped.stats = data?.stats;
+                    this.saveLeads(mapped);
+                    return mapped;
                 } catch (err) {
                     console.warn("Lỗi tải danh sách Lead từ server, dùng cache nội bộ:", err);
                 }
@@ -724,10 +724,10 @@
         }
 
         // 6.1 Update KPIs
-        const total = allLeads.length;
+        const total = (allLeads.stats && typeof allLeads.stats.total === "number") ? allLeads.stats.total : allLeads.length;
         const hotCount = allLeads.filter(l => l.tier === "HOT").length;
-        const overdueCount = allLeads.filter(l => isSlaOverdue(l)).length;
-        const progressCount = allLeads.filter(l => l.status === "IN_PROGRESS").length;
+        const overdueCount = (allLeads.stats && typeof allLeads.stats.overdueSlaCount === "number") ? allLeads.stats.overdueSlaCount : allLeads.filter(l => isSlaOverdue(l)).length;
+        const progressCount = (allLeads.stats && typeof allLeads.stats.inProgressCount === "number") ? allLeads.stats.inProgressCount : allLeads.filter(l => l.status === "IN_PROGRESS" || l.status === "CONTACTING" || l.status === "PENDING_RESPONSE").length;
 
         document.getElementById("statTotalLeads").textContent = total;
         document.getElementById("statHotLeads").textContent = hotCount;
@@ -747,14 +747,15 @@
                 const matchCode = (lead.code || "").toLowerCase().includes(kw);
                 const matchPhone = (lead.phone || "").toLowerCase().includes(kw);
                 const matchEmail = (lead.email || "").toLowerCase().includes(kw);
-                if (!matchName && !matchComp && !matchCode && !matchPhone && !matchEmail) {
+                const matchNotes = (lead.notes || "").toLowerCase().includes(kw);
+                if (!matchName && !matchComp && !matchCode && !matchPhone && !matchEmail && !matchNotes) {
                     return false;
                 }
             }
 
             // Status Filter
             if (currentCriteria.status === "ACTIVE") {
-                if (lead.status !== "NEW" && lead.status !== "IN_PROGRESS" && lead.status !== "CONTACTING") return false;
+                if (lead.status !== "NEW" && lead.status !== "IN_PROGRESS" && lead.status !== "CONTACTING" && lead.status !== "PENDING_RESPONSE") return false;
             } else if (currentCriteria.status === "IN_PROGRESS") {
                 if (lead.status !== "IN_PROGRESS" && lead.status !== "CONTACTING" && lead.status !== "CONTACTED") return false;
             } else if (currentCriteria.status !== "ALL") {
@@ -842,8 +843,34 @@
         // 6.5 Render Active Filter Tags
         renderActiveFilterTags();
 
-        // 6.6 Render Table
+        // 6.6 Update Table Title dynamically
+        updateTableTitle();
+
+        // 6.7 Render Table
         renderTable(filtered);
+    }
+
+    function updateTableTitle() {
+        const titleEl = document.getElementById("tableTitle");
+        if (!titleEl) return;
+        if (currentCriteria.keyword) {
+            titleEl.textContent = `Kết quả tìm: "${currentCriteria.keyword}"`;
+        } else if (activeFilterTabId && activeFilterTabId !== "view_all") {
+            // Keep tab title if user clicked a specific tab
+        } else if (currentCriteria.status && currentCriteria.status !== "ALL") {
+            const statusMap = {
+                ACTIVE: "Đang xử lý (Mới & Chờ phản hồi)",
+                NEW: "Mới (New)",
+                PENDING_RESPONSE: "Chờ phản hồi (Pending Response)",
+                IN_PROGRESS: "Đang chăm sóc (In Progress)",
+                QUALIFIED: "Đủ điều kiện (Qualified)",
+                CONVERTED: "Đã chuyển đổi (Converted)",
+                LOST: "Đóng / Mất (Lost)"
+            };
+            titleEl.textContent = `Danh sách Lead - ${statusMap[currentCriteria.status] || currentCriteria.status}`;
+        } else {
+            titleEl.textContent = "Tất cả Lead";
+        }
     }
 
     async function renderSavedFilterTabs(allLeads) {
@@ -860,10 +887,12 @@
                 count = allLeads.length;
             } else if (f.id === "view_hot_today") {
                 count = allLeads.filter(l => l.tier === "HOT" && (l.status === "NEW" || l.status === "IN_PROGRESS")).length;
-            } else if (f.id === "view_sla_overdue") {
+            } else if (f.id === "view_sla_overdue" || f.id === "view_sla_urgent") {
                 count = allLeads.filter(l => isSlaOverdue(l)).length;
             } else if (f.id === "view_unassigned") {
                 count = allLeads.filter(l => l.owner === null || l.owner === "").length;
+            } else if (f.id === "view_hot_unassigned") {
+                count = allLeads.filter(l => l.tier === "HOT" && (l.owner === null || l.owner === "")).length;
             } else if (f.id === "view_my_leads") {
                 count = allLeads.filter(l => l.owner === CURRENT_USER_NAME && l.status === "IN_PROGRESS").length;
             } else {
@@ -873,6 +902,7 @@
                     if (fc.status && fc.status !== "ALL" && l.status !== fc.status) return false;
                     if (fc.tier && fc.tier !== "ALL" && l.tier !== fc.tier) return false;
                     if (fc.owner === "CURRENT_USER" && l.owner !== CURRENT_USER_NAME) return false;
+                    if (fc.owner === "UNASSIGNED" && (l.owner !== null && l.owner !== "")) return false;
                     return true;
                 }).length;
             }
@@ -953,7 +983,7 @@
 
             // Sync controls with criteria
             document.getElementById("leadSearchInput").value = currentCriteria.keyword || "";
-            document.getElementById("filterStatus").value = currentCriteria.status === "ACTIVE" ? "ALL" : currentCriteria.status;
+            document.getElementById("filterStatus").value = currentCriteria.status || "ALL";
             document.getElementById("filterTier").value = currentCriteria.tier || "ALL";
             document.getElementById("filterSource").value = currentCriteria.source || "ALL";
             document.getElementById("filterOwner").value = currentCriteria.owner || "ALL";
@@ -975,8 +1005,8 @@
         if (currentCriteria.keyword) {
             tags.push({ label: `Tìm: "${currentCriteria.keyword}"`, key: "keyword" });
         }
-        if (currentCriteria.status !== "ALL" && currentCriteria.status !== "ACTIVE") {
-            const statusMap = { NEW: "Mới", IN_PROGRESS: "Đang chăm sóc", CONTACTING: "Đang chăm sóc", QUALIFIED: "Đủ điều kiện", CONVERTED: "Đã chuyển đổi", LOST: "Đóng/Mất" };
+        if (currentCriteria.status !== "ALL") {
+            const statusMap = { ACTIVE: "Đang xử lý (Mới & Chờ phản hồi)", NEW: "Mới", PENDING_RESPONSE: "Chờ phản hồi", IN_PROGRESS: "Đang chăm sóc", CONTACTING: "Đang chăm sóc", QUALIFIED: "Đủ điều kiện", CONVERTED: "Đã chuyển đổi", LOST: "Đóng/Mất" };
             tags.push({ label: `Trạng thái: ${statusMap[currentCriteria.status] || currentCriteria.status}`, key: "status" });
         }
         if (currentCriteria.tier !== "ALL") {
@@ -1035,6 +1065,7 @@
                     document.getElementById("filterDateRange").value = "ALL";
                     document.getElementById("customDateRangeWrap").style.display = "none";
                 }
+                activeFilterTabId = null;
                 currentPage = 1;
                 refreshData();
             });
@@ -1088,6 +1119,8 @@
             let statusBadge = "";
             if (lead.status === "NEW") {
                 statusBadge = `<span class="badge-lead-status status-new"><i class="fa-solid fa-sparkles"></i> Mới</span>`;
+            } else if (lead.status === "PENDING_RESPONSE") {
+                statusBadge = `<span class="badge-lead-status status-pending"><i class="fa-solid fa-hourglass-half"></i> Chờ phản hồi</span>`;
             } else if (lead.status === "IN_PROGRESS" || lead.status === "CONTACTING") {
                 statusBadge = `<span class="badge-lead-status status-progress"><i class="fa-solid fa-spinner"></i> Đang chăm sóc</span>`;
             } else if (lead.status === "QUALIFIED") {
@@ -1167,8 +1200,20 @@
                             <button type="button" class="btn-table-icon btn-view-lead" data-lead-id="${lead.id}" title="Xem chi tiết Lead">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
-                            <a href="lead-conversion.html" class="btn-table-icon" title="Chuyển đổi 3-trong-1 (CRM-122)">
-                                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                            ${lead.status === 'CONVERTED' ? `
+                                <span class="btn-table-icon disabled" title="Lead đã chuyển đổi (Chế độ chỉ đọc)" style="opacity:0.45; cursor:not-allowed;">
+                                    <i class="fa-solid fa-lock"></i>
+                                </span>
+                            ` : `
+                                <a href="lead-conversion.html?leadId=${encodeURIComponent(lead.id)}" class="btn-table-icon" title="Chuyển đổi 3-trong-1 (CRM-122)">
+                                    <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                                </a>
+                            `}
+                            <a href="lead-duplicates.html?leadId=${encodeURIComponent(lead.id)}" class="btn-table-icon" title="Kiểm tra trùng lặp & Gộp Lead (CRM-118)">
+                                <i class="fa-solid fa-code-merge"></i>
+                            </a>
+                            <a href="lead-sla-response.html?leadId=${encodeURIComponent(lead.id)}" class="btn-table-icon" title="Tiếp nhận / Phản hồi SLA (CRM-121)">
+                                <i class="fa-solid fa-stopwatch"></i>
                             </a>
                         </div>
                     </td>
@@ -1322,12 +1367,105 @@
         document.getElementById("dtSource").textContent = lead.sourceName || lead.source;
         document.getElementById("dtValue").textContent = `${formatCurrency(lead.estimatedValue)} ₫`;
 
-        document.getElementById("dtStatus").textContent = lead.status;
+        const statusDisplayMap = {
+            NEW: "Mới (New)",
+            PENDING_RESPONSE: "Chờ phản hồi (Pending Response)",
+            IN_PROGRESS: "Đang chăm sóc (In Progress)",
+            QUALIFIED: "Đủ điều kiện (Qualified)",
+            CONVERTED: "Đã chuyển đổi (Converted)",
+            LOST: "Đóng / Mất (Lost)"
+        };
+        document.getElementById("dtStatus").textContent = statusDisplayMap[lead.status] || lead.status;
         document.getElementById("dtOwner").textContent = lead.owner || "Chưa phân bổ";
 
         const slaRemaining = getSlaRemainingText(lead);
         document.getElementById("dtSla").textContent = slaRemaining ? slaRemaining.text : "Không áp dụng";
         document.getElementById("dtNotes").textContent = lead.notes || "Chưa có ghi chú bổ sung.";
+
+        const dtCampaignEl = document.getElementById("dtCampaign");
+        if (dtCampaignEl) dtCampaignEl.textContent = lead.campaignName || lead.campaignTitle || "Không có chiến dịch";
+
+        const isConverted = lead.status === "CONVERTED";
+        const convertedBanner = document.getElementById("dtConvertedBanner");
+        const btnConvert = document.getElementById("btnDetailConvert");
+        const btnDuplicates = document.getElementById("btnDetailDuplicates");
+        const btnAccept = document.getElementById("btnDetailAccept");
+        const btnReject = document.getElementById("btnDetailReject");
+        const rowCust = document.getElementById("rowConvertedCustomer");
+        const rowOpp = document.getElementById("rowConvertedOpportunity");
+
+        if (convertedBanner) convertedBanner.style.display = isConverted ? "inline-flex" : "none";
+        if (btnConvert) {
+            btnConvert.style.display = isConverted ? "none" : "inline-flex";
+            btnConvert.href = `lead-conversion.html?leadId=${encodeURIComponent(lead.id)}`;
+        }
+        if (btnDuplicates) {
+            btnDuplicates.href = `lead-duplicates.html?leadId=${encodeURIComponent(lead.id)}`;
+        }
+
+        if (rowCust) {
+            if (isConverted && (lead.convertedCustomerId || lead.customerId)) {
+                rowCust.style.display = "flex";
+                document.getElementById("dtConvertedCustomer").innerHTML = `<a href="customers.html?id=${lead.convertedCustomerId || lead.customerId}" target="_blank" style="color:var(--crm-primary); text-decoration:underline;">Xem Khách hàng #${lead.convertedCustomerId || lead.customerId}</a>`;
+            } else {
+                rowCust.style.display = "none";
+            }
+        }
+
+        if (rowOpp) {
+            if (isConverted && (lead.convertedOpportunityId || lead.opportunityId)) {
+                rowOpp.style.display = "flex";
+                document.getElementById("dtConvertedOpportunity").innerHTML = `<a href="pipeline.html?id=${lead.convertedOpportunityId || lead.opportunityId}" target="_blank" style="color:var(--crm-primary); text-decoration:underline;">Xem Cơ hội #${lead.convertedOpportunityId || lead.opportunityId}</a>`;
+            } else {
+                rowOpp.style.display = "none";
+            }
+        }
+
+        // Accept / Reject actions
+        if (btnAccept && btnReject) {
+            if (!isConverted && (lead.status === "NEW" || lead.status === "PENDING_RESPONSE")) {
+                btnAccept.style.display = "inline-flex";
+                btnReject.style.display = "inline-flex";
+                btnAccept.onclick = async () => {
+                    btnAccept.disabled = true;
+                    try {
+                        if (window.CrmApi) {
+                            await window.CrmApi.request(`/api/leads/${lead.id}/accept`, { method: "POST" });
+                        }
+                        showToast(`Đã tiếp nhận Lead ${lead.code || lead.id} thành công!`, "success");
+                        closeLeadDetailModal();
+                        await refreshData();
+                    } catch (err) {
+                        showToast(err.message || "Không thể tiếp nhận Lead", "danger");
+                    } finally {
+                        btnAccept.disabled = false;
+                    }
+                };
+                btnReject.onclick = async () => {
+                    const reason = prompt("Nhập lý do từ chối Lead (bắt buộc):", "Không đúng khách hàng mục tiêu");
+                    if (!reason || !reason.trim()) return;
+                    btnReject.disabled = true;
+                    try {
+                        if (window.CrmApi) {
+                            await window.CrmApi.request(`/api/leads/${lead.id}/reject`, {
+                                method: "POST",
+                                body: JSON.stringify({ reason: reason.trim(), details: "Từ chối từ màn hình Quản lý Lead" })
+                            });
+                        }
+                        showToast(`Đã từ chối Lead và chuyển về hàng chờ phân bổ!`, "warning");
+                        closeLeadDetailModal();
+                        await refreshData();
+                    } catch (err) {
+                        showToast(err.message || "Không thể từ chối Lead", "danger");
+                    } finally {
+                        btnReject.disabled = false;
+                    }
+                };
+            } else {
+                btnAccept.style.display = "none";
+                btnReject.style.display = "none";
+            }
+        }
 
         const modal = document.getElementById("leadDetailModal");
         modal.style.display = "flex";
@@ -1465,6 +1603,7 @@
             clearTimeout(searchTimer);
             searchTimer = setTimeout(() => {
                 currentCriteria.keyword = e.target.value.trim();
+                activeFilterTabId = null;
                 currentPage = 1;
                 refreshData();
             }, 300);
@@ -1473,30 +1612,35 @@
         // Dropdown Filters
         document.getElementById("filterStatus").addEventListener("change", (e) => {
             currentCriteria.status = e.target.value;
+            activeFilterTabId = null;
             currentPage = 1;
             refreshData();
         });
 
         document.getElementById("filterTier").addEventListener("change", (e) => {
             currentCriteria.tier = e.target.value;
+            activeFilterTabId = null;
             currentPage = 1;
             refreshData();
         });
 
         document.getElementById("filterSource").addEventListener("change", (e) => {
             currentCriteria.source = e.target.value;
+            activeFilterTabId = null;
             currentPage = 1;
             refreshData();
         });
 
         document.getElementById("filterOwner").addEventListener("change", (e) => {
             currentCriteria.owner = e.target.value;
+            activeFilterTabId = null;
             currentPage = 1;
             refreshData();
         });
 
         document.getElementById("filterDateRange").addEventListener("change", (e) => {
             currentCriteria.dateRange = e.target.value;
+            activeFilterTabId = null;
             const customWrap = document.getElementById("customDateRangeWrap");
             if (e.target.value === "CUSTOM") {
                 customWrap.style.display = "block";

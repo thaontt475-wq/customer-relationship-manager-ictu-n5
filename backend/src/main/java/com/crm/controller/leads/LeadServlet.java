@@ -488,49 +488,11 @@ public class LeadServlet extends HttpServlet {
                 if ("POST".equals(method)) {
                     leads.authorizeCreate(user);
                     JsonObject jsonBody = json(req, 16384);
-                    try {
-                        LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
-                        ResponseUtil.json(resp, 201, ApiResponse.success(
-                                "Tạo Lead thành công",
-                                leads.create(user, writeReq)
-                        ));
-                    } catch (Exception e) {
-                        Lead lead = JsonUtil.getGson().fromJson(jsonBody, Lead.class);
-                        if (lead.getStatus() == null || lead.getStatus().isBlank()) {
-                            lead.setStatus("PENDING_ASSIGNMENT");
-                        }
-                        lead.setCreatedBy(user);
-                        lead.setOwnerUserId(null);
-                        lead.setAssignedTo((Long) null);
-                        lead.setAssignedToUserId(null);
-                        String combined = ((lead.getRegion() != null ? lead.getRegion() : "") + " "
-                                + (lead.getNotes() != null ? lead.getNotes() : "") + " "
-                                + (lead.getCompanyName() != null ? lead.getCompanyName() : "")).toLowerCase();
-                        if (combined.contains("bắc") || combined.contains("hà nội") || combined.contains("hanoi") || combined.contains("hn") || combined.contains("hải phòng")) {
-                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
-                                lead.setRegion("Miền Bắc (Hà Nội)");
-                            }
-                            lead.setRegionCode("NORTH");
-                        } else if (combined.contains("trung") || combined.contains("đà nẵng") || combined.contains("huế")) {
-                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
-                                lead.setRegion("Miền Trung (Đà Nẵng)");
-                            }
-                            lead.setRegionCode("CENTRAL");
-                        } else if (combined.contains("nam") || combined.contains("hồ chí minh") || combined.contains("sài gòn") || combined.contains("cần thơ")) {
-                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
-                                lead.setRegion("Miền Nam (TP.HCM)");
-                            }
-                            lead.setRegionCode("SOUTH");
-                        } else {
-                            if (lead.getRegion() == null || lead.getRegion().isBlank()) {
-                                lead.setRegion("Miền Bắc (Hà Nội)");
-                            }
-                            lead.setRegionCode("NORTH");
-                        }
-                        long newId = dao.insert(lead);
-                        lead.setId(newId);
-                        ResponseUtil.json(resp, 201, ApiResponse.success("Tạo Lead thành công", lead));
-                    }
+                    LeadWriteRequest writeReq = LeadWriteRequest.fromJson(jsonBody);
+                    ResponseUtil.json(resp, 201, ApiResponse.success(
+                            "Tạo Lead thành công",
+                            leads.create(user, writeReq)
+                    ));
                     return;
                 } else if ("GET".equals(method)) {
                     handleLeadList(req, resp, user);
