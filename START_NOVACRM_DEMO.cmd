@@ -1,10 +1,94 @@
 @echo off
+setlocal EnableExtensions
 title NovaCRM Demo
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0tools\demo\start-demo.ps1"
-if errorlevel 1 (
-  echo.
-  echo === KHOI DONG THAT BAI - xem thong bao [FAIL] o tren ===
-  pause
-  exit /b 1
+
+REM 1. Uu tien duong dan Tomcat da duoc cau hinh neu hop le
+set "DEMO_TOMCAT_HOME="
+
+if defined NOVACRM_TOMCAT_HOME if exist "%NOVACRM_TOMCAT_HOME%\bin\catalina.bat" (
+    set "DEMO_TOMCAT_HOME=%NOVACRM_TOMCAT_HOME%"
 )
-ping 127.0.0.1 -n 3 >nul
+
+REM 2. Tim trong thu muc Tools cua user hien tai
+if not defined DEMO_TOMCAT_HOME (
+    if exist "%USERPROFILE%\Tools\apache-tomcat-10.1.60\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=%USERPROFILE%\Tools\apache-tomcat-10.1.60"
+    )
+)
+
+REM 3. Thu duong dan C:\Tools
+if not defined DEMO_TOMCAT_HOME (
+    if exist "C:\Tools\apache-tomcat-10.1.60\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=C:\Tools\apache-tomcat-10.1.60"
+    )
+)
+
+REM 4. Thu duong dan Program Files
+if not defined DEMO_TOMCAT_HOME (
+    if exist "%ProgramFiles%\Apache Software Foundation\Tomcat 10.1\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=%ProgramFiles%\Apache Software Foundation\Tomcat 10.1"
+    )
+)
+if not defined DEMO_TOMCAT_HOME (
+    if exist "%ProgramFiles%\Apache Software Foundation\Tomcat 10.1.60\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=%ProgramFiles%\Apache Software Foundation\Tomcat 10.1.60"
+    )
+)
+
+REM 5. Thu duong dan tools local cua demo (neu da tai truoc do)
+if not defined DEMO_TOMCAT_HOME (
+    if exist "%~dp0..\NovaCRM-Demo-Local\tools\apache-tomcat-10.1.60\bin\catalina.bat" (
+        set "DEMO_TOMCAT_HOME=%~dp0..\NovaCRM-Demo-Local\tools\apache-tomcat-10.1.60"
+    )
+)
+
+if defined DEMO_TOMCAT_HOME (
+    set "NOVACRM_TOMCAT_HOME=%DEMO_TOMCAT_HOME%"
+)
+
+REM Chay tu thu muc chua file CMD
+cd /d "%~dp0"
+set "START_SCRIPT=%~dp0tools\demo\start-demo.ps1"
+
+echo.
+echo ==========================================
+echo              NovaCRM Demo
+echo ==========================================
+echo.
+if defined NOVACRM_TOMCAT_HOME (
+    echo [INFO] Tomcat: %NOVACRM_TOMCAT_HOME%
+) else (
+    echo [INFO] Tomcat: Tu dong tim kiem hoac tai ve boi PowerShell...
+)
+echo.
+
+if not exist "%START_SCRIPT%" (
+    echo [FAIL] Khong tim thay script:
+    echo "%START_SCRIPT%"
+    echo.
+    pause
+    exit /b 1
+)
+
+echo [INFO] Dang khoi dong NovaCRM Demo...
+echo.
+
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%START_SCRIPT%"
+set "RC=%ERRORLEVEL%"
+
+if not "%RC%"=="0" (
+    echo.
+    echo [FAIL] KHOI DONG NOVACRM THAT BAI. Ma loi: %RC%
+    echo.
+    pause
+    exit /b %RC%
+)
+
+echo.
+echo [OK] LENH KHOI DONG NOVACRM DA HOAN TAT
+echo URL: http://localhost:8090/crm/login.html
+echo.
+
+timeout /t 2 /nobreak >nul
+pause
+exit /b 0

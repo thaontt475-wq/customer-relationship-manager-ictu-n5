@@ -16,20 +16,23 @@ CREATE TABLE IF NOT EXISTS leads (
     company_name VARCHAR(255) NULL,
     email VARCHAR(255) NULL,
     phone VARCHAR(50) NULL,
-    source_id BIGINT NULL,
-    source VARCHAR(50) NULL DEFAULT 'WEB_FORM',
+    source_id BIGINT NOT NULL,
     notes VARCHAR(2000) NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'NEW',
-    assigned_to VARCHAR(50) NULL,
-    owner_user_id BIGINT NULL,
-    created_by BIGINT NULL,
+    owner_user_id BIGINT NOT NULL,
+    created_by BIGINT NOT NULL,
     import_batch_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_leads_owner_created (owner_user_id, created_at),
     KEY idx_leads_source (source_id),
     KEY idx_leads_email (email),
-    CONSTRAINT fk_leads_batch FOREIGN KEY (import_batch_hash) REFERENCES lead_import_batches(token_hash)
+    KEY idx_leads_phone (phone),
+    CONSTRAINT fk_leads_source FOREIGN KEY (source_id) REFERENCES master_data(id),
+    CONSTRAINT fk_leads_owner FOREIGN KEY (owner_user_id) REFERENCES users(id),
+    CONSTRAINT fk_leads_creator FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_leads_batch FOREIGN KEY (import_batch_hash) REFERENCES lead_import_batches(token_hash),
+    CONSTRAINT chk_leads_contact CHECK (email IS NOT NULL OR phone IS NOT NULL)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT IGNORE INTO master_data(type,code,name,active) VALUES
